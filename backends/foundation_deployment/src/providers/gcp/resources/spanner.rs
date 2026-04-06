@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Message sent by the client to the adapter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptMessageRequest {
     /// Optional. Opaque request state passed by the client to the server.
     #[serde(default)]
@@ -25,7 +26,7 @@ pub struct AdaptMessageRequest {
 }
 
 /// Message sent by the adapter to the client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptMessageResponse {
     /// Optional. Indicates whether this is the last AdaptMessageResponse in the stream. This field may be optionally set by the server. Clients should not rely on this field being set in all cases.
     #[serde(default)]
@@ -39,7 +40,7 @@ pub struct AdaptMessageResponse {
 }
 
 /// A session in the Cloud Spanner Adapter API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdapterSession {
     /// Identifier. The name of the session. This is always system-assigned.
     #[serde(default)]
@@ -47,7 +48,7 @@ pub struct AdapterSession {
 }
 
 /// The request for AddSplitPoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddSplitPointsRequest {
     /// Optional. A user-supplied tag associated with the split points. For example, "initial_data_load", "special_event_1". Defaults to "CloudAddSplitPointsAPI" if not specified. The length of the tag must not exceed 50 characters, or else it is trimmed. Only valid UTF8 characters are allowed.
     #[serde(default)]
@@ -58,11 +59,11 @@ pub struct AddSplitPointsRequest {
 }
 
 /// The response for AddSplitPoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddSplitPointsResponse {}
 
 /// The request for BatchCreateSessions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreateSessionsRequest {
     /// Required. The number of sessions to be created in this batch call. At least one session is created. The API can return fewer than the requested number of sessions. If a specific number of sessions are desired, the client can make additional calls to BatchCreateSessions (adjusting session_count as necessary).
     #[serde(default, rename = "sessionCount")]
@@ -73,7 +74,7 @@ pub struct BatchCreateSessionsRequest {
 }
 
 /// The response for BatchCreateSessions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreateSessionsResponse {
     /// The freshly created sessions.
     #[serde(default)]
@@ -81,7 +82,7 @@ pub struct BatchCreateSessionsResponse {
 }
 
 /// The request for BatchWrite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchWriteRequest {
     /// Optional. If you don''t set the exclude_txn_from_change_streams option or if it''s set to false, then any change streams monitoring columns modified by transactions will capture the updates made within that transaction.
     #[serde(default, rename = "excludeTxnFromChangeStreams")]
@@ -95,7 +96,7 @@ pub struct BatchWriteRequest {
 }
 
 /// The result of applying a batch of mutations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchWriteResponse {
     /// The commit timestamp of the transaction that applied this batch. Present if status is OK and the mutation groups were applied, absent otherwise. For mutation groups with conditions, a status=OK and missing commit_timestamp means that the mutation groups were not applied due to the condition not being satisfied after evaluation.
     #[serde(default, rename = "commitTimestamp")]
@@ -109,7 +110,7 @@ pub struct BatchWriteResponse {
 }
 
 /// The request for BeginTransaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BeginTransactionRequest {
     /// Optional. Required for read-write transactions on a multiplexed session that commit mutations but don''t perform any reads or queries. You must randomly select one of the mutations from the mutation set and send it as a part of this request.
     #[serde(default, rename = "mutationKey")]
@@ -123,7 +124,7 @@ pub struct BeginTransactionRequest {
 }
 
 /// Metadata type for the long-running operation returned by ChangeQuorum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChangeQuorumMetadata {
     /// If set, the time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
@@ -137,7 +138,7 @@ pub struct ChangeQuorumMetadata {
 }
 
 /// Spanner Change Streams enable customers to capture and stream out changes to their Spanner databases in real-time. A change stream can be created with option partition_mode=''IMMUTABLE_KEY_RANGE'' or partition_mode=''MUTABLE_KEY_RANGE''. This message is only used in Change Streams created with the option partition_mode=''MUTABLE_KEY_RANGE''. Spanner automatically creates a special Table-Valued Function (TVF) along with each Change Streams. The function provides access to the change stream''s records. The function is named READ_ (where is the name of the change stream), and it returns a table with only one column called ChangeRecord.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChangeStreamRecord {
     /// Data change record describing a data change for a change stream partition.
     #[serde(default, rename = "dataChangeRecord")]
@@ -157,7 +158,7 @@ pub struct ChangeStreamRecord {
 }
 
 /// The request for Commit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitRequest {
     /// Optional. The amount of latency this request is configured to incur in order to improve throughput. If this field isn''t set, Spanner assumes requests are relatively latency sensitive and automatically determines an appropriate delay time. You can specify a commit delay value between 0 and 500 ms.
     #[serde(default, rename = "maxCommitDelay")]
@@ -183,7 +184,7 @@ pub struct CommitRequest {
 }
 
 /// The response for Commit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitResponse {
     /// The statistics about this Commit. Not returned by default. For more information, see CommitRequest.return_commit_stats.
     #[serde(default, rename = "commitStats")]
@@ -200,7 +201,7 @@ pub struct CommitResponse {
 }
 
 /// Metadata type for the long-running operation returned by CALL compact_all(), which can be executed using ExecuteSql or ExecuteStreamingSql APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompactDatabaseMetadata {
     /// Output only. The time at which cancellation of this operation was received. Operations.CancelOperation starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelTime")]
@@ -214,7 +215,7 @@ pub struct CompactDatabaseMetadata {
 }
 
 /// Metadata type for the operation returned by CopyBackup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CopyBackupMetadata {
     /// The time at which cancellation of CopyBackup operation was received. Operations.CancelOperation starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelTime")]
@@ -231,7 +232,7 @@ pub struct CopyBackupMetadata {
 }
 
 /// The request for CopyBackup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CopyBackupRequest {
     /// Required. The id of the backup copy. The backup_id appended to parent forms the full backup_uri of the form projects//instances//backups/.
     #[serde(default, rename = "backupId")]
@@ -248,7 +249,7 @@ pub struct CopyBackupRequest {
 }
 
 /// Metadata type for the operation returned by CreateBackup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateBackupMetadata {
     /// The time at which cancellation of this operation was received. Operations.CancelOperation starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
     #[serde(default, rename = "cancelTime")]
@@ -265,7 +266,7 @@ pub struct CreateBackupMetadata {
 }
 
 /// Metadata type for the operation returned by CreateDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateDatabaseMetadata {
     /// The database being created.
     #[serde(default)]
@@ -273,7 +274,7 @@ pub struct CreateDatabaseMetadata {
 }
 
 /// The request for CreateDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateDatabaseRequest {
     /// Required. A CREATE DATABASE statement, which specifies the ID of the new database. The database ID must conform to the regular expression a-z*[a-z0-9] and be between 2 and 30 characters in length. If the database ID is a reserved word or if it contains a hyphen, the database ID must be enclosed in backticks (  ).
     #[serde(default, rename = "createStatement")]
@@ -293,7 +294,7 @@ pub struct CreateDatabaseRequest {
 }
 
 /// Metadata type for the operation returned by CreateInstanceConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateInstanceConfigMetadata {
     /// The time at which this operation was cancelled.
     #[serde(default, rename = "cancelTime")]
@@ -307,7 +308,7 @@ pub struct CreateInstanceConfigMetadata {
 }
 
 /// The request for CreateInstanceConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateInstanceConfigRequest {
     /// Required. The InstanceConfig proto of the configuration to create. instance_config.name must be /instanceConfigs/. instance_config.base_config must be a Google-managed configuration name, e.g. /instanceConfigs/us-east1, /instanceConfigs/nam3.
     #[serde(default, rename = "instanceConfig")]
@@ -321,7 +322,7 @@ pub struct CreateInstanceConfigRequest {
 }
 
 /// Metadata type for the operation returned by CreateInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateInstanceMetadata {
     /// The time at which this operation was cancelled. If set, this operation is in the process of undoing itself (which is guaranteed to succeed) and cannot be cancelled again.
     #[serde(default, rename = "cancelTime")]
@@ -341,7 +342,7 @@ pub struct CreateInstanceMetadata {
 }
 
 /// Metadata type for the operation returned by CreateInstancePartition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateInstancePartitionMetadata {
     /// The time at which this operation was cancelled. If set, this operation is in the process of undoing itself (which is guaranteed to succeed) and cannot be cancelled again.
     #[serde(default, rename = "cancelTime")]
@@ -358,7 +359,7 @@ pub struct CreateInstancePartitionMetadata {
 }
 
 /// The request for CreateInstancePartition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateInstancePartitionRequest {
     /// Required. The instance partition to create. The instance_partition.name may be omitted, but if specified must be /instancePartitions/.
     #[serde(default, rename = "instancePartition")]
@@ -369,7 +370,7 @@ pub struct CreateInstancePartitionRequest {
 }
 
 /// The request for CreateInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateInstanceRequest {
     /// Required. The instance to create. The name may be omitted, but if specified must be /instances/.
     #[serde(default)]
@@ -380,7 +381,7 @@ pub struct CreateInstanceRequest {
 }
 
 /// The request for CreateSession.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateSessionRequest {
     /// Required. The session to create.
     #[serde(default)]
@@ -388,15 +389,15 @@ pub struct CreateSessionRequest {
 }
 
 /// Message type for a dual-region quorum. Currently this type has no options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DualRegionQuorum {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The request for ExecuteBatchDml.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteBatchDmlRequest {
     /// Optional. If set to true, this request marks the end of the transaction. After these statements execute, you must commit or abort the transaction. Attempts to execute any other requests against this transaction (including reads and queries) are rejected. Setting this option might cause some error reporting to be deferred until commit time (for example, validation of unique constraints). Given this, successful execution of statements shouldn''t be assumed until a subsequent Commit call completes successfully.
     #[serde(default, rename = "lastStatements")]
@@ -416,7 +417,7 @@ pub struct ExecuteBatchDmlRequest {
 }
 
 /// The response for ExecuteBatchDml. Contains a list of ResultSet messages, one for each DML statement that has successfully executed, in the same order as the statements in the request. If a statement fails, the status in the response body identifies the cause of the failure. To check for DML statements that failed, use the following approach: 1. Check the status in the response message. The google.rpc.Code enum value OK indicates that all statements were executed successfully. 2. If the status was not OK, check the number of result sets in the response. If the response contains N ResultSet messages, then statement N+1 in the request failed. Example 1: * Request: 5 DML statements, all executed successfully. * Response: 5 ResultSet messages, with the status OK. Example 2: * Request: 5 DML statements. The third statement has a syntax error. * Response: 2 ResultSet messages, and a syntax error (INVALID_ARGUMENT) status. The number of ResultSet messages indicates that the third statement failed, and the fourth and fifth statements were not executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteBatchDmlResponse {
     /// Optional. A precommit token is included if the read-write transaction is on a multiplexed session. Pass the precommit token with the highest sequence number from this transaction attempt should be passed to the Commit request for this transaction.
     #[serde(default, rename = "precommitToken")]
@@ -430,7 +431,7 @@ pub struct ExecuteBatchDmlResponse {
 }
 
 /// The request for ExecuteSql and ExecuteStreamingSql.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteSqlRequest {
     /// If this is for a partitioned query and this field is set to true, the request is executed with Spanner Data Boost independent compute resources. If the field is set to true but the request doesn''t set partition_token, the API returns an INVALID_ARGUMENT error.
     #[serde(default, rename = "dataBoostEnabled")]
@@ -474,11 +475,11 @@ pub struct ExecuteSqlRequest {
 }
 
 /// The specification for full backups. A full backup stores the entire contents of the database at a given version time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FullBackupSpec {}
 
 /// The response for GetDatabaseDdl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetDatabaseDdlResponse {
     /// Proto descriptors stored in the database. Contains a protobuf-serialized [google.protobuf.FileDescriptorSet](https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/descriptor.proto). For more details, see protobuffer [self description](https://developers.google.com/protocol-buffers/docs/techniques#self-description).
     #[serde(default, rename = "protoDescriptors")]
@@ -489,7 +490,7 @@ pub struct GetDatabaseDdlResponse {
 }
 
 /// Request message for GetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
@@ -497,11 +498,11 @@ pub struct GetIamPolicyRequest {
 }
 
 /// The specification for incremental backup chains. An incremental backup stores the delta of changes between a previous backup and the database contents at a given version time. An incremental backup chain consists of a full backup and zero or more successive incremental backups. The first backup created for an incremental backup chain is always a full backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IncrementalBackupSpec {}
 
 /// A message representing a (sparse) collection of hot keys for specific key buckets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IndexedHotKey {
     /// A (sparse) mapping from key bucket index to the index of the specific hot row key for that key bucket. The index of the hot row key can be translated to the actual row key via the ScanData.VisualizationData.indexed_keys repeated field.
     #[serde(default, rename = "sparseHotKeys")]
@@ -509,7 +510,7 @@ pub struct IndexedHotKey {
 }
 
 /// A message representing a (sparse) collection of KeyRangeInfos for specific key buckets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IndexedKeyRangeInfos {
     /// A (sparse) mapping from key bucket index to the KeyRangeInfos for that key bucket.
     #[serde(default, rename = "keyRangeInfos")]
@@ -517,7 +518,7 @@ pub struct IndexedKeyRangeInfos {
 }
 
 /// A message representing a list of specific information for multiple key ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyRangeInfos {
     /// The list individual KeyRangeInfos.
     #[serde(default)]
@@ -528,7 +529,7 @@ pub struct KeyRangeInfos {
 }
 
 /// The response for ListBackupOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupOperationsResponse {
     /// next_page_token can be sent in a subsequent ListBackupOperations call to fetch more of the matching metadata.
     #[serde(default, rename = "nextPageToken")]
@@ -539,7 +540,7 @@ pub struct ListBackupOperationsResponse {
 }
 
 /// The response for ListBackupSchedules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupSchedulesResponse {
     /// The list of backup schedules for a database.
     #[serde(default, rename = "backupSchedules")]
@@ -550,7 +551,7 @@ pub struct ListBackupSchedulesResponse {
 }
 
 /// The response for ListBackups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupsResponse {
     /// The list of matching backups. Backups returned are ordered by create_time in descending order, starting from the most recent create_time.
     #[serde(default)]
@@ -561,7 +562,7 @@ pub struct ListBackupsResponse {
 }
 
 /// The response for ListDatabaseOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatabaseOperationsResponse {
     /// next_page_token can be sent in a subsequent ListDatabaseOperations call to fetch more of the matching metadata.
     #[serde(default, rename = "nextPageToken")]
@@ -572,7 +573,7 @@ pub struct ListDatabaseOperationsResponse {
 }
 
 /// The response for ListDatabaseRoles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatabaseRolesResponse {
     /// Database roles that matched the request.
     #[serde(default, rename = "databaseRoles")]
@@ -583,7 +584,7 @@ pub struct ListDatabaseRolesResponse {
 }
 
 /// The response for ListDatabases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatabasesResponse {
     /// Databases that matched the request.
     #[serde(default)]
@@ -594,7 +595,7 @@ pub struct ListDatabasesResponse {
 }
 
 /// The response for ListInstanceConfigOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstanceConfigOperationsResponse {
     /// next_page_token can be sent in a subsequent ListInstanceConfigOperations call to fetch more of the matching metadata.
     #[serde(default, rename = "nextPageToken")]
@@ -605,7 +606,7 @@ pub struct ListInstanceConfigOperationsResponse {
 }
 
 /// The response for ListInstanceConfigs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstanceConfigsResponse {
     /// The list of requested instance configurations.
     #[serde(default, rename = "instanceConfigs")]
@@ -616,7 +617,7 @@ pub struct ListInstanceConfigsResponse {
 }
 
 /// The response for ListInstancePartitionOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancePartitionOperationsResponse {
     /// next_page_token can be sent in a subsequent ListInstancePartitionOperations call to fetch more of the matching metadata.
     #[serde(default, rename = "nextPageToken")]
@@ -630,7 +631,7 @@ pub struct ListInstancePartitionOperationsResponse {
 }
 
 /// The response for ListInstancePartitions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancePartitionsResponse {
     /// The list of requested instancePartitions.
     #[serde(default, rename = "instancePartitions")]
@@ -644,7 +645,7 @@ pub struct ListInstancePartitionsResponse {
 }
 
 /// The response for ListInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancesResponse {
     /// The list of requested instances.
     #[serde(default)]
@@ -658,7 +659,7 @@ pub struct ListInstancesResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -672,7 +673,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response method from the ListScans method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListScansResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -683,7 +684,7 @@ pub struct ListScansResponse {
 }
 
 /// The response for ListSessions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSessionsResponse {
     /// next_page_token can be sent in a subsequent ListSessions call to fetch more of the matching sessions.
     #[serde(default, rename = "nextPageToken")]
@@ -694,7 +695,7 @@ pub struct ListSessionsResponse {
 }
 
 /// A message representing a user-facing string whose value may need to be translated before being displayed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedString {
     /// A map of arguments used when creating the localized message. Keys represent parameter names which may be used by the localized version when substituting dynamic values.
     #[serde(default)]
@@ -708,7 +709,7 @@ pub struct LocalizedString {
 }
 
 /// The request for MoveInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveInstanceRequest {
     /// Required. The target instance configuration where to move the instance. Values are of the form projects//instanceConfigs/.
     #[serde(default, rename = "targetConfig")]
@@ -719,7 +720,7 @@ pub struct MoveInstanceRequest {
 }
 
 /// Metadata type for the long-running operation used to track the progress of optimizations performed on a newly restored database. This long-running operation is automatically created by the system after the successful completion of a database restore, and cannot be cancelled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OptimizeRestoredDatabaseMetadata {
     /// Name of the restored database being optimized.
     #[serde(default)]
@@ -730,7 +731,7 @@ pub struct OptimizeRestoredDatabaseMetadata {
 }
 
 /// Partial results from a streaming read or SQL query. Streaming reads and SQL queries better tolerate large result sets, large rows, and large values, but are a little trickier to consume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartialResultSet {
     /// If true, then the final value in values is chunked, and must be combined with more values from subsequent PartialResultSets to obtain a complete field value.
     #[serde(default, rename = "chunkedValue")]
@@ -756,7 +757,7 @@ pub struct PartialResultSet {
 }
 
 /// The request for PartitionQuery
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionQueryRequest {
     /// Optional. It isn''t always possible for Cloud Spanner to infer the right SQL type from a JSON value. For example, values of type BYTES and values of type STRING both appear in params as JSON strings. In these cases, param_types can be used to specify the exact SQL type for some or all of the SQL query parameters. See the definition of Type for more information about SQL types.
     #[serde(default, rename = "paramTypes")]
@@ -776,7 +777,7 @@ pub struct PartitionQueryRequest {
 }
 
 /// The request for PartitionRead
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionReadRequest {
     /// The columns of table to be returned for each row matching this request.
     #[serde(default)]
@@ -799,7 +800,7 @@ pub struct PartitionReadRequest {
 }
 
 /// The response for PartitionQuery or PartitionRead
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionResponse {
     /// Partitions created by this request.
     #[serde(default)]
@@ -810,11 +811,11 @@ pub struct PartitionResponse {
 }
 
 /// Message type to initiate a Partitioned DML transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionedDml {}
 
 /// The request for Read and StreamingRead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadRequest {
     /// Required. The columns of table to be returned for each row matching this request.
     #[serde(default)]
@@ -858,7 +859,7 @@ pub struct ReadRequest {
 }
 
 /// Metadata type for the long-running operation returned by RestoreDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreDatabaseMetadata {
     /// Information about the backup used to restore the database.
     #[serde(default, rename = "backupInfo")]
@@ -881,7 +882,7 @@ pub struct RestoreDatabaseMetadata {
 }
 
 /// The request for RestoreDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreDatabaseRequest {
     /// Name of the backup from which to restore. Values are of the form projects//instances//backups/.
     #[serde(default)]
@@ -895,7 +896,7 @@ pub struct RestoreDatabaseRequest {
 }
 
 /// The request for Rollback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackRequest {
     /// Required. The transaction to roll back.
     #[serde(default, rename = "transactionId")]
@@ -903,7 +904,7 @@ pub struct RollbackRequest {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -911,7 +912,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// REQUIRED: The set of permissions to check for ''resource''. Permissions with wildcards (such as ''*'', ''spanner.*'', ''spanner.instances.*'') are not allowed.
     #[serde(default)]
@@ -919,7 +920,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -927,7 +928,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Metadata type for the operation returned by UpdateDatabaseDdl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateDatabaseDdlMetadata {
     /// The brief action info for the DDL statements. actions[i] is the brief info for statements[i].
     #[serde(default)]
@@ -950,7 +951,7 @@ pub struct UpdateDatabaseDdlMetadata {
 }
 
 /// Enqueues the given DDL statements to be applied, in order but not necessarily all at once, to the database schema at some point (or points) in the future. The server checks that the statements are executable (syntactically valid, name tables that exist, etc.) before enqueueing them, but they may still fail upon later execution (for example, if a statement from another batch of statements is applied first and it conflicts in some way, or if there is some data-related problem like a NULL value in a column to which NOT NULL would be added). If a statement fails, all subsequent statements in the batch are automatically cancelled. Each batch of statements is assigned a name which can be used with the Operations API to monitor progress. See the operation_id field for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateDatabaseDdlRequest {
     /// If empty, the new update request is assigned an automatically-generated operation ID. Otherwise, operation_id is used to construct the name of the resulting Operation. Specifying an explicit operation ID simplifies determining whether the statements were executed in the event that the UpdateDatabaseDdl call is replayed, or the return value is otherwise lost: the database and operation_id fields can be combined to form the name of the resulting longrunning.Operation: /operations/. operation_id should be unique within the database, and must be a valid identifier: a-z*. Note that automatically-generated operation IDs always begin with an underscore. If the named operation already exists, UpdateDatabaseDdl returns ALREADY_EXISTS.
     #[serde(default, rename = "operationId")]
@@ -964,7 +965,7 @@ pub struct UpdateDatabaseDdlRequest {
 }
 
 /// Metadata type for the operation returned by UpdateDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateDatabaseMetadata {
     /// The time at which this operation was cancelled. If set, this operation is in the process of undoing itself (which is best-effort).
     #[serde(default, rename = "cancelTime")]
@@ -978,7 +979,7 @@ pub struct UpdateDatabaseMetadata {
 }
 
 /// Metadata type for the operation returned by UpdateInstanceConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateInstanceConfigMetadata {
     /// The time at which this operation was cancelled.
     #[serde(default, rename = "cancelTime")]
@@ -992,7 +993,7 @@ pub struct UpdateInstanceConfigMetadata {
 }
 
 /// The request for UpdateInstanceConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateInstanceConfigRequest {
     /// Required. The user instance configuration to update, which must always include the instance configuration name. Otherwise, only fields mentioned in update_mask need be included. To prevent conflicts of concurrent updates, etag can be used.
     #[serde(default, rename = "instanceConfig")]
@@ -1006,7 +1007,7 @@ pub struct UpdateInstanceConfigRequest {
 }
 
 /// Metadata type for the operation returned by UpdateInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateInstanceMetadata {
     /// The time at which this operation was cancelled. If set, this operation is in the process of undoing itself (which is guaranteed to succeed) and cannot be cancelled again.
     #[serde(default, rename = "cancelTime")]
@@ -1026,7 +1027,7 @@ pub struct UpdateInstanceMetadata {
 }
 
 /// Metadata type for the operation returned by UpdateInstancePartition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateInstancePartitionMetadata {
     /// The time at which this operation was cancelled. If set, this operation is in the process of undoing itself (which is guaranteed to succeed) and cannot be cancelled again.
     #[serde(default, rename = "cancelTime")]
@@ -1043,7 +1044,7 @@ pub struct UpdateInstancePartitionMetadata {
 }
 
 /// The request for UpdateInstancePartition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateInstancePartitionRequest {
     /// Required. A mask specifying which fields in InstancePartition should be updated. The field mask must always be specified; this prevents any future fields in InstancePartition from being erased accidentally by clients that do not know about them.
     #[serde(default, rename = "fieldMask")]
@@ -1054,7 +1055,7 @@ pub struct UpdateInstancePartitionRequest {
 }
 
 /// The request for UpdateInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateInstanceRequest {
     /// Required. A mask specifying which fields in Instance should be updated. The field mask must always be specified; this prevents any future fields in Instance from being erased accidentally by clients that do not know about them.
     #[serde(default, rename = "fieldMask")]
@@ -1065,7 +1066,7 @@ pub struct UpdateInstanceRequest {
 }
 
 /// The split points of a table or an index.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SplitPoints {
     /// Optional. The expiration timestamp of the split points. A timestamp in the past means immediate expiration. The maximum value can be 30 days in the future. Defaults to 10 days in the future if not specified.
     #[serde(default, rename = "expireTime")]
@@ -1082,7 +1083,7 @@ pub struct SplitPoints {
 }
 
 /// A group of mutations to be committed together. Related mutations should be placed in a group. For example, two mutations inserting rows with the same primary key prefix in both parent and child tables are related.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MutationGroup {
     /// Required. The mutations in this group.
     #[serde(default)]
@@ -1090,7 +1091,7 @@ pub struct MutationGroup {
 }
 
 /// The request for ChangeQuorum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChangeQuorumRequest {
     /// Optional. The etag is the hash of the QuorumInfo. The ChangeQuorum operation is only performed if the etag matches that of the QuorumInfo in the current database resource. Otherwise the API returns an ABORTED error. The etag is used for optimistic concurrency control as a way to help prevent simultaneous change quorum requests that could create a race condition.
     #[serde(default)]
@@ -1104,7 +1105,7 @@ pub struct ChangeQuorumRequest {
 }
 
 /// A data change record contains a set of changes to a table with the same modification type (insert, update, or delete) committed at the same commit timestamp in one change stream partition for the same transaction. Multiple data change records can be returned for the same transaction across multiple change stream partitions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataChangeRecord {
     /// Provides metadata describing the columns associated with the mods listed below.
     #[serde(default, rename = "columnMetadata")]
@@ -1148,7 +1149,7 @@ pub struct DataChangeRecord {
 }
 
 /// A heartbeat record is returned as a progress indicator, when there are no data changes or any other partition record types in the change stream partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeartbeatRecord {
     /// Indicates the timestamp at which the query has returned all the records in the change stream partition with timestamp &lt;= heartbeat timestamp. The heartbeat timestamp will not be the same as the timestamps of other record types in the same partition.
     #[serde(default)]
@@ -1156,7 +1157,7 @@ pub struct HeartbeatRecord {
 }
 
 /// A partition end record serves as a notification that the client should stop reading the partition. No further records are expected to be retrieved on it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionEndRecord {
     /// End timestamp at which the change stream partition is terminated. All changes generated by this partition will have timestamps &lt;= end_timestamp. DataChangeRecord.commit_timestamps, PartitionStartRecord.start_timestamps, PartitionEventRecord.commit_timestamps, and PartitionEndRecord.end_timestamps can have the same value in the same partition. PartitionEndRecord is the last record returned for a partition.
     #[serde(default, rename = "endTimestamp")]
@@ -1170,7 +1171,7 @@ pub struct PartitionEndRecord {
 }
 
 /// A partition event record describes key range changes for a change stream partition. The changes to a row defined by its primary key can be captured in one change stream partition for a specific time range, and then be captured in a different change stream partition for a different time range. This movement of key ranges across change stream partitions is a reflection of activities, such as Spanner''s dynamic splitting and load balancing, etc. Processing this event is needed if users want to guarantee processing of the changes for any key in timestamp order. If time ordered processing of changes for a primary key is not needed, this event can be ignored. To guarantee time ordered processing for each primary key, if the event describes move-ins, the reader of this partition needs to wait until the readers of the source partitions have processed all records with timestamps &lt;= this PartitionEventRecord.commit_timestamp, before advancing beyond this PartitionEventRecord. If the event describes move-outs, the reader can notify the readers of the destination partitions that they can continue processing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionEventRecord {
     /// Indicates the commit timestamp at which the key range change occurred. DataChangeRecord.commit_timestamps, PartitionStartRecord.start_timestamps, PartitionEventRecord.commit_timestamps, and PartitionEndRecord.end_timestamps can have the same value in the same partition.
     #[serde(default, rename = "commitTimestamp")]
@@ -1190,7 +1191,7 @@ pub struct PartitionEventRecord {
 }
 
 /// A partition start record serves as a notification that the client should schedule the partitions to be queried. PartitionStartRecord returns information about one or more partitions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionStartRecord {
     /// Unique partition identifiers to be used in queries.
     #[serde(default, rename = "partitionTokens")]
@@ -1204,7 +1205,7 @@ pub struct PartitionStartRecord {
 }
 
 /// Additional statistics about a commit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitStats {
     /// The total number of mutations for the transaction. Knowing the mutation_count value can help you maximize the number of mutations in a transaction and minimize the number of API round trips. You can also monitor this value to prevent transactions from exceeding the system [limit](https://cloud.google.com/spanner/quotas#limits_for_creating_reading_updating_and_deleting_data). If the number of mutations exceeds the limit, the server returns [INVALID_ARGUMENT](https://cloud.google.com/spanner/docs/reference/rest/v1/Code#ENUM_VALUES.INVALID_ARGUMENT).
     #[serde(default, rename = "mutationCount")]
@@ -1212,7 +1213,7 @@ pub struct CommitStats {
 }
 
 /// Encryption configuration for the copied backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CopyBackupEncryptionConfig {
     /// Required. The encryption type of the backup. // TODO: enum values: ["ENCRYPTION_TYPE_UNSPECIFIED", "USE_CONFIG_DEFAULT_OR_BACKUP_ENCRYPTION", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
     #[serde(default, rename = "encryptionType")]
@@ -1226,7 +1227,7 @@ pub struct CopyBackupEncryptionConfig {
 }
 
 /// A single DML statement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Statement {
     /// It isn''t always possible for Cloud Spanner to infer the right SQL type from a JSON value. For example, values of type BYTES and values of type STRING both appear in params as JSON strings. In these cases, param_types can be used to specify the exact SQL type for some or all of the SQL statement parameters. See the definition of Type for more information about SQL types.
     #[serde(default, rename = "paramTypes")]
@@ -1240,7 +1241,7 @@ pub struct Statement {
 }
 
 /// Results from Read or ExecuteSql.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultSet {
     /// Metadata about the result set, such as row type information.
     #[serde(default)]
@@ -1257,7 +1258,7 @@ pub struct ResultSet {
 }
 
 /// Query optimizer configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryOptions {
     /// An option to control the selection of optimizer statistics package. This parameter allows individual queries to use a different query optimizer statistics package. Specifying latest as a value instructs Cloud Spanner to use the latest generated statistics package. If not specified, Cloud Spanner uses the statistics package set at the database level options, or the latest package if the database option isn''t set. The statistics package requested by the query has to be exempt from garbage collection. This can be achieved with the following DDL statement: sql ALTER STATISTICS SET OPTIONS (allow_gc=false)  The list of available statistics packages can be queried from INFORMATION_SCHEMA.SPANNER_STATISTICS. Executing a SQL statement with an invalid optimizer statistics package or with a statistics package that allows garbage collection fails with an INVALID_ARGUMENT error.
     #[serde(default, rename = "optimizerStatisticsPackage")]
@@ -1268,7 +1269,7 @@ pub struct QueryOptions {
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
@@ -1276,7 +1277,7 @@ pub struct GetPolicyOptions {
 }
 
 /// A message representing information for a key range (possibly one key).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyRangeInfo {
     /// The list of context values for this key range.
     #[serde(default, rename = "contextValues")]
@@ -1308,7 +1309,7 @@ pub struct KeyRangeInfo {
 }
 
 /// BackupSchedule expresses the automated backup creation specification for a Spanner database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupSchedule {
     /// Optional. The encryption configuration that is used to encrypt the backup. If this field is not specified, the backup uses the same encryption configuration as the database.
     #[serde(default, rename = "encryptionConfig")]
@@ -1334,7 +1335,7 @@ pub struct BackupSchedule {
 }
 
 /// A backup of a Cloud Spanner database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Backup {
     /// Output only. List of backup schedule URIs that are associated with creating this backup. This is only applicable for scheduled backups, and is empty for on-demand backups. To optimize for storage, whenever possible, multiple schedules are collapsed together to create one backup. In such cases, this field captures the list of all backup schedule URIs that are associated with creating this backup. If collapsing is not done, then this field captures the single backup schedule URI associated with creating this backup.
     #[serde(default, rename = "backupSchedules")]
@@ -1399,7 +1400,7 @@ pub struct Backup {
 }
 
 /// A Cloud Spanner database role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseRole {
     /// Required. The name of the database role. Values are of the form projects//instances//databases//databaseRoles/ where  is as specified in the CREATE ROLE DDL statement.
     #[serde(default)]
@@ -1407,7 +1408,7 @@ pub struct DatabaseRole {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1427,7 +1428,7 @@ pub struct Operation {
 }
 
 /// Scan is a structure which describes Cloud Key Visualizer scan information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Scan {
     /// Additional information provided by the implementer.
     #[serde(default)]
@@ -1447,7 +1448,7 @@ pub struct Scan {
 }
 
 /// A session in the Cloud Spanner API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Session {
     /// Output only. The approximate timestamp when the session is last used. It''s typically earlier than the actual last use time.
     #[serde(default, rename = "approximateLastUseTime")]
@@ -1470,7 +1471,7 @@ pub struct Session {
 }
 
 /// The configuration for each database in the target instance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseMoveConfig {
     /// Required. The unique identifier of the database resource in the Instance. For example, if the database uri is projects/foo/instances/bar/databases/baz, then the id to supply here is baz.
     #[serde(default, rename = "databaseId")]
@@ -1481,7 +1482,7 @@ pub struct DatabaseMoveConfig {
 }
 
 /// Options for a PartitionQueryRequest and PartitionReadRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionOptions {
     /// **Note:** This hint is currently ignored by PartitionQuery and PartitionRead requests. The desired maximum number of partitions to return. For example, this might be set to the number of workers available. The default for this option is currently 10,000. The maximum value is currently 200,000. This is only a hint. The actual number of partitions returned can be smaller or larger than this maximum count request.
     #[serde(default, rename = "maxPartitions")]
@@ -1492,7 +1493,7 @@ pub struct PartitionOptions {
 }
 
 /// Information returned for each partition returned in a PartitionResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Partition {
     /// This token can be passed to Read, StreamingRead, ExecuteSql, or ExecuteStreamingSql requests to restrict the results to those identified by this partition token.
     #[serde(default, rename = "partitionToken")]
@@ -1500,7 +1501,7 @@ pub struct Partition {
 }
 
 /// The DirectedReadOptions can be used to indicate which replicas or regions should be used for non-transactional reads or queries. DirectedReadOptions can only be specified for a read-only transaction, otherwise the API returns an INVALID_ARGUMENT error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DirectedReadOptions {
     /// Exclude_replicas indicates that specified replicas should be excluded from serving requests. Spanner doesn''t route requests to the replicas in this list.
     #[serde(default, rename = "excludeReplicas")]
@@ -1511,7 +1512,7 @@ pub struct DirectedReadOptions {
 }
 
 /// Common request options for various APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestOptions {
     /// Optional. Optional context that may be needed for some requests.
     #[serde(default, rename = "clientContext")]
@@ -1528,7 +1529,7 @@ pub struct RequestOptions {
 }
 
 /// This message is used to select the transaction in which a Read or ExecuteSql call runs. See TransactionOptions for more information about transactions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransactionSelector {
     /// Begin a new transaction and execute this read or SQL query in it. The transaction ID of the new transaction is returned in ResultSetMetadata.transaction, which is a Transaction.
     #[serde(default)]
@@ -1542,7 +1543,7 @@ pub struct TransactionSelector {
 }
 
 /// Encryption configuration for the restored database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreDatabaseEncryptionConfig {
     /// Required. The encryption type of the restored database. // TODO: enum values: ["ENCRYPTION_TYPE_UNSPECIFIED", "USE_CONFIG_DEFAULT_OR_BACKUP_ENCRYPTION", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
     #[serde(default, rename = "encryptionType")]
@@ -1556,7 +1557,7 @@ pub struct RestoreDatabaseEncryptionConfig {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -1570,7 +1571,7 @@ pub struct Policy {
 }
 
 /// Action information extracted from a DDL statement. This proto is used to display the brief info of the DDL statement for the operation UpdateDatabaseDdl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DdlStatementActionInfo {
     /// The action for the DDL statement, for example, CREATE, ALTER, DROP, GRANT, etc. This field is a non-empty string.
     #[serde(default)]
@@ -1584,7 +1585,7 @@ pub struct DdlStatementActionInfo {
 }
 
 /// Encapsulates progress related information for a Cloud Spanner long running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationProgress {
     /// If set, the time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
@@ -1598,7 +1599,7 @@ pub struct OperationProgress {
 }
 
 /// The request for UpdateDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateDatabaseRequest {
     /// Required. The database to update. The name field of the database is of the form projects//instances//databases/.
     #[serde(default)]
@@ -1609,7 +1610,7 @@ pub struct UpdateDatabaseRequest {
 }
 
 /// Encapsulates progress related information for a Cloud Spanner long running instance operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceOperationProgress {
     /// If set, the time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
@@ -1623,7 +1624,7 @@ pub struct InstanceOperationProgress {
 }
 
 /// A possible configuration for a Cloud Spanner instance. Configurations define the geographic placement of nodes and their replication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceConfig {
     /// Base configuration name, e.g. projects//instanceConfigs/nam3, based on which this configuration is created. Only set for user-managed configurations. base_config must refer to a configuration of type GOOGLE_MANAGED in the same project as this configuration.
     #[serde(default, rename = "baseConfig")]
@@ -1670,7 +1671,7 @@ pub struct InstanceConfig {
 }
 
 /// An isolated set of Cloud Spanner resources that databases can define placements on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancePartition {
     /// Optional. The autoscaling configuration. Autoscaling is enabled if this field is set. When autoscaling is enabled, fields in compute_capacity are treated as OUTPUT_ONLY fields and reflect the current compute capacity allocated to the instance partition.
     #[serde(default, rename = "autoscalingConfig")]
@@ -1711,7 +1712,7 @@ pub struct InstancePartition {
 }
 
 /// An isolated set of Cloud Spanner resources on which databases can be hosted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// Optional. The autoscaling configuration. Autoscaling is enabled if this field is set. When autoscaling is enabled, node_count and processing_units are treated as OUTPUT_ONLY fields and reflect the current compute capacity allocated to the instance.
     #[serde(default, rename = "autoscalingConfig")]
@@ -1764,7 +1765,7 @@ pub struct Instance {
 }
 
 /// A split key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Key {
     /// Required. The column values making up the split key.
     #[serde(default, rename = "keyParts")]
@@ -1772,7 +1773,7 @@ pub struct Key {
 }
 
 /// A modification to one or more Cloud Spanner rows. Mutations can be applied to a Cloud Spanner database by sending them in a Commit call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Mutation {
     /// Ack a message from a queue.
     #[serde(default)]
@@ -1798,7 +1799,7 @@ pub struct Mutation {
 }
 
 /// Metadata for a column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ColumnMetadata {
     /// Indicates whether the column is a primary key column.
     #[serde(default, rename = "isPrimaryKey")]
@@ -1815,7 +1816,7 @@ pub struct ColumnMetadata {
 }
 
 /// A mod describes all data changes in a watched table row.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Mod {
     /// Returns the value of the primary key of the modified row.
     #[serde(default)]
@@ -1829,7 +1830,7 @@ pub struct Mod {
 }
 
 /// Describes move-in of the key ranges into the change stream partition identified by partition_token. To maintain processing the changes for a particular key in timestamp order, the query processing the change stream partition identified by partition_token should not advance beyond the partition event record commit timestamp until the queries processing the source change stream partitions have processed all change stream records with timestamps &lt;= the partition event record commit timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveInEvent {
     /// An unique partition identifier describing the source change stream partition that recorded changes for the key range that is moving into this partition.
     #[serde(default, rename = "sourcePartitionToken")]
@@ -1837,7 +1838,7 @@ pub struct MoveInEvent {
 }
 
 /// Describes move-out of the key ranges out of the change stream partition identified by partition_token. To maintain processing the changes for a particular key in timestamp order, the query processing the MoveOutEvent in the partition identified by partition_token should inform the queries processing the destination partitions that they can unblock and proceed processing records past the commit_timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveOutEvent {
     /// An unique partition identifier describing the destination change stream partition that will record changes for the key range that is moving out of this partition.
     #[serde(default, rename = "destinationPartitionToken")]
@@ -1845,7 +1846,7 @@ pub struct MoveOutEvent {
 }
 
 /// Metadata about a ResultSet or PartialResultSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultSetMetadata {
     /// Indicates the field names and types for the rows in the result set. For example, a SQL query like "SELECT UserId, UserName FROM Users" could return a row_type value like: "fields": [ { "name": "UserId", "type": { "code": "INT64" } }, { "name": "UserName", "type": { "code": "STRING" } }, ]
     #[serde(default, rename = "rowType")]
@@ -1859,7 +1860,7 @@ pub struct ResultSetMetadata {
 }
 
 /// Additional statistics about a ResultSet or PartialResultSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultSetStats {
     /// QueryPlan for the query associated with this result.
     #[serde(default, rename = "queryPlan")]
@@ -1876,7 +1877,7 @@ pub struct ResultSetStats {
 }
 
 /// A message representing context for a KeyRangeInfo, including a label, value, unit, and severity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContextValue {
     /// The label for the context value. e.g. "latency".
     #[serde(default)]
@@ -1893,7 +1894,7 @@ pub struct ContextValue {
 }
 
 /// Encryption configuration for the backup to create.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateBackupEncryptionConfig {
     /// Required. The encryption type of the backup. // TODO: enum values: ["ENCRYPTION_TYPE_UNSPECIFIED", "USE_DATABASE_ENCRYPTION", "GOOGLE_DEFAULT_ENCRYPTION", "CUSTOMER_MANAGED_ENCRYPTION"]
     #[serde(default, rename = "encryptionType")]
@@ -1907,7 +1908,7 @@ pub struct CreateBackupEncryptionConfig {
 }
 
 /// Defines specifications of the backup schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupScheduleSpec {
     /// Cron style schedule specification.
     #[serde(default, rename = "cronSpec")]
@@ -1915,7 +1916,7 @@ pub struct BackupScheduleSpec {
 }
 
 /// Instance partition information for the backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupInstancePartition {
     /// A unique identifier for the instance partition. Values are of the form projects//instances//instancePartitions/
     #[serde(default, rename = "instancePartition")]
@@ -1923,7 +1924,7 @@ pub struct BackupInstancePartition {
 }
 
 /// ScanData contains Cloud Key Visualizer scan data used by the caller to construct a visualization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScanData {
     /// Cloud Key Visualizer scan data. The range of time this information covers is captured via the above time range fields. Note, this field is not available to the ListScans method.
     #[serde(default)]
@@ -1937,7 +1938,7 @@ pub struct ScanData {
 }
 
 /// Encryption configuration for a Cloud Spanner database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceEncryptionConfig {
     /// Optional. This field is maintained for backwards compatibility. For new callers, we recommend using kms_key_names to specify the KMS key. Only use kms_key_name if the location of the KMS key matches the database instance''s configuration (location) exactly. For example, if the KMS location is in us-central1 or nam3, then the database instance must also be in us-central1 or nam3. The Cloud KMS key that is used to encrypt and decrypt the restored database. Values are of the form projects//locations//keyRings//cryptoKeys/.
     #[serde(default, rename = "kmsKeyName")]
@@ -1948,7 +1949,7 @@ pub struct InstanceEncryptionConfig {
 }
 
 /// An ExcludeReplicas contains a repeated set of ReplicaSelection that should be excluded from serving requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExcludeReplicas {
     /// The directed read replica selector.
     #[serde(default, rename = "replicaSelections")]
@@ -1956,7 +1957,7 @@ pub struct ExcludeReplicas {
 }
 
 /// An IncludeReplicas contains a repeated set of ReplicaSelection which indicates the order in which replicas should be considered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IncludeReplicas {
     /// If true, Spanner doesn''t route requests to a replica outside the &lt;include_replicas list when all of the specified replicas are unavailable or unhealthy. Default value is false.
     #[serde(default, rename = "autoFailoverDisabled")]
@@ -1967,7 +1968,7 @@ pub struct IncludeReplicas {
 }
 
 /// Container for various pieces of client-owned context attached to a request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientContext {
     /// Optional. Map of parameter name to value for this request. These values will be returned by any SECURE_CONTEXT() calls invoked by this request (e.g., by queries against Parameterized Secure Views).
     #[serde(default, rename = "secureContext")]
@@ -1975,7 +1976,7 @@ pub struct ClientContext {
 }
 
 /// Options to use for transactions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransactionOptions {
     /// When exclude_txn_from_change_streams is set to true, it prevents read or write transactions from being tracked in change streams. * If the DDL option allow_txn_exclusion is set to true, then the updates made within this transaction aren''t recorded in the change stream. * If you don''t set the DDL option allow_txn_exclusion or if it''s set to false, then the updates made within this transaction are recorded in the change stream. When exclude_txn_from_change_streams is set to false or not set, modifications from this transaction are recorded in all change streams that are tracking columns modified by these transactions. The exclude_txn_from_change_streams option can only be specified for read-write or partitioned DML transactions, otherwise the API returns an INVALID_ARGUMENT error.
     #[serde(default, rename = "excludeTxnFromChangeStreams")]
@@ -1995,7 +1996,7 @@ pub struct TransactionOptions {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -2009,7 +2010,7 @@ pub struct Binding {
 }
 
 /// A Cloud Spanner database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Database {
     /// Output only. If exists, the time at which the database creation started.
     #[serde(default, rename = "createTime")]
@@ -2053,7 +2054,7 @@ pub struct Database {
 }
 
 /// ReplicaInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicaInfo {
     /// If true, this location is designated as the default leader location where leader replicas are placed. See the [region types documentation](https://cloud.google.com/spanner/docs/instances#region_types) for more details.
     #[serde(default, rename = "defaultLeaderLocation")]
@@ -2067,7 +2068,7 @@ pub struct ReplicaInfo {
 }
 
 /// Autoscaling configuration for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingConfig {
     /// Optional. Optional asymmetric autoscaling options. Replicas matching the replica selection criteria will be autoscaled independently from other replicas. The autoscaler will scale the replicas based on the utilization of replicas identified by the replica selection. Replica selections should not overlap with each other. Other replicas (those do not match any replica selection) will be autoscaled together and will have the same compute capacity allocated to them.
     #[serde(default, rename = "asymmetricAutoscalingOptions")]
@@ -2082,7 +2083,7 @@ pub struct AutoscalingConfig {
 }
 
 /// Free instance specific metadata that is kept even after an instance has been upgraded for tracking purposes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeInstanceMetadata {
     /// Specifies the expiration behavior of a free instance. The default of ExpireBehavior is REMOVE_AFTER_GRACE_PERIOD. This can be modified during or after creation, and before expiration. // TODO: enum values: ["EXPIRE_BEHAVIOR_UNSPECIFIED", "FREE_TO_PROVISIONED", "REMOVE_AFTER_GRACE_PERIOD"]
     #[serde(default, rename = "expireBehavior")]
@@ -2096,7 +2097,7 @@ pub struct FreeInstanceMetadata {
 }
 
 /// ReplicaComputeCapacity describes the amount of server resources that are allocated to each replica identified by the replica selection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicaComputeCapacity {
     /// The number of nodes allocated to each replica. This may be zero in API responses for instances that are not yet in state READY.
     #[serde(default, rename = "nodeCount")]
@@ -2110,7 +2111,7 @@ pub struct ReplicaComputeCapacity {
 }
 
 /// Arguments to ack operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Ack {
     /// By default, an attempt to ack a message that does not exist will fail with a NOT_FOUND error. With ignore_not_found set to true, the ack will succeed even if the message does not exist. This is useful for unconditionally acking a message, even if it is missing or has already been acked.
     #[serde(default, rename = "ignoreNotFound")]
@@ -2124,7 +2125,7 @@ pub struct Ack {
 }
 
 /// Arguments to delete operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Delete {
     /// Required. The primary keys of the rows within table to delete. The primary keys must be specified in the order in which they appear in the PRIMARY KEY() clause of the table''s equivalent DDL statement (the DDL statement used to create the table). Delete is idempotent. The transaction will succeed even if some or all rows do not exist.
     #[serde(default, rename = "keySet")]
@@ -2135,7 +2136,7 @@ pub struct Delete {
 }
 
 /// Arguments to insert, update, insert_or_update, and replace operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Write {
     /// The names of the columns in table to be written. The list of columns must contain enough columns to allow Cloud Spanner to derive values for all primary key columns in the row(s) to be modified.
     #[serde(default)]
@@ -2149,7 +2150,7 @@ pub struct Write {
 }
 
 /// Arguments to send operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Send {
     /// The time at which Spanner will begin attempting to deliver the message. If deliver_time is not set, Spanner will deliver the message immediately. If deliver_time is in the past, Spanner will replace it with a value closer to the current time.
     #[serde(default, rename = "deliverTime")]
@@ -2166,7 +2167,7 @@ pub struct Send {
 }
 
 /// Returns the value and associated metadata for a particular field of the Mod.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModValue {
     /// Index within the repeated column_metadata field, to obtain the column metadata for the column that was modified.
     #[serde(default, rename = "columnMetadataIndex")]
@@ -2177,7 +2178,7 @@ pub struct ModValue {
 }
 
 /// A transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Transaction {
     /// id may be used to identify the transaction in subsequent Read, ExecuteSql, Commit, or Rollback calls. Single-use read-only transactions do not have IDs, because single-use transactions do not support multiple requests.
     #[serde(default)]
@@ -2191,7 +2192,7 @@ pub struct Transaction {
 }
 
 /// Contains an ordered list of nodes appearing in the query plan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryPlan {
     /// The nodes in the query plan. Plan nodes are returned in pre-order starting with the plan root. Each PlanNode''s id corresponds to its index in plan_nodes.
     #[serde(default, rename = "planNodes")]
@@ -2202,7 +2203,7 @@ pub struct QueryPlan {
 }
 
 /// CrontabSpec can be used to specify the version time and frequency at which the backup is created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrontabSpec {
     /// Output only. Scheduled backups contain an externally consistent copy of the database at the version time specified in schedule_spec.cron_spec. However, Spanner might not initiate the creation of the scheduled backups at that version time. Spanner initiates the creation of scheduled backups within the time window bounded by the version_time specified in schedule_spec.cron_spec and version_time + creation_window.
     #[serde(default, rename = "creationWindow")]
@@ -2216,7 +2217,7 @@ pub struct CrontabSpec {
 }
 
 /// VisualizationData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VisualizationData {
     /// The token signifying the end of a data_source.
     #[serde(default, rename = "dataSourceEndToken")]
@@ -2251,7 +2252,7 @@ pub struct VisualizationData {
 }
 
 /// The directed read replica selector. Callers must provide one or more of the following fields for replica selection: * location - The location must be one of the regions within the multi-region configuration of your database. * type - The type of the replica. Some examples of using replica_selectors are: * location:us-east1 --&gt; The "us-east1" replica(s) of any available type is used to process the request. * type:READ_ONLY --&gt; The "READ_ONLY" type replica(s) in the nearest available location are used to process the request. * location:us-east1 type:READ_ONLY --&gt; The "READ_ONLY" type replica(s) in location "us-east1" is used to process the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicaSelection {
     /// The location or region of the serving requests, for example, "us-east1".
     #[serde(default)]
@@ -2262,7 +2263,7 @@ pub struct ReplicaSelection {
 }
 
 /// Message type to initiate a read-only transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadOnly {
     /// Executes all reads at a timestamp that is exact_staleness old. The timestamp is chosen soon after the read is started. Guarantees that all writes that have committed more than the specified number of seconds ago are visible. Because Cloud Spanner chooses the exact timestamp, this mode works even if the client''s local clock is substantially skewed from Cloud Spanner commit timestamps. Useful for reading at nearby replicas without the distributed timestamp negotiation overhead of max_staleness.
     #[serde(default, rename = "exactStaleness")]
@@ -2285,7 +2286,7 @@ pub struct ReadOnly {
 }
 
 /// Message type to initiate a read-write transaction. Currently this transaction type has no options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadWrite {
     /// Optional. Clients should pass the transaction ID of the previous transaction attempt that was aborted if this transaction is being executed on a multiplexed session.
     #[serde(default, rename = "multiplexedSessionPreviousTransactionId")]
@@ -2296,7 +2297,7 @@ pub struct ReadWrite {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -2313,7 +2314,7 @@ pub struct Expr {
 }
 
 /// Encryption configuration for a Cloud Spanner database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionConfig {
     /// The Cloud KMS key to be used for encrypting and decrypting the database. Values are of the form projects//locations//keyRings//cryptoKeys/.
     #[serde(default, rename = "kmsKeyName")]
@@ -2324,7 +2325,7 @@ pub struct EncryptionConfig {
 }
 
 /// Encryption information for a Cloud Spanner database or backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionInfo {
     /// Output only. If present, the status of a recent encrypt/decrypt call on underlying data for this database or backup. Regardless of status, data is always encrypted at rest.
     #[serde(default, rename = "encryptionStatus")]
@@ -2338,7 +2339,7 @@ pub struct EncryptionInfo {
 }
 
 /// Information about the dual-region quorum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuorumInfo {
     /// Output only. The etag is used for optimistic concurrency control as a way to help prevent simultaneous ChangeQuorum requests that might create a race condition.
     #[serde(default)]
@@ -2355,7 +2356,7 @@ pub struct QuorumInfo {
 }
 
 /// Information about the database restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreInfo {
     /// Information about the backup used to restore the database. The backup may no longer exist.
     #[serde(default, rename = "backupInfo")]
@@ -2366,7 +2367,7 @@ pub struct RestoreInfo {
 }
 
 /// AsymmetricAutoscalingOption specifies the scaling of replicas identified by the given selection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AsymmetricAutoscalingOption {
     /// Optional. Overrides applied to the top-level autoscaling configuration for the selected replicas.
     #[serde(default)]
@@ -2377,7 +2378,7 @@ pub struct AsymmetricAutoscalingOption {
 }
 
 /// The autoscaling targets for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingTargets {
     /// Optional. The target high priority cpu utilization percentage that the autoscaler should be trying to achieve for the instance. This number is on a scale from 0 (no utilization) to 100 (full utilization). The valid range is [10, 90] inclusive. If not specified or set to 0, the autoscaler skips scaling based on high priority CPU utilization.
     #[serde(default, rename = "highPriorityCpuUtilizationPercent")]
@@ -2391,7 +2392,7 @@ pub struct AutoscalingTargets {
 }
 
 /// KeySet defines a collection of Cloud Spanner keys and/or key ranges. All the keys are expected to be in the same table or index. The keys need not be sorted in any particular way. If the same key is specified multiple times in the set (for example if two ranges, two keys, or a key and a range overlap), Cloud Spanner behaves as if the key were only specified once.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeySet {
     /// For convenience all can be set to true to indicate that this KeySet matches all keys in the table or index. Note that any keys specified in keys or ranges are only yielded once.
     #[serde(default)]
@@ -2405,7 +2406,7 @@ pub struct KeySet {
 }
 
 /// When a read-write transaction is executed on a multiplexed session, this precommit token is sent back to the client as a part of the Transaction message in the BeginTransaction response and also as a part of the ResultSet and PartialResultSet responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiplexedSessionPrecommitToken {
     /// Opaque precommit token.
     #[serde(default, rename = "precommitToken")]
@@ -2416,7 +2417,7 @@ pub struct MultiplexedSessionPrecommitToken {
 }
 
 /// Node information for nodes appearing in a QueryPlan.plan_nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlanNode {
     /// List of child node indexes and their relationship to this parent.
     #[serde(default, rename = "childLinks")]
@@ -2442,7 +2443,7 @@ pub struct PlanNode {
 }
 
 /// Output of query advisor analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryAdvisorResult {
     /// Optional. Index Recommendation for a query. This is an optional field and the recommendation will only be available when the recommendation guarantees significant improvement in query performance.
     #[serde(default, rename = "indexAdvice")]
@@ -2450,7 +2451,7 @@ pub struct QueryAdvisorResult {
 }
 
 /// A message representing the key visualizer diagnostic messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiagnosticMessage {
     /// Information about this diagnostic information.
     #[serde(default)]
@@ -2470,7 +2471,7 @@ pub struct DiagnosticMessage {
 }
 
 /// A message representing the actual monitoring data, values for each key bucket over time, of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metric {
     /// The aggregation function used to aggregate each key bucket // TODO: enum values: ["AGGREGATION_UNSPECIFIED", "MAX", "SUM"]
     #[serde(default)]
@@ -2511,7 +2512,7 @@ pub struct Metric {
 }
 
 /// A message representing a key prefix node in the key prefix hierarchy. for eg. Bigtable keyspaces are lexicographically ordered mappings of keys to values. Keys often have a shared prefix structure where users use the keys to organize data. Eg ///employee In this case Keysight will possibly use one node for a company and reuse it for all employees that fall under the company. Doing so improves legibility in the UI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrefixNode {
     /// Whether this corresponds to a data_source name.
     #[serde(default, rename = "dataSourceNode")]
@@ -2531,7 +2532,7 @@ pub struct PrefixNode {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2545,7 +2546,7 @@ pub struct Status {
 }
 
 /// Information about the database quorum type. This only applies to dual-region instance configs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuorumType {
     /// Dual-region quorum type.
     #[serde(default, rename = "dualRegion")]
@@ -2556,7 +2557,7 @@ pub struct QuorumType {
 }
 
 /// Information about a backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupInfo {
     /// Name of the backup.
     #[serde(default)]
@@ -2573,7 +2574,7 @@ pub struct BackupInfo {
 }
 
 /// Overrides the top-level autoscaling configuration for the replicas identified by replica_selection. All fields in this message are optional. Any unspecified fields will use the corresponding values from the top-level autoscaling configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingConfigOverrides {
     /// Optional. If specified, overrides the min/max limit in the top-level autoscaling configuration for the selected replicas.
     #[serde(default, rename = "autoscalingLimits")]
@@ -2593,7 +2594,7 @@ pub struct AutoscalingConfigOverrides {
 }
 
 /// ReplicaSelection identifies replicas with common properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceReplicaSelection {
     /// Required. Name of the location of the replicas (for example, "us-central1").
     #[serde(default)]
@@ -2601,7 +2602,7 @@ pub struct InstanceReplicaSelection {
 }
 
 /// KeyRange represents a range of rows in a table or index. A range has a start key and an end key. These keys can be open or closed, indicating if the range includes rows with that key. Keys are represented by lists, where the ith value in the list corresponds to the ith component of the table or index primary key. Individual values are encoded as described here. For example, consider the following table definition: CREATE TABLE UserEvents ( UserName STRING(MAX), EventDate STRING(10) ) PRIMARY KEY(UserName, EventDate); The following keys name rows in this table: "Bob", "2014-09-23" Since the UserEvents table''s PRIMARY KEY clause names two columns, each UserEvents key has two elements; the first is the UserName, and the second is the EventDate. Key ranges with multiple components are interpreted lexicographically by component using the table or index key''s declared sort order. For example, the following range returns all events for user "Bob" that occurred in the year 2015: "start_closed": ["Bob", "2015-01-01"] "end_closed": ["Bob", "2015-12-31"] Start and end keys can omit trailing key components. This affects the inclusion and exclusion of rows that exactly match the provided key components: if the key is closed, then rows that exactly match the provided components are included; if the key is open, then rows that exactly match are not included. For example, the following range includes all events for "Bob" that occurred during and after the year 2000: "start_closed": ["Bob", "2000-01-01"] "end_closed": ["Bob"] The next example retrieves all events for "Bob": "start_closed": ["Bob"] "end_closed": ["Bob"] To retrieve events before the year 2000: "start_closed": ["Bob"] "end_open": ["Bob", "2000-01-01"] The following range includes all rows in the table: "start_closed": [] "end_closed": [] This range returns all users whose UserName begins with any character from A to C: "start_closed": ["A"] "end_open": ["D"] This range returns all users whose UserName begins with B: "start_closed": ["B"] "end_open": ["C"] Key ranges honor column sort order. For example, suppose a table is defined as follows: CREATE TABLE DescendingSortedTable { Key INT64, ... ) PRIMARY KEY(Key DESC); The following range retrieves all rows with key values between 1 and 100 inclusive: "start_closed": ["100"] "end_closed": ["1"] Note that 100 is passed as the start, and 1 is passed as the end, because Key is a descending column in the schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyRange {
     /// If the end is closed, then the range includes all rows whose first len(end_closed) key columns exactly match end_closed.
     #[serde(default, rename = "endClosed")]
@@ -2618,7 +2619,7 @@ pub struct KeyRange {
 }
 
 /// Metadata associated with a parent-child relationship appearing in a PlanNode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChildLink {
     /// The node to which the link points.
     #[serde(default, rename = "childIndex")]
@@ -2632,7 +2633,7 @@ pub struct ChildLink {
 }
 
 /// Condensed representation of a node and its subtree. Only present for SCALAR PlanNode(s).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShortRepresentation {
     /// A string representation of the expression subtree rooted at this node.
     #[serde(default)]
@@ -2643,7 +2644,7 @@ pub struct ShortRepresentation {
 }
 
 /// Recommendation to add new indexes to run queries more efficiently.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IndexAdvice {
     /// Optional. DDL statements to add new indexes that will improve the query.
     #[serde(default)]
@@ -2654,7 +2655,7 @@ pub struct IndexAdvice {
 }
 
 /// A message representing a derived metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DerivedMetric {
     /// The name of the denominator metric. e.g. "rows".
     #[serde(default)]
@@ -2665,7 +2666,7 @@ pub struct DerivedMetric {
 }
 
 /// A message representing a matrix of floats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricMatrix {
     /// The rows of the matrix.
     #[serde(default)]
@@ -2673,7 +2674,7 @@ pub struct MetricMatrix {
 }
 
 /// Message type for a single-region quorum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SingleRegionQuorum {
     /// Required. The location of the serving region, for example, "us-central1". The location must be one of the regions within the dual-region instance configuration of your database. The list of valid locations is available using the GetInstanceConfig API. This should only be used if you plan to change quorum to the single-region quorum type.
     #[serde(default, rename = "servingLocation")]
@@ -2681,7 +2682,7 @@ pub struct SingleRegionQuorum {
 }
 
 /// The autoscaling limits for the instance. Users can define the minimum and maximum compute capacity allocated to the instance, and the autoscaler will only scale within that range. Users can either use nodes or processing units to specify the limits, but should use the same unit to set both the min_limit and max_limit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingLimits {
     /// Maximum number of nodes allocated to the instance. If set, this number should be greater than or equal to min_nodes.
     #[serde(default, rename = "maxNodes")]
@@ -2698,7 +2699,7 @@ pub struct AutoscalingLimits {
 }
 
 /// A message representing a row of a matrix of floats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricMatrixRow {
     /// The columns of the row.
     #[serde(default)]
@@ -2706,7 +2707,7 @@ pub struct MetricMatrixRow {
 }
 
 /// Message representing a single field of a struct.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Field {
     /// The name of the field. For reads, this is the column name. For SQL queries, it is the column alias (e.g., "Word" in the query "SELECT ''hello'' AS Word"), or the column name (e.g., "ColName" in the query "SELECT ColName FROM Table"). Some columns might have an empty name (e.g., "SELECT UPPER(ColName)"). Note that a query result can contain multiple fields with the same name.
     #[serde(default)]
@@ -2717,7 +2718,7 @@ pub struct Field {
 }
 
 /// StructType defines the fields of a STRUCT type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StructType {
     /// The list of fields that make up this struct. Order is significant, because values of this struct type are represented as lists, where the order of field values matches the order of fields in the StructType. In turn, the order of fields matches the order of columns in a read request, or the order of fields in the SELECT clause of a query.
     #[serde(default)]
@@ -2725,7 +2726,7 @@ pub struct StructType {
 }
 
 /// Type indicates the type of a Cloud Spanner value, as might be stored in a table cell or returned from an SQL query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Type {
     /// If code == ARRAY, then array_element_type is the type of the array elements.
     #[serde(default, rename = "arrayElementType")]

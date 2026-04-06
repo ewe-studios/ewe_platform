@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -26,7 +27,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Message for response to listing ParameterVersions
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListParameterVersionsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -40,7 +41,7 @@ pub struct ListParameterVersionsResponse {
 }
 
 /// Message for response to listing Parameters
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListParametersResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -54,7 +55,7 @@ pub struct ListParametersResponse {
 }
 
 /// Message describing RenderParameterVersionResponse resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenderParameterVersionResponse {
     /// Output only. Resource identifier of a ParameterVersion in the format projects/*/locations/*/parameters/*/versions/*.
     #[serde(default, rename = "parameterVersion")]
@@ -68,7 +69,7 @@ pub struct RenderParameterVersionResponse {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -88,7 +89,7 @@ pub struct Location {
 }
 
 /// Message describing ParameterVersion resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParameterVersion {
     /// Output only. [Output only] Create time stamp
     #[serde(default, rename = "createTime")]
@@ -111,7 +112,7 @@ pub struct ParameterVersion {
 }
 
 /// Message describing Parameter resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Parameter {
     /// Output only. [Output only] Create time stamp
     #[serde(default, rename = "createTime")]
@@ -137,7 +138,7 @@ pub struct Parameter {
 }
 
 /// Message for storing a ParameterVersion resource''s payload data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParameterVersionPayload {
     /// Required. bytes data for storing payload.
     #[serde(default)]
@@ -145,7 +146,7 @@ pub struct ParameterVersionPayload {
 }
 
 /// Output-only policy member strings of a Google Cloud resource''s built-in identity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyMember {
     /// Output only. IAM policy binding member referring to a Google Cloud resource by user-assigned name (https://google.aip.dev/122). If a resource is deleted and recreated with the same name, the binding will be applicable to the new resource. Example: principal://parametermanager.googleapis.com/projects/12345/name/locations/us-central1-a/parameters/my-parameter
     #[serde(default, rename = "iamPolicyNamePrincipal")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for PartnerProcurementService.ApproveAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApproveAccountRequest {
     /// The name of the approval being approved. If absent and there is only one approval possible, that approval will be granted. If absent and there are many approvals possible, the request will fail with a 400 Bad Request. Optional.
     #[serde(default, rename = "approvalName")]
@@ -25,7 +26,7 @@ pub struct ApproveAccountRequest {
 }
 
 /// Request message for [PartnerProcurementService.ApproveEntitlementPlanChange[].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApproveEntitlementPlanChangeRequest {
     /// Required. Name of the pending plan that''s being approved.
     #[serde(default, rename = "pendingPlanName")]
@@ -33,7 +34,7 @@ pub struct ApproveEntitlementPlanChangeRequest {
 }
 
 /// Request message for [PartnerProcurementService.ApproveEntitlement[].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApproveEntitlementRequest {
     /// Optional. The resource name of the entitlement that was migrated, with the format providers/{provider_id}/entitlements/{entitlement_id}. Should only be sent when resources have been migrated from entitlement_migrated to the new entitlement. Optional.
     #[serde(default, rename = "entitlementMigrated")]
@@ -44,11 +45,11 @@ pub struct ApproveEntitlementRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for [PartnerProcurementService.ListAccounts[].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountsResponse {
     /// The list of accounts in this response.
     #[serde(default)]
@@ -59,7 +60,7 @@ pub struct ListAccountsResponse {
 }
 
 /// Response message for PartnerProcurementService.ListEntitlements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEntitlementsResponse {
     /// The list of entitlements in this response.
     #[serde(default)]
@@ -70,7 +71,7 @@ pub struct ListEntitlementsResponse {
 }
 
 /// Request message for PartnerProcurementService.RejectAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RejectAccountRequest {
     /// The name of the approval being rejected. If absent and there is only one approval possible, that approval will be rejected. If absent and there are many approvals possible, the request will fail with a 400 Bad Request. Optional.
     #[serde(default, rename = "approvalName")]
@@ -81,7 +82,7 @@ pub struct RejectAccountRequest {
 }
 
 /// Request message for PartnerProcurementService.RejectEntitlementPlanChange.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RejectEntitlementPlanChangeRequest {
     /// Required. Name of the pending plan that is being rejected.
     #[serde(default, rename = "pendingPlanName")]
@@ -92,7 +93,7 @@ pub struct RejectEntitlementPlanChangeRequest {
 }
 
 /// Request message for PartnerProcurementService.RejectEntitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RejectEntitlementRequest {
     /// Free form text string explaining the rejection reason. Max allowed length: 256 bytes. Longer strings will be truncated.
     #[serde(default)]
@@ -100,11 +101,11 @@ pub struct RejectEntitlementRequest {
 }
 
 /// Request message for PartnerProcurementService.ResetAccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetAccountRequest {}
 
 /// Request message for ParterProcurementService.SuspendEntitlement. This is not yet supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuspendEntitlementRequest {
     /// A free-form reason string, explaining the reason for suspension request.
     #[serde(default)]
@@ -112,7 +113,7 @@ pub struct SuspendEntitlementRequest {
 }
 
 /// Represents an account that was established by the customer on the service provider''s system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// Output only. The approvals for this account. These approvals are used to track actions that are permitted or have been completed by a customer within the context of the provider. This might include a sign up flow or a provisioning step, for example, that the provider can admit to having happened.
     #[serde(default)]
@@ -141,7 +142,7 @@ pub struct Account {
 }
 
 /// Represents a procured product of a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entitlement {
     /// Output only. The resource name of the account that this entitlement is based on, if any.
     #[serde(default)]
@@ -224,7 +225,7 @@ pub struct Entitlement {
 }
 
 /// An approval for some action on an account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Approval {
     /// Output only. The name of the approval.
     #[serde(default)]
@@ -241,7 +242,7 @@ pub struct Approval {
 }
 
 /// A resource using (consuming) this entitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Consumer {
     /// A project name with format projects/.
     #[serde(default)]

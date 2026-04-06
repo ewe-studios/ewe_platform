@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Message containing a category
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CategoryGroupV5 {
     /// The description of what the category is grouping
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct CategoryGroupV5 {
 }
 
 /// An audit''s result object in a Lighthouse result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LighthouseAuditResultV5 {
     /// The description of the audit.
     #[serde(default)]
@@ -66,7 +67,7 @@ pub struct LighthouseAuditResultV5 {
 }
 
 /// The Pagespeed API response object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PagespeedApiPagespeedResponseV5 {
     /// The UTC timestamp of this analysis.
     #[serde(default, rename = "analysisUTCTimestamp")]
@@ -95,7 +96,7 @@ pub struct PagespeedApiPagespeedResponseV5 {
 }
 
 /// Message holding the formatted strings used in the renderer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RendererFormattedStrings {
     /// The tooltip text on an expandable chevron icon.
     #[serde(default, rename = "auditGroupExpandTooltip")]
@@ -244,7 +245,7 @@ pub struct RendererFormattedStrings {
 }
 
 /// A CrUX metric object for a single metric and form factor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserPageLoadMetricV5 {
     /// The category of the specific time metric.
     #[serde(default)]
@@ -267,7 +268,7 @@ pub struct UserPageLoadMetricV5 {
 }
 
 /// The metric savings of the audit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricSavings {
     /// Optional. Optional numeric value representing the audit''s savings for the CLS metric.
     #[serde(default, rename = "CLS")]
@@ -287,7 +288,7 @@ pub struct MetricSavings {
 }
 
 /// The Lighthouse result object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LighthouseResultV5 {
     /// Map of audits in the LHR.
     #[serde(default)]
@@ -349,7 +350,7 @@ pub struct LighthouseResultV5 {
 }
 
 /// The CrUX loading experience object that contains CrUX data breakdowns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PagespeedApiLoadingExperienceV5 {
     /// The url, pattern or origin which the metrics are on.
     #[serde(default)]
@@ -369,7 +370,7 @@ pub struct PagespeedApiLoadingExperienceV5 {
 }
 
 /// The Pagespeed Version object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PagespeedVersion {
     /// The major version number of PageSpeed used to generate these results.
     #[serde(default)]
@@ -380,7 +381,7 @@ pub struct PagespeedVersion {
 }
 
 /// A proportion of data in the total distribution, bucketed by a min/max percentage. Each bucket''s range is bounded by min &lt;= x &lt; max, In millisecond.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Bucket {
     /// Upper bound for a bucket''s range.
     #[serde(default)]
@@ -394,7 +395,7 @@ pub struct Bucket {
 }
 
 /// The categories in a Lighthouse run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Categories {
     /// The accessibility category, containing all accessibility related audits.
     #[serde(default)]
@@ -414,7 +415,7 @@ pub struct Categories {
 }
 
 /// Message containing the configuration settings for the Lighthouse run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigSettings {
     /// How Lighthouse was run, e.g. from the Chrome extension or from the npm module.
     #[serde(default)]
@@ -434,7 +435,7 @@ pub struct ConfigSettings {
 }
 
 /// Message containing an Entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LhrEntity {
     /// Optional. An optional category name for the entity.
     #[serde(default)]
@@ -457,7 +458,7 @@ pub struct LhrEntity {
 }
 
 /// Message containing environment configuration for a Lighthouse run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Environment {
     /// The benchmark index number that indicates rough device class.
     #[serde(default, rename = "benchmarkIndex")]
@@ -474,7 +475,7 @@ pub struct Environment {
 }
 
 /// Message containing the i18n data for the LHR - Version 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct I18n {
     /// Internationalized strings that are formatted to the locale in configSettings.
     #[serde(default, rename = "rendererFormattedStrings")]
@@ -482,7 +483,7 @@ pub struct I18n {
 }
 
 /// Message containing a runtime error config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeError {
     /// The enumerated Lighthouse Error code.
     #[serde(default)]
@@ -493,7 +494,7 @@ pub struct RuntimeError {
 }
 
 /// Message containing Stack Pack information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StackPack {
     /// The stack pack advice strings.
     #[serde(default)]
@@ -510,7 +511,7 @@ pub struct StackPack {
 }
 
 /// Message containing the performance timing data for the Lighthouse run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Timing {
     /// The total duration of Lighthouse''s run.
     #[serde(default)]
@@ -518,7 +519,7 @@ pub struct Timing {
 }
 
 /// A Lighthouse category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LighthouseCategoryV5 {
     /// An array of references to all the audit members of this category.
     #[serde(default, rename = "auditRefs")]
@@ -541,7 +542,7 @@ pub struct LighthouseCategoryV5 {
 }
 
 /// A light reference to an audit by id, used to group and weight audits in a given category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditRefs {
     /// The conventional acronym for the audit/metric.
     #[serde(default)]

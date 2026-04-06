@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Metadata for response returned by the SynthesizeLongAudio method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudTexttospeechV1SynthesizeLongAudioMetadata {
     /// Deprecated. Do not use.
     #[serde(default, rename = "lastUpdateTime")]
@@ -33,7 +34,7 @@ pub struct GoogleCloudTexttospeechV1SynthesizeLongAudioMetadata {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -47,7 +48,7 @@ pub struct ListOperationsResponse {
 }
 
 /// The message returned to the client by the ListVoices method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVoicesResponse {
     /// The list of voices.
     #[serde(default)]
@@ -55,7 +56,7 @@ pub struct ListVoicesResponse {
 }
 
 /// Metadata for response returned by the SynthesizeLongAudio method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SynthesizeLongAudioMetadata {
     /// Deprecated. Do not use.
     #[serde(default, rename = "lastUpdateTime")]
@@ -69,7 +70,7 @@ pub struct SynthesizeLongAudioMetadata {
 }
 
 /// The top-level message sent by the client for the SynthesizeLongAudio method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SynthesizeLongAudioRequest {
     /// Required. The configuration of the synthesized audio.
     #[serde(default, rename = "audioConfig")]
@@ -86,7 +87,7 @@ pub struct SynthesizeLongAudioRequest {
 }
 
 /// The top-level message sent by the client for the SynthesizeSpeech method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SynthesizeSpeechRequest {
     /// Optional. Advanced voice options.
     #[serde(default, rename = "advancedVoiceOptions")]
@@ -103,7 +104,7 @@ pub struct SynthesizeSpeechRequest {
 }
 
 /// The message returned to the client by the SynthesizeSpeech method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SynthesizeSpeechResponse {
     /// The audio data bytes encoded as specified in the request, including the header for encodings that are wrapped in containers (e.g. MP3, OGG_OPUS). For LINEAR16 audio, we include the WAV header. Note: as with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64.
     #[serde(default, rename = "audioContent")]
@@ -111,7 +112,7 @@ pub struct SynthesizeSpeechResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -131,7 +132,7 @@ pub struct Operation {
 }
 
 /// Description of a voice supported by the TTS service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Voice {
     /// The languages that this voice supports, expressed as [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt) language tags (e.g. "en-US", "es-419", "cmn-tw").
     #[serde(default, rename = "languageCodes")]
@@ -148,7 +149,7 @@ pub struct Voice {
 }
 
 /// Used for advanced voice options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvancedVoiceOptions {
     /// Optional. If true, textnorm will be applied to text input. This feature is enabled by default. Only applies for Gemini TTS.
     #[serde(default, rename = "enableTextnorm")]
@@ -165,7 +166,7 @@ pub struct AdvancedVoiceOptions {
 }
 
 /// Description of audio data to be synthesized.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudioConfig {
     /// Required. The format of the audio byte stream. // TODO: enum values: ["AUDIO_ENCODING_UNSPECIFIED", "LINEAR16", "MP3", "OGG_OPUS", "MULAW", "ALAW", "PCM", "M4A"]
     #[serde(default, rename = "audioEncoding")]
@@ -188,7 +189,7 @@ pub struct AudioConfig {
 }
 
 /// Contains text input to be synthesized. Either text or ssml must be supplied. Supplying both or neither returns google.rpc.Code.INVALID_ARGUMENT. The input size is limited to 5000 bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SynthesisInput {
     /// Optional. The pronunciation customizations are applied to the input. If this is set, the input is synthesized using the given pronunciation customizations. The initial support is for en-us, with plans to expand to other locales in the future. Instant Clone voices aren''t supported. In order to customize the pronunciation of a phrase, there must be an exact match of the phrase in the input types. If using SSML, the phrase must not be inside a phoneme tag.
     #[serde(default, rename = "customPronunciations")]
@@ -211,7 +212,7 @@ pub struct SynthesisInput {
 }
 
 /// Description of which voice to use for a synthesis request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VoiceSelectionParams {
     /// The configuration for a custom voice. If [CustomVoiceParams.model] is set, the service will choose the custom voice matching the specified configuration.
     #[serde(default, rename = "customVoice")]
@@ -237,7 +238,7 @@ pub struct VoiceSelectionParams {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -251,7 +252,7 @@ pub struct Status {
 }
 
 /// Safety settings for the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SafetySettings {
     /// The safety settings for the request.
     #[serde(default)]
@@ -259,7 +260,7 @@ pub struct SafetySettings {
 }
 
 /// A collection of pronunciation customizations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomPronunciations {
     /// The pronunciation customizations are applied.
     #[serde(default)]
@@ -267,7 +268,7 @@ pub struct CustomPronunciations {
 }
 
 /// A collection of turns for multi-speaker synthesis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiSpeakerMarkup {
     /// Required. Speaker turns.
     #[serde(default)]
@@ -275,7 +276,7 @@ pub struct MultiSpeakerMarkup {
 }
 
 /// Description of the custom voice to be synthesized.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomVoiceParams {
     /// Required. The name of the AutoML model that synthesizes the custom voice.
     #[serde(default)]
@@ -286,7 +287,7 @@ pub struct CustomVoiceParams {
 }
 
 /// Configuration for a multi-speaker text-to-speech setup. Enables the use of up to two distinct voices in a single synthesis request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiSpeakerVoiceConfig {
     /// Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided.
     #[serde(default, rename = "speakerVoiceConfigs")]
@@ -294,7 +295,7 @@ pub struct MultiSpeakerVoiceConfig {
 }
 
 /// The configuration of Voice Clone feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VoiceCloneParams {
     /// Required. Created by GenerateVoiceCloningKey.
     #[serde(default, rename = "voiceCloningKey")]
@@ -302,7 +303,7 @@ pub struct VoiceCloneParams {
 }
 
 /// Safety setting for a single harm category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SafetySetting {
     /// The harm category to apply the safety setting to. // TODO: enum values: ["HARM_CATEGORY_UNSPECIFIED", "HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_DANGEROUS_CONTENT", "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_SEXUALLY_EXPLICIT"]
     #[serde(default)]
@@ -313,7 +314,7 @@ pub struct SafetySetting {
 }
 
 /// Pronunciation customization for a phrase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomPronunciationParams {
     /// The phonetic encoding of the phrase. // TODO: enum values: ["PHONETIC_ENCODING_UNSPECIFIED", "PHONETIC_ENCODING_IPA", "PHONETIC_ENCODING_X_SAMPA", "PHONETIC_ENCODING_JAPANESE_YOMIGANA", "PHONETIC_ENCODING_PINYIN"]
     #[serde(default, rename = "phoneticEncoding")]
@@ -327,7 +328,7 @@ pub struct CustomPronunciationParams {
 }
 
 /// A multi-speaker turn.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Turn {
     /// Required. The speaker of the turn, for example, ''O'' or ''Q''. Please refer to documentation for available speakers.
     #[serde(default)]
@@ -338,7 +339,7 @@ pub struct Turn {
 }
 
 /// Configuration for a single speaker in a Gemini TTS multi-speaker setup. Enables dialogue between two speakers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultispeakerPrebuiltVoice {
     /// Required. The speaker alias of the voice. This is the user-chosen speaker name that is used in the multispeaker text input, such as "Speaker1".
     #[serde(default, rename = "speakerAlias")]

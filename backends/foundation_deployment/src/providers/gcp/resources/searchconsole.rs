@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Index inspection request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InspectUrlIndexRequest {
     /// Required. URL to inspect. Must be under the property specified in "site_url".
     #[serde(default, rename = "inspectionUrl")]
@@ -25,7 +26,7 @@ pub struct InspectUrlIndexRequest {
 }
 
 /// Index-Status inspection response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InspectUrlIndexResponse {
     /// URL inspection results.
     #[serde(default, rename = "inspectionResult")]
@@ -33,7 +34,7 @@ pub struct InspectUrlIndexResponse {
 }
 
 /// Mobile-friendly test request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunMobileFriendlyTestRequest {
     /// Whether or not screenshot is requested. Default is false.
     #[serde(default, rename = "requestScreenshot")]
@@ -44,7 +45,7 @@ pub struct RunMobileFriendlyTestRequest {
 }
 
 /// Mobile-friendly test response, including mobile-friendly issues and resource issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunMobileFriendlyTestResponse {
     /// Test verdict, whether the page is mobile friendly or not. // TODO: enum values: ["MOBILE_FRIENDLY_TEST_RESULT_UNSPECIFIED", "MOBILE_FRIENDLY", "NOT_MOBILE_FRIENDLY"]
     #[serde(default, rename = "mobileFriendliness")]
@@ -64,7 +65,7 @@ pub struct RunMobileFriendlyTestResponse {
 }
 
 /// SearchAnalyticsQueryRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchAnalyticsQueryRequest {
     /// [Optional; Default is \"auto\"] How data is aggregated. If aggregated by property, all data for the same property is aggregated; if aggregated by page, all data is aggregated by canonical URI. If you filter or group by page, choose AUTO; otherwise you can aggregate either by property or by page, depending on how you want your data calculated; see the help documentation to learn how data is calculated differently by site versus by page. **Note:** If you group or filter by page, you cannot aggregate by property. If you specify any value other than AUTO, the aggregation type in the result will match the requested type, or if you request an invalid type, you will get an error. The API will never change your aggregation type if the requested type is invalid. // TODO: enum values: ["AUTO", "BY_PROPERTY", "BY_PAGE", "BY_NEWS_SHOWCASE_PANEL"]
     #[serde(default, rename = "aggregationType")]
@@ -99,7 +100,7 @@ pub struct SearchAnalyticsQueryRequest {
 }
 
 /// A list of rows, one per result, grouped by key. Metrics in each row are aggregated for all data grouped by that key either by page or property, as specified by the aggregation type parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchAnalyticsQueryResponse {
     /// An object that may be returned with your query results, providing context about the state of the data. See details in Metadata object documentation.
     #[serde(default)]
@@ -113,7 +114,7 @@ pub struct SearchAnalyticsQueryResponse {
 }
 
 /// List of sitemaps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SitemapsListResponse {
     /// Contains detailed information about a specific URL submitted as a [sitemap](https://support.google.com/webmasters/answer/156184).
     #[serde(default)]
@@ -121,7 +122,7 @@ pub struct SitemapsListResponse {
 }
 
 /// List of sites with access level information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SitesListResponse {
     /// Contains permission level information about a Search Console site. For more information, see [Permissions in Search Console](https://support.google.com/webmasters/answer/2451999).
     #[serde(default, rename = "siteEntry")]
@@ -129,7 +130,7 @@ pub struct SitesListResponse {
 }
 
 /// URL inspection result, including all inspection results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlInspectionResult {
     /// Result of the AMP analysis. Absent if the page is not an AMP page.
     #[serde(default, rename = "ampResult")]
@@ -149,7 +150,7 @@ pub struct UrlInspectionResult {
 }
 
 /// Mobile-friendly issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileFriendlyIssue {
     /// Rule violated. // TODO: enum values: ["MOBILE_FRIENDLY_RULE_UNSPECIFIED", "USES_INCOMPATIBLE_PLUGINS", "CONFIGURE_VIEWPORT", "FIXED_WIDTH_VIEWPORT", "SIZE_CONTENT_TO_VIEWPORT", "USE_LEGIBLE_FONT_SIZES", "TAP_TARGETS_TOO_CLOSE"]
     #[serde(default)]
@@ -157,7 +158,7 @@ pub struct MobileFriendlyIssue {
 }
 
 /// Information about a resource with issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceIssue {
     /// Describes a blocked resource issue.
     #[serde(default, rename = "blockedResource")]
@@ -165,7 +166,7 @@ pub struct ResourceIssue {
 }
 
 /// Describe image data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// Image data in format determined by the mime type. Currently, the format will always be "image/png", but this might change in the future.
     #[serde(default)]
@@ -176,7 +177,7 @@ pub struct Image {
 }
 
 /// Final state of the test, including error details if necessary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestStatus {
     /// Error details if applicable.
     #[serde(default)]
@@ -187,7 +188,7 @@ pub struct TestStatus {
 }
 
 /// A set of dimension value filters to test against each row. Only rows that pass all filter groups will be returned. All results within a filter group are either AND''ed or OR''ed together, depending on the group type selected. All filter groups are AND''ed together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiDimensionFilterGroup {
     #[serde(default)]
     pub filters: ::core::option::Option<::std::vec::Vec<ApiDimensionFilter>>,
@@ -197,7 +198,7 @@ pub struct ApiDimensionFilterGroup {
 }
 
 /// An object that may be returned with your query results, providing context about the state of the data. When you request recent data (using all or hourly_all for dataState), some of the rows returned may represent data that is incomplete, which means that the data is still being collected and processed. This metadata object helps you identify exactly when this starts and ends. All dates and times provided in this object are in the America/Los_Angeles time zone. The specific field returned within this object depends on how you''ve grouped your data in the request. See details in inner fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// The first date for which the data is still being collected and processed, presented in YYYY-MM-DD format (ISO-8601 extended local date format). This field is populated only when the request''s dataState is "all", data is grouped by "DATE", and the requested date range contains incomplete data points. All values after the first_incomplete_date may still change noticeably.
     #[serde(default, rename = "firstIncompleteDate")]
@@ -208,7 +209,7 @@ pub struct Metadata {
 }
 
 /// ApiDataRow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiDataRow {
     #[serde(default)]
     pub clicks: ::core::option::Option<f64>,
@@ -223,7 +224,7 @@ pub struct ApiDataRow {
 }
 
 /// Contains detailed information about a specific URL submitted as a [sitemap](https://support.google.com/webmasters/answer/156184).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WmxSitemap {
     /// The various content types in the sitemap.
     #[serde(default)]
@@ -255,7 +256,7 @@ pub struct WmxSitemap {
 }
 
 /// Contains permission level information about a Search Console site. For more information, see [Permissions in Search Console](https://support.google.com/webmasters/answer/2451999).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WmxSite {
     /// The user''s permission level for the site. // TODO: enum values: ["SITE_PERMISSION_LEVEL_UNSPECIFIED", "SITE_OWNER", "SITE_FULL_USER", "SITE_RESTRICTED_USER", "SITE_UNVERIFIED_USER"]
     #[serde(default, rename = "permissionLevel")]
@@ -266,7 +267,7 @@ pub struct WmxSite {
 }
 
 /// AMP inspection result of the live page or the current information from Google''s index, depending on whether you requested a live inspection or not.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AmpInspectionResult {
     /// Index status of the AMP URL. // TODO: enum values: ["VERDICT_UNSPECIFIED", "PASS", "PARTIAL", "FAIL", "NEUTRAL"]
     #[serde(default, rename = "ampIndexStatusVerdict")]
@@ -295,7 +296,7 @@ pub struct AmpInspectionResult {
 }
 
 /// Results of index status inspection for either the live page or the version in Google''s index, depending on whether you requested a live inspection or not. For more information, see the [Index coverage report documentation](https://support.google.com/webmasters/answer/7440203).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IndexStatusInspectionResult {
     /// Could Google find and index the page. More details about page indexing appear in ''indexing_state''.
     #[serde(default, rename = "coverageState")]
@@ -333,7 +334,7 @@ pub struct IndexStatusInspectionResult {
 }
 
 /// Mobile-usability inspection results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileUsabilityInspectionResult {
     /// A list of zero or more mobile-usability issues detected for this URL.
     #[serde(default)]
@@ -344,7 +345,7 @@ pub struct MobileUsabilityInspectionResult {
 }
 
 /// Rich-Results inspection result, including any rich results found at this URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RichResultsInspectionResult {
     /// A list of zero or more rich results detected on this page. Rich results that cannot even be parsed due to syntactic issues will not be listed here.
     #[serde(default, rename = "detectedItems")]
@@ -355,7 +356,7 @@ pub struct RichResultsInspectionResult {
 }
 
 /// Blocked resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlockedResource {
     /// URL of the blocked resource.
     #[serde(default)]
@@ -363,7 +364,7 @@ pub struct BlockedResource {
 }
 
 /// A filter test to be applied to each row in the data set, where a match can return the row. Filters are string comparisons, and values and dimension names are not case-sensitive. Individual filters are either AND''ed or OR''ed within their parent filter group, according to the group''s group type. You do not need to group by a specified dimension to filter against it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiDimensionFilter {
     /// TODO: enum values: ["QUERY", "PAGE", "COUNTRY", "DEVICE", "SEARCH_APPEARANCE"]
     #[serde(default)]
@@ -376,7 +377,7 @@ pub struct ApiDimensionFilter {
 }
 
 /// Information about the various content types in the sitemap.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WmxSitemapContent {
     /// *Deprecated; do not use.*
     #[serde(default)]
@@ -390,7 +391,7 @@ pub struct WmxSitemapContent {
 }
 
 /// AMP issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AmpIssue {
     /// Brief description of this issue.
     #[serde(default, rename = "issueMessage")]
@@ -401,7 +402,7 @@ pub struct AmpIssue {
 }
 
 /// Mobile-usability issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileUsabilityIssue {
     /// Mobile-usability issue type. // TODO: enum values: ["MOBILE_USABILITY_ISSUE_TYPE_UNSPECIFIED", "USES_INCOMPATIBLE_PLUGINS", "CONFIGURE_VIEWPORT", "FIXED_WIDTH_VIEWPORT", "SIZE_CONTENT_TO_VIEWPORT", "USE_LEGIBLE_FONT_SIZES", "TAP_TARGETS_TOO_CLOSE"]
     #[serde(default, rename = "issueType")]
@@ -415,7 +416,7 @@ pub struct MobileUsabilityIssue {
 }
 
 /// Rich Results items grouped by type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetectedItems {
     /// List of Rich Results items.
     #[serde(default)]
@@ -426,7 +427,7 @@ pub struct DetectedItems {
 }
 
 /// A specific rich result found on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Item {
     /// A list of zero or more rich result issues found for this instance.
     #[serde(default)]
@@ -437,7 +438,7 @@ pub struct Item {
 }
 
 /// Severity and status of a single issue affecting a single rich result instance on a page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RichResultsIssue {
     /// Rich Results issue type.
     #[serde(default, rename = "issueMessage")]

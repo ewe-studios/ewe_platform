@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for GetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
@@ -23,7 +24,7 @@ pub struct GetIamPolicyRequest {
 }
 
 /// The response for ConnectionService.ListConnections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConnectionsResponse {
     /// List of connections.
     #[serde(default)]
@@ -34,7 +35,7 @@ pub struct ListConnectionsResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -45,7 +46,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -53,7 +54,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -61,7 +62,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
@@ -69,7 +70,7 @@ pub struct GetPolicyOptions {
 }
 
 /// Configuration parameters to establish connection with an external data source, except the credential attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Connection {
     /// Amazon Web Services (AWS) properties.
     #[serde(default)]
@@ -119,7 +120,7 @@ pub struct Connection {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -136,7 +137,7 @@ pub struct Policy {
 }
 
 /// Connection properties specific to Amazon Web Services (AWS).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsProperties {
     /// Authentication using Google owned service account to assume into customer''s AWS IAM Role.
     #[serde(default, rename = "accessRole")]
@@ -144,7 +145,7 @@ pub struct AwsProperties {
 }
 
 /// Container for connection properties specific to Azure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureProperties {
     /// Output only. The name of the Azure Active Directory Application.
     #[serde(default)]
@@ -170,7 +171,7 @@ pub struct AzureProperties {
 }
 
 /// Container for connection properties for delegation of access to GCP resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudResourceProperties {
     /// Output only. The account ID of the service created for the purpose of this connection. The service account does not have any permissions associated with it when it is created. After creation, customers delegate permissions to the service account. When the connection is used in the context of an operation in BigQuery, the service account will be used to connect to the desired resources in GCP. The account ID is in the form of: @gcp-sa-bigquery-cloudresource.iam.gserviceaccount.com
     #[serde(default, rename = "serviceAccountId")]
@@ -178,7 +179,7 @@ pub struct CloudResourceProperties {
 }
 
 /// Connection properties specific to Cloud Spanner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSpannerProperties {
     /// Cloud Spanner database in the form project/instance/database''
     #[serde(default)]
@@ -201,7 +202,7 @@ pub struct CloudSpannerProperties {
 }
 
 /// Connection properties specific to the Cloud SQL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSqlProperties {
     /// Input only. Cloud SQL credential.
     #[serde(default)]
@@ -221,7 +222,7 @@ pub struct CloudSqlProperties {
 }
 
 /// Represents concrete parameter values for Connector Configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectorConfiguration {
     /// Data asset.
     #[serde(default)]
@@ -241,7 +242,7 @@ pub struct ConnectorConfiguration {
 }
 
 /// Connection properties specific to Salesforce DataCloud. This is intended for use only by Salesforce partner projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SalesforceDataCloudProperties {
     /// Output only. A unique Google-owned and Google-generated service account identity for the connection.
     #[serde(default)]
@@ -255,7 +256,7 @@ pub struct SalesforceDataCloudProperties {
 }
 
 /// Container for connection properties to execute stored procedures for Apache Spark.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkProperties {
     /// Optional. Dataproc Metastore Service configuration for the connection.
     #[serde(default, rename = "metastoreServiceConfig")]
@@ -269,7 +270,7 @@ pub struct SparkProperties {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -280,7 +281,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -294,7 +295,7 @@ pub struct Binding {
 }
 
 /// Authentication method for Amazon Web Services (AWS) that uses Google owned Google service account to assume into customer''s AWS IAM Role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsAccessRole {
     /// The user’s AWS IAM Role that trusts the Google-owned AWS IAM user Connection.
     #[serde(default, rename = "iamRoleId")]
@@ -305,7 +306,7 @@ pub struct AwsAccessRole {
 }
 
 /// Credential info for the Cloud SQL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSqlCredential {
     /// The password for the credential.
     #[serde(default)]
@@ -316,7 +317,7 @@ pub struct CloudSqlCredential {
 }
 
 /// Data Asset - a resource within instance of the system, reachable under specified endpoint. For example a database name in a SQL DB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectorConfigurationAsset {
     /// Name of the database.
     #[serde(default)]
@@ -327,7 +328,7 @@ pub struct ConnectorConfigurationAsset {
 }
 
 /// Client authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectorConfigurationAuthentication {
     /// Output only. Google-managed service account associated with this connection, e.g., service-{project_number}@gcp-sa-bigqueryconnection.iam.gserviceaccount.com. BigQuery jobs using this connection will act as service_account identity while connecting to the datasource.
     #[serde(default, rename = "serviceAccount")]
@@ -338,7 +339,7 @@ pub struct ConnectorConfigurationAuthentication {
 }
 
 /// Remote endpoint specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectorConfigurationEndpoint {
     /// Host and port in a format of hostname:port as defined in https://www.ietf.org/rfc/rfc3986.html#section-3.2.2 and https://www.ietf.org/rfc/rfc3986.html#section-3.2.3.
     #[serde(default, rename = "hostPort")]
@@ -346,7 +347,7 @@ pub struct ConnectorConfigurationEndpoint {
 }
 
 /// Network related configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectorConfigurationNetwork {
     /// Private Service Connect networking configuration.
     #[serde(default, rename = "privateServiceConnect")]
@@ -355,7 +356,7 @@ pub struct ConnectorConfigurationNetwork {
 }
 
 /// Configuration of the Dataproc Metastore Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetastoreServiceConfig {
     /// Optional. Resource name of an existing Dataproc Metastore service. Example: * projects/[project_id]/locations/[region]/services/[service_id]
     #[serde(default, rename = "metastoreService")]
@@ -363,7 +364,7 @@ pub struct MetastoreServiceConfig {
 }
 
 /// Configuration of the Spark History Server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkHistoryServerConfig {
     /// Optional. Resource name of an existing Dataproc Cluster to act as a Spark History Server for the connection. Example: * projects/[project_id]/regions/[region]/clusters/[cluster_name]
     #[serde(default, rename = "dataprocCluster")]
@@ -371,7 +372,7 @@ pub struct SparkHistoryServerConfig {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -382,7 +383,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -399,7 +400,7 @@ pub struct Expr {
 }
 
 /// Username and Password authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectorConfigurationUsernamePassword {
     /// Required. Password.
     #[serde(default)]
@@ -410,7 +411,7 @@ pub struct ConnectorConfigurationUsernamePassword {
 }
 
 /// Private Service Connect configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectorConfigurationPrivateServiceConnect {
     /// Required. Network Attachment name in the format of projects/{project}/regions/{region}/networkAttachments/{networkattachment}.
     #[serde(default, rename = "networkAttachment")]
@@ -418,7 +419,7 @@ pub struct ConnectorConfigurationPrivateServiceConnect {
 }
 
 /// Secret value parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectorConfigurationSecret {
     /// Input only. Secret as plaintext.
     #[serde(default)]

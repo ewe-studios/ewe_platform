@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The CollectApiData method''s request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1CollectApiDataRequest {
     /// Required. The action ID to be used for collecting the API data. This should map to one of the action IDs specified in action configs in the plugin.
     #[serde(default, rename = "actionId")]
@@ -32,7 +33,7 @@ pub struct GoogleCloudApihubV1CollectApiDataRequest {
 }
 
 /// ConfigVariable represents a additional configuration variable present in a PluginInstance Config or AuthConfig, based on a ConfigVariableTemplate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ConfigVariable {
     /// Optional. The config variable value in case of config variable of type boolean.
     #[serde(default, rename = "boolValue")]
@@ -64,7 +65,7 @@ pub struct GoogleCloudApihubV1ConfigVariable {
 }
 
 /// The DisablePluginInstanceAction method''s request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1DisablePluginInstanceActionRequest {
     /// Required. The action id to disable.
     #[serde(default, rename = "actionId")]
@@ -72,11 +73,11 @@ pub struct GoogleCloudApihubV1DisablePluginInstanceActionRequest {
 }
 
 /// The DisablePlugin method''s request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1DisablePluginRequest {}
 
 /// The EnablePluginInstanceAction method''s request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1EnablePluginInstanceActionRequest {
     /// Required. The action id to enable.
     #[serde(default, rename = "actionId")]
@@ -84,11 +85,11 @@ pub struct GoogleCloudApihubV1EnablePluginInstanceActionRequest {
 }
 
 /// The EnablePlugin method''s request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1EnablePluginRequest {}
 
 /// The ExecutePluginInstanceAction method''s request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ExecutePluginInstanceActionRequest {
     /// Required. The execution details for the action to execute.
     #[serde(default, rename = "actionExecutionDetail")]
@@ -96,7 +97,7 @@ pub struct GoogleCloudApihubV1ExecutePluginInstanceActionRequest {
 }
 
 /// The FetchAdditionalSpecContent method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1FetchAdditionalSpecContentResponse {
     /// The additional spec content.
     #[serde(default, rename = "additionalSpecContent")]
@@ -104,7 +105,7 @@ pub struct GoogleCloudApihubV1FetchAdditionalSpecContentResponse {
 }
 
 /// An aggregation of HTTP header occurrences.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Header {
     /// The number of occurrences of this Header across transactions.
     #[serde(default)]
@@ -118,11 +119,11 @@ pub struct GoogleCloudApihubV1Header {
 }
 
 /// The LintSpec method''s request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1LintSpecRequest {}
 
 /// The ListAddons method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListAddonsResponse {
     /// The list of addons.
     #[serde(default)]
@@ -133,7 +134,7 @@ pub struct GoogleCloudApihubV1ListAddonsResponse {
 }
 
 /// The ListApiOperations method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListApiOperationsResponse {
     /// The operations corresponding to an API version.
     #[serde(default, rename = "apiOperations")]
@@ -144,7 +145,7 @@ pub struct GoogleCloudApihubV1ListApiOperationsResponse {
 }
 
 /// The ListApis method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListApisResponse {
     /// The API resources present in the API hub.
     #[serde(default)]
@@ -155,7 +156,7 @@ pub struct GoogleCloudApihubV1ListApisResponse {
 }
 
 /// The ListAttributes method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListAttributesResponse {
     /// The list of all attributes.
     #[serde(default)]
@@ -166,7 +167,7 @@ pub struct GoogleCloudApihubV1ListAttributesResponse {
 }
 
 /// The ListCurations method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListCurationsResponse {
     /// The curation resources present in the API hub.
     #[serde(default)]
@@ -177,7 +178,7 @@ pub struct GoogleCloudApihubV1ListCurationsResponse {
 }
 
 /// The ListDependencies method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListDependenciesResponse {
     /// The dependency resources present in the API hub.
     #[serde(default)]
@@ -188,7 +189,7 @@ pub struct GoogleCloudApihubV1ListDependenciesResponse {
 }
 
 /// The ListDeployments method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListDeploymentsResponse {
     /// The deployment resources present in the API hub.
     #[serde(default)]
@@ -199,7 +200,7 @@ pub struct GoogleCloudApihubV1ListDeploymentsResponse {
 }
 
 /// Message for response to listing DiscoveredApiObservations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListDiscoveredApiObservationsResponse {
     /// The DiscoveredApiObservation from the specified project and location.
     #[serde(default, rename = "discoveredApiObservations")]
@@ -211,7 +212,7 @@ pub struct GoogleCloudApihubV1ListDiscoveredApiObservationsResponse {
 }
 
 /// Message for response to listing DiscoveredApiOperations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListDiscoveredApiOperationsResponse {
     /// The DiscoveredApiOperations from the specified project, location and DiscoveredApiObservation.
     #[serde(default, rename = "discoveredApiOperations")]
@@ -223,7 +224,7 @@ pub struct GoogleCloudApihubV1ListDiscoveredApiOperationsResponse {
 }
 
 /// The ListExternalApis method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListExternalApisResponse {
     /// The External API resources present in the API hub.
     #[serde(default, rename = "externalApis")]
@@ -234,7 +235,7 @@ pub struct GoogleCloudApihubV1ListExternalApisResponse {
 }
 
 /// The ListHostProjectRegistrations method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListHostProjectRegistrationsResponse {
     /// The list of host project registrations.
     #[serde(default, rename = "hostProjectRegistrations")]
@@ -246,7 +247,7 @@ pub struct GoogleCloudApihubV1ListHostProjectRegistrationsResponse {
 }
 
 /// The ListPluginInstances method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListPluginInstancesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -258,7 +259,7 @@ pub struct GoogleCloudApihubV1ListPluginInstancesResponse {
 }
 
 /// The ListPlugins method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListPluginsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -269,7 +270,7 @@ pub struct GoogleCloudApihubV1ListPluginsResponse {
 }
 
 /// The ListRuntimeProjectAttachments method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -281,7 +282,7 @@ pub struct GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse {
 }
 
 /// The ListSpecs method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListSpecsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -292,7 +293,7 @@ pub struct GoogleCloudApihubV1ListSpecsResponse {
 }
 
 /// The ListVersions method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ListVersionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -303,7 +304,7 @@ pub struct GoogleCloudApihubV1ListVersionsResponse {
 }
 
 /// The LookupApiHubInstance method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1LookupApiHubInstanceResponse {
     /// API Hub instance for a project if it exists, empty otherwise.
     #[serde(default, rename = "apiHubInstance")]
@@ -311,7 +312,7 @@ pub struct GoogleCloudApihubV1LookupApiHubInstanceResponse {
 }
 
 /// The ListRuntimeProjectAttachments method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse {
     /// Runtime project attachment for a project if exists, empty otherwise.
     #[serde(default, rename = "runtimeProjectAttachment")]
@@ -320,7 +321,7 @@ pub struct GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse {
 }
 
 /// The ManageAddonConfig method''s request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ManageAddonConfigRequest {
     /// Required. The config of the addon to be managed. This config will replace the config present in the addon. The type of the config should match the config type already present in the addon.
     #[serde(default)]
@@ -328,7 +329,7 @@ pub struct GoogleCloudApihubV1ManageAddonConfigRequest {
 }
 
 /// The ManagePluginInstanceSourceData method''s request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ManagePluginInstanceSourceDataRequest {
     /// Required. Action to be performed. // TODO: enum values: ["ACTION_UNSPECIFIED", "UPLOAD", "DELETE"]
     #[serde(default)]
@@ -345,11 +346,11 @@ pub struct GoogleCloudApihubV1ManagePluginInstanceSourceDataRequest {
 }
 
 /// The ManagePluginInstanceSourceData method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse {}
 
 /// The config variable value of data type multi string.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1MultiStringValues {
     /// Optional. The config variable value of data type multi string.
     #[serde(default)]
@@ -357,7 +358,7 @@ pub struct GoogleCloudApihubV1MultiStringValues {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -383,7 +384,7 @@ pub struct GoogleCloudApihubV1OperationMetadata {
 }
 
 /// An aggregation of HTTP query parameter occurrences.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1QueryParam {
     /// Optional. The number of occurrences of this query parameter across transactions.
     #[serde(default)]
@@ -397,7 +398,7 @@ pub struct GoogleCloudApihubV1QueryParam {
 }
 
 /// The RetrieveApiViews method''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1RetrieveApiViewsResponse {
     /// Output only. The list of API views.
     #[serde(default, rename = "apiViews")]
@@ -408,7 +409,7 @@ pub struct GoogleCloudApihubV1RetrieveApiViewsResponse {
 }
 
 /// The SearchResources method''s request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1SearchResourcesRequest {
     /// Optional. An expression that filters the list of search results. A filter expression consists of a field name, a comparison operator, and a value for filtering. The value must be a string, a number, or a boolean. The comparison operator must be =. Filters are not case sensitive. The following field names are eligible for filtering: * resource_type - The type of resource in the search results. Must be one of the following: Api, ApiOperation, Deployment, Definition, Spec or Version. This field can only be specified once in the filter. Here are is an example: * resource_type = Api - The resource_type is _Api_.
     #[serde(default)]
@@ -425,7 +426,7 @@ pub struct GoogleCloudApihubV1SearchResourcesRequest {
 }
 
 /// Response for the SearchResources method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1SearchResourcesResponse {
     /// Pass this token in the SearchResourcesRequest to continue to list results. If all results have been returned, this field is an empty string or not present in the response.
     #[serde(default, rename = "nextPageToken")]
@@ -436,7 +437,7 @@ pub struct GoogleCloudApihubV1SearchResourcesResponse {
 }
 
 /// Message representing the source environment details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1SourceEnvironment {
     /// Optional. The time at which the environment was created at the source.
     #[serde(default, rename = "createTime")]
@@ -453,7 +454,7 @@ pub struct GoogleCloudApihubV1SourceEnvironment {
 }
 
 /// The attribute values of data type string or JSON.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1StringAttributeValues {
     /// Required. The attribute values in case attribute data type is string or JSON.
     #[serde(default)]
@@ -461,7 +462,7 @@ pub struct GoogleCloudApihubV1StringAttributeValues {
 }
 
 /// Represents a singleton style guide resource to be used for linting Open API specs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1StyleGuide {
     /// Required. Input only. The contents of the uploaded style guide.
     #[serde(default)]
@@ -475,7 +476,7 @@ pub struct GoogleCloudApihubV1StyleGuide {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudCommonOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -501,7 +502,7 @@ pub struct GoogleCloudCommonOperationMetadata {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -512,11 +513,11 @@ pub struct GoogleCloudLocationListLocationsResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -530,7 +531,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// The API data to be collected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApiData {
     /// Optional. The list of API metadata.
     #[serde(default, rename = "apiMetadataList")]
@@ -538,7 +539,7 @@ pub struct GoogleCloudApihubV1ApiData {
 }
 
 /// The config variable value of data type multi int.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1MultiIntValues {
     /// Optional. The config variable value of data type multi int.
     #[serde(default)]
@@ -546,7 +547,7 @@ pub struct GoogleCloudApihubV1MultiIntValues {
 }
 
 /// The config variable value of data type multi select.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1MultiSelectValues {
     /// Optional. The config variable value of data type multi select.
     #[serde(default)]
@@ -554,7 +555,7 @@ pub struct GoogleCloudApihubV1MultiSelectValues {
 }
 
 /// The details for the action to execute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ActionExecutionDetail {
     /// Required. The action id of the plugin to execute.
     #[serde(default, rename = "actionId")]
@@ -562,7 +563,7 @@ pub struct GoogleCloudApihubV1ActionExecutionDetail {
 }
 
 /// Addon resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Addon {
     /// Required. The configuration of the addon.
     #[serde(default)]
@@ -591,7 +592,7 @@ pub struct GoogleCloudApihubV1Addon {
 }
 
 /// An attribute in the API Hub. An attribute is a name value pair which can be attached to different resources in the API hub based on the scope of the attribute. Attributes can either be pre-defined by the API Hub or created by users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Attribute {
     /// Optional. The list of allowed values when the attribute value is of type enum. This is required when the data_type of the attribute is ENUM. The maximum number of allowed values of an attribute will be 1000.
     #[serde(default, rename = "allowedValues")]
@@ -629,7 +630,7 @@ pub struct GoogleCloudApihubV1Attribute {
 }
 
 /// A curation resource in the API Hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Curation {
     /// Output only. The time at which the curation was created.
     #[serde(default, rename = "createTime")]
@@ -665,7 +666,7 @@ pub struct GoogleCloudApihubV1Curation {
 }
 
 /// A dependency resource defined in the API hub describes a dependency directed from a consumer to a supplier entity. A dependency can be defined between two Operations or between an Operation and External API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Dependency {
     /// Optional. The list of user defined attributes associated with the dependency resource. The key is the attribute name. It will be of the format: projects/{project}/locations/{location}/attributes/{attribute}. The value is the attribute values associated with the resource.
     #[serde(default)]
@@ -700,7 +701,7 @@ pub struct GoogleCloudApihubV1Dependency {
 }
 
 /// Respresents an API Observation observed in one of the sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1DiscoveredApiObservation {
     /// Optional. The number of observed API Operations.
     #[serde(default, rename = "apiOperationCount")]
@@ -747,7 +748,7 @@ pub struct GoogleCloudApihubV1DiscoveredApiObservation {
 }
 
 /// DiscoveredApiOperation represents an API Operation observed in one of the sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1DiscoveredApiOperation {
     /// Output only. The classification of the discovered API operation. // TODO: enum values: ["CLASSIFICATION_UNSPECIFIED", "KNOWN", "UNKNOWN"]
     #[serde(default)]
@@ -782,7 +783,7 @@ pub struct GoogleCloudApihubV1DiscoveredApiOperation {
 }
 
 /// An external API represents an API being provided by external sources. This can be used to model third-party APIs and can be used to define dependencies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ExternalApi {
     /// Optional. The list of user defined attributes associated with the Version resource. The key is the attribute name. It will be of the format: projects/{project}/locations/{location}/attributes/{attribute}. The value is the attribute values associated with the resource.
     #[serde(default)]
@@ -814,7 +815,7 @@ pub struct GoogleCloudApihubV1ExternalApi {
 }
 
 /// Host project registration refers to the registration of a Google cloud project with Api Hub as a host project. This is the project where Api Hub is provisioned. It acts as the consumer project for the Api Hub instance provisioned. Multiple runtime projects can be attached to the host project and these attachments define the scope of Api Hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1HostProjectRegistration {
     /// Output only. The time at which the host project registration was created.
     #[serde(default, rename = "createTime")]
@@ -828,7 +829,7 @@ pub struct GoogleCloudApihubV1HostProjectRegistration {
 }
 
 /// Represents a plugin instance resource in the API Hub. A PluginInstance is a specific instance of a hub plugin with its own configuration, state, and execution details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1PluginInstance {
     /// Required. The action status for the plugin instance.
     #[serde(default)]
@@ -866,7 +867,7 @@ pub struct GoogleCloudApihubV1PluginInstance {
 }
 
 /// A plugin resource in the API Hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Plugin {
     /// Optional. The configuration of actions supported by the plugin. **REQUIRED**: This field must be provided when creating or updating a Plugin. The server will reject requests if this field is missing.
     #[serde(default, rename = "actionsConfig")]
@@ -914,7 +915,7 @@ pub struct GoogleCloudApihubV1Plugin {
 }
 
 /// An ApiHubInstance represents the instance resources of the API Hub. Currently, only one ApiHub instance is allowed for each project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApiHubInstance {
     /// Required. Config of the ApiHub instance.
     #[serde(default)]
@@ -943,7 +944,7 @@ pub struct GoogleCloudApihubV1ApiHubInstance {
 }
 
 /// Runtime project attachment represents an attachment from the runtime project to the host project. Api Hub looks for deployments in the attached runtime projects and creates corresponding resources in Api Hub for the discovered deployments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1RuntimeProjectAttachment {
     /// Output only. Create time.
     #[serde(default, rename = "createTime")]
@@ -957,7 +958,7 @@ pub struct GoogleCloudApihubV1RuntimeProjectAttachment {
 }
 
 /// The view of an API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApiView {
     /// MCP server view.
     #[serde(default, rename = "mcpServerView")]
@@ -970,7 +971,7 @@ pub struct GoogleCloudApihubV1ApiView {
 }
 
 /// Represents the search results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1SearchResult {
     /// This represents the ApiHubResource. Note: Only selected fields of the resources are populated in response.
     #[serde(default)]
@@ -978,7 +979,7 @@ pub struct GoogleCloudApihubV1SearchResult {
 }
 
 /// The style guide contents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1StyleGuideContents {
     /// Required. The contents of the style guide.
     #[serde(default)]
@@ -989,7 +990,7 @@ pub struct GoogleCloudApihubV1StyleGuideContents {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationLocation {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -1009,7 +1010,7 @@ pub struct GoogleCloudLocationLocation {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1029,7 +1030,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// The message to hold repeated API metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApiMetadataList {
     /// Required. The list of API metadata.
     #[serde(default, rename = "apiMetadata")]
@@ -1037,7 +1038,7 @@ pub struct GoogleCloudApihubV1ApiMetadataList {
 }
 
 /// Configuration for the addon.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1AddonConfig {
     /// Configuration for addons which act on all data in the API hub.
     #[serde(default, rename = "allDataAddonConfig")]
@@ -1049,7 +1050,7 @@ pub struct GoogleCloudApihubV1AddonConfig {
 }
 
 /// The endpoint to be triggered for curation. The endpoint will be invoked with a request payload containing ApiMetadata. Response should contain curated data in the form of ApiMetadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Endpoint {
     /// Required. The details of the Application Integration endpoint to be triggered for curation.
     #[serde(default, rename = "applicationIntegrationEndpointDetails")]
@@ -1058,7 +1059,7 @@ pub struct GoogleCloudApihubV1Endpoint {
 }
 
 /// The plugin instance and associated action that is using the curation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1PluginInstanceActionID {
     /// Output only. The action ID that is using the curation. This should map to one of the action IDs specified in action configs in the plugin.
     #[serde(default, rename = "actionId")]
@@ -1069,7 +1070,7 @@ pub struct GoogleCloudApihubV1PluginInstanceActionID {
 }
 
 /// Reference to an entity participating in a dependency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1DependencyEntityReference {
     /// Output only. Display name of the entity.
     #[serde(default, rename = "displayName")]
@@ -1083,7 +1084,7 @@ pub struct GoogleCloudApihubV1DependencyEntityReference {
 }
 
 /// Details describing error condition of a dependency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1DependencyErrorDetail {
     /// Optional. Error in the dependency. // TODO: enum values: ["ERROR_UNSPECIFIED", "SUPPLIER_NOT_FOUND", "SUPPLIER_RECREATED"]
     #[serde(default)]
@@ -1094,7 +1095,7 @@ pub struct GoogleCloudApihubV1DependencyErrorDetail {
 }
 
 /// An HTTP-based API Operation, sometimes called a "REST" Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1HttpOperationDetails {
     /// Required. An HTTP Operation.
     #[serde(default, rename = "httpOperation")]
@@ -1114,7 +1115,7 @@ pub struct GoogleCloudApihubV1HttpOperationDetails {
 }
 
 /// MatchResult represents the result of matching a discovered API operation with a catalog API operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1MatchResult {
     /// Output only. The name of the matched API Operation. Format: projects/{project}/locations/{location}/apis/{api}/versions/{version}/operations/{operation}
     #[serde(default)]
@@ -1122,7 +1123,7 @@ pub struct GoogleCloudApihubV1MatchResult {
 }
 
 /// PluginInstanceAction represents an action which can be executed in the plugin instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1PluginInstanceAction {
     /// Required. This should map to one of the action id specified in actions_config in the plugin.
     #[serde(default, rename = "actionId")]
@@ -1151,7 +1152,7 @@ pub struct GoogleCloudApihubV1PluginInstanceAction {
 }
 
 /// AuthConfig represents the authentication information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1AuthConfig {
     /// Api Key Config.
     #[serde(default, rename = "apiKeyConfig")]
@@ -1173,7 +1174,7 @@ pub struct GoogleCloudApihubV1AuthConfig {
 }
 
 /// PluginActionConfig represents the configuration of an action supported by a plugin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1PluginActionConfig {
     /// Required. The description of the operation performed by the action.
     #[serde(default)]
@@ -1190,7 +1191,7 @@ pub struct GoogleCloudApihubV1PluginActionConfig {
 }
 
 /// ConfigTemplate represents the configuration template for a plugin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ConfigTemplate {
     /// Optional. The list of additional configuration variables for the plugin''s configuration.
     #[serde(default, rename = "additionalConfigTemplate")]
@@ -1202,7 +1203,7 @@ pub struct GoogleCloudApihubV1ConfigTemplate {
 }
 
 /// The information related to the service implemented by the plugin developer, used to invoke the plugin''s functionality.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1HostingService {
     /// Optional. The URI of the service implemented by the plugin developer, used to invoke the plugin''s functionality. This information is only required for user defined plugins.
     #[serde(default, rename = "serviceUri")]
@@ -1210,7 +1211,7 @@ pub struct GoogleCloudApihubV1HostingService {
 }
 
 /// Available configurations to provision an ApiHub Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Config {
     /// Optional. The configuration for syncing MCP data in the API Hub instance to the Agent Registry.
     #[serde(default, rename = "agentRegistrySyncConfig")]
@@ -1231,7 +1232,7 @@ pub struct GoogleCloudApihubV1Config {
 }
 
 /// A flattened view of an API, its version and one of the linked deployments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1FlattenedApiVersionDeploymentView {
     /// Optional. The API.
     #[serde(default)]
@@ -1245,7 +1246,7 @@ pub struct GoogleCloudApihubV1FlattenedApiVersionDeploymentView {
 }
 
 /// A flattened view of an API, its version, one of its operations and one of the linked deployments. If there are no deployments linked to the operation then the result will be empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1FlattenedApiVersionOperationDeploymentView {
     /// Optional. The API.
     #[serde(default)]
@@ -1262,7 +1263,7 @@ pub struct GoogleCloudApihubV1FlattenedApiVersionOperationDeploymentView {
 }
 
 /// ApiHubResource is one of the resources such as Api, Operation, Deployment, Definition, Spec and Version resources stored in API-Hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApiHubResource {
     /// This represents Api resource in search results. Only name, display_name, description and owner fields are populated in search results.
     #[serde(default)]
@@ -1285,7 +1286,7 @@ pub struct GoogleCloudApihubV1ApiHubResource {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1299,7 +1300,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// The API metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1aPIMetadata {
     /// Required. The API resource to be pushed to Hub''s collect layer. The ID of the API resource will be generated by Hub to ensure uniqueness across all APIs across systems.
     #[serde(default)]
@@ -1319,7 +1320,7 @@ pub struct GoogleCloudApihubV1aPIMetadata {
 }
 
 /// Configuration for addons which act on all data in the API hub. This is used to specify if the addon is enabled for all data in the API hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1AllDataAddonConfig {
     /// Required. If true, the addon is enabled for all data in the API hub.
     #[serde(default)]
@@ -1327,7 +1328,7 @@ pub struct GoogleCloudApihubV1AllDataAddonConfig {
 }
 
 /// Configuration for gateway plugin addons. This is used to specify the list of gateway plugin configs for which the addon is enabled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1GatewayPluginAddonConfig {
     /// Required. The list of gateway plugin configs for which the addon is enabled. Each gateway plugin config should have a unique plugin instance.
     #[serde(default, rename = "gatewayPluginConfigs")]
@@ -1336,7 +1337,7 @@ pub struct GoogleCloudApihubV1GatewayPluginAddonConfig {
 }
 
 /// The details of the Application Integration endpoint to be triggered for curation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApplicationIntegrationEndpointDetails {
     /// Required. The API trigger ID of the Application Integration workflow.
     #[serde(default, rename = "triggerId")]
@@ -1347,7 +1348,7 @@ pub struct GoogleCloudApihubV1ApplicationIntegrationEndpointDetails {
 }
 
 /// HTTP Path parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1PathParam {
     /// Optional. Data type of path param // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "BOOL", "INTEGER", "FLOAT", "STRING", "UUID"]
     #[serde(default, rename = "dataType")]
@@ -1358,7 +1359,7 @@ pub struct GoogleCloudApihubV1PathParam {
 }
 
 /// An aggregation of HTTP requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1HttpRequest {
     /// Optional. Unordered map from header name to header metadata
     #[serde(default)]
@@ -1366,7 +1367,7 @@ pub struct GoogleCloudApihubV1HttpRequest {
 }
 
 /// An aggregation of HTTP responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1HttpResponse {
     /// Optional. Unordered map from header name to header metadata
     #[serde(default)]
@@ -1377,7 +1378,7 @@ pub struct GoogleCloudApihubV1HttpResponse {
 }
 
 /// The curation information for this plugin instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1CurationConfig {
     /// Required. The curation type for this plugin instance. // TODO: enum values: ["CURATION_TYPE_UNSPECIFIED", "DEFAULT_CURATION_FOR_API_METADATA", "CUSTOM_CURATION_FOR_API_METADATA"]
     #[serde(default, rename = "curationType")]
@@ -1388,7 +1389,7 @@ pub struct GoogleCloudApihubV1CurationConfig {
 }
 
 /// The execution status for the plugin instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ExecutionStatus {
     /// Output only. The current state of the execution. // TODO: enum values: ["CURRENT_EXECUTION_STATE_UNSPECIFIED", "RUNNING", "NOT_RUNNING"]
     #[serde(default, rename = "currentExecutionState")]
@@ -1399,7 +1400,7 @@ pub struct GoogleCloudApihubV1ExecutionStatus {
 }
 
 /// The configuration of resources created for a given plugin instance action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ResourceConfig {
     /// Output only. The type of the action. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "SYNC_METADATA", "SYNC_RUNTIME_DATA"]
     #[serde(default, rename = "actionType")]
@@ -1410,7 +1411,7 @@ pub struct GoogleCloudApihubV1ResourceConfig {
 }
 
 /// Config for authentication with API key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApiKeyConfig {
     /// Required. The name of the SecretManager secret version resource storing the API key. Format: projects/{project}/secrets/{secrete}/versions/{version}. The secretmanager.versions.access permission should be granted to the service account accessing the secret.
     #[serde(default, rename = "apiKey")]
@@ -1424,7 +1425,7 @@ pub struct GoogleCloudApihubV1ApiKeyConfig {
 }
 
 /// Parameters to support Oauth 2.0 client credentials grant authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Oauth2ClientCredentialsConfig {
     /// Required. The client identifier.
     #[serde(default, rename = "clientId")]
@@ -1435,7 +1436,7 @@ pub struct GoogleCloudApihubV1Oauth2ClientCredentialsConfig {
 }
 
 /// Parameters to support Username and Password Authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1UserPasswordConfig {
     /// Required. Secret version reference containing the password. The secretmanager.versions.access permission should be granted to the service account accessing the secret.
     #[serde(default)]
@@ -1446,7 +1447,7 @@ pub struct GoogleCloudApihubV1UserPasswordConfig {
 }
 
 /// ConfigVariableTemplate represents a configuration variable template present in a Plugin Config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ConfigVariableTemplate {
     /// Optional. Description.
     #[serde(default)]
@@ -1473,7 +1474,7 @@ pub struct GoogleCloudApihubV1ConfigVariableTemplate {
 }
 
 /// AuthConfigTemplate represents the authentication template for a plugin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1AuthConfigTemplate {
     /// Optional. The service account of the plugin hosting service. This service account should be granted the required permissions on the Auth Config parameters provided while creating the plugin instances corresponding to this plugin. For example, if the plugin instance auth config requires a secret manager secret, the service account should be granted the secretmanager.versions.access permission on the corresponding secret, if the plugin instance auth config contains a service account, the service account should be granted the iam.serviceAccounts.getAccessToken permission on the corresponding service account.
     #[serde(default, rename = "serviceAccount")]
@@ -1484,7 +1485,7 @@ pub struct GoogleCloudApihubV1AuthConfigTemplate {
 }
 
 /// The configuration for Agent Registry sync.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1AgentRegistrySyncConfig {
     /// Optional. If true, the MCP data sync to the Agent Registry will be disabled. The default value is false.
     #[serde(default)]
@@ -1492,7 +1493,7 @@ pub struct GoogleCloudApihubV1AgentRegistrySyncConfig {
 }
 
 /// Represents a definition for example schema, request, response definitions contained in an API version. A definition is added/updated/deleted in an API version when a new spec is added or an existing spec is updated/deleted in a version. Currently, definition will be created only corresponding to OpenAPI spec as parsing is supported for OpenAPI spec. Also, within OpenAPI spec, only schema object is supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Definition {
     /// Optional. The list of user defined attributes associated with the definition resource. The key is the attribute name. It will be of the format: projects/{project}/locations/{location}/attributes/{attribute}. The value is the attribute values associated with the resource.
     #[serde(default)]
@@ -1518,7 +1519,7 @@ pub struct GoogleCloudApihubV1Definition {
 }
 
 /// Represents an operation contained in an API version in the API Hub. An operation is added/updated/deleted in an API version when a new spec is added or an existing spec is updated/deleted in a version. Currently, an operation will be created only corresponding to OpenAPI spec as parsing is supported for OpenAPI spec. Alternatively operations can be managed via create,update and delete APIs, creation of apiOperation can be possible only for version with no parsed operations and update/delete can be possible only for operations created via create API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApiOperation {
     /// Optional. The list of user defined attributes associated with the API operation resource. The key is the attribute name. It will be of the format: projects/{project}/locations/{location}/attributes/{attribute}. The value is the attribute values associated with the resource.
     #[serde(default)]
@@ -1544,7 +1545,7 @@ pub struct GoogleCloudApihubV1ApiOperation {
 }
 
 /// An API resource in the API Hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Api {
     /// Optional. The api functional requirements associated with the API resource. Carinality is 1 for this attribute. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-api-functional-requirements attribute. The value of the attribute should be a proper URI, and in case of Cloud Storage URI, it should point to a Cloud Storage object, not a directory.
     #[serde(default, rename = "apiFunctionalRequirements")]
@@ -1614,7 +1615,7 @@ pub struct GoogleCloudApihubV1Api {
 }
 
 /// The metadata associated with a version of the API resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1VersionMetadata {
     /// Optional. The deployments linked to this API version. Note: A particular API version could be deployed to multiple deployments (for dev deployment, UAT deployment, etc.)
     #[serde(default)]
@@ -1637,7 +1638,7 @@ pub struct GoogleCloudApihubV1VersionMetadata {
 }
 
 /// Configuration for a gateway plugin. This is used to specify configs for different gateways.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1GatewayPluginConfig {
     /// Configuration for Apigee Edge gateways.
     #[serde(default, rename = "apigeeEdgeConfig")]
@@ -1654,7 +1655,7 @@ pub struct GoogleCloudApihubV1GatewayPluginConfig {
 }
 
 /// Custom curation information for this plugin instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1CustomCuration {
     /// Required. The unique name of the curation resource. This will be the name of the curation resource in the format: projects/{project}/locations/{location}/curations/{curation}
     #[serde(default)]
@@ -1662,7 +1663,7 @@ pub struct GoogleCloudApihubV1CustomCuration {
 }
 
 /// The result of the last execution of the plugin instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1LastExecution {
     /// Output only. The last execution end time of the plugin instance.
     #[serde(default, rename = "endTime")]
@@ -1682,7 +1683,7 @@ pub struct GoogleCloudApihubV1LastExecution {
 }
 
 /// Secret provides a reference to entries in Secret Manager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Secret {
     /// Required. The resource name of the secret version in the format, format as: projects/*/secrets/*/versions/*.
     #[serde(default, rename = "secretVersion")]
@@ -1690,7 +1691,7 @@ pub struct GoogleCloudApihubV1Secret {
 }
 
 /// ConfigValueOption represents an option for a config variable of type enum or multi select.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ConfigValueOption {
     /// Optional. Description of the option.
     #[serde(default)]
@@ -1704,7 +1705,7 @@ pub struct GoogleCloudApihubV1ConfigValueOption {
 }
 
 /// Config for Google service account authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1GoogleServiceAccountConfig {
     /// Required. The service account to be used for authenticating request. The iam.serviceAccounts.getAccessToken permission should be granted on this service account to the impersonator service account.
     #[serde(default, rename = "serviceAccount")]
@@ -1712,7 +1713,7 @@ pub struct GoogleCloudApihubV1GoogleServiceAccountConfig {
 }
 
 /// The schema details derived from the spec. Currently, this entity is supported for OpenAPI spec only. For OpenAPI spec, this maps to the schema defined in the definitions section for OpenAPI 2.0 version and in components.schemas section for OpenAPI 3.0 and 3.1 version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Schema {
     /// Output only. The display name of the schema. This will map to the name of the schema in the spec.
     #[serde(default, rename = "displayName")]
@@ -1723,7 +1724,7 @@ pub struct GoogleCloudApihubV1Schema {
 }
 
 /// The operation details parsed from the spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1OperationDetails {
     /// Optional. For OpenAPI spec, this will be set if operation.deprecatedis marked as true in the spec.
     #[serde(default)]
@@ -1743,7 +1744,7 @@ pub struct GoogleCloudApihubV1OperationDetails {
 }
 
 /// The metadata associated with a deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1DeploymentMetadata {
     /// Required. The deployment resource to be pushed to Hub''s collect layer. The ID of the deployment will be generated by Hub.
     #[serde(default)]
@@ -1760,7 +1761,7 @@ pub struct GoogleCloudApihubV1DeploymentMetadata {
 }
 
 /// The metadata associated with a spec of the API version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1SpecMetadata {
     /// Optional. Timestamp indicating when the spec was created at the source.
     #[serde(default, rename = "originalCreateTime")]
@@ -1777,7 +1778,7 @@ pub struct GoogleCloudApihubV1SpecMetadata {
 }
 
 /// Represents a version of the API resource in API hub. This is also referred to as the API version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Version {
     /// Optional. The accreditations associated with the API version. This maps to the following system defined attribute: projects/{project}/locations/{location}/attributes/system-accreditation attribute. The number of values for this attribute will be based on the cardinality of the attribute. The same can be retrieved via GetAttribute API. All values should be from the list of allowed values defined for the attribute.
     #[serde(default)]
@@ -1831,7 +1832,7 @@ pub struct GoogleCloudApihubV1Version {
 }
 
 /// Configuration for Apigee Edge gateways. Applicability of a filter is determined by the filter being provided. If none of the filters are provided the addon will be enabled for all data brought in by the gateway plugin instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApigeeEdgeConfig {
     /// Optional. The filter to apply on the resources managed by the gateway plugin instance. If provided this filter applies environment specific filtering.
     #[serde(default, rename = "environmentFilter")]
@@ -1839,7 +1840,7 @@ pub struct GoogleCloudApihubV1ApigeeEdgeConfig {
 }
 
 /// Configuration for Apigee OPDK gateways. Applicability of a filter is determined by the filter being provided. If none of the filters are provided the addon will be enabled for all data brought in by the gateway plugin instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApigeeOPDKConfig {
     /// Optional. The filter to apply on the resources managed by the gateway plugin instance. If provided this filter applies environment specific filtering.
     #[serde(default, rename = "environmentFilter")]
@@ -1847,7 +1848,7 @@ pub struct GoogleCloudApihubV1ApigeeOPDKConfig {
 }
 
 /// Configuration for Apigee X and Apigee Hybrid gateways. Applicability of a filter is determined by the filter being provided. If none of the filters are provided the addon will be enabled for all data brought in by the gateway plugin instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ApigeeXHybridConfig {
     /// Optional. The filter to apply on the resources managed by the gateway plugin instance. If provided this filter applies environment specific filtering.
     #[serde(default, rename = "environmentFilter")]
@@ -1855,7 +1856,7 @@ pub struct GoogleCloudApihubV1ApigeeXHybridConfig {
 }
 
 /// The HTTP Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1HttpOperation {
     /// Optional. Operation method Note: Even though this field is optional, it is required for CreateApiOperation API and we will fail the request if not provided. // TODO: enum values: ["METHOD_UNSPECIFIED", "GET", "PUT", "POST", "DELETE", "OPTIONS", "HEAD", "PATCH", "TRACE"]
     #[serde(default)]
@@ -1866,7 +1867,7 @@ pub struct GoogleCloudApihubV1HttpOperation {
 }
 
 /// Details describing an MCP Tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1McpTool {
     /// Optional. Optional annotations for the tool.
     #[serde(default)]
@@ -1889,7 +1890,7 @@ pub struct GoogleCloudApihubV1McpTool {
 }
 
 /// Details of the deployment where APIs are hosted. A deployment could represent an Apigee proxy, API gateway, other Google Cloud services or non-Google Cloud services as well. A deployment entity is a root level entity in the API hub and exists independent of any API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Deployment {
     /// Output only. The API versions linked to this deployment. Note: A particular deployment could be linked to multiple different API versions (of same or different APIs).
     #[serde(default, rename = "apiVersions")]
@@ -1950,7 +1951,7 @@ pub struct GoogleCloudApihubV1Deployment {
 }
 
 /// Represents a spec associated with an API version in the API Hub. Note that specs of various types can be uploaded, however parsing of details is supported for OpenAPI spec currently.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Spec {
     /// Output only. The additional spec contents for the spec.
     #[serde(default, rename = "additionalSpecContents")]
@@ -1998,7 +1999,7 @@ pub struct GoogleCloudApihubV1Spec {
 }
 
 /// Filter for environments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1EnvironmentFilter {
     /// Optional. Indicates if this filter should match all environments or only a subset of environments. If set to true, all environments are matched.
     #[serde(default, rename = "allEnvironments")]
@@ -2009,7 +2010,7 @@ pub struct GoogleCloudApihubV1EnvironmentFilter {
 }
 
 /// The path details derived from the spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Path {
     /// Optional. A short description for the path applicable to all operations.
     #[serde(default)]
@@ -2020,7 +2021,7 @@ pub struct GoogleCloudApihubV1Path {
 }
 
 /// Annotations for a Tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1ToolAnnotations {
     /// Optional. Additional hints which may help tools and not covered in defaults.
     #[serde(default, rename = "additionalHints")]
@@ -2043,7 +2044,7 @@ pub struct GoogleCloudApihubV1ToolAnnotations {
 }
 
 /// The operation schema needed for an operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1OperationSchema {
     /// The JSON schema. Only valid JSON is accepted but semantic validation of schema is not supported right now.
     #[serde(default, rename = "jsonSchema")]
@@ -2051,7 +2052,7 @@ pub struct GoogleCloudApihubV1OperationSchema {
 }
 
 /// The additional spec content for the spec. This contains the metadata and the last update time for the additional spec content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1AdditionalSpecContent {
     /// Output only. The time at which the spec content was created.
     #[serde(default, rename = "createTime")]
@@ -2071,7 +2072,7 @@ pub struct GoogleCloudApihubV1AdditionalSpecContent {
 }
 
 /// SpecDetails contains the details parsed from supported spec types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1SpecDetails {
     /// Output only. The description of the spec.
     #[serde(default)]
@@ -2082,7 +2083,7 @@ pub struct GoogleCloudApihubV1SpecDetails {
 }
 
 /// Documentation details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Documentation {
     /// Optional. The uri of the externally hosted documentation.
     #[serde(default, rename = "externalUri")]
@@ -2090,7 +2091,7 @@ pub struct GoogleCloudApihubV1Documentation {
 }
 
 /// LintResponse contains the response from the linter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1LintResponse {
     /// Required. Timestamp when the linting response was generated.
     #[serde(default, rename = "createTime")]
@@ -2113,7 +2114,7 @@ pub struct GoogleCloudApihubV1LintResponse {
 }
 
 /// SourceMetadata represents the metadata for a resource at the source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1SourceMetadata {
     /// Output only. The time at which the resource was created at the source.
     #[serde(default, rename = "originalResourceCreateTime")]
@@ -2134,7 +2135,7 @@ pub struct GoogleCloudApihubV1SourceMetadata {
 }
 
 /// The attribute values associated with resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1AttributeValues {
     /// Output only. The name of the attribute. Format: projects/{project}/locations/{location}/attributes/{attribute}
     #[serde(default)]
@@ -2154,7 +2155,7 @@ pub struct GoogleCloudApihubV1AttributeValues {
 }
 
 /// The spec contents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1SpecContents {
     /// Required. The contents of the spec.
     #[serde(default)]
@@ -2165,7 +2166,7 @@ pub struct GoogleCloudApihubV1SpecContents {
 }
 
 /// OpenApiSpecDetails contains the details parsed from an OpenAPI spec in addition to the fields mentioned in SpecDetails.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1OpenApiSpecDetails {
     /// Output only. The format of the spec. // TODO: enum values: ["FORMAT_UNSPECIFIED", "OPEN_API_SPEC_2_0", "OPEN_API_SPEC_3_0", "OPEN_API_SPEC_3_1"]
     #[serde(default)]
@@ -2179,7 +2180,7 @@ pub struct GoogleCloudApihubV1OpenApiSpecDetails {
 }
 
 /// Issue contains the details of a single issue found by the linter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Issue {
     /// Required. Rule code unique to each rule defined in linter.
     #[serde(default)]
@@ -2199,7 +2200,7 @@ pub struct GoogleCloudApihubV1Issue {
 }
 
 /// Count of issues with a given severity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1SummaryEntry {
     /// Required. Count of issues with the given severity.
     #[serde(default)]
@@ -2210,7 +2211,7 @@ pub struct GoogleCloudApihubV1SummaryEntry {
 }
 
 /// PluginInstanceActionSource represents the plugin instance action source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1PluginInstanceActionSource {
     /// Output only. The id of the plugin instance action.
     #[serde(default, rename = "actionId")]
@@ -2221,7 +2222,7 @@ pub struct GoogleCloudApihubV1PluginInstanceActionSource {
 }
 
 /// The attribute values of data type enum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1EnumAttributeValues {
     /// Required. The attribute values in case attribute data type is enum.
     #[serde(default)]
@@ -2229,7 +2230,7 @@ pub struct GoogleCloudApihubV1EnumAttributeValues {
 }
 
 /// Owner details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Owner {
     /// Optional. The name of the owner.
     #[serde(default, rename = "displayName")]
@@ -2240,7 +2241,7 @@ pub struct GoogleCloudApihubV1Owner {
 }
 
 /// Object describing where in the file the issue was found.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Range {
     /// Required. End of the issue.
     #[serde(default)]
@@ -2251,7 +2252,7 @@ pub struct GoogleCloudApihubV1Range {
 }
 
 /// The value that can be assigned to the attribute when the data type is enum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1AllowedValue {
     /// Optional. The detailed description of the allowed value.
     #[serde(default)]
@@ -2268,7 +2269,7 @@ pub struct GoogleCloudApihubV1AllowedValue {
 }
 
 /// Point within the file (line and character).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApihubV1Point {
     /// Required. Character position within the line (zero-indexed).
     #[serde(default)]

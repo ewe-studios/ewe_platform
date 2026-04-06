@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// An ADB interactive shell was opened via “adb shell”. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdbShellInteractiveEvent {}
 
 /// Information about an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
     /// Whether this app is free, free with in-app purchases, or paid. If the pricing is unspecified, this means the app is not generally available anymore (even though it might still be available to people who own it). // TODO: enum values: ["APP_PRICING_UNSPECIFIED", "FREE", "FREE_WITH_IN_APP_PURCHASE", "PAID"]
     #[serde(default, rename = "appPricing")]
@@ -86,7 +87,7 @@ pub struct Application {
 }
 
 /// Batched event logs of events from the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUsageLogEvents {
     /// If present, the name of the device in the form ‘enterprises/{enterpriseId}/devices/{deviceId}’
     #[serde(default)]
@@ -103,7 +104,7 @@ pub struct BatchUsageLogEvents {
 }
 
 /// A command.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Command {
     /// Optional. Parameters for the ADD_ESIM command to add an eSIM profile to the device. If this is set, then it is suggested that type should not be set. In this case, the server automatically sets it to ADD_ESIM. It is also acceptable to explicitly set type to ADD_ESIM.
     #[serde(default, rename = "addEsimParams")]
@@ -165,15 +166,15 @@ pub struct Command {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Represents that the device has completed enrollment. User should be in the launcher at this point, device at this point will be compliant and all setup steps have been completed. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnrollmentCompleteEvent {}
 
 /// An event sent for an enterprise upgrade. An enterprise upgrade is a process that upgrades a managed Google Play Accounts enterprise to a managed Google domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseUpgradeEvent {
     /// The name of upgraded enterprise in the format "enterprises/{enterprise}"
     #[serde(default)]
@@ -184,7 +185,7 @@ pub struct EnterpriseUpgradeEvent {
 }
 
 /// Request message for generating a URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain.Note: This feature is not generally available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateEnterpriseUpgradeUrlRequest {
     /// Optional. Email address used to prefill the admin field of the enterprise signup form as part of the upgrade process. This value is a hint only and can be altered by the user. Personal email addresses are not allowed. If allowedDomains is non-empty then this must belong to one of the allowedDomains.
     #[serde(default, rename = "adminEmail")]
@@ -195,7 +196,7 @@ pub struct GenerateEnterpriseUpgradeUrlRequest {
 }
 
 /// Response message for generating a URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain.Note: This feature is not generally available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateEnterpriseUpgradeUrlResponse {
     /// A URL for an enterprise admin to upgrade their enterprise. The page can''t be rendered in an iframe.
     #[serde(default)]
@@ -203,19 +204,19 @@ pub struct GenerateEnterpriseUpgradeUrlResponse {
 }
 
 /// Response on issuing a command. This is currently empty as a placeholder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssueCommandResponse {}
 
 /// The keyguard was dismissed. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyguardDismissedEvent {}
 
 /// The device was locked either by user or timeout. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyguardSecuredEvent {}
 
 /// Response to a request to list devices for a given enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDevicesResponse {
     /// The list of devices.
     #[serde(default)]
@@ -226,7 +227,7 @@ pub struct ListDevicesResponse {
 }
 
 /// Response to a request to list enrollment tokens for a given enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEnrollmentTokensResponse {
     /// The list of enrollment tokens.
     #[serde(default, rename = "enrollmentTokens")]
@@ -237,7 +238,7 @@ pub struct ListEnrollmentTokensResponse {
 }
 
 /// Response to a request to list enterprises.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEnterprisesResponse {
     /// The list of enterprises.
     #[serde(default)]
@@ -248,7 +249,7 @@ pub struct ListEnterprisesResponse {
 }
 
 /// Response to a request to list migration tokens for a given enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMigrationTokensResponse {
     /// The migration tokens from the specified enterprise.
     #[serde(default, rename = "migrationTokens")]
@@ -259,7 +260,7 @@ pub struct ListMigrationTokensResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -273,7 +274,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response to a request to list policies for a given enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPoliciesResponse {
     /// If there are more results, a token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -284,7 +285,7 @@ pub struct ListPoliciesResponse {
 }
 
 /// Response to a request to list web apps for a given enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWebAppsResponse {
     /// If there are more results, a token to retrieve next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -295,23 +296,23 @@ pub struct ListWebAppsResponse {
 }
 
 /// The usageLog buffer on the device has reached 90% of its capacity, therefore older events may be dropped. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogBufferSizeCriticalEvent {}
 
 /// usageLog policy has been enabled. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingStartedEvent {}
 
 /// usageLog policy has been disabled. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingStoppedEvent {}
 
 /// An event indicating an outgoing phone call has been made when a device is in lost mode. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LostModeOutgoingPhoneCallEvent {}
 
 /// Request to update or create ApplicationPolicy objects in the given Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyPolicyApplicationsRequest {
     /// Required. The changes to be made to the ApplicationPolicy objects. There must be at least one ApplicationPolicyChange.
     #[serde(default)]
@@ -319,7 +320,7 @@ pub struct ModifyPolicyApplicationsRequest {
 }
 
 /// Response to a request to update or create ApplicationPolicy objects in the given policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyPolicyApplicationsResponse {
     /// The updated policy.
     #[serde(default)]
@@ -327,11 +328,11 @@ pub struct ModifyPolicyApplicationsResponse {
 }
 
 /// Device was shutdown. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OsShutdownEvent {}
 
 /// The result of an attempt to clear the data of a single app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerAppResult {
     /// The result of an attempt to clear the data of a single app. // TODO: enum values: ["CLEARING_RESULT_UNSPECIFIED", "SUCCESS", "APP_NOT_FOUND", "APP_PROTECTED", "API_LEVEL"]
     #[serde(default, rename = "clearingResult")]
@@ -339,7 +340,7 @@ pub struct PerAppResult {
 }
 
 /// Information about a device that is available during setup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisioningInfo {
     /// The API level of the Android platform version running on the device.
     #[serde(default, rename = "apiLevel")]
@@ -377,7 +378,7 @@ pub struct ProvisioningInfo {
 }
 
 /// Request to remove ApplicationPolicy objects in the given policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemovePolicyApplicationsRequest {
     /// Required. Package names to be removed. Entries that are not found are ignored. There must be at least one entry in package_names.
     #[serde(default, rename = "packageNames")]
@@ -385,7 +386,7 @@ pub struct RemovePolicyApplicationsRequest {
 }
 
 /// Response to a request to remove ApplicationPolicy objects in the given policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemovePolicyApplicationsResponse {
     /// The updated policy after ApplicationPolicy objects have been removed.
     #[serde(default)]
@@ -393,7 +394,7 @@ pub struct RemovePolicyApplicationsResponse {
 }
 
 /// An enterprise signup URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignupUrl {
     /// The name of the resource. Use this value in the signupUrl field when calling enterprises.create to complete the enterprise signup flow.
     #[serde(default)]
@@ -404,11 +405,11 @@ pub struct SignupUrl {
 }
 
 /// Parameters associated with the STOP_LOST_MODE command to take the device out of lost mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopLostModeParams {}
 
 /// A web token used to access the managed Google Play iframe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebToken {
     /// The features to enable. Use this if you want to control exactly which feature(s) will be activated; leave empty to allow all features.Restrictions / things to note: - If no features are listed here, all features are enabled — this is the default behavior where you give access to all features to your admins. - This must not contain any FEATURE_UNSPECIFIED values. - Repeated values are ignored
     #[serde(default, rename = "enabledFeatures")]
@@ -428,11 +429,11 @@ pub struct WebToken {
 }
 
 /// The work profile or company-owned device failed to wipe when requested. This could be user initiated or admin initiated e.g. delete was received. Intentionally empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WipeFailureEvent {}
 
 /// Id to name association of a app track.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppTrackInfo {
     /// The track name associated with the trackId, set in the Play Console. The name is modifiable from Play Console.
     #[serde(default, rename = "trackAlias")]
@@ -443,7 +444,7 @@ pub struct AppTrackInfo {
 }
 
 /// This represents a single version of the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppVersion {
     /// If the value is True, it indicates that this version is a production track.
     #[serde(default)]
@@ -460,7 +461,7 @@ pub struct AppVersion {
 }
 
 /// Managed property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedProperty {
     /// The default value of the property. BUNDLE_ARRAY properties don''t have a default value.
     #[serde(default, rename = "defaultValue")]
@@ -486,7 +487,7 @@ pub struct ManagedProperty {
 }
 
 /// A permission required by the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationPermission {
     /// A longer description of the permission, providing more detail on what it affects. Localized.
     #[serde(default)]
@@ -500,7 +501,7 @@ pub struct ApplicationPermission {
 }
 
 /// An event logged on the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsageLogEvent {
     /// A shell command was issued over ADB via “adb shell command”. Part of SECURITY_LOGS.
     #[serde(default, rename = "adbShellCommandEvent")]
@@ -611,7 +612,7 @@ pub struct UsageLogEvent {
 }
 
 /// Parameters associated with the ADD_ESIM command to add an eSIM profile to the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddEsimParams {
     /// Required. The activation code for the eSIM profile.
     #[serde(default, rename = "activationCode")]
@@ -622,7 +623,7 @@ pub struct AddEsimParams {
 }
 
 /// Parameters associated with the CLEAR_APP_DATA command to clear the data of specified apps from the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClearAppsDataParams {
     /// The package names of the apps whose data will be cleared when the command is executed.
     #[serde(default, rename = "packageNames")]
@@ -630,7 +631,7 @@ pub struct ClearAppsDataParams {
 }
 
 /// Status of the CLEAR_APP_DATA command to clear the data of specified apps from the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClearAppsDataStatus {
     /// The per-app results, a mapping from package names to the respective clearing result.
     #[serde(default)]
@@ -638,7 +639,7 @@ pub struct ClearAppsDataStatus {
 }
 
 /// Status and error details (if present) of an ADD_ESIM or REMOVE_ESIM command.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EsimCommandStatus {
     /// Output only. Information about the eSIM added or removed. This is populated only when the eSIM operation status is SUCCESS.
     #[serde(default, rename = "esimInfo")]
@@ -652,7 +653,7 @@ pub struct EsimCommandStatus {
 }
 
 /// Parameters associated with the REMOVE_ESIM command to remove an eSIM profile from the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveEsimParams {
     /// Required. ICC ID of the eSIM profile to be deleted.
     #[serde(default, rename = "iccId")]
@@ -660,7 +661,7 @@ pub struct RemoveEsimParams {
 }
 
 /// Parameters associated with the REQUEST_DEVICE_INFO command to get device related information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestDeviceInfoParams {
     /// Required. Type of device information to be requested. // TODO: enum values: ["DEVICE_INFO_UNSPECIFIED", "EID"]
     #[serde(default, rename = "deviceInfo")]
@@ -668,7 +669,7 @@ pub struct RequestDeviceInfoParams {
 }
 
 /// Status of the REQUEST_DEVICE_INFO command.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestDeviceInfoStatus {
     /// Information related to the EIDs of the device.
     #[serde(default, rename = "eidInfo")]
@@ -679,7 +680,7 @@ pub struct RequestDeviceInfoStatus {
 }
 
 /// Parameters associated with the START_LOST_MODE command to put the device into lost mode. At least one of the parameters, not including the organization name, must be provided in order for the device to be put into lost mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartLostModeParams {
     /// The email address displayed to the user when the device is in lost mode.
     #[serde(default, rename = "lostEmailAddress")]
@@ -699,7 +700,7 @@ pub struct StartLostModeParams {
 }
 
 /// Status of the START_LOST_MODE command to put the device into lost mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartLostModeStatus {
     /// The status. See StartLostModeStatus. // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESS", "RESET_PASSWORD_RECENTLY", "USER_EXIT_LOST_MODE_RECENTLY", "ALREADY_IN_LOST_MODE"]
     #[serde(default)]
@@ -707,7 +708,7 @@ pub struct StartLostModeStatus {
 }
 
 /// Status of the STOP_LOST_MODE command to take the device out of lost mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopLostModeStatus {
     /// The status. See StopLostModeStatus. // TODO: enum values: ["STATUS_UNSPECIFIED", "SUCCESS", "NOT_IN_LOST_MODE"]
     #[serde(default)]
@@ -715,7 +716,7 @@ pub struct StopLostModeStatus {
 }
 
 /// Parameters associated with the WIPE command to wipe the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WipeParams {
     /// Optional. Flags to determine what data to wipe.
     #[serde(default, rename = "wipeDataFlags")]
@@ -726,7 +727,7 @@ pub struct WipeParams {
 }
 
 /// A device owned by an enterprise. Unless otherwise noted, all fields are read-only and can''t be modified by enterprises.devices.patch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Device {
     /// The API level of the Android platform version running on the device.
     #[serde(default, rename = "apiLevel")]
@@ -842,7 +843,7 @@ pub struct Device {
 }
 
 /// An enrollment token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnrollmentToken {
     /// Optional, arbitrary data associated with the enrollment token. This could contain, for example, the ID of an org unit the device is assigned to after enrollment. After a device enrolls with the token, this data will be exposed in the enrollment_token_data field of the Device resource. The data must be 1024 characters or less; otherwise, the creation request will fail.
     #[serde(default, rename = "additionalData")]
@@ -877,7 +878,7 @@ pub struct EnrollmentToken {
 }
 
 /// The configuration applied to an enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Enterprise {
     /// Deprecated and unused.
     #[serde(default, rename = "appAutoApprovalEnabled")]
@@ -924,7 +925,7 @@ pub struct Enterprise {
 }
 
 /// A token to initiate the migration of a device from being managed by a third-party DPC to being managed by Android Management API. A migration token is valid only for a single device. See the guide (https://developers.google.com/android/management/dpc-migration) for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MigrationToken {
     /// Immutable. Optional EMM-specified additional data. Once the device is migrated this will be populated in the migrationAdditionalData field of the Device resource. This must be at most 1024 characters.
     #[serde(default, rename = "additionalData")]
@@ -962,7 +963,7 @@ pub struct MigrationToken {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -982,7 +983,7 @@ pub struct Operation {
 }
 
 /// A web app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebApp {
     /// The display mode of the web app. // TODO: enum values: ["DISPLAY_MODE_UNSPECIFIED", "MINIMAL_UI", "STANDALONE", "FULL_SCREEN"]
     #[serde(default, rename = "displayMode")]
@@ -1005,7 +1006,7 @@ pub struct WebApp {
 }
 
 /// A change to be made to a single ApplicationPolicy object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationPolicyChange {
     /// If ApplicationPolicy.packageName matches an existing ApplicationPolicy object within the Policy being modified, then that object will be updated. Otherwise, it will be added to the end of the Policy.applications.
     #[serde(default)]
@@ -1016,7 +1017,7 @@ pub struct ApplicationPolicyChange {
 }
 
 /// A policy resource represents a group of settings that govern the behavior of a managed device and the apps installed on it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Account types that can''t be managed by the user.
     #[serde(default, rename = "accountTypesWithManagementDisabled")]
@@ -1320,7 +1321,7 @@ pub struct Policy {
 }
 
 /// An entry of a managed property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedPropertyEntry {
     /// The human-readable name of the value. Localized.
     #[serde(default)]
@@ -1331,7 +1332,7 @@ pub struct ManagedPropertyEntry {
 }
 
 /// A shell command was issued over ADB via “adb shell command”.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdbShellCommandEvent {
     /// Shell command that was issued over ADB via "adb shell command". Redacted to empty string on organization-owned managed profile devices.
     #[serde(default, rename = "shellCmd")]
@@ -1339,7 +1340,7 @@ pub struct AdbShellCommandEvent {
 }
 
 /// An app process was started. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppProcessStartEvent {
     /// Information about a process.
     #[serde(default, rename = "processInfo")]
@@ -1347,7 +1348,7 @@ pub struct AppProcessStartEvent {
 }
 
 /// An admin has enabled or disabled backup service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupServiceToggledEvent {
     /// Package name of the admin app requesting the change.
     #[serde(default, rename = "adminPackageName")]
@@ -1361,7 +1362,7 @@ pub struct BackupServiceToggledEvent {
 }
 
 /// A new root certificate was installed into the system''s trusted credential storage. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertAuthorityInstalledEvent {
     /// Subject of the certificate.
     #[serde(default)]
@@ -1375,7 +1376,7 @@ pub struct CertAuthorityInstalledEvent {
 }
 
 /// A root certificate was removed from the system''s trusted credential storage. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertAuthorityRemovedEvent {
     /// Subject of the certificate.
     #[serde(default)]
@@ -1389,7 +1390,7 @@ pub struct CertAuthorityRemovedEvent {
 }
 
 /// An X.509v3 certificate failed to validate, currently this validation is performed on the Wi-FI access point and failure may be due to a mismatch upon server certificate validation. However it may in the future include other validation events of an X.509v3 certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertValidationFailureEvent {
     /// The reason why certification validation failed.
     #[serde(default, rename = "failureReason")]
@@ -1397,7 +1398,7 @@ pub struct CertValidationFailureEvent {
 }
 
 /// A TCP connect event was initiated through the standard network stack.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectEvent {
     /// The destination IP address of the connect call.
     #[serde(default, rename = "destinationIpAddress")]
@@ -1411,7 +1412,7 @@ pub struct ConnectEvent {
 }
 
 /// Validates whether Android’s built-in cryptographic library (BoringSSL) is valid. Should always succeed on device boot, if it fails, the device should be considered untrusted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CryptoSelfTestCompletedEvent {
     /// Whether the test succeeded.
     #[serde(default)]
@@ -1419,7 +1420,7 @@ pub struct CryptoSelfTestCompletedEvent {
 }
 
 /// A DNS lookup event was initiated through the standard network stack.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsEvent {
     /// The hostname that was looked up.
     #[serde(default)]
@@ -1436,7 +1437,7 @@ pub struct DnsEvent {
 }
 
 /// A file was downloaded from the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilePulledEvent {
     /// The path of the file being pulled.
     #[serde(default, rename = "filePath")]
@@ -1444,7 +1445,7 @@ pub struct FilePulledEvent {
 }
 
 /// A file was uploaded onto the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilePushedEvent {
     /// The path of the file being pushed.
     #[serde(default, rename = "filePath")]
@@ -1452,7 +1453,7 @@ pub struct FilePushedEvent {
 }
 
 /// A cryptographic key including user installed, admin installed and system maintained private key is removed from the device either by the user or management. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyDestructionEvent {
     /// UID of the application which owns the key.
     #[serde(default, rename = "applicationUid")]
@@ -1466,7 +1467,7 @@ pub struct KeyDestructionEvent {
 }
 
 /// A cryptographic key including user installed, admin installed and system maintained private key is installed on the device either by the user or management.This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyGeneratedEvent {
     /// UID of the application which generated the key.
     #[serde(default, rename = "applicationUid")]
@@ -1480,7 +1481,7 @@ pub struct KeyGeneratedEvent {
 }
 
 /// A cryptographic key including user installed, admin installed and system maintained private key is imported on the device either by the user or management. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyImportEvent {
     /// UID of the application which imported the key
     #[serde(default, rename = "applicationUid")]
@@ -1494,7 +1495,7 @@ pub struct KeyImportEvent {
 }
 
 /// A cryptographic key including user installed, admin installed and system maintained private key is determined to be corrupted due to storage corruption, hardware failure or some OS issue. This is available device-wide on fully managed devices and within the work profile on organization-owned devices with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyIntegrityViolationEvent {
     /// UID of the application which owns the key
     #[serde(default, rename = "applicationUid")]
@@ -1505,7 +1506,7 @@ pub struct KeyIntegrityViolationEvent {
 }
 
 /// An attempt was made to unlock the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyguardDismissAuthAttemptEvent {
     /// Whether a strong form of authentication (password, PIN, or pattern) was used to unlock device.
     #[serde(default, rename = "strongAuthMethodUsed")]
@@ -1516,7 +1517,7 @@ pub struct KeyguardDismissAuthAttemptEvent {
 }
 
 /// A lost mode event containing the device location and battery level as a percentage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LostModeLocationEvent {
     /// The battery level as a number between 0 and 100 inclusive
     #[serde(default, rename = "batteryLevel")]
@@ -1527,7 +1528,7 @@ pub struct LostModeLocationEvent {
 }
 
 /// Removable media was mounted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MediaMountEvent {
     /// Mount point.
     #[serde(default, rename = "mountPoint")]
@@ -1538,7 +1539,7 @@ pub struct MediaMountEvent {
 }
 
 /// Removable media was unmounted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MediaUnmountEvent {
     /// Mount point.
     #[serde(default, rename = "mountPoint")]
@@ -1549,7 +1550,7 @@ pub struct MediaUnmountEvent {
 }
 
 /// Device was started.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OsStartupEvent {
     /// Verified Boot state. // TODO: enum values: ["VERIFIED_BOOT_STATE_UNSPECIFIED", "GREEN", "YELLOW", "ORANGE"]
     #[serde(default, rename = "verifiedBootState")]
@@ -1560,7 +1561,7 @@ pub struct OsStartupEvent {
 }
 
 /// The device or profile has been remotely locked via the LOCK command.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoteLockEvent {
     /// Package name of the admin app requesting the change.
     #[serde(default, rename = "adminPackageName")]
@@ -1574,7 +1575,7 @@ pub struct RemoteLockEvent {
 }
 
 /// A lost mode event indicating the user has attempted to stop lost mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopLostModeUserAttemptEvent {
     /// The status of the attempt to stop lost mode. // TODO: enum values: ["STATUS_UNSPECIFIED", "ATTEMPT_SUCCEEDED", "ATTEMPT_FAILED"]
     #[serde(default)]
@@ -1582,7 +1583,7 @@ pub struct StopLostModeUserAttemptEvent {
 }
 
 /// Details of the eSIM added or removed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EsimInfo {
     /// Output only. ICC ID of the eSIM.
     #[serde(default, rename = "iccId")]
@@ -1590,7 +1591,7 @@ pub struct EsimInfo {
 }
 
 /// Internal error details if present for the ADD_ESIM or REMOVE_ESIM command.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InternalErrorDetails {
     /// Output only. Integer representation of the error code as specified here (https://developer.android.com/reference/android/telephony/euicc/EuiccManager#EXTRA_EMBEDDED_SUBSCRIPTION_DETAILED_CODE). See also, OPERATION_SMDX_SUBJECT_REASON_CODE. See error_code_detail for more details.
     #[serde(default, rename = "errorCode")]
@@ -1607,7 +1608,7 @@ pub struct InternalErrorDetails {
 }
 
 /// Information related to the EIDs of the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EidInfo {
     /// Output only. EID information for each eUICC chip.
     #[serde(default)]
@@ -1615,7 +1616,7 @@ pub struct EidInfo {
 }
 
 /// Information reported about an installed app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationReport {
     /// The source of the package. // TODO: enum values: ["APPLICATION_SOURCE_UNSPECIFIED", "SYSTEM_APP_FACTORY_VERSION", "SYSTEM_APP_UPDATED_VERSION", "INSTALLED_FROM_PLAY_STORE", "CUSTOM"]
     #[serde(default, rename = "applicationSource")]
@@ -1656,7 +1657,7 @@ pub struct ApplicationReport {
 }
 
 /// Information about Common Criteria Mode—security standards defined in the Common Criteria for Information Technology Security Evaluation (https://www.commoncriteriaportal.org/) (CC).This information is only available if statusReportingSettings.commonCriteriaModeEnabled is true in the device''s policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommonCriteriaModeInfo {
     /// Whether Common Criteria Mode is enabled. // TODO: enum values: ["COMMON_CRITERIA_MODE_STATUS_UNKNOWN", "COMMON_CRITERIA_MODE_DISABLED", "COMMON_CRITERIA_MODE_ENABLED"]
     #[serde(default, rename = "commonCriteriaModeStatus")]
@@ -1667,7 +1668,7 @@ pub struct CommonCriteriaModeInfo {
 }
 
 /// The default application information for a specific DefaultApplicationType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultApplicationInfo {
     /// Output only. Details on the default application setting attempts, in the same order as listed in defaultApplications.
     #[serde(default, rename = "defaultApplicationSettingAttempts")]
@@ -1682,7 +1683,7 @@ pub struct DefaultApplicationInfo {
 }
 
 /// Information about security related device settings on device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceSettings {
     /// Whether ADB (https://developer.android.com/studio/command-line/adb.html) is enabled on the device.
     #[serde(default, rename = "adbEnabled")]
@@ -1708,7 +1709,7 @@ pub struct DeviceSettings {
 }
 
 /// Device display information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Display {
     /// Display density expressed as dots-per-inch.
     #[serde(default)]
@@ -1734,7 +1735,7 @@ pub struct Display {
 }
 
 /// Information related to whether this device was migrated from being managed by another Device Policy Controller (DPC).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DpcMigrationInfo {
     /// Output only. If this device was migrated from another DPC, the additionalData field of the migration token is populated here.
     #[serde(default, rename = "additionalData")]
@@ -1745,7 +1746,7 @@ pub struct DpcMigrationInfo {
 }
 
 /// Information about device hardware. The fields related to temperature thresholds are only available if hardwareStatusEnabled is true in the device''s policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HardwareInfo {
     /// Battery shutdown temperature thresholds in Celsius for each battery on the device.
     #[serde(default, rename = "batteryShutdownTemperatures")]
@@ -1798,7 +1799,7 @@ pub struct HardwareInfo {
 }
 
 /// Hardware status. Temperatures may be compared to the temperature thresholds available in hardwareInfo to determine hardware health.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HardwareStatus {
     /// Current battery temperatures in Celsius for each battery on the device.
     #[serde(default, rename = "batteryTemperatures")]
@@ -1824,7 +1825,7 @@ pub struct HardwareStatus {
 }
 
 /// An event related to memory and storage measurements.To distinguish between new and old events, we recommend using the createTime field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemoryEvent {
     /// The number of free bytes in the medium, or for EXTERNAL_STORAGE_DETECTED, the total capacity in bytes of the storage medium.
     #[serde(default, rename = "byteCount")]
@@ -1838,7 +1839,7 @@ pub struct MemoryEvent {
 }
 
 /// Information about device memory and storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemoryInfo {
     /// Total internal storage on device in bytes.
     #[serde(default, rename = "totalInternalStorage")]
@@ -1849,7 +1850,7 @@ pub struct MemoryInfo {
 }
 
 /// Device network info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkInfo {
     /// IMEI number of the GSM device. For example, A1000031212.
     #[serde(default)]
@@ -1869,7 +1870,7 @@ pub struct NetworkInfo {
 }
 
 /// Provides detail about non-compliance with a policy setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NonComplianceDetail {
     /// If the policy setting could not be applied, the current value of the setting on the device.
     #[serde(default, rename = "currentValue")]
@@ -1898,7 +1899,7 @@ pub struct NonComplianceDetail {
 }
 
 /// A power management event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PowerManagementEvent {
     /// For BATTERY_LEVEL_COLLECTED events, the battery level as a percentage.
     #[serde(default, rename = "batteryLevel")]
@@ -1912,7 +1913,7 @@ pub struct PowerManagementEvent {
 }
 
 /// The security posture of the device, as determined by the current device state and the policies applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPosture {
     /// Device''s security posture value. // TODO: enum values: ["POSTURE_UNSPECIFIED", "SECURE", "AT_RISK", "POTENTIALLY_COMPROMISED"]
     #[serde(default, rename = "devicePosture")]
@@ -1923,7 +1924,7 @@ pub struct SecurityPosture {
 }
 
 /// Information about device software.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SoftwareInfo {
     /// Android build ID string meant for displaying to the user. For example, shamu-userdebug 6.0.1 MOB30I 2756745 dev-keys.
     #[serde(default, rename = "androidBuildNumber")]
@@ -1961,7 +1962,7 @@ pub struct SoftwareInfo {
 }
 
 /// A user belonging to an enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// A unique identifier you create for this user, such as user342 or asset#44418. This field must be set when the user is created and can''t be updated. This field must not contain personally identifiable information (PII). This identifier must be 1024 characters or less; otherwise, the update policy request will fail.
     #[serde(default, rename = "accountIdentifier")]
@@ -1969,7 +1970,7 @@ pub struct User {
 }
 
 /// Contact details for managed Google Play enterprises.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactInfo {
     /// Email address for a point of contact, which will be used to send important announcements related to managed Google Play.
     #[serde(default, rename = "contactEmail")]
@@ -1995,7 +1996,7 @@ pub struct ContactInfo {
 }
 
 /// Contains settings for Google-provided user authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAuthenticationSettings {
     /// Output only. Whether users need to be authenticated by Google during the enrollment process. IT admin can specify if Google authentication is enabled for the enterprise for knowledge worker devices. This value can be set only via the Google Admin Console. Google authentication can be used with signin_url In the case where Google authentication is required and a signin_url is specified, Google authentication will be launched before signin_url. This value is overridden by EnrollmentToken.googleAuthenticationOptions and SigninDetail.googleAuthenticationOptions, if they are set. // TODO: enum values: ["GOOGLE_AUTHENTICATION_REQUIRED_UNSPECIFIED", "NOT_REQUIRED", "REQUIRED"]
     #[serde(default, rename = "googleAuthenticationRequired")]
@@ -2003,7 +2004,7 @@ pub struct GoogleAuthenticationSettings {
 }
 
 /// Data hosted at an external location. The data is to be downloaded by Android Device Policy and verified against the hash.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalData {
     /// The base-64 encoded SHA-256 hash of the content hosted at url. If the content doesn''t match this hash, Android Device Policy won''t use the data.
     #[serde(default, rename = "sha256Hash")]
@@ -2014,7 +2015,7 @@ pub struct ExternalData {
 }
 
 /// A resource containing sign in details for an enterprise. Use enterprises to manage SigninDetails for a given enterprise.For an enterprise, we can have any number of SigninDetails that is uniquely identified by combination of the following three fields (signin_url, allow_personal_usage, token_tag). One cannot create two SigninDetails with the same (signin_url, allow_personal_usage, token_tag). (token_tag is an optional field).Patch: The operation updates the current list of SigninDetails with the new list of SigninDetails. If the stored SigninDetail configuration is passed, it returns the same signin_enrollment_token and qr_code. If we pass multiple identical SigninDetail configurations that are not stored, it will store the first one amongst those SigninDetail configurations. if the configuration already exists we cannot request it more than once in a particular patch API call, otherwise it will give a duplicate key error and the whole operation will fail. If we remove certain SigninDetail configuration from the request then it will get removed from the storage. We can then request another signin_enrollment_token and qr_code for the same SigninDetail configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SigninDetail {
     /// Controls whether personal usage is allowed on a device provisioned with this enrollment token.For company-owned devices: Enabling personal usage allows the user to set up a work profile on the device. Disabling personal usage requires the user provision the device as a fully managed device.For personally-owned devices: Enabling personal usage allows the user to set up a work profile on the device. Disabling personal usage will prevent the device from provisioning. Personal usage cannot be disabled on personally-owned device. // TODO: enum values: ["ALLOW_PERSONAL_USAGE_UNSPECIFIED", "PERSONAL_USAGE_ALLOWED", "PERSONAL_USAGE_DISALLOWED", "PERSONAL_USAGE_DISALLOWED_USERLESS"]
     #[serde(default, rename = "allowPersonalUsage")]
@@ -2037,7 +2038,7 @@ pub struct SigninDetail {
 }
 
 /// A terms and conditions page to be accepted during provisioning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TermsAndConditions {
     /// A well-formatted HTML string. It will be parsed on the client with android.text.Html#fromHtml.
     #[serde(default)]
@@ -2048,7 +2049,7 @@ pub struct TermsAndConditions {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2062,7 +2063,7 @@ pub struct Status {
 }
 
 /// An icon for a web app. Supported formats are: png, jpg and webp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebAppIcon {
     /// The actual bytes of the image in a base64url encoded string (c.f. RFC4648, section 5 "Base 64 Encoding with URL and Filename Safe Alphabet"). - The image type can be png or jpg. - The image should ideally be square. - The image should ideally have a size of 512x512.
     #[serde(default, rename = "imageData")]
@@ -2070,7 +2071,7 @@ pub struct WebAppIcon {
 }
 
 /// Advanced security settings. In most cases, setting these is not needed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvancedSecurityOverrides {
     /// Controls Common Criteria Mode—security standards defined in the Common Criteria for Information Technology Security Evaluation (https://www.commoncriteriaportal.org/) (CC). Enabling Common Criteria Mode increases certain security components on a device, see CommonCriteriaMode for details.Warning: Common Criteria Mode enforces a strict security model typically only required for IT products used in national security systems and other highly sensitive organizations. Standard device use may be affected. Only enabled if required. If Common Criteria Mode is turned off after being enabled previously, all user-configured Wi-Fi networks may be lost and any enterprise-configured Wi-Fi networks that require user input may need to be reconfigured. // TODO: enum values: ["COMMON_CRITERIA_MODE_UNSPECIFIED", "COMMON_CRITERIA_MODE_DISABLED", "COMMON_CRITERIA_MODE_ENABLED"]
     #[serde(default, rename = "commonCriteriaMode")]
@@ -2097,7 +2098,7 @@ pub struct AdvancedSecurityOverrides {
 }
 
 /// Configuration for an always-on VPN connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlwaysOnVpnPackage {
     /// Disallows networking when the VPN is not connected.
     #[serde(default, rename = "lockdownEnabled")]
@@ -2108,7 +2109,7 @@ pub struct AlwaysOnVpnPackage {
 }
 
 /// Policy for an individual app. Note: Application availability on a given device cannot be changed using this policy if installAppsDisabled is enabled. The maximum number of applications that you can specify per policy is 3,000.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationPolicy {
     /// List of the app’s track IDs that a device belonging to the enterprise can access. If the list contains multiple track IDs, devices receive the latest version among all accessible tracks. If the list contains no track IDs, devices only have access to the app’s production track. More details about each track are available in AppTrackInfo.
     #[serde(default, rename = "accessibleTrackIds")]
@@ -2185,7 +2186,7 @@ pub struct ApplicationPolicy {
 }
 
 /// Controls apps'' access to private keys. The rule determines which private key, if any, Android Device Policy grants to the specified app. Access is granted either when the app calls KeyChain.choosePrivateKeyAlias (https://developer.android.com/reference/android/security/KeyChain#choosePrivateKeyAlias%28android.app.Activity,%20android.security.KeyChainAliasCallback,%20java.lang.String[],%20java.security.Principal[],%20java.lang.String,%20int,%20java.lang.String%29) (or any overloads) to request a private key alias for a given URL, or for rules that are not URL-specific (that is, if urlPattern is not set, or set to the empty string or .*) on Android 11 and above, directly so that the app can call KeyChain.getPrivateKey (https://developer.android.com/reference/android/security/KeyChain#getPrivateKey%28android.content.Context,%20java.lang.String%29), without first having to call KeyChain.choosePrivateKeyAlias.When an app calls KeyChain.choosePrivateKeyAlias if more than one choosePrivateKeyRules matches, the last matching rule defines which key alias to return.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChoosePrivateKeyRule {
     /// The package names to which this rule applies. The signing key certificate fingerprint of the app is verified against the signing key certificate fingerprints provided by Play Store and ApplicationPolicy.signingKeyCerts . If no package names are specified, then the alias is provided to all apps that call KeyChain.choosePrivateKeyAlias (https://developer.android.com/reference/android/security/KeyChain#choosePrivateKeyAlias%28android.app.Activity,%20android.security.KeyChainAliasCallback,%20java.lang.String[],%20java.security.Principal[],%20java.lang.String,%20int,%20java.lang.String%29) or any overloads (but not without calling KeyChain.choosePrivateKeyAlias, even on Android 11 and above). Any app with the same Android UID as a package specified here will have access when they call KeyChain.choosePrivateKeyAlias.
     #[serde(default, rename = "packageNames")]
@@ -2199,7 +2200,7 @@ pub struct ChoosePrivateKeyRule {
 }
 
 /// A rule declaring which mitigating actions to take when a device is not compliant with its policy. For every rule, there is always an implicit mitigating action to set policy_compliant to false for the Device resource, and display a message on the device indicating that the device is not compliant with its policy. Other mitigating actions may optionally be taken as well, depending on the field values in the rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComplianceRule {
     /// A condition which is satisfied if the Android Framework API level on the device doesn''t meet a minimum requirement.
     #[serde(default, rename = "apiLevelCondition")]
@@ -2216,7 +2217,7 @@ pub struct ComplianceRule {
 }
 
 /// Controls the data from the work profile that can be accessed from the personal profile and vice versa. A NonComplianceDetail with MANAGEMENT_MODE is reported if the device does not have a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrossProfilePolicies {
     /// Optional. Controls whether personal profile apps can invoke app functions exposed by apps in the work profile. // TODO: enum values: ["CROSS_PROFILE_APP_FUNCTIONS_UNSPECIFIED", "CROSS_PROFILE_APP_FUNCTIONS_DISALLOWED", "CROSS_PROFILE_APP_FUNCTIONS_ALLOWED"]
     #[serde(default, rename = "crossProfileAppFunctions")]
@@ -2240,7 +2241,7 @@ pub struct CrossProfilePolicies {
 }
 
 /// The default application setting for a DefaultApplicationType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultApplicationSetting {
     /// Required. The scopes to which the policy should be applied. This list must not be empty or contain duplicates.A NonComplianceDetail with MANAGEMENT_MODE reason and DEFAULT_APPLICATION_SETTING_UNSUPPORTED_SCOPES specific reason is reported if none of the specified scopes can be applied to the management mode (e.g. a fully managed device receives a policy with only SCOPE_PERSONAL_PROFILE in the list).
     #[serde(default, rename = "defaultApplicationScopes")]
@@ -2254,7 +2255,7 @@ pub struct DefaultApplicationSetting {
 }
 
 /// Covers controls for device connectivity such as Wi-Fi, USB data access, keyboard/mouse connections, and more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceConnectivityManagement {
     /// Optional. Access Point Name (APN) policy. Configuration for Access Point Names (APNs) which may override any other APNs on the device. See OVERRIDE_APNS_ENABLED and overrideApns for details.
     #[serde(default, rename = "apnPolicy")]
@@ -2290,7 +2291,7 @@ pub struct DeviceConnectivityManagement {
 }
 
 /// Controls for device radio settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceRadioState {
     /// Controls whether airplane mode can be toggled by the user or not. // TODO: enum values: ["AIRPLANE_MODE_STATE_UNSPECIFIED", "AIRPLANE_MODE_USER_CHOICE", "AIRPLANE_MODE_DISABLED"]
     #[serde(default, rename = "airplaneModeState")]
@@ -2313,7 +2314,7 @@ pub struct DeviceRadioState {
 }
 
 /// Controls for the display settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisplaySettings {
     /// Optional. Controls the screen brightness settings.
     #[serde(default, rename = "screenBrightnessSettings")]
@@ -2324,7 +2325,7 @@ pub struct DisplaySettings {
 }
 
 /// Settings controlling the behavior of a device in kiosk mode. To enable kiosk mode, set kioskCustomLauncherEnabled to true or specify an app in the policy with installType KIOSK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KioskCustomization {
     /// Specifies whether the Settings app is allowed in kiosk mode. // TODO: enum values: ["DEVICE_SETTINGS_UNSPECIFIED", "SETTINGS_ACCESS_ALLOWED", "SETTINGS_ACCESS_BLOCKED"]
     #[serde(default, rename = "deviceSettings")]
@@ -2344,7 +2345,7 @@ pub struct KioskCustomization {
 }
 
 /// This feature is not generally available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OncCertificateProvider {
     /// This feature is not generally available.
     #[serde(default, rename = "certificateReferences")]
@@ -2355,7 +2356,7 @@ pub struct OncCertificateProvider {
 }
 
 /// Requirements for the password used to unlock a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PasswordRequirements {
     /// Number of incorrect device-unlock passwords that can be entered before a device is wiped. A value of 0 means there is no restriction.
     #[serde(default, rename = "maximumFailedPasswordsForWipe")]
@@ -2402,7 +2403,7 @@ pub struct PasswordRequirements {
 }
 
 /// A default activity for handling intents that match a particular intent filter. Note: To set up a kiosk, use InstallType to KIOSK rather than use persistent preferred activities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersistentPreferredActivity {
     /// The intent actions to match in the filter. If any actions are included in the filter, then an intent''s action must be one of those values for it to match. If no actions are included, the intent action is ignored.
     #[serde(default)]
@@ -2416,7 +2417,7 @@ pub struct PersistentPreferredActivity {
 }
 
 /// Policies controlling personal usage on a company-owned device with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonalUsagePolicies {
     /// Account types that can''t be managed by the user.
     #[serde(default, rename = "accountTypesWithManagementDisabled")]
@@ -2445,7 +2446,7 @@ pub struct PersonalUsagePolicies {
 }
 
 /// A rule that defines the actions to take if a device or work profile is not compliant with the policy specified in settingName. In the case of multiple matching or multiple triggered enforcement rules, a merge will occur with the most severe action being taken. However, all triggered rules are still kept track of: this includes initial trigger time and all associated non-compliance details. In the situation where the most severe enforcement rule is satisfied, the next most appropriate action is applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyEnforcementRule {
     /// An action to block access to apps and data on a company owned device or in a work profile. This action also triggers a user-facing notification with information (where possible) on how to correct the compliance issue. Note: wipeAction must also be specified.
     #[serde(default, rename = "blockAction")]
@@ -2459,7 +2460,7 @@ pub struct PolicyEnforcementRule {
 }
 
 /// Configuration info for an HTTP proxy. For a direct proxy, set the host, port, and excluded_hosts fields. For a PAC script proxy, set the pac_uri field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProxyInfo {
     /// For a direct proxy, the hosts for which the proxy is bypassed. The host names may contain wildcards such as *.example.com.
     #[serde(default, rename = "excludedHosts")]
@@ -2476,7 +2477,7 @@ pub struct ProxyInfo {
 }
 
 /// An action executed during setup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAction {
     /// Description of this action.
     #[serde(default)]
@@ -2490,7 +2491,7 @@ pub struct SetupAction {
 }
 
 /// Settings controlling the behavior of status reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatusReportingSettings {
     /// Application reporting settings. Only applicable if application_reports_enabled is true.
     #[serde(default, rename = "applicationReportingSettings")]
@@ -2531,7 +2532,7 @@ pub struct StatusReportingSettings {
 }
 
 /// Configuration for managing system updatesNote: Google Play system updates (https://source.android.com/docs/core/ota/modular-system) (also called Mainline updates) are automatically downloaded but require a device reboot to be installed. Refer to the mainline section in Manage system updates (https://developer.android.com/work/dpc/system-updates#mainline) for further details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SystemUpdate {
     /// If the type is WINDOWED, the end of the maintenance window, measured as the number of minutes after midnight in device''s local time. This value must be between 0 and 1439, inclusive. If this value is less than start_minutes, then the maintenance window spans midnight. If the maintenance window specified is smaller than 30 minutes, the actual window is extended to 30 minutes beyond the start time.
     #[serde(default, rename = "endMinutes")]
@@ -2548,7 +2549,7 @@ pub struct SystemUpdate {
 }
 
 /// Controls types of device activity logs collected from the device and reported via Pub/Sub notification (https://developers.google.com/android/management/notifications).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsageLog {
     /// Specifies which log types are enabled. Note that users will receive on-device messaging when usage logging is enabled.
     #[serde(default, rename = "enabledLogTypes")]
@@ -2559,7 +2560,7 @@ pub struct UsageLog {
 }
 
 /// Controls the work account setup configuration, such as details of whether a Google authenticated account is required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkAccountSetupConfig {
     /// Optional. The authentication type of the user on the device. // TODO: enum values: ["AUTHENTICATION_TYPE_UNSPECIFIED", "AUTHENTICATION_TYPE_NOT_ENFORCED", "GOOGLE_AUTHENTICATED"]
     #[serde(default, rename = "authenticationType")]
@@ -2570,7 +2571,7 @@ pub struct WorkAccountSetupConfig {
 }
 
 /// Information about a process. It contains process name, start time, app Uid, app Pid, seinfo tag, hash of the base APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppProcessInfo {
     /// SHA-256 hash of the base APK, in hexadecimal format.
     #[serde(default, rename = "apkSha256Hash")]
@@ -2596,7 +2597,7 @@ pub struct AppProcessInfo {
 }
 
 /// The device location containing the latitude and longitude.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The latitude position of the location
     #[serde(default)]
@@ -2607,7 +2608,7 @@ pub struct Location {
 }
 
 /// EID information for each eUICC chip.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Eid {
     /// Output only. The EID
     #[serde(default)]
@@ -2615,7 +2616,7 @@ pub struct Eid {
 }
 
 /// An app-related event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationEvent {
     /// The creation time of the event.
     #[serde(default, rename = "createTime")]
@@ -2626,7 +2627,7 @@ pub struct ApplicationEvent {
 }
 
 /// Keyed app state reported by the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyedAppState {
     /// The creation time of the app state on the device.
     #[serde(default, rename = "createTime")]
@@ -2649,7 +2650,7 @@ pub struct KeyedAppState {
 }
 
 /// Details on a default application setting attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultApplicationSettingAttempt {
     /// Output only. The outcome of setting the app as the default. // TODO: enum values: ["ATTEMPT_OUTCOME_UNSPECIFIED", "SUCCESS", "APP_NOT_INSTALLED", "APP_SIGNING_CERT_MISMATCH", "OTHER_FAILURE"]
     #[serde(default, rename = "attemptOutcome")]
@@ -2660,7 +2661,7 @@ pub struct DefaultApplicationSettingAttempt {
 }
 
 /// Information related to the eUICC chip.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EuiccChipInfo {
     /// Output only. The Embedded Identity Document (EID) that identifies the eUICC chip for each eUICC chip on the device. This is available on company owned devices running Android 13 and above.
     #[serde(default)]
@@ -2668,7 +2669,7 @@ pub struct EuiccChipInfo {
 }
 
 /// Telephony information associated with a given SIM card on the device. This is supported for all SIM cards on fully managed devices on Android 6 and above. In addition, this is supported for admin-added eSIMs on all devices for Android 15 and above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TelephonyInfo {
     /// Output only. Activation state of the SIM card on the device. This is applicable for eSIMs only. This is supported on all devices for Android 15 and above. This is always ACTIVATION_STATE_UNSPECIFIED for physical SIMs and for devices below Android 15. // TODO: enum values: ["ACTIVATION_STATE_UNSPECIFIED", "ACTIVATED", "NOT_ACTIVATED"]
     #[serde(default, rename = "activationState")]
@@ -2688,7 +2689,7 @@ pub struct TelephonyInfo {
 }
 
 /// Additional context for SpecificNonComplianceReason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpecificNonComplianceContext {
     /// Output only. Additional context for non-compliance related to default application settings. See DEFAULT_APPLICATION_SETTING_FAILED_FOR_SCOPE.
     #[serde(default, rename = "defaultApplicationContext")]
@@ -2702,7 +2703,7 @@ pub struct SpecificNonComplianceContext {
 }
 
 /// Additional details regarding the security posture of the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostureDetail {
     /// Corresponding admin-facing advice to mitigate this security risk and improve the security posture of the device.
     #[serde(default)]
@@ -2713,7 +2714,7 @@ pub struct PostureDetail {
 }
 
 /// Information about a potential pending system update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SystemUpdateInfo {
     /// The time when the update was first available. A zero value indicates that this field is not set. This field is set only if an update is available (that is, updateStatus is neither UPDATE_STATUS_UNKNOWN nor UP_TO_DATE).
     #[serde(default, rename = "updateReceivedTime")]
@@ -2724,7 +2725,7 @@ pub struct SystemUpdateInfo {
 }
 
 /// Configuration for a custom app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomAppConfig {
     /// Optional. User uninstall settings of the custom app. // TODO: enum values: ["USER_UNINSTALL_SETTINGS_UNSPECIFIED", "DISALLOW_UNINSTALL_BY_USER", "ALLOW_UNINSTALL_BY_USER"]
     #[serde(default, rename = "userUninstallSettings")]
@@ -2732,7 +2733,7 @@ pub struct CustomAppConfig {
 }
 
 /// Configuration to enable an app as an extension app, with the capability of interacting with Android Device Policy offline. For Android versions 11 and above, extension apps are exempt from battery restrictions so will not be placed into the restricted App Standby Bucket (https://developer.android.com/topic/performance/appstandby#restricted-bucket). Extensions apps are also protected against users clearing their data or force-closing the application, although admins can continue to use the clear app data command on extension apps if needed for Android 11 and above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtensionConfig {
     /// Fully qualified class name of the receiver service class for Android Device Policy to notify the extension app of any local command status updates. The service must be exported in the extension app''s AndroidManifest.xml and extend NotificationReceiverService (https://developers.google.com/android/management/reference/amapi/com/google/android/managementapi/notification/NotificationReceiverService) (see Integrate with the AMAPI SDK (https://developers.google.com/android/management/sdk-integration) guide for more details).
     #[serde(default, rename = "notificationReceiver")]
@@ -2743,7 +2744,7 @@ pub struct ExtensionConfig {
 }
 
 /// Amongst apps with InstallType set to: FORCE_INSTALLED PREINSTALLEDthis defines a set of restrictions for the app installation. At least one of the fields must be set. When multiple fields are set, then all the constraints need to be satisfied for the app to be installed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstallConstraint {
     /// Optional. Charging constraint. // TODO: enum values: ["CHARGING_CONSTRAINT_UNSPECIFIED", "CHARGING_NOT_REQUIRED", "INSTALL_ONLY_WHEN_CHARGING"]
     #[serde(default, rename = "chargingConstraint")]
@@ -2757,7 +2758,7 @@ pub struct InstallConstraint {
 }
 
 /// The managed configurations template for the app, saved from the managed configurations iframe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedConfigurationTemplate {
     /// Optional, a map containing configuration variables defined for the configuration.
     #[serde(default, rename = "configurationVariables")]
@@ -2768,7 +2769,7 @@ pub struct ManagedConfigurationTemplate {
 }
 
 /// Configuration for an Android permission and its grant state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PermissionGrant {
     /// The Android permission or group, e.g. android.permission.READ_CALENDAR or android.permission_group.CALENDAR.
     #[serde(default)]
@@ -2779,7 +2780,7 @@ pub struct PermissionGrant {
 }
 
 /// Role an app can have.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Role {
     /// Required. The type of the role an app can have. // TODO: enum values: ["ROLE_TYPE_UNSPECIFIED", "COMPANION_APP", "KIOSK", "MOBILE_THREAT_DEFENSE_ENDPOINT_DETECTION_RESPONSE", "SYSTEM_HEALTH_MONITORING"]
     #[serde(default, rename = "roleType")]
@@ -2787,7 +2788,7 @@ pub struct Role {
 }
 
 /// The application signing key certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationSigningKeyCert {
     /// Required. The SHA-256 hash value of the signing key certificate of the app. This must be a valid SHA-256 hash value, i.e. 32 bytes.
     #[serde(default, rename = "signingKeyCertFingerprintSha256")]
@@ -2795,7 +2796,7 @@ pub struct ApplicationSigningKeyCert {
 }
 
 /// A compliance rule condition which is satisfied if the Android Framework API level on the device doesn''t meet a minimum requirement. There can only be one rule with this type of condition per policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiLevelCondition {
     /// The minimum desired Android Framework API level. If the device doesn''t meet the minimum requirement, this condition is satisfied. Must be greater than zero.
     #[serde(default, rename = "minApiLevel")]
@@ -2803,7 +2804,7 @@ pub struct ApiLevelCondition {
 }
 
 /// A compliance rule condition which is satisfied if there exists any matching NonComplianceDetail for the device. A NonComplianceDetail matches a NonComplianceDetailCondition if all the fields which are set within the NonComplianceDetailCondition match the corresponding NonComplianceDetail fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NonComplianceDetailCondition {
     /// The reason the device is not in compliance with the setting. If not set, then this condition matches any reason. // TODO: enum values: ["NON_COMPLIANCE_REASON_UNSPECIFIED", "API_LEVEL", "MANAGEMENT_MODE", "USER_ACTION", "INVALID_VALUE", "APP_NOT_INSTALLED", "UNSUPPORTED", "APP_INSTALLED", "PENDING", "APP_INCOMPATIBLE", "APP_NOT_UPDATED", "DEVICE_INCOMPATIBLE", "APP_SIGNING_CERT_MISMATCH", "PROJECT_NOT_PERMITTED"]
     #[serde(default, rename = "nonComplianceReason")]
@@ -2817,7 +2818,7 @@ pub struct NonComplianceDetailCondition {
 }
 
 /// A list of package names.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PackageNameList {
     /// A list of package names.
     #[serde(default, rename = "packageNames")]
@@ -2825,7 +2826,7 @@ pub struct PackageNameList {
 }
 
 /// Information about the application to be set as the default.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultApplication {
     /// Required. The package name that should be set as the default application. The policy is rejected if the package name is invalid.
     #[serde(default, rename = "packageName")]
@@ -2833,7 +2834,7 @@ pub struct DefaultApplication {
 }
 
 /// Access Point Name (APN) policy. Configuration for Access Point Names (APNs) which may override any other APNs on the device. See OVERRIDE_APNS_ENABLED and overrideApns for details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApnPolicy {
     /// Optional. APN settings for override APNs. There must not be any conflict between any of APN settings provided, otherwise the policy will be rejected. Two ApnSettings are considered to conflict when all of the following fields match on both: numericOperatorId, apn, proxyAddress, proxyPort, mmsProxyAddress, mmsProxyPort, mmsc, mvnoType, protocol, roamingProtocol. If some of the APN settings result in non-compliance of INVALID_VALUE , they will be ignored. This can be set on fully managed devices on Android 10 and above. This can also be set on work profiles on Android 13 and above and only with ApnSetting''s with ENTERPRISE APN type. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 10. A NonComplianceDetail with MANAGEMENT_MODE is reported for work profiles on Android versions less than 13.
     #[serde(default, rename = "apnSettings")]
@@ -2844,7 +2845,7 @@ pub struct ApnPolicy {
 }
 
 /// Preferential network service settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreferentialNetworkServiceSettings {
     /// Required. Default preferential network ID for the applications that are not in applications or if ApplicationPolicy.preferentialNetworkId is set to PREFERENTIAL_NETWORK_ID_UNSPECIFIED. There must be a configuration for the specified network ID in preferentialNetworkServiceConfigs, unless this is set to NO_PREFERENTIAL_NETWORK. If set to PREFERENTIAL_NETWORK_ID_UNSPECIFIED or unset, this defaults to NO_PREFERENTIAL_NETWORK. Note: If the default preferential network is misconfigured, applications with no ApplicationPolicy.preferentialNetworkId set are not able to access the internet. This setting does not apply to the following critical apps: com.google.android.apps.work.clouddpc com.google.android.gmsApplicationPolicy.preferentialNetworkId can still be used to configure the preferential network for them. // TODO: enum values: ["PREFERENTIAL_NETWORK_ID_UNSPECIFIED", "NO_PREFERENTIAL_NETWORK", "PREFERENTIAL_NETWORK_ID_ONE", "PREFERENTIAL_NETWORK_ID_TWO", "PREFERENTIAL_NETWORK_ID_THREE", "PREFERENTIAL_NETWORK_ID_FOUR", "PREFERENTIAL_NETWORK_ID_FIVE"]
     #[serde(default, rename = "defaultPreferentialNetworkId")]
@@ -2856,7 +2857,7 @@ pub struct PreferentialNetworkServiceSettings {
 }
 
 /// Controls the device''s private DNS settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateDnsSettings {
     /// Optional. The hostname of the DNS server. This must be set if and only if private_dns_mode is set to PRIVATE_DNS_SPECIFIED_HOST. Supported on Android 10 and above on fully managed devices. A NonComplianceDetail with MANAGEMENT_MODE is reported on other management modes. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 10. A NonComplianceDetail with PENDING is reported if the device is not connected to a network. A NonComplianceDetail with nonComplianceReason INVALID_VALUE and specificNonComplianceReason PRIVATE_DNS_HOST_NOT_SERVING is reported if the specified host is not a DNS server or not supported on Android. A NonComplianceDetail with INVALID_VALUE is reported if applying this setting fails for any other reason.
     #[serde(default, rename = "privateDnsHost")]
@@ -2867,7 +2868,7 @@ pub struct PrivateDnsSettings {
 }
 
 /// Wi-Fi roaming policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WifiRoamingPolicy {
     /// Optional. Wi-Fi roaming settings. SSIDs provided in this list must be unique, the policy will be rejected otherwise.
     #[serde(default, rename = "wifiRoamingSettings")]
@@ -2875,7 +2876,7 @@ pub struct WifiRoamingPolicy {
 }
 
 /// Restrictions on which Wi-Fi SSIDs the device can connect to. Note that this does not affect which networks can be configured on the device. Supported on company-owned devices running Android 13 and above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WifiSsidPolicy {
     /// Type of the Wi-Fi SSID policy to be applied. // TODO: enum values: ["WIFI_SSID_POLICY_TYPE_UNSPECIFIED", "WIFI_SSID_DENYLIST", "WIFI_SSID_ALLOWLIST"]
     #[serde(default, rename = "wifiSsidPolicyType")]
@@ -2886,7 +2887,7 @@ pub struct WifiSsidPolicy {
 }
 
 /// Controls for the screen brightness settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScreenBrightnessSettings {
     /// Optional. The screen brightness between 1 and 255 where 1 is the lowest and 255 is the highest brightness. A value of 0 (default) means no screen brightness set. Any other value is rejected. screenBrightnessMode must be either BRIGHTNESS_AUTOMATIC or BRIGHTNESS_FIXED to set this. Supported on Android 9 and above on fully managed devices. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 9. Supported on work profiles on company-owned devices on Android 15 and above.
     #[serde(default, rename = "screenBrightness")]
@@ -2897,7 +2898,7 @@ pub struct ScreenBrightnessSettings {
 }
 
 /// Controls the screen timeout settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScreenTimeoutSettings {
     /// Optional. Controls the screen timeout duration. The screen timeout duration must be greater than 0, otherwise it is rejected. Additionally, it should not be greater than maximumTimeToLock, otherwise the screen timeout is set to maximumTimeToLock and a NonComplianceDetail with INVALID_VALUE reason and SCREEN_TIMEOUT_GREATER_THAN_MAXIMUM_TIME_TO_LOCK specific reason is reported. If the screen timeout is less than a certain lower bound, it is set to the lower bound. The lower bound may vary across devices. If this is set, screenTimeoutMode must be SCREEN_TIMEOUT_ENFORCED. Supported on Android 9 and above on fully managed devices. A NonComplianceDetail with API_LEVEL is reported if the Android version is less than 9. Supported on work profiles on company-owned devices on Android 15 and above.
     #[serde(default, rename = "screenTimeout")]
@@ -2908,7 +2909,7 @@ pub struct ScreenTimeoutSettings {
 }
 
 /// This feature is not generally available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentProviderEndpoint {
     /// This feature is not generally available.
     #[serde(default, rename = "packageName")]
@@ -2922,7 +2923,7 @@ pub struct ContentProviderEndpoint {
 }
 
 /// Policies for apps in the personal profile of a company-owned device with a work profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonalApplicationPolicy {
     /// The type of installation to perform. // TODO: enum values: ["INSTALL_TYPE_UNSPECIFIED", "BLOCKED", "AVAILABLE"]
     #[serde(default, rename = "installType")]
@@ -2933,7 +2934,7 @@ pub struct PersonalApplicationPolicy {
 }
 
 /// An action to block access to apps and data on a fully managed device or in a work profile. This action also triggers a device or work profile to displays a user-facing notification with information (where possible) on how to correct the compliance issue. Note: wipeAction must also be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlockAction {
     /// Number of days the policy is non-compliant before the device or work profile is blocked. To block access immediately, set to 0. blockAfterDays must be less than wipeAfterDays.
     #[serde(default, rename = "blockAfterDays")]
@@ -2944,7 +2945,7 @@ pub struct BlockAction {
 }
 
 /// An action to reset a company owned device or delete a work profile. Note: blockAction must also be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WipeAction {
     /// Whether the factory-reset protection data is preserved on the device. This setting doesn’t apply to work profiles.
     #[serde(default, rename = "preserveFrp")]
@@ -2955,7 +2956,7 @@ pub struct WipeAction {
 }
 
 /// An action to launch an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LaunchAppAction {
     /// Package name of app to be launched
     #[serde(default, rename = "packageName")]
@@ -2963,7 +2964,7 @@ pub struct LaunchAppAction {
 }
 
 /// Settings controlling the behavior of application reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationReportingSettings {
     /// Whether removed apps are included in application reports.
     #[serde(default, rename = "includeRemovedApps")]
@@ -2971,7 +2972,7 @@ pub struct ApplicationReportingSettings {
 }
 
 /// A system freeze period. When a device’s clock is within the freeze period, all incoming system updates (including security patches) are blocked and won’t be installed.When the device is outside any set freeze periods, the normal policy behavior (automatic, windowed, or postponed) applies.Leap years are ignored in freeze period calculations, in particular: If Feb. 29th is set as the start or end date of a freeze period, the freeze period will start or end on Feb. 28th instead. When a device’s system clock reads Feb. 29th, it’s treated as Feb. 28th. When calculating the number of days in a freeze period or the time between two freeze periods, Feb. 29th is ignored and not counted as a day.Note: For Freeze Periods to take effect, SystemUpdateType cannot be specified as SYSTEM_UPDATE_TYPE_UNSPECIFIED, because freeze periods require a defined policy to be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreezePeriod {
     /// The end date (inclusive) of the freeze period. Must be no later than 90 days from the start date. If the end date is earlier than the start date, the freeze period is considered wrapping year-end. Note: day and month must be set. year should not be set as it is not used. For example, {"month": 1,"date": 30}.
     #[serde(default, rename = "endDate")]
@@ -2982,7 +2983,7 @@ pub struct FreezePeriod {
 }
 
 /// Additional context for non-compliance related to default application settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultApplicationContext {
     /// Output only. The scope of non-compliant default application setting. // TODO: enum values: ["DEFAULT_APPLICATION_SCOPE_UNSPECIFIED", "SCOPE_FULLY_MANAGED", "SCOPE_WORK_PROFILE", "SCOPE_PERSONAL_PROFILE"]
     #[serde(default, rename = "defaultApplicationScope")]
@@ -2990,7 +2991,7 @@ pub struct DefaultApplicationContext {
 }
 
 /// Additional context for non-compliance related to Wi-Fi configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OncWifiContext {
     /// The GUID of non-compliant Wi-Fi configuration.
     #[serde(default, rename = "wifiGuid")]
@@ -2998,7 +2999,7 @@ pub struct OncWifiContext {
 }
 
 /// Additional context for non-compliance related to password policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PasswordPoliciesContext {
     /// The scope of non-compliant password. // TODO: enum values: ["SCOPE_UNSPECIFIED", "SCOPE_DEVICE", "SCOPE_PROFILE"]
     #[serde(default, rename = "passwordPolicyScope")]
@@ -3006,7 +3007,7 @@ pub struct PasswordPoliciesContext {
 }
 
 /// Provides a user-facing message with locale info. The maximum message length is 4096 characters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserFacingMessage {
     /// The default message displayed if no localized message is specified or the user''s locale doesn''t match with any of the localized messages. A default message must be provided if any localized messages are provided.
     #[serde(default, rename = "defaultMessage")]
@@ -3017,7 +3018,7 @@ pub struct UserFacingMessage {
 }
 
 /// An Access Point Name (APN) configuration for a carrier data connection. The APN provides configuration to connect a cellular network device to an IP data network. A carrier uses this setting to decide which IP address to assign, any security methods to apply, and how the device might be connected to private networks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApnSetting {
     /// Optional. Whether User Plane resources have to be activated during every transition from CM-IDLE mode to CM-CONNECTED state for this APN. See 3GPP TS 23.501 section 5.6.13. // TODO: enum values: ["ALWAYS_ON_SETTING_UNSPECIFIED", "NOT_ALWAYS_ON", "ALWAYS_ON"]
     #[serde(default, rename = "alwaysOnSetting")]
@@ -3082,7 +3083,7 @@ pub struct ApnSetting {
 }
 
 /// Individual preferential network service configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreferentialNetworkServiceConfig {
     /// Optional. Whether fallback to the device-wide default network is allowed. If this is set to FALLBACK_TO_DEFAULT_CONNECTION_ALLOWED, then nonMatchingNetworks must not be set to NON_MATCHING_NETWORKS_DISALLOWED, the policy will be rejected otherwise. Note: If this is set to FALLBACK_TO_DEFAULT_CONNECTION_DISALLOWED, applications are not able to access the internet if the 5G slice is not available. // TODO: enum values: ["FALLBACK_TO_DEFAULT_CONNECTION_UNSPECIFIED", "FALLBACK_TO_DEFAULT_CONNECTION_ALLOWED", "FALLBACK_TO_DEFAULT_CONNECTION_DISALLOWED"]
     #[serde(default, rename = "fallbackToDefaultConnection")]
@@ -3096,7 +3097,7 @@ pub struct PreferentialNetworkServiceConfig {
 }
 
 /// Wi-Fi roaming setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WifiRoamingSetting {
     /// Required. Wi-Fi roaming mode for the specified SSID. // TODO: enum values: ["WIFI_ROAMING_MODE_UNSPECIFIED", "WIFI_ROAMING_DISABLED", "WIFI_ROAMING_DEFAULT", "WIFI_ROAMING_AGGRESSIVE"]
     #[serde(default, rename = "wifiRoamingMode")]
@@ -3107,7 +3108,7 @@ pub struct WifiRoamingSetting {
 }
 
 /// Represents a Wi-Fi SSID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WifiSsid {
     /// Required. Wi-Fi SSID represented as a string.
     #[serde(default, rename = "wifiSsid")]
@@ -3115,7 +3116,7 @@ pub struct WifiSsid {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: A full date, with non-zero year, month, and day values. A month and day, with a zero year (for example, an anniversary). A year on its own, with a zero month and a zero day. A year and month, with a zero day (for example, a credit card expiration date).Related types: google.type.TimeOfDay google.type.DateTime google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]

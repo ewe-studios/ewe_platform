@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Export data from Parallelstore to Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportDataRequest {
     /// Cloud Storage destination.
     #[serde(default, rename = "destinationGcsBucket")]
@@ -35,11 +36,11 @@ pub struct ExportDataRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Import data from Cloud Storage into a Parallelstore instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportDataRequest {
     /// Parallelstore destination.
     #[serde(default, rename = "destinationParallelstore")]
@@ -59,7 +60,7 @@ pub struct ImportDataRequest {
 }
 
 /// Response from ListInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancesResponse {
     /// The list of Parallelstore instances.
     #[serde(default)]
@@ -73,7 +74,7 @@ pub struct ListInstancesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -84,7 +85,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -98,7 +99,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Long-running operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -124,7 +125,7 @@ pub struct OperationMetadata {
 }
 
 /// Operation metadata returned by the CLH during resource state reconciliation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReconciliationOperationMetadata {
     /// DEPRECATED. Use exclusive_action instead.
     #[serde(default, rename = "deleteResource")]
@@ -135,7 +136,7 @@ pub struct ReconciliationOperationMetadata {
 }
 
 /// Cloud Storage as the destination of a data transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationGcsBucket {
     /// Required. URI to a Cloud Storage bucket in the format: gs:///. The path inside the bucket is optional.
     #[serde(default)]
@@ -143,7 +144,7 @@ pub struct DestinationGcsBucket {
 }
 
 /// Parallelstore as the source of a data transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceParallelstore {
     /// Optional. Root directory path to the Paralellstore filesystem, starting with /. Defaults to / if unset.
     #[serde(default)]
@@ -151,7 +152,7 @@ pub struct SourceParallelstore {
 }
 
 /// Parallelstore as the destination of a data transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationParallelstore {
     /// Optional. Root directory path to the Paralellstore filesystem, starting with /. Defaults to / if unset.
     #[serde(default)]
@@ -159,7 +160,7 @@ pub struct DestinationParallelstore {
 }
 
 /// Transfer metadata options for the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferMetadataOptions {
     /// Optional. The GID preservation behavior. // TODO: enum values: ["GID_UNSPECIFIED", "GID_SKIP", "GID_NUMBER_PRESERVE"]
     #[serde(default)]
@@ -173,7 +174,7 @@ pub struct TransferMetadataOptions {
 }
 
 /// Cloud Storage as the source of a data transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceGcsBucket {
     /// Required. URI to a Cloud Storage bucket in the format: gs:///. The path inside the bucket is optional.
     #[serde(default)]
@@ -181,7 +182,7 @@ pub struct SourceGcsBucket {
 }
 
 /// A Parallelstore instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// Output only. A list of IPv4 addresses used for client side configuration.
     #[serde(default, rename = "accessPoints")]
@@ -231,7 +232,7 @@ pub struct Instance {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -251,7 +252,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -271,7 +272,7 @@ pub struct Operation {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]

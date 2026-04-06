@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Application management boundary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Boundary {
     /// Output only. Create time.
     #[serde(default, rename = "createTime")]
@@ -31,23 +32,23 @@ pub struct Boundary {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Request for DetachServiceProjectAttachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetachServiceProjectAttachmentRequest {}
 
 /// Response for DetachServiceProjectAttachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetachServiceProjectAttachmentResponse {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Additional metadata for a Service or Workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtendedMetadata {
     /// Output only. The metadata contents.
     #[serde(default, rename = "metadataStruct")]
@@ -55,7 +56,7 @@ pub struct ExtendedMetadata {
 }
 
 /// Response for ListApplications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListApplicationsResponse {
     /// List of Applications.
     #[serde(default)]
@@ -69,7 +70,7 @@ pub struct ListApplicationsResponse {
 }
 
 /// Response for ListDiscoveredServices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDiscoveredServicesResponse {
     /// List of Discovered Services.
     #[serde(default, rename = "discoveredServices")]
@@ -83,7 +84,7 @@ pub struct ListDiscoveredServicesResponse {
 }
 
 /// Response for ListDiscoveredWorkloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDiscoveredWorkloadsResponse {
     /// List of Discovered Workloads.
     #[serde(default, rename = "discoveredWorkloads")]
@@ -97,7 +98,7 @@ pub struct ListDiscoveredWorkloadsResponse {
 }
 
 /// Response for ListExtendedMetadataSchemas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExtendedMetadataSchemasResponse {
     /// List of Extended Metadata Schemas.
     #[serde(default, rename = "extendedMetadataSchemas")]
@@ -108,7 +109,7 @@ pub struct ListExtendedMetadataSchemasResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -119,7 +120,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -133,7 +134,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response for ListServiceProjectAttachments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServiceProjectAttachmentsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -148,7 +149,7 @@ pub struct ListServiceProjectAttachmentsResponse {
 }
 
 /// Response for ListServices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServicesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -162,7 +163,7 @@ pub struct ListServicesResponse {
 }
 
 /// Response for ListWorkloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkloadsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -176,7 +177,7 @@ pub struct ListWorkloadsResponse {
 }
 
 /// Response for LookupDiscoveredService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupDiscoveredServiceResponse {
     /// Discovered Service if exists, empty otherwise.
     #[serde(default, rename = "discoveredService")]
@@ -184,7 +185,7 @@ pub struct LookupDiscoveredServiceResponse {
 }
 
 /// Response for LookupDiscoveredWorkload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupDiscoveredWorkloadResponse {
     /// Discovered Workload if exists, empty otherwise.
     #[serde(default, rename = "discoveredWorkload")]
@@ -192,7 +193,7 @@ pub struct LookupDiscoveredWorkloadResponse {
 }
 
 /// Response for LookupServiceProjectAttachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupServiceProjectAttachmentResponse {
     /// Service project attachment for a project if exists, empty otherwise.
     #[serde(default, rename = "serviceProjectAttachment")]
@@ -200,7 +201,7 @@ pub struct LookupServiceProjectAttachmentResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -226,7 +227,7 @@ pub struct OperationMetadata {
 }
 
 /// Operation metadata returned by the CLH during resource state reconciliation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReconciliationOperationMetadata {
     /// DEPRECATED. Use exclusive_action instead.
     #[serde(default, rename = "deleteResource")]
@@ -237,7 +238,7 @@ pub struct ReconciliationOperationMetadata {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -248,7 +249,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -256,7 +257,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -264,7 +265,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Application defines the governance boundary for App Hub entities that perform a logical end-to-end business function. App Hub supports application level IAM permission to align with governance requirements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
     /// Optional. Consumer provided attributes.
     #[serde(default)]
@@ -296,7 +297,7 @@ pub struct Application {
 }
 
 /// ExtendedMetadataSchema represents a schema for extended metadata of a service or workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtendedMetadataSchema {
     /// Output only. The JSON schema as a string.
     #[serde(default, rename = "jsonSchema")]
@@ -310,7 +311,7 @@ pub struct ExtendedMetadataSchema {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -330,7 +331,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -350,7 +351,7 @@ pub struct Operation {
 }
 
 /// Service is an App Hub data model that contains a discovered service, which represents a network or API interface that exposes some functionality to clients for consumption over the network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Service {
     /// Optional. Consumer provided attributes.
     #[serde(default)]
@@ -388,7 +389,7 @@ pub struct Service {
 }
 
 /// Workload is an App Hub data model that contains a discovered workload, which represents a binary deployment (such as managed instance groups (MIGs) and GKE deployments) that performs the smallest logical subset of business functionality.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Workload {
     /// Optional. Consumer provided attributes.
     #[serde(default)]
@@ -426,7 +427,7 @@ pub struct Workload {
 }
 
 /// DiscoveredService is a network or API interface that exposes some functionality to clients for consumption over the network. A discovered service can be registered to a App Hub service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscoveredService {
     /// Identifier. The resource name of the discovered service. Format: "projects/{host-project-id}/locations/{location}/discoveredServices/{uuid}"
     #[serde(default)]
@@ -440,7 +441,7 @@ pub struct DiscoveredService {
 }
 
 /// DiscoveredWorkload is a binary deployment (such as managed instance groups (MIGs) and GKE deployments) that performs the smallest logical subset of business functionality. A discovered workload can be registered to an App Hub Workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscoveredWorkload {
     /// Identifier. The resource name of the discovered workload. Format: "projects/{host-project-id}/locations/{location}/discoveredWorkloads/{uuid}"
     #[serde(default)]
@@ -454,7 +455,7 @@ pub struct DiscoveredWorkload {
 }
 
 /// ServiceProjectAttachment represents an attachment from a service project to a host project. Service projects contain the underlying cloud infrastructure resources, and expose these resources to the host project through a ServiceProjectAttachment. With the attachments, the host project can provide an aggregated view of resources across all service projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceProjectAttachment {
     /// Output only. Create time.
     #[serde(default, rename = "createTime")]
@@ -474,7 +475,7 @@ pub struct ServiceProjectAttachment {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -491,7 +492,7 @@ pub struct Policy {
 }
 
 /// Scope of an application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Scope {
     /// Required. Scope Type. // TODO: enum values: ["TYPE_UNSPECIFIED", "REGIONAL", "GLOBAL"]
     #[serde(default, rename = "type")]
@@ -499,7 +500,7 @@ pub struct Scope {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -513,7 +514,7 @@ pub struct Status {
 }
 
 /// Consumer provided attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attributes {
     /// Optional. Business team that ensures user needs are met and value is delivered
     #[serde(default, rename = "businessOwners")]
@@ -533,7 +534,7 @@ pub struct Attributes {
 }
 
 /// Properties of an underlying cloud resource that can comprise a Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceProperties {
     /// Output only. Additional metadata specific to the resource type. The key is a string that identifies the type of metadata and the value is the metadata contents specific to that type. Key format: apphub.googleapis.com/{metadataType}
     #[serde(default, rename = "extendedMetadata")]
@@ -559,7 +560,7 @@ pub struct ServiceProperties {
 }
 
 /// Reference to an underlying networking resource that can comprise a Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceReference {
     /// Output only. The underlying resource URI. For example, URI of Forwarding Rule, URL Map, and Backend Service.
     #[serde(default)]
@@ -567,7 +568,7 @@ pub struct ServiceReference {
 }
 
 /// Properties of an underlying compute resource represented by the Workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadProperties {
     /// Output only. Additional metadata specific to the resource type. The key is a string that identifies the type of metadata and the value is the metadata contents specific to that type. Key format: apphub.googleapis.com/{metadataType}
     #[serde(default, rename = "extendedMetadata")]
@@ -590,7 +591,7 @@ pub struct WorkloadProperties {
 }
 
 /// Reference of an underlying compute resource represented by the Workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadReference {
     /// Output only. The underlying compute resource uri.
     #[serde(default)]
@@ -598,7 +599,7 @@ pub struct WorkloadReference {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -609,7 +610,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -623,7 +624,7 @@ pub struct Binding {
 }
 
 /// Contact information of stakeholders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactInfo {
     /// Optional. Contact''s name. Can have a maximum length of 63 characters.
     #[serde(default, rename = "displayName")]
@@ -634,7 +635,7 @@ pub struct ContactInfo {
 }
 
 /// Criticality of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Criticality {
     /// Required. Criticality Type. // TODO: enum values: ["TYPE_UNSPECIFIED", "MISSION_CRITICAL", "HIGH", "MEDIUM", "LOW"]
     #[serde(default, rename = "type")]
@@ -642,7 +643,7 @@ pub struct Criticality {
 }
 
 /// Environment of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Environment {
     /// Required. Environment Type. // TODO: enum values: ["TYPE_UNSPECIFIED", "PRODUCTION", "STAGING", "TEST", "DEVELOPMENT"]
     #[serde(default, rename = "type")]
@@ -650,7 +651,7 @@ pub struct Environment {
 }
 
 /// The registration type of a service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegistrationType {
     /// Output only. The registration type of a service. // TODO: enum values: ["TYPE_UNSPECIFIED", "EXCLUSIVE", "SHARED"]
     #[serde(default, rename = "type")]
@@ -658,7 +659,7 @@ pub struct RegistrationType {
 }
 
 /// The functional type of a service or workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FunctionalType {
     /// Output only. The functional type of a service or workload. // TODO: enum values: ["TYPE_UNSPECIFIED", "AGENT", "MCP_SERVER", "ENDPOINT"]
     #[serde(default, rename = "type")]
@@ -666,7 +667,7 @@ pub struct FunctionalType {
 }
 
 /// The identity associated with a service or workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Identity {
     /// Output only. The principal of the identity. Supported formats: * sa://my-sa@PROJECT_ID.iam.gserviceaccount.com for GCP Service Account * principal://POOL_ID.global.PROJECT_NUMBER.workload.id.goog/ns/NAMESPACE_ID/sa/MANAGED_IDENTITY_ID for Managed Workload Identity
     #[serde(default)]
@@ -674,7 +675,7 @@ pub struct Identity {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -685,7 +686,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]

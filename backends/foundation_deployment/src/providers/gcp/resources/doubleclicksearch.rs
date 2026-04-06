@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A list of conversions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConversionList {
     /// The conversions being requested.
     #[serde(default)]
@@ -22,11 +23,11 @@ pub struct ConversionList {
 }
 
 /// File returned to https://developers.google.com/search-ads/v2/reference/reports/getIdMappingFile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdMappingFile {}
 
 /// A DoubleClick Search report. This object contains the report request, some report metadata such as currency code, and the generated report rows or report files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Report {
     /// Asynchronous report only. Contains a list of generated report files once the report has successfully completed.
     #[serde(default)]
@@ -58,11 +59,11 @@ pub struct Report {
 }
 
 /// A row in a DoubleClick Search report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportRow {}
 
 /// A list of saved columns. Advertisers create saved columns to report on Floodlight activities, Google Analytics goals, or custom KPIs. To request reports with saved columns, you''ll need the saved column names that are available from this list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SavedColumnList {
     /// The saved columns being requested.
     #[serde(default)]
@@ -73,7 +74,7 @@ pub struct SavedColumnList {
 }
 
 /// The request to update availability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateAvailabilityRequest {
     /// The availabilities being requested.
     #[serde(default)]
@@ -81,7 +82,7 @@ pub struct UpdateAvailabilityRequest {
 }
 
 /// The response to a update availability request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateAvailabilityResponse {
     /// The availabilities being returned.
     #[serde(default)]
@@ -89,7 +90,7 @@ pub struct UpdateAvailabilityResponse {
 }
 
 /// A conversion containing data relevant to DoubleClick Search. Common DS3 API conversion fields: Id Range [1 - 2800]. Next Id to use: 33
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Conversion {
     /// DS ad group ID.
     #[serde(default, rename = "adGroupId")]
@@ -199,7 +200,7 @@ pub struct Conversion {
 }
 
 /// A request object used to create a DoubleClick Search report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportRequest {
     /// The columns to include in the report. This includes both DoubleClick Search columns and saved columns. For DoubleClick Search columns, only the columnName parameter is required. For saved columns only the savedColumnName parameter is required. Both columnName and savedColumnName cannot be set in the same stanza.\ The maximum number of columns per request is 300.
     #[serde(default)]
@@ -246,7 +247,7 @@ pub struct ReportRequest {
 }
 
 /// A saved column
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SavedColumn {
     /// Identifies this as a SavedColumn resource. Value: the fixed string doubleclicksearch#savedColumn.
     #[serde(default)]
@@ -260,7 +261,7 @@ pub struct SavedColumn {
 }
 
 /// A message containing availability data relevant to DoubleClick Search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Availability {
     /// DS advertiser ID.
     #[serde(default, rename = "advertiserId")]
@@ -286,7 +287,7 @@ pub struct Availability {
 }
 
 /// A message containing the custom dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomDimension {
     /// Custom dimension name.
     #[serde(default)]
@@ -297,7 +298,7 @@ pub struct CustomDimension {
 }
 
 /// A message containing the custom metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomMetric {
     /// Custom metric name.
     #[serde(default)]
@@ -308,7 +309,7 @@ pub struct CustomMetric {
 }
 
 /// A request object used to create a DoubleClick Search report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportApiColumnSpec {
     /// Name of a DoubleClick Search column to include in the report.
     #[serde(default, rename = "columnName")]

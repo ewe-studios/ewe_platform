@@ -8,34 +8,35 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request for the AbortFunctionUpgrade method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbortFunctionUpgradeRequest {}
 
 /// Security patches are applied automatically to the runtime without requiring the function to be redeployed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomaticUpdatePolicy {}
 
 /// Request for the CommitFunctionUpgradeAsGen2 method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitFunctionUpgradeAsGen2Request {}
 
 /// Request for the CommitFunctionUpgrade method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitFunctionUpgradeRequest {}
 
 /// Request for the DetachFunction method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetachFunctionRequest {}
 
 /// Request of GenerateDownloadUrl method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateDownloadUrlRequest {}
 
 /// Response of GenerateDownloadUrl method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateDownloadUrlResponse {
     /// The generated Google Cloud Storage signed URL that should be used for function source code download.
     #[serde(default, rename = "downloadUrl")]
@@ -43,7 +44,7 @@ pub struct GenerateDownloadUrlResponse {
 }
 
 /// Request of GenerateSourceUploadUrl method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateUploadUrlRequest {
     /// The function environment the generated upload url will be used for. The upload url for 2nd Gen functions can also be used for 1st gen functions, but not vice versa. If not specified, 2nd generation-style upload URLs are generated. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "GEN_1", "GEN_2"]
     #[serde(default)]
@@ -54,7 +55,7 @@ pub struct GenerateUploadUrlRequest {
 }
 
 /// Response of GenerateSourceUploadUrl method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateUploadUrlResponse {
     /// The location of the source code in the upload bucket. Once the archive is uploaded using the upload_url use this field to set the function.build_config.source.storage_source during CreateFunction and UpdateFunction. Generation defaults to 0, as Cloud Storage provides a new generation only upon uploading a new object or version of an object.
     #[serde(default, rename = "storageSource")]
@@ -65,7 +66,7 @@ pub struct GenerateUploadUrlResponse {
 }
 
 /// Extra GCF specific location information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudFunctionsV2LocationMetadata {
     /// The Cloud Function environments this location supports.
     #[serde(default)]
@@ -73,7 +74,7 @@ pub struct GoogleCloudFunctionsV2LocationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudFunctionsV2OperationMetadata {
     /// API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -117,7 +118,7 @@ pub struct GoogleCloudFunctionsV2OperationMetadata {
 }
 
 /// Response for the ListFunctions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFunctionsResponse {
     /// The functions that match the request.
     #[serde(default)]
@@ -131,7 +132,7 @@ pub struct ListFunctionsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -142,7 +143,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -156,7 +157,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response for the ListRuntimes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRuntimesResponse {
     /// The runtimes that match the request.
     #[serde(default)]
@@ -164,7 +165,7 @@ pub struct ListRuntimesResponse {
 }
 
 /// Metadata describing an Operation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadataV1 {
     /// The Cloud Build ID of the function created or updated by an API call. This field is only populated for Create and Update operations.
     #[serde(default, rename = "buildId")]
@@ -193,15 +194,15 @@ pub struct OperationMetadataV1 {
 }
 
 /// Request for the RedirectFunctionUpgradeTraffic method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RedirectFunctionUpgradeTrafficRequest {}
 
 /// Request for the RollbackFunctionUpgradeTraffic method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackFunctionUpgradeTrafficRequest {}
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -212,7 +213,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request for the SetupFunctionUpgradeConfig method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupFunctionUpgradeConfigRequest {
     /// Optional. Specifies overrides for the build process.
     #[serde(default, rename = "buildConfigOverrides")]
@@ -226,7 +227,7 @@ pub struct SetupFunctionUpgradeConfigRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -234,7 +235,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -242,7 +243,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Each Stage of the deployment process
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudFunctionsV2Stage {
     /// Message describing the Stage
     #[serde(default)]
@@ -265,7 +266,7 @@ pub struct GoogleCloudFunctionsV2Stage {
 }
 
 /// Describes a Cloud Function that contains user computation executed in response to an event. It encapsulates function and trigger configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Function {
     /// Describes the Build step of the function that builds a container from the given source.
     #[serde(default, rename = "buildConfig")]
@@ -318,7 +319,7 @@ pub struct Function {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -338,7 +339,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -358,7 +359,7 @@ pub struct Operation {
 }
 
 /// Describes a runtime and any special information (e.g., deprecation status) related to it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Runtime {
     /// Decommission date for the runtime.
     #[serde(default, rename = "decommissionDate")]
@@ -384,7 +385,7 @@ pub struct Runtime {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -401,7 +402,7 @@ pub struct Policy {
 }
 
 /// Contains overrides related to the function''s build configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildConfigOverrides {
     /// Optional. Specifies the desired runtime for the new Cloud Run function. (e.g., "nodejs20", "python312"). Constraints: 1. This field CANNOT be used to change the runtime language (e.g., from NODEJS to PYTHON). The backend will enforce this. 2. This field can ONLY be used to upgrade the runtime version (e.g., nodejs18 to nodejs20). Downgrading the version is not permitted. The backend will validate the version change. If provided and valid, this overrides the runtime of the Gen1 function.
     #[serde(default)]
@@ -409,7 +410,7 @@ pub struct BuildConfigOverrides {
 }
 
 /// Contains overrides related to the function''s service configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceConfigOverrides {
     /// Optional. Specifies the maximum number of instances for the new Cloud Run function. If provided, this overrides the max_instance_count setting of the Gen1 function.
     #[serde(default, rename = "maxInstanceCount")]
@@ -417,7 +418,7 @@ pub struct ServiceConfigOverrides {
 }
 
 /// Informational messages about the state of the Cloud Function or Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudFunctionsV2StateMessage {
     /// The message.
     #[serde(default)]
@@ -431,7 +432,7 @@ pub struct GoogleCloudFunctionsV2StateMessage {
 }
 
 /// Information related to: * A function''s eligibility for 1st Gen to 2nd Gen migration. * Current state of migration for function undergoing migration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeInfo {
     /// Describes the Build step of the function that builds a container to prepare for 2nd gen upgrade.
     #[serde(default, rename = "buildConfig")]
@@ -448,7 +449,7 @@ pub struct UpgradeInfo {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -462,7 +463,7 @@ pub struct Status {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -476,7 +477,7 @@ pub struct Date {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -487,7 +488,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -501,7 +502,7 @@ pub struct Binding {
 }
 
 /// Describes the Build step of the function that builds a container from the given source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildConfig {
     #[serde(default, rename = "automaticUpdatePolicy")]
     pub automatic_update_policy: ::core::option::Option<serde_json::Value>,
@@ -543,7 +544,7 @@ pub struct BuildConfig {
 }
 
 /// Describes EventTrigger, used to request events to be sent from another service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventTrigger {
     /// Optional. The name of the channel associated with the trigger in projects/{project}/locations/{location}/channels/{channel} format. You must provide a channel to receive events from Eventarc SaaS partners.
     #[serde(default)]
@@ -575,7 +576,7 @@ pub struct EventTrigger {
 }
 
 /// Describes the Service being deployed. Currently Supported : Cloud Run (fully managed).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceConfig {
     /// Whether 100% of traffic is routed to the latest revision. On CreateFunction and UpdateFunction, when set to true, the revision being deployed will serve 100% of traffic, ignoring any traffic split settings, if any. On GetFunction, true will be returned if the latest revision is serving 100% of traffic.
     #[serde(default, rename = "allTrafficOnLatestRevision")]
@@ -644,7 +645,7 @@ pub struct ServiceConfig {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -655,7 +656,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -672,7 +673,7 @@ pub struct Expr {
 }
 
 /// Security patches are only applied when a function is redeployed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OnDeployUpdatePolicy {
     /// Output only. contains the runtime version which was used during latest function deployment.
     #[serde(default, rename = "runtimeVersion")]
@@ -680,7 +681,7 @@ pub struct OnDeployUpdatePolicy {
 }
 
 /// The location of the function source code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// If provided, get the source from GitHub repository. This option is valid only for GCF 1st Gen function. Example: https://github.com///blob//
     #[serde(default, rename = "gitUri")]
@@ -694,7 +695,7 @@ pub struct Source {
 }
 
 /// Provenance of the source. Ways to find the original source, or verify that some source was used for this build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceProvenance {
     /// A copy of the build''s source.git_uri, if exists, with any commits resolved.
     #[serde(default, rename = "gitUri")]
@@ -708,7 +709,7 @@ pub struct SourceProvenance {
 }
 
 /// Filters events based on exact matches on the CloudEvents attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventFilter {
     /// Required. The name of a CloudEvents attribute.
     #[serde(default)]
@@ -722,7 +723,7 @@ pub struct EventFilter {
 }
 
 /// The Direct VPC network interface. This is mutually exclusive with VPC Connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DirectVpcNetworkInterface {
     /// Optional. The name of the VPC network to which the function will be connected. Specify either a VPC network or a subnet, or both. If you specify only a network, the subnet uses the same name as the network.
     #[serde(default)]
@@ -736,7 +737,7 @@ pub struct DirectVpcNetworkInterface {
 }
 
 /// Configuration for a secret environment variable. It has the information necessary to fetch the secret value from secret manager and expose it as an environment variable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretEnvVar {
     /// Name of the environment variable.
     #[serde(default)]
@@ -753,7 +754,7 @@ pub struct SecretEnvVar {
 }
 
 /// Configuration for a secret volume. It has the information necessary to fetch the secret value from secret manager and make it available as files mounted at the requested paths within the application container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretVolume {
     /// The path within the container to mount the secret volume. For example, setting the mount_path as /etc/secrets would mount the secret value files under the /etc/secrets directory. This directory will also be completely shadowed and unavailable to mount any other secrets. Recommended mount path: /etc/secrets
     #[serde(default, rename = "mountPath")]
@@ -770,7 +771,7 @@ pub struct SecretVolume {
 }
 
 /// Location of the source in a Google Cloud Source Repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepoSource {
     /// Regex matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax
     #[serde(default, rename = "branchName")]
@@ -793,7 +794,7 @@ pub struct RepoSource {
 }
 
 /// Location of the source in an archive file in Google Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageSource {
     /// Google Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
     #[serde(default)]
@@ -810,7 +811,7 @@ pub struct StorageSource {
 }
 
 /// Configuration for a single version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretVersion {
     /// Relative path of the file under the mount path where the secret value for this version will be fetched and made available. For example, setting the mount_path as ''/etc/secrets'' and path as secret_foo would mount the secret value file at /etc/secrets/secret_foo.
     #[serde(default)]

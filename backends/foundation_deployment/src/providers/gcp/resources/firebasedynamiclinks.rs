@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request to create a managed Short Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateManagedShortLinkRequest {
     /// Information about the Dynamic Link to be shortened. [Learn more](https://firebase.google.com/docs/reference/dynamic-links/link-shortener).
     #[serde(default, rename = "dynamicLinkInfo")]
@@ -31,7 +32,7 @@ pub struct CreateManagedShortLinkRequest {
 }
 
 /// Response to create a short Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateManagedShortLinkResponse {
     /// Short Dynamic Link value. e.g. https://abcd.app.goo.gl/wxyz
     #[serde(default, rename = "managedShortLink")]
@@ -45,7 +46,7 @@ pub struct CreateManagedShortLinkResponse {
 }
 
 /// Request to create a short Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateShortDynamicLinkRequest {
     /// Information about the Dynamic Link to be shortened. [Learn more](https://firebase.google.com/docs/reference/dynamic-links/link-shortener).
     #[serde(default, rename = "dynamicLinkInfo")]
@@ -62,7 +63,7 @@ pub struct CreateShortDynamicLinkRequest {
 }
 
 /// Response to create a short Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateShortDynamicLinkResponse {
     /// Preview link to show the link flow chart. (debug info.)
     #[serde(default, rename = "previewLink")]
@@ -76,7 +77,7 @@ pub struct CreateShortDynamicLinkResponse {
 }
 
 /// Analytics stats of a Dynamic Link for a given timeframe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicLinkStats {
     /// Dynamic Link event stats.
     #[serde(default, rename = "linkEventStats")]
@@ -87,7 +88,7 @@ pub struct DynamicLinkStats {
 }
 
 /// Request for iSDK to execute strong match flow for post-install attribution. This is meant for iOS requests only. Requests from other platforms will not be honored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIosPostInstallAttributionRequest {
     /// App installation epoch time (https://en.wikipedia.org/wiki/Unix_time). This is a client signal for a more accurate weak match.
     #[serde(default, rename = "appInstallationTime")]
@@ -116,7 +117,7 @@ pub struct GetIosPostInstallAttributionRequest {
 }
 
 /// Response for iSDK to execute strong match flow for post-install attribution. Information of the resolved FDL link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIosPostInstallAttributionResponse {
     /// The minimum version for app, specified by dev through ?imv= parameter. Return to iSDK to allow app to evaluate if current version meets this.
     #[serde(default, rename = "appMinimumVersion")]
@@ -169,7 +170,7 @@ pub struct GetIosPostInstallAttributionResponse {
 }
 
 /// Request for iSDK to get reopen attribution for app universal link open deeplinking. This endpoint is meant for only iOS requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIosReopenAttributionRequest {
     /// APP bundle ID.
     #[serde(default, rename = "bundleId")]
@@ -183,7 +184,7 @@ pub struct GetIosReopenAttributionRequest {
 }
 
 /// Response for iSDK to get reopen attribution for app universal link open deeplinking. This endpoint is meant for only iOS requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIosReopenAttributionResponse {
     /// The deep-link attributed the app universal link open. For both regular FDL links and invite FDL links.
     #[serde(default, rename = "deepLink")]
@@ -218,7 +219,7 @@ pub struct GetIosReopenAttributionResponse {
 }
 
 /// Managed Short Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedShortLink {
     /// Creation timestamp of the short link.
     #[serde(default, rename = "creationTime")]
@@ -241,7 +242,7 @@ pub struct ManagedShortLink {
 }
 
 /// Short Dynamic Link suffix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Suffix {
     /// Only applies to Option.CUSTOM.
     #[serde(default, rename = "customSuffix")]
@@ -252,7 +253,7 @@ pub struct Suffix {
 }
 
 /// Dynamic Link event stat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicLinkEventStat {
     /// The number of times this event occurred.
     #[serde(default)]
@@ -266,7 +267,7 @@ pub struct DynamicLinkEventStat {
 }
 
 /// Signals associated with the device making the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceInfo {
     /// Device model name.
     #[serde(default, rename = "deviceModelName")]
@@ -292,7 +293,7 @@ pub struct DeviceInfo {
 }
 
 /// Dynamic Links warning messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicLinkWarning {
     /// The warning code. // TODO: enum values: ["CODE_UNSPECIFIED", "NOT_IN_PROJECT_ANDROID_PACKAGE_NAME", "NOT_INTEGER_ANDROID_PACKAGE_MIN_VERSION", "UNNECESSARY_ANDROID_PACKAGE_MIN_VERSION", "NOT_URI_ANDROID_LINK", "UNNECESSARY_ANDROID_LINK", "NOT_URI_ANDROID_FALLBACK_LINK", "BAD_URI_SCHEME_ANDROID_FALLBACK_LINK", "NOT_IN_PROJECT_IOS_BUNDLE_ID", "NOT_IN_PROJECT_IPAD_BUNDLE_ID", "UNNECESSARY_IOS_URL_SCHEME", "NOT_NUMERIC_IOS_APP_STORE_ID", "UNNECESSARY_IOS_APP_STORE_ID", "NOT_URI_IOS_FALLBACK_LINK", "BAD_URI_SCHEME_IOS_FALLBACK_LINK", "NOT_URI_IPAD_FALLBACK_LINK", "BAD_URI_SCHEME_IPAD_FALLBACK_LINK", "BAD_DEBUG_PARAM", "BAD_AD_PARAM", "DEPRECATED_PARAM", "UNRECOGNIZED_PARAM", "TOO_LONG_PARAM", "NOT_URI_SOCIAL_IMAGE_LINK", "BAD_URI_SCHEME_SOCIAL_IMAGE_LINK", "NOT_URI_SOCIAL_URL", "BAD_URI_SCHEME_SOCIAL_URL", "LINK_LENGTH_TOO_LONG", "LINK_WITH_FRAGMENTS", "NOT_MATCHING_IOS_BUNDLE_ID_AND_STORE_ID", "API_DEPRECATED"]
     #[serde(default, rename = "warningCode")]
@@ -306,7 +307,7 @@ pub struct DynamicLinkWarning {
 }
 
 /// Information about a Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicLinkInfo {
     /// Parameters used for tracking. See all tracking parameters in the [documentation](https://firebase.google.com/docs/dynamic-links/create-manually).
     #[serde(default, rename = "analyticsInfo")]
@@ -338,7 +339,7 @@ pub struct DynamicLinkInfo {
 }
 
 /// Tracking parameters supported by Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyticsInfo {
     /// Google Play Campaign Measurements.
     #[serde(default, rename = "googlePlayAnalytics")]
@@ -349,7 +350,7 @@ pub struct AnalyticsInfo {
 }
 
 /// Android related attributes to the Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidInfo {
     /// Link to open on Android if the app is not installed.
     #[serde(default, rename = "androidFallbackLink")]
@@ -366,7 +367,7 @@ pub struct AndroidInfo {
 }
 
 /// Desktop related attributes to the Dynamic Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DesktopInfo {
     /// Link to open on desktop.
     #[serde(default, rename = "desktopFallbackLink")]
@@ -374,7 +375,7 @@ pub struct DesktopInfo {
 }
 
 /// iOS related attributes to the Dynamic Link..
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosInfo {
     /// iOS App Store ID.
     #[serde(default, rename = "iosAppStoreId")]
@@ -400,7 +401,7 @@ pub struct IosInfo {
 }
 
 /// Information of navigation behavior.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NavigationInfo {
     /// If this option is on, FDL click will be forced to redirect rather than show an interstitial page.
     #[serde(default, rename = "enableForcedRedirect")]
@@ -408,7 +409,7 @@ pub struct NavigationInfo {
 }
 
 /// Parameters for social meta tag params. Used to set meta tag data for link previews on social sites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SocialMetaTagInfo {
     /// A short description of the link. Optional.
     #[serde(default, rename = "socialDescription")]
@@ -422,7 +423,7 @@ pub struct SocialMetaTagInfo {
 }
 
 /// Parameters for Google Play Campaign Measurements. [Learn more](https://developers.google.com/analytics/devguides/collection/android/v4/campaigns#campaign-params)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayAnalytics {
     /// Deprecated; FDL SDK does not process nor log it.
     #[serde(default)]
@@ -445,7 +446,7 @@ pub struct GooglePlayAnalytics {
 }
 
 /// Parameters for iTunes Connect App Analytics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ITunesConnectAnalytics {
     /// Affiliate token used to create affiliate-coded links.
     #[serde(default)]

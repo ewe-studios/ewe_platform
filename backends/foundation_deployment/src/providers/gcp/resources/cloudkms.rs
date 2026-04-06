@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for HsmManagement.ApproveSingleTenantHsmInstanceProposal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApproveSingleTenantHsmInstanceProposalRequest {
     /// Required. The reply to QuorumParameters for approving the proposal.
     #[serde(default, rename = "quorumReply")]
@@ -22,11 +23,11 @@ pub struct ApproveSingleTenantHsmInstanceProposalRequest {
 }
 
 /// Response message for HsmManagement.ApproveSingleTenantHsmInstanceProposal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApproveSingleTenantHsmInstanceProposalResponse {}
 
 /// Request message for KeyManagementService.AsymmetricDecrypt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AsymmetricDecryptRequest {
     /// Required. The data encrypted with the named CryptoKeyVersion''s public key using OAEP.
     #[serde(default)]
@@ -37,7 +38,7 @@ pub struct AsymmetricDecryptRequest {
 }
 
 /// Response message for KeyManagementService.AsymmetricDecrypt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AsymmetricDecryptResponse {
     /// The decrypted data originally encrypted with the matching public key.
     #[serde(default)]
@@ -54,7 +55,7 @@ pub struct AsymmetricDecryptResponse {
 }
 
 /// Request message for KeyManagementService.AsymmetricSign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AsymmetricSignRequest {
     /// Optional. The data to sign. It can''t be supplied if AsymmetricSignRequest.digest is supplied.
     #[serde(default)]
@@ -71,7 +72,7 @@ pub struct AsymmetricSignRequest {
 }
 
 /// Response message for KeyManagementService.AsymmetricSign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AsymmetricSignResponse {
     /// The resource name of the CryptoKeyVersion used for signing. Check this field to verify that the intended resource was used for signing.
     #[serde(default)]
@@ -94,7 +95,7 @@ pub struct AsymmetricSignResponse {
 }
 
 /// Cloud KMS Autokey configuration for a folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutokeyConfig {
     /// Optional. A checksum computed by the server based on the value of other fields. This may be sent on update requests to ensure that the client has an up-to-date value before proceeding. The request will be rejected with an ABORTED error on a mismatched etag.
     #[serde(default)]
@@ -114,7 +115,7 @@ pub struct AutokeyConfig {
 }
 
 /// Request message for KeyManagementService.Decapsulate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecapsulateRequest {
     /// Required. The ciphertext produced from encapsulation with the named CryptoKeyVersion public key(s).
     #[serde(default)]
@@ -125,7 +126,7 @@ pub struct DecapsulateRequest {
 }
 
 /// Response message for KeyManagementService.Decapsulate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecapsulateResponse {
     /// The resource name of the CryptoKeyVersion used for decapsulation. Check this field to verify that the intended resource was used for decapsulation.
     #[serde(default)]
@@ -145,7 +146,7 @@ pub struct DecapsulateResponse {
 }
 
 /// Request message for KeyManagementService.Decrypt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecryptRequest {
     /// Optional. Optional data that must match the data originally supplied in EncryptRequest.additional_authenticated_data.
     #[serde(default, rename = "additionalAuthenticatedData")]
@@ -162,7 +163,7 @@ pub struct DecryptRequest {
 }
 
 /// Response message for KeyManagementService.Decrypt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecryptResponse {
     /// The decrypted data originally supplied in EncryptRequest.plaintext.
     #[serde(default)]
@@ -179,19 +180,19 @@ pub struct DecryptResponse {
 }
 
 /// Delete the SingleTenantHsmInstance. Deleting a SingleTenantHsmInstance will make all CryptoKeys attached to the SingleTenantHsmInstance unusable. The SingleTenantHsmInstance must not be in the DELETING or DELETED state to perform this operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteSingleTenantHsmInstance {}
 
 /// Request message for KeyManagementService.DestroyCryptoKeyVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestroyCryptoKeyVersionRequest {}
 
 /// Disable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisableSingleTenantHsmInstance {}
 
 /// An EkmConfig is a singleton resource that represents configuration parameters that apply to all CryptoKeys and CryptoKeyVersions with a ProtectionLevel of EXTERNAL_VPC in a given project and location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EkmConfig {
     /// Optional. Resource name of the default EkmConnection. Setting this field to the empty string removes the default.
     #[serde(default, rename = "defaultEkmConnection")]
@@ -202,15 +203,15 @@ pub struct EkmConfig {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Enable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the DISABLED state to perform this operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnableSingleTenantHsmInstance {}
 
 /// Request message for KeyManagementService.Encrypt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptRequest {
     /// Optional. Optional data that, if specified, must also be provided during decryption through DecryptRequest.additional_authenticated_data. The maximum size depends on the key version''s protection_level. For SOFTWARE, EXTERNAL, and EXTERNAL_VPC keys the AAD must be no larger than 64KiB. For HSM keys, the combined length of the plaintext and additional_authenticated_data fields must be no larger than 8KiB.
     #[serde(default, rename = "additionalAuthenticatedData")]
@@ -227,7 +228,7 @@ pub struct EncryptRequest {
 }
 
 /// Response message for KeyManagementService.Encrypt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptResponse {
     /// The encrypted data.
     #[serde(default)]
@@ -250,11 +251,11 @@ pub struct EncryptResponse {
 }
 
 /// Request message for HsmManagement.ExecuteSingleTenantHsmInstanceProposal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteSingleTenantHsmInstanceProposalRequest {}
 
 /// Request message for KeyManagementService.GenerateRandomBytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateRandomBytesRequest {
     /// The length in bytes of the amount of randomness to retrieve. Minimum 8 bytes, maximum 1024 bytes.
     #[serde(default, rename = "lengthBytes")]
@@ -265,7 +266,7 @@ pub struct GenerateRandomBytesRequest {
 }
 
 /// Response message for KeyManagementService.GenerateRandomBytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateRandomBytesResponse {
     /// The generated data.
     #[serde(default)]
@@ -276,7 +277,7 @@ pub struct GenerateRandomBytesResponse {
 }
 
 /// Request message for KeyManagementService.ImportCryptoKeyVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportCryptoKeyVersionRequest {
     /// Required. The algorithm of the key being imported. This does not need to match the version_template of the CryptoKey this version imports into. // TODO: enum values: ["CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED", "GOOGLE_SYMMETRIC_ENCRYPTION", "AES_128_GCM", "AES_256_GCM", "AES_128_CBC", "AES_256_CBC", "AES_128_CTR", "AES_256_CTR", "RSA_SIGN_PSS_2048_SHA256", "RSA_SIGN_PSS_3072_SHA256", "RSA_SIGN_PSS_4096_SHA256", "RSA_SIGN_PSS_4096_SHA512", "RSA_SIGN_PKCS1_2048_SHA256", "RSA_SIGN_PKCS1_3072_SHA256", "RSA_SIGN_PKCS1_4096_SHA256", "RSA_SIGN_PKCS1_4096_SHA512", "RSA_SIGN_RAW_PKCS1_2048", "RSA_SIGN_RAW_PKCS1_3072", "RSA_SIGN_RAW_PKCS1_4096", "RSA_DECRYPT_OAEP_2048_SHA256", "RSA_DECRYPT_OAEP_3072_SHA256", "RSA_DECRYPT_OAEP_4096_SHA256", "RSA_DECRYPT_OAEP_4096_SHA512", "RSA_DECRYPT_OAEP_2048_SHA1", "RSA_DECRYPT_OAEP_3072_SHA1", "RSA_DECRYPT_OAEP_4096_SHA1", "EC_SIGN_P256_SHA256", "EC_SIGN_P384_SHA384", "EC_SIGN_SECP256K1_SHA256", "EC_SIGN_ED25519", "HMAC_SHA256", "HMAC_SHA1", "HMAC_SHA384", "HMAC_SHA512", "HMAC_SHA224", "EXTERNAL_SYMMETRIC_ENCRYPTION", "ML_KEM_768", "ML_KEM_1024", "KEM_XWING", "PQ_SIGN_ML_DSA_44", "PQ_SIGN_ML_DSA_65", "PQ_SIGN_ML_DSA_87", "PQ_SIGN_SLH_DSA_SHA2_128S", "PQ_SIGN_HASH_SLH_DSA_SHA2_128S_SHA256", "PQ_SIGN_ML_DSA_44_EXTERNAL_MU", "PQ_SIGN_ML_DSA_65_EXTERNAL_MU", "PQ_SIGN_ML_DSA_87_EXTERNAL_MU"]
     #[serde(default)]
@@ -296,7 +297,7 @@ pub struct ImportCryptoKeyVersionRequest {
 }
 
 /// Response message for KeyManagementService.ListCryptoKeyVersions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCryptoKeyVersionsResponse {
     /// The list of CryptoKeyVersions.
     #[serde(default, rename = "cryptoKeyVersions")]
@@ -310,7 +311,7 @@ pub struct ListCryptoKeyVersionsResponse {
 }
 
 /// Response message for KeyManagementService.ListCryptoKeys.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCryptoKeysResponse {
     /// The list of CryptoKeys.
     #[serde(default, rename = "cryptoKeys")]
@@ -324,7 +325,7 @@ pub struct ListCryptoKeysResponse {
 }
 
 /// Response message for EkmService.ListEkmConnections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEkmConnectionsResponse {
     /// The list of EkmConnections.
     #[serde(default, rename = "ekmConnections")]
@@ -338,7 +339,7 @@ pub struct ListEkmConnectionsResponse {
 }
 
 /// Response message for KeyManagementService.ListImportJobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListImportJobsResponse {
     /// The list of ImportJobs.
     #[serde(default, rename = "importJobs")]
@@ -352,7 +353,7 @@ pub struct ListImportJobsResponse {
 }
 
 /// Response message for Autokey.ListKeyHandles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListKeyHandlesResponse {
     /// Resulting KeyHandles.
     #[serde(default, rename = "keyHandles")]
@@ -363,7 +364,7 @@ pub struct ListKeyHandlesResponse {
 }
 
 /// Response message for KeyManagementService.ListKeyRings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListKeyRingsResponse {
     /// The list of KeyRings.
     #[serde(default, rename = "keyRings")]
@@ -377,7 +378,7 @@ pub struct ListKeyRingsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -388,7 +389,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for KeyManagementService.ListRetiredResources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRetiredResourcesResponse {
     /// A token to retrieve the next page of results. Pass this value in ListRetiredResourcesRequest.page_token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -402,7 +403,7 @@ pub struct ListRetiredResourcesResponse {
 }
 
 /// Response message for HsmManagement.ListSingleTenantHsmInstanceProposals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSingleTenantHsmInstanceProposalsResponse {
     /// A token to retrieve next page of results. Pass this value in ListSingleTenantHsmInstanceProposalsRequest.page_token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -417,7 +418,7 @@ pub struct ListSingleTenantHsmInstanceProposalsResponse {
 }
 
 /// Response message for HsmManagement.ListSingleTenantHsmInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSingleTenantHsmInstancesResponse {
     /// A token to retrieve next page of results. Pass this value in ListSingleTenantHsmInstancesRequest.page_token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -432,7 +433,7 @@ pub struct ListSingleTenantHsmInstancesResponse {
 }
 
 /// Cloud KMS metadata for the given google.cloud.location.Location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationMetadata {
     /// Indicates whether CryptoKeys with protection_level EXTERNAL can be created in this location.
     #[serde(default, rename = "ekmAvailable")]
@@ -446,7 +447,7 @@ pub struct LocationMetadata {
 }
 
 /// Request message for KeyManagementService.MacSign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MacSignRequest {
     /// Required. The data to sign. The MAC tag is computed over this data field based on the specific algorithm.
     #[serde(default)]
@@ -457,7 +458,7 @@ pub struct MacSignRequest {
 }
 
 /// Response message for KeyManagementService.MacSign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MacSignResponse {
     /// The created signature.
     #[serde(default)]
@@ -477,7 +478,7 @@ pub struct MacSignResponse {
 }
 
 /// Request message for KeyManagementService.MacVerify.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MacVerifyRequest {
     /// Required. The data used previously as a MacSignRequest.data to generate the MAC tag.
     #[serde(default)]
@@ -494,7 +495,7 @@ pub struct MacVerifyRequest {
 }
 
 /// Response message for KeyManagementService.MacVerify.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MacVerifyResponse {
     /// The resource name of the CryptoKeyVersion used for verification. Check this field to verify that the intended resource was used for verification.
     #[serde(default)]
@@ -517,7 +518,7 @@ pub struct MacVerifyResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -537,7 +538,7 @@ pub struct Operation {
 }
 
 /// The public keys for a given CryptoKeyVersion. Obtained via GetPublicKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublicKey {
     /// The Algorithm associated with this key. // TODO: enum values: ["CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED", "GOOGLE_SYMMETRIC_ENCRYPTION", "AES_128_GCM", "AES_256_GCM", "AES_128_CBC", "AES_256_CBC", "AES_128_CTR", "AES_256_CTR", "RSA_SIGN_PSS_2048_SHA256", "RSA_SIGN_PSS_3072_SHA256", "RSA_SIGN_PSS_4096_SHA256", "RSA_SIGN_PSS_4096_SHA512", "RSA_SIGN_PKCS1_2048_SHA256", "RSA_SIGN_PKCS1_3072_SHA256", "RSA_SIGN_PKCS1_4096_SHA256", "RSA_SIGN_PKCS1_4096_SHA512", "RSA_SIGN_RAW_PKCS1_2048", "RSA_SIGN_RAW_PKCS1_3072", "RSA_SIGN_RAW_PKCS1_4096", "RSA_DECRYPT_OAEP_2048_SHA256", "RSA_DECRYPT_OAEP_3072_SHA256", "RSA_DECRYPT_OAEP_4096_SHA256", "RSA_DECRYPT_OAEP_4096_SHA512", "RSA_DECRYPT_OAEP_2048_SHA1", "RSA_DECRYPT_OAEP_3072_SHA1", "RSA_DECRYPT_OAEP_4096_SHA1", "EC_SIGN_P256_SHA256", "EC_SIGN_P384_SHA384", "EC_SIGN_SECP256K1_SHA256", "EC_SIGN_ED25519", "HMAC_SHA256", "HMAC_SHA1", "HMAC_SHA384", "HMAC_SHA512", "HMAC_SHA224", "EXTERNAL_SYMMETRIC_ENCRYPTION", "ML_KEM_768", "ML_KEM_1024", "KEM_XWING", "PQ_SIGN_ML_DSA_44", "PQ_SIGN_ML_DSA_65", "PQ_SIGN_ML_DSA_87", "PQ_SIGN_SLH_DSA_SHA2_128S", "PQ_SIGN_HASH_SLH_DSA_SHA2_128S_SHA256", "PQ_SIGN_ML_DSA_44_EXTERNAL_MU", "PQ_SIGN_ML_DSA_65_EXTERNAL_MU", "PQ_SIGN_ML_DSA_87_EXTERNAL_MU"]
     #[serde(default)]
@@ -563,7 +564,7 @@ pub struct PublicKey {
 }
 
 /// Request message for KeyManagementService.RawDecrypt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RawDecryptRequest {
     /// Optional. Optional data that must match the data originally supplied in RawEncryptRequest.additional_authenticated_data.
     #[serde(default, rename = "additionalAuthenticatedData")]
@@ -589,7 +590,7 @@ pub struct RawDecryptRequest {
 }
 
 /// Response message for KeyManagementService.RawDecrypt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RawDecryptResponse {
     /// The decrypted data.
     #[serde(default)]
@@ -612,7 +613,7 @@ pub struct RawDecryptResponse {
 }
 
 /// Request message for KeyManagementService.RawEncrypt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RawEncryptRequest {
     /// Optional. Optional data that, if specified, must also be provided during decryption through RawDecryptRequest.additional_authenticated_data. This field may only be used in conjunction with an algorithm that accepts additional authenticated data (for example, AES-GCM). The maximum size depends on the key version''s protection_level. For SOFTWARE keys, the plaintext must be no larger than 64KiB. For HSM keys, the combined length of the plaintext and additional_authenticated_data fields must be no larger than 8KiB.
     #[serde(default, rename = "additionalAuthenticatedData")]
@@ -635,7 +636,7 @@ pub struct RawEncryptRequest {
 }
 
 /// Response message for KeyManagementService.RawEncrypt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RawEncryptResponse {
     /// The encrypted data. In the case of AES-GCM, the authentication tag is the tag_length bytes at the end of this field.
     #[serde(default)]
@@ -670,15 +671,15 @@ pub struct RawEncryptResponse {
 }
 
 /// Refreshes the SingleTenantHsmInstance. This operation must be performed periodically to keep the SingleTenantHsmInstance active. This operation must be performed before unrefreshed_duration_until_disable has passed. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefreshSingleTenantHsmInstance {}
 
 /// Request message for KeyManagementService.RestoreCryptoKeyVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreCryptoKeyVersionRequest {}
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -689,7 +690,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Response message for ShowEffectiveAutokeyConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShowEffectiveAutokeyConfigResponse {
     /// Name of the key project configured in the resource project''s folder ancestry.
     #[serde(default, rename = "keyProject")]
@@ -697,7 +698,7 @@ pub struct ShowEffectiveAutokeyConfigResponse {
 }
 
 /// Represents a response message for KeyAccessJustificationsConfig.ShowEffectiveKeyAccessJustificationsEnrollmentConfig
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShowEffectiveKeyAccessJustificationsEnrollmentConfigResponse {
     /// Contains the effective KeyAccessJustificationsEnrollmentConfig for external keys.
     #[serde(default, rename = "externalConfig")]
@@ -711,7 +712,7 @@ pub struct ShowEffectiveKeyAccessJustificationsEnrollmentConfigResponse {
 }
 
 /// Represents a response message for KeyAccessJustificationsConfig.ShowEffectiveKeyAccessJustificationsPolicyConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShowEffectiveKeyAccessJustificationsPolicyConfigResponse {
     /// Contains the effective KeyAccessJustificationsPolicyConfig.
     #[serde(default, rename = "effectiveKajPolicy")]
@@ -719,7 +720,7 @@ pub struct ShowEffectiveKeyAccessJustificationsPolicyConfigResponse {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -727,7 +728,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -735,7 +736,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Request message for KeyManagementService.UpdateCryptoKeyPrimaryVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateCryptoKeyPrimaryVersionRequest {
     /// Required. The id of the child CryptoKeyVersion to use as primary.
     #[serde(default, rename = "cryptoKeyVersionId")]
@@ -743,11 +744,11 @@ pub struct UpdateCryptoKeyPrimaryVersionRequest {
 }
 
 /// Response message for EkmService.VerifyConnectivity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyConnectivityResponse {}
 
 /// The reply to QuorumParameters for approving the proposal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuorumReply {
     /// Required. The challenge replies to approve the proposal. Challenge replies can be sent across multiple requests. The proposal will be approved when required_approver_count challenge replies are provided.
     #[serde(default, rename = "challengeReplies")]
@@ -755,7 +756,7 @@ pub struct QuorumReply {
 }
 
 /// The reply to RequiredActionQuorumParameters for approving the proposal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequiredActionQuorumReply {
     /// Required. Quorum members'' signed challenge replies. These can be provided across multiple requests. The proposal will be approved when required_approver_count quorum_challenge_replies are provided and when all required_challenge_replies are provided.
     #[serde(default, rename = "quorumChallengeReplies")]
@@ -766,7 +767,7 @@ pub struct RequiredActionQuorumReply {
 }
 
 /// A Digest holds a cryptographic message digest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Digest {
     /// A message digest produced with SHAKE-256, to be used with ML-DSA external-μ algorithms only. See "message representative" note in section 6.2, algorithm 7 of the FIPS-204 standard: https://doi.org/10.6028/nist.fips.204
     #[serde(default, rename = "externalMu")]
@@ -783,7 +784,7 @@ pub struct Digest {
 }
 
 /// A CryptoKey represents a logical key that can be used for cryptographic operations. A CryptoKey is made up of zero or more versions, which represent the actual key material used in cryptographic operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CryptoKey {
     /// Output only. The time at which this CryptoKey was created.
     #[serde(default, rename = "createTime")]
@@ -824,7 +825,7 @@ pub struct CryptoKey {
 }
 
 /// An EkmConnection represents an individual EKM connection. It can be used for creating CryptoKeys and CryptoKeyVersions with a ProtectionLevel of EXTERNAL_VPC, as well as performing cryptographic operations using keys created within the EkmConnection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EkmConnection {
     /// Output only. The time at which the EkmConnection was created.
     #[serde(default, rename = "createTime")]
@@ -847,7 +848,7 @@ pub struct EkmConnection {
 }
 
 /// An ImportJob can be used to create CryptoKeys and CryptoKeyVersions using pre-existing key material, generated outside of Cloud KMS. When an ImportJob is created, Cloud KMS will generate a "wrapping key", which is a public/private key pair. You use the wrapping key to encrypt (also known as wrap) the pre-existing key material to protect it during the import process. The nature of the wrapping key depends on the choice of import_method. When the wrapping key generation is complete, the state will be set to ACTIVE and the public_key can be fetched. The fetched public key can then be used to wrap your pre-existing key material. Once the key material is wrapped, it can be imported into a new CryptoKeyVersion in an existing CryptoKey by calling ImportCryptoKeyVersion. Multiple CryptoKeyVersions can be imported with a single ImportJob. Cloud KMS uses the private key portion of the wrapping key to unwrap the key material. Only Cloud KMS has access to the private key. An ImportJob expires 3 days after it is created. Once expired, Cloud KMS will no longer be able to import or unwrap any key material that was wrapped with the ImportJob''s public key. For more information, see [Importing a key](https://cloud.google.com/kms/docs/importing-a-key).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportJob {
     /// Output only. Statement that was generated and signed by the key creator (for example, an HSM) at key creation time. Use this statement to verify attributes of the key as stored on the HSM, independently of Google. Only present if the chosen ImportMethod is one with a protection level of HSM.
     #[serde(default)]
@@ -885,7 +886,7 @@ pub struct ImportJob {
 }
 
 /// Resource-oriented representation of a request to Cloud KMS Autokey and the resulting provisioning of a CryptoKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyHandle {
     /// Output only. Name of a CryptoKey that has been provisioned for Customer Managed Encryption Key (CMEK) use in the KeyHandle project and location for the requested resource type. The CryptoKey project will reflect the value configured in the AutokeyConfig on the resource project''s ancestor folder at the time of the KeyHandle creation. If more than one ancestor folder has a configured AutokeyConfig, the nearest of these configurations is used.
     #[serde(default, rename = "kmsKey")]
@@ -899,7 +900,7 @@ pub struct KeyHandle {
 }
 
 /// A KeyRing is a toplevel logical grouping of CryptoKeys.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyRing {
     /// Output only. The time at which this KeyRing was created.
     #[serde(default, rename = "createTime")]
@@ -910,7 +911,7 @@ pub struct KeyRing {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -930,7 +931,7 @@ pub struct Location {
 }
 
 /// A RetiredResource resource represents the record of a deleted CryptoKey. Its purpose is to provide visibility into retained user data and to prevent reuse of these names for new CryptoKeys.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetiredResource {
     /// Output only. The time at which the original resource was deleted and this RetiredResource record was created.
     #[serde(default, rename = "deleteTime")]
@@ -947,7 +948,7 @@ pub struct RetiredResource {
 }
 
 /// A SingleTenantHsmInstanceProposal represents a proposal to perform an operation on a SingleTenantHsmInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SingleTenantHsmInstanceProposal {
     /// Add a quorum member to the SingleTenantHsmInstance. This will increase the total_approver_count by 1. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
     #[serde(default, rename = "addQuorumMember")]
@@ -1003,7 +1004,7 @@ pub struct SingleTenantHsmInstanceProposal {
 }
 
 /// A SingleTenantHsmInstance represents a single-tenant HSM instance. It can be used for creating CryptoKeys with a ProtectionLevel of HSM_SINGLE_TENANT, as well as performing cryptographic operations using keys created within the SingleTenantHsmInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SingleTenantHsmInstance {
     /// Output only. The time at which the SingleTenantHsmInstance was created.
     #[serde(default, rename = "createTime")]
@@ -1029,7 +1030,7 @@ pub struct SingleTenantHsmInstance {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1043,7 +1044,7 @@ pub struct Status {
 }
 
 /// Data with integrity verification field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChecksummedData {
     /// Integrity verification field. A CRC32C checksum of the returned ChecksummedData.data. An integrity check of ChecksummedData.data can be performed by computing the CRC32C checksum of ChecksummedData.data and comparing your results to this field. Discard the response in case of non-matching checksum values, and perform a limited number of retries. A persistent mismatch may indicate an issue in your computation of the CRC32C checksum. Note: This field is defined as int64 for reasons of compatibility across different languages. However, it is a non-negative integer, which will never exceed 2^32-1, and can be safely downconverted to uint32 in languages that support this type.
     #[serde(default, rename = "crc32cChecksum")]
@@ -1054,7 +1055,7 @@ pub struct ChecksummedData {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -1071,7 +1072,7 @@ pub struct Policy {
 }
 
 /// Represents the configuration of a protection level for a project''s Key Access Justifications enrollment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyAccessJustificationsEnrollmentConfig {
     /// Indicates whether the project has KAJ logging enabled.
     #[serde(default, rename = "auditLogging")]
@@ -1082,7 +1083,7 @@ pub struct KeyAccessJustificationsEnrollmentConfig {
 }
 
 /// Represents a singleton configuration for Key Access Justifications policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyAccessJustificationsPolicyConfig {
     /// Optional. Specifies the default key access justifications (KAJ) policy used when a CryptoKey is created in this folder. This is only used when a Key Access Justifications policy is not provided in the CreateCryptoKeyRequest. This overrides any default policies in its ancestry. If this field is unset, or is set but contains an empty allowed_access_reasons list, no default Key Access Justifications (KAJ) policy configuration is active. In this scenario, all newly created keys will default to an "allow-all" policy.
     #[serde(default, rename = "defaultKeyAccessJustificationPolicy")]
@@ -1097,7 +1098,7 @@ pub struct KeyAccessJustificationsPolicyConfig {
 }
 
 /// A reply to a challenge signed by a 2FA key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChallengeReply {
     /// Required. The public key associated with the 2FA key.
     #[serde(default, rename = "publicKeyPem")]
@@ -1108,7 +1109,7 @@ pub struct ChallengeReply {
 }
 
 /// A CryptoKeyVersion represents an individual cryptographic key, and the associated key material. An ENABLED version can be used for cryptographic operations. For security reasons, the raw cryptographic key material represented by a CryptoKeyVersion can never be viewed or exported. It can only be used to encrypt, decrypt, or sign data when an authorized user or application invokes Cloud KMS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CryptoKeyVersion {
     /// Output only. The CryptoKeyVersionAlgorithm that this CryptoKeyVersion supports. // TODO: enum values: ["CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED", "GOOGLE_SYMMETRIC_ENCRYPTION", "AES_128_GCM", "AES_256_GCM", "AES_128_CBC", "AES_256_CBC", "AES_128_CTR", "AES_256_CTR", "RSA_SIGN_PSS_2048_SHA256", "RSA_SIGN_PSS_3072_SHA256", "RSA_SIGN_PSS_4096_SHA256", "RSA_SIGN_PSS_4096_SHA512", "RSA_SIGN_PKCS1_2048_SHA256", "RSA_SIGN_PKCS1_3072_SHA256", "RSA_SIGN_PKCS1_4096_SHA256", "RSA_SIGN_PKCS1_4096_SHA512", "RSA_SIGN_RAW_PKCS1_2048", "RSA_SIGN_RAW_PKCS1_3072", "RSA_SIGN_RAW_PKCS1_4096", "RSA_DECRYPT_OAEP_2048_SHA256", "RSA_DECRYPT_OAEP_3072_SHA256", "RSA_DECRYPT_OAEP_4096_SHA256", "RSA_DECRYPT_OAEP_4096_SHA512", "RSA_DECRYPT_OAEP_2048_SHA1", "RSA_DECRYPT_OAEP_3072_SHA1", "RSA_DECRYPT_OAEP_4096_SHA1", "EC_SIGN_P256_SHA256", "EC_SIGN_P384_SHA384", "EC_SIGN_SECP256K1_SHA256", "EC_SIGN_ED25519", "HMAC_SHA256", "HMAC_SHA1", "HMAC_SHA384", "HMAC_SHA512", "HMAC_SHA224", "EXTERNAL_SYMMETRIC_ENCRYPTION", "ML_KEM_768", "ML_KEM_1024", "KEM_XWING", "PQ_SIGN_ML_DSA_44", "PQ_SIGN_ML_DSA_65", "PQ_SIGN_ML_DSA_87", "PQ_SIGN_SLH_DSA_SHA2_128S", "PQ_SIGN_HASH_SLH_DSA_SHA2_128S_SHA256", "PQ_SIGN_ML_DSA_44_EXTERNAL_MU", "PQ_SIGN_ML_DSA_65_EXTERNAL_MU", "PQ_SIGN_ML_DSA_87_EXTERNAL_MU"]
     #[serde(default)]
@@ -1161,7 +1162,7 @@ pub struct CryptoKeyVersion {
 }
 
 /// A CryptoKeyVersionTemplate specifies the properties to use when creating a new CryptoKeyVersion, either manually with CreateCryptoKeyVersion or automatically as a result of auto-rotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CryptoKeyVersionTemplate {
     /// Required. Algorithm to use when creating a CryptoKeyVersion based on this template. For backwards compatibility, GOOGLE_SYMMETRIC_ENCRYPTION is implied if both this field is omitted and CryptoKey.purpose is ENCRYPT_DECRYPT. // TODO: enum values: ["CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED", "GOOGLE_SYMMETRIC_ENCRYPTION", "AES_128_GCM", "AES_256_GCM", "AES_128_CBC", "AES_256_CBC", "AES_128_CTR", "AES_256_CTR", "RSA_SIGN_PSS_2048_SHA256", "RSA_SIGN_PSS_3072_SHA256", "RSA_SIGN_PSS_4096_SHA256", "RSA_SIGN_PSS_4096_SHA512", "RSA_SIGN_PKCS1_2048_SHA256", "RSA_SIGN_PKCS1_3072_SHA256", "RSA_SIGN_PKCS1_4096_SHA256", "RSA_SIGN_PKCS1_4096_SHA512", "RSA_SIGN_RAW_PKCS1_2048", "RSA_SIGN_RAW_PKCS1_3072", "RSA_SIGN_RAW_PKCS1_4096", "RSA_DECRYPT_OAEP_2048_SHA256", "RSA_DECRYPT_OAEP_3072_SHA256", "RSA_DECRYPT_OAEP_4096_SHA256", "RSA_DECRYPT_OAEP_4096_SHA512", "RSA_DECRYPT_OAEP_2048_SHA1", "RSA_DECRYPT_OAEP_3072_SHA1", "RSA_DECRYPT_OAEP_4096_SHA1", "EC_SIGN_P256_SHA256", "EC_SIGN_P384_SHA384", "EC_SIGN_SECP256K1_SHA256", "EC_SIGN_ED25519", "HMAC_SHA256", "HMAC_SHA1", "HMAC_SHA384", "HMAC_SHA512", "HMAC_SHA224", "EXTERNAL_SYMMETRIC_ENCRYPTION", "ML_KEM_768", "ML_KEM_1024", "KEM_XWING", "PQ_SIGN_ML_DSA_44", "PQ_SIGN_ML_DSA_65", "PQ_SIGN_ML_DSA_87", "PQ_SIGN_SLH_DSA_SHA2_128S", "PQ_SIGN_HASH_SLH_DSA_SHA2_128S_SHA256", "PQ_SIGN_ML_DSA_44_EXTERNAL_MU", "PQ_SIGN_ML_DSA_65_EXTERNAL_MU", "PQ_SIGN_ML_DSA_87_EXTERNAL_MU"]
     #[serde(default)]
@@ -1172,7 +1173,7 @@ pub struct CryptoKeyVersionTemplate {
 }
 
 /// A ServiceResolver represents an EKM replica that can be reached within an EkmConnection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceResolver {
     /// Optional. The filter applied to the endpoints of the resolved service. If no filter is specified, all endpoints will be considered. An endpoint will be chosen arbitrarily from the filtered list for each request. For endpoint filter syntax and examples, see https://cloud.google.com/service-directory/docs/reference/rpc/google.cloud.servicedirectory.v1#resolveservicerequest.
     #[serde(default, rename = "endpointFilter")]
@@ -1189,7 +1190,7 @@ pub struct ServiceResolver {
 }
 
 /// The public key component of the wrapping key. For details of the type of key this public key corresponds to, see the ImportMethod.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WrappingPublicKey {
     /// The public key, encoded in PEM format. For more information, see the [RFC 7468](https://tools.ietf.org/html/rfc7468) sections for [General Considerations](https://tools.ietf.org/html/rfc7468#section-2) and [Textual Encoding of Subject Public Key Info] (https://tools.ietf.org/html/rfc7468#section-13).
     #[serde(default)]
@@ -1197,7 +1198,7 @@ pub struct WrappingPublicKey {
 }
 
 /// Add a quorum member to the SingleTenantHsmInstance. This will increase the total_approver_count by 1. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddQuorumMember {
     /// Required. The public key associated with the 2FA key for the new quorum member to add. Public keys must be associated with RSA 2048 keys.
     #[serde(default, rename = "twoFactorPublicKeyPem")]
@@ -1205,7 +1206,7 @@ pub struct AddQuorumMember {
 }
 
 /// Parameters of quorum approval for the SingleTenantHsmInstanceProposal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuorumParameters {
     /// Output only. The public keys associated with the 2FA keys that have already approved the SingleTenantHsmInstanceProposal by signing the challenge.
     #[serde(default, rename = "approvedTwoFactorPublicKeyPems")]
@@ -1219,7 +1220,7 @@ pub struct QuorumParameters {
 }
 
 /// Register 2FA keys for the SingleTenantHsmInstance. This operation requires all Challenges to be signed by 2FA keys. The SingleTenantHsmInstance must be in the PENDING_TWO_FACTOR_AUTH_REGISTRATION state to perform this operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegisterTwoFactorAuthKeys {
     /// Required. The required numbers of approvers to set for the SingleTenantHsmInstance. This is the M value used for M of N quorum auth. Must be greater than or equal to 2 and less than or equal to total_approver_count - 1.
     #[serde(default, rename = "requiredApproverCount")]
@@ -1230,7 +1231,7 @@ pub struct RegisterTwoFactorAuthKeys {
 }
 
 /// Remove a quorum member from the SingleTenantHsmInstance. This will reduce total_approver_count by 1. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveQuorumMember {
     /// Required. The public key associated with the 2FA key for the quorum member to remove. Public keys must be associated with RSA 2048 keys.
     #[serde(default, rename = "twoFactorPublicKeyPem")]
@@ -1238,7 +1239,7 @@ pub struct RemoveQuorumMember {
 }
 
 /// Parameters for an approval that has both required challenges and a quorum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequiredActionQuorumParameters {
     /// Output only. The public keys associated with the 2FA keys that have already approved the SingleTenantHsmInstanceProposal by signing the challenge.
     #[serde(default, rename = "approvedTwoFactorPublicKeyPems")]
@@ -1255,7 +1256,7 @@ pub struct RequiredActionQuorumParameters {
 }
 
 /// Configuration for M of N quorum auth.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuorumAuth {
     /// Output only. The required numbers of approvers. The M value used for M of N quorum auth. Must be greater than or equal to 2 and less than or equal to total_approver_count - 1.
     #[serde(default, rename = "requiredApproverCount")]
@@ -1269,7 +1270,7 @@ pub struct QuorumAuth {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1280,7 +1281,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1294,7 +1295,7 @@ pub struct Binding {
 }
 
 /// A KeyAccessJustificationsPolicy specifies zero or more allowed AccessReason values for encrypt, decrypt, and sign operations on a CryptoKey or KeyAccessJustificationsPolicyConfig (the default Key Access Justifications policy).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyAccessJustificationsPolicy {
     /// The list of allowed reasons for access to a CryptoKey. Note that empty allowed_access_reasons has a different meaning depending on where this message appears. If this is under KeyAccessJustificationsPolicyConfig, it means allow-all. If this is under CryptoKey, it means deny-all.
     #[serde(default, rename = "allowedAccessReasons")]
@@ -1302,7 +1303,7 @@ pub struct KeyAccessJustificationsPolicy {
 }
 
 /// Contains an HSM-generated attestation about a key operation. For more information, see [Verifying attestations] (https://cloud.google.com/kms/docs/attest-key).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyOperationAttestation {
     /// Output only. The certificate chains needed to validate the attestation
     #[serde(default, rename = "certChains")]
@@ -1316,7 +1317,7 @@ pub struct KeyOperationAttestation {
 }
 
 /// ExternalProtectionLevelOptions stores a group of additional fields for configuring a CryptoKeyVersion that are specific to the EXTERNAL protection level and EXTERNAL_VPC protection levels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalProtectionLevelOptions {
     /// The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.
     #[serde(default, rename = "ekmConnectionKeyPath")]
@@ -1327,7 +1328,7 @@ pub struct ExternalProtectionLevelOptions {
 }
 
 /// A Certificate represents an X.509 certificate used to authenticate HTTPS connections to EKM replicas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Certificate {
     /// Output only. The issuer distinguished name in RFC 2253 format. Only present if parsed is true.
     #[serde(default)]
@@ -1359,7 +1360,7 @@ pub struct Certificate {
 }
 
 /// A challenge to be signed by a 2FA key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Challenge {
     /// Output only. The challenge to be signed by the 2FA key indicated by the public key.
     #[serde(default)]
@@ -1370,7 +1371,7 @@ pub struct Challenge {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1381,7 +1382,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1398,7 +1399,7 @@ pub struct Expr {
 }
 
 /// Certificate chains needed to verify the attestation. Certificates in chains are PEM-encoded and are ordered based on https://tools.ietf.org/html/rfc5246#section-7.4.2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateChains {
     /// Cavium certificate chain corresponding to the attestation.
     #[serde(default, rename = "caviumCerts")]

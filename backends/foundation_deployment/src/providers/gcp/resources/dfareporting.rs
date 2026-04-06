@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Gets a summary of active ads in an account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountActiveAdSummary {
     /// ID of the account.
     #[serde(default, rename = "accountId")]
@@ -31,7 +32,7 @@ pub struct AccountActiveAdSummary {
 }
 
 /// Account Permission Group List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountPermissionGroupsListResponse {
     /// Account permission group collection.
     #[serde(default, rename = "accountPermissionGroups")]
@@ -42,7 +43,7 @@ pub struct AccountPermissionGroupsListResponse {
 }
 
 /// Account Permission List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountPermissionsListResponse {
     /// Account permission collection.
     #[serde(default, rename = "accountPermissions")]
@@ -53,7 +54,7 @@ pub struct AccountPermissionsListResponse {
 }
 
 /// Account User Profile List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountUserProfilesListResponse {
     /// Account user profile collection.
     #[serde(default, rename = "accountUserProfiles")]
@@ -67,7 +68,7 @@ pub struct AccountUserProfilesListResponse {
 }
 
 /// Account List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsListResponse {
     /// Account collection.
     #[serde(default)]
@@ -81,7 +82,7 @@ pub struct AccountsListResponse {
 }
 
 /// Represents an activity group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Activities {
     /// List of activity filters. The dimension values need to be all either of type "dfa:activity" or "dfa:activityGroup".
     #[serde(default)]
@@ -95,7 +96,7 @@ pub struct Activities {
 }
 
 /// Ad List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdsListResponse {
     /// Ad collection.
     #[serde(default)]
@@ -109,7 +110,7 @@ pub struct AdsListResponse {
 }
 
 /// Advertiser Group List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserGroupsListResponse {
     /// Advertiser group collection.
     #[serde(default, rename = "advertiserGroups")]
@@ -123,7 +124,7 @@ pub struct AdvertiserGroupsListResponse {
 }
 
 /// Invoice List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserInvoicesListResponse {
     /// Invoice collection
     #[serde(default)]
@@ -137,7 +138,7 @@ pub struct AdvertiserInvoicesListResponse {
 }
 
 /// Landing Page List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserLandingPagesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#advertiserLandingPagesListResponse".
     #[serde(default)]
@@ -151,7 +152,7 @@ pub struct AdvertiserLandingPagesListResponse {
 }
 
 /// Advertiser List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertisersListResponse {
     /// Advertiser collection.
     #[serde(default)]
@@ -165,7 +166,7 @@ pub struct AdvertisersListResponse {
 }
 
 /// Billing assignment List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingAssignmentsListResponse {
     /// Billing assignments collection.
     #[serde(default, rename = "billingAssignments")]
@@ -176,7 +177,7 @@ pub struct BillingAssignmentsListResponse {
 }
 
 /// Billing profile List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingProfilesListResponse {
     /// Billing profiles collection.
     #[serde(default, rename = "billingProfiles")]
@@ -190,7 +191,7 @@ pub struct BillingProfilesListResponse {
 }
 
 /// Billing Rate List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingRatesListResponse {
     /// Billing rates collection.
     #[serde(default, rename = "billingRates")]
@@ -204,7 +205,7 @@ pub struct BillingRatesListResponse {
 }
 
 /// Browser List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BrowsersListResponse {
     /// Browser collection.
     #[serde(default)]
@@ -215,7 +216,7 @@ pub struct BrowsersListResponse {
 }
 
 /// Campaign Creative Association List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CampaignCreativeAssociationsListResponse {
     /// Campaign creative association collection
     #[serde(default, rename = "campaignCreativeAssociations")]
@@ -230,7 +231,7 @@ pub struct CampaignCreativeAssociationsListResponse {
 }
 
 /// Campaign List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CampaignsListResponse {
     /// Campaign collection.
     #[serde(default)]
@@ -244,7 +245,7 @@ pub struct CampaignsListResponse {
 }
 
 /// Change Log List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChangeLogsListResponse {
     /// Change log collection.
     #[serde(default, rename = "changeLogs")]
@@ -258,7 +259,7 @@ pub struct ChangeLogsListResponse {
 }
 
 /// City List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CitiesListResponse {
     /// City collection.
     #[serde(default)]
@@ -269,7 +270,7 @@ pub struct CitiesListResponse {
 }
 
 /// Represents a response to the queryCompatibleFields method. Next ID: 10
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompatibleFields {
     /// Contains items that are compatible to be selected for a report of type "CROSS_DIMENSION_REACH".
     #[serde(default, rename = "crossDimensionReachReportCompatibleFields")]
@@ -299,7 +300,7 @@ pub struct CompatibleFields {
 }
 
 /// Connection Type List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionTypesListResponse {
     /// Collection of connection types such as broadband and mobile.
     #[serde(default, rename = "connectionTypes")]
@@ -310,7 +311,7 @@ pub struct ConnectionTypesListResponse {
 }
 
 /// Content Category List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentCategoriesListResponse {
     /// Content category collection.
     #[serde(default, rename = "contentCategories")]
@@ -324,7 +325,7 @@ pub struct ContentCategoriesListResponse {
 }
 
 /// Insert Conversions Request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConversionsBatchInsertRequest {
     /// The set of conversions to insert.
     #[serde(default)]
@@ -338,7 +339,7 @@ pub struct ConversionsBatchInsertRequest {
 }
 
 /// Insert Conversions Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConversionsBatchInsertResponse {
     /// Indicates that some or all conversions failed to insert.
     #[serde(default, rename = "hasFailures")]
@@ -352,7 +353,7 @@ pub struct ConversionsBatchInsertResponse {
 }
 
 /// Update Conversions Request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConversionsBatchUpdateRequest {
     /// The set of conversions to update.
     #[serde(default)]
@@ -366,7 +367,7 @@ pub struct ConversionsBatchUpdateRequest {
 }
 
 /// Update Conversions Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConversionsBatchUpdateResponse {
     /// Indicates that some or all conversions failed to update.
     #[serde(default, rename = "hasFailures")]
@@ -380,7 +381,7 @@ pub struct ConversionsBatchUpdateResponse {
 }
 
 /// Country List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CountriesListResponse {
     /// Country collection.
     #[serde(default)]
@@ -391,7 +392,7 @@ pub struct CountriesListResponse {
 }
 
 /// CreativeAssets contains properties of a creative asset file which will be uploaded or has already been uploaded. Refer to the creative sample code for how to upload assets and insert a creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeAssetMetadata {
     /// ID of the creative asset. This is a required field.
     #[serde(default, rename = "assetIdentifier")]
@@ -429,7 +430,7 @@ pub struct CreativeAssetMetadata {
 }
 
 /// Creative Field Value List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeFieldValuesListResponse {
     /// Creative field value collection.
     #[serde(default, rename = "creativeFieldValues")]
@@ -443,7 +444,7 @@ pub struct CreativeFieldValuesListResponse {
 }
 
 /// Creative Field List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeFieldsListResponse {
     /// Creative field collection.
     #[serde(default, rename = "creativeFields")]
@@ -457,7 +458,7 @@ pub struct CreativeFieldsListResponse {
 }
 
 /// Creative Group List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeGroupsListResponse {
     /// Creative group collection.
     #[serde(default, rename = "creativeGroups")]
@@ -471,7 +472,7 @@ pub struct CreativeGroupsListResponse {
 }
 
 /// Creative List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativesListResponse {
     /// Creative collection.
     #[serde(default)]
@@ -485,7 +486,7 @@ pub struct CreativesListResponse {
 }
 
 /// Represents a Custom Rich Media Events group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomRichMediaEvents {
     /// List of custom rich media event IDs. Dimension values must be all of type dfa:richMediaEventTypeIdAndName.
     #[serde(default, rename = "filteredEventIds")]
@@ -496,7 +497,7 @@ pub struct CustomRichMediaEvents {
 }
 
 /// Request message for DfareportingStudioCreativeAssets.Insert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DfareportingStudioCreativeAssetsInsertRequest {
     /// Optional. Studio account ID of the studio creative asset. It is a optional.
     #[serde(default, rename = "studioAccountId")]
@@ -510,7 +511,7 @@ pub struct DfareportingStudioCreativeAssetsInsertRequest {
 }
 
 /// Represents the list of DimensionValue resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionValueList {
     /// The eTag of this response for caching purposes.
     #[serde(default)]
@@ -527,7 +528,7 @@ pub struct DimensionValueList {
 }
 
 /// Represents a DimensionValuesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionValueRequest {
     /// The name of the dimension for which values should be requested.
     #[serde(default, rename = "dimensionName")]
@@ -545,7 +546,7 @@ pub struct DimensionValueRequest {
 }
 
 /// Directory Site List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DirectorySitesListResponse {
     /// Directory site collection.
     #[serde(default, rename = "directorySites")]
@@ -559,7 +560,7 @@ pub struct DirectorySitesListResponse {
 }
 
 /// Dynamic profile ID is required for dynamic feed insert as the current GPA API only can create a dynamic feed under profile context,even though the dynamic feed itself don''t need the dynamic profile id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicFeedsInsertRequest {
     /// Required. Dynamic feed to insert.
     #[serde(default, rename = "dynamicFeed")]
@@ -570,7 +571,7 @@ pub struct DynamicFeedsInsertRequest {
 }
 
 ///  *Beta:* This API resource is available only to a very limited number of customers. If you''d like to use this resource, please reach out to your Google sales representative. Contains dynamic profile information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicProfile {
     /// Optional. Active version of the dynamic profile.
     #[serde(default)]
@@ -608,7 +609,7 @@ pub struct DynamicProfile {
 }
 
 /// Response message for DfareportingDynamicProfiles.GenerateCode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicProfileGenerateCodeResponse {
     /// Generated code for the dynamic profile. The code will need to be unescaped.
     #[serde(default)]
@@ -616,7 +617,7 @@ pub struct DynamicProfileGenerateCodeResponse {
 }
 
 /// Dynamic Targeting Key List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicTargetingKeysListResponse {
     /// Dynamic targeting key collection.
     #[serde(default, rename = "dynamicTargetingKeys")]
@@ -627,7 +628,7 @@ pub struct DynamicTargetingKeysListResponse {
 }
 
 /// Event Tag List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventTagsListResponse {
     /// Event tag collection.
     #[serde(default, rename = "eventTags")]
@@ -638,7 +639,7 @@ pub struct EventTagsListResponse {
 }
 
 /// List of files for a report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileList {
     /// Etag of this resource.
     #[serde(default)]
@@ -655,7 +656,7 @@ pub struct FileList {
 }
 
 /// Floodlight Activity GenerateTag Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightActivitiesGenerateTagResponse {
     /// Generated tag for this Floodlight activity. For Google tags, this is the event snippet.
     #[serde(default, rename = "floodlightActivityTag")]
@@ -669,7 +670,7 @@ pub struct FloodlightActivitiesGenerateTagResponse {
 }
 
 /// Floodlight Activity List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightActivitiesListResponse {
     /// Floodlight activity collection.
     #[serde(default, rename = "floodlightActivities")]
@@ -683,7 +684,7 @@ pub struct FloodlightActivitiesListResponse {
 }
 
 /// Floodlight Activity Group List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightActivityGroupsListResponse {
     /// Floodlight activity group collection.
     #[serde(default, rename = "floodlightActivityGroups")]
@@ -698,7 +699,7 @@ pub struct FloodlightActivityGroupsListResponse {
 }
 
 /// Floodlight Configuration List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightConfigurationsListResponse {
     /// Floodlight configuration collection.
     #[serde(default, rename = "floodlightConfigurations")]
@@ -709,7 +710,7 @@ pub struct FloodlightConfigurationsListResponse {
 }
 
 /// Language List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguagesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#languagesListResponse".
     #[serde(default)]
@@ -720,7 +721,7 @@ pub struct LanguagesListResponse {
 }
 
 /// Metro List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetrosListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#metrosListResponse".
     #[serde(default)]
@@ -731,7 +732,7 @@ pub struct MetrosListResponse {
 }
 
 /// Mobile app List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileAppsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#mobileAppsListResponse".
     #[serde(default)]
@@ -745,7 +746,7 @@ pub struct MobileAppsListResponse {
 }
 
 /// Mobile Carrier List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileCarriersListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#mobileCarriersListResponse".
     #[serde(default)]
@@ -756,7 +757,7 @@ pub struct MobileCarriersListResponse {
 }
 
 /// Operating System Version List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperatingSystemVersionsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#operatingSystemVersionsListResponse".
     #[serde(default)]
@@ -767,7 +768,7 @@ pub struct OperatingSystemVersionsListResponse {
 }
 
 /// Operating System List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperatingSystemsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#operatingSystemsListResponse".
     #[serde(default)]
@@ -778,7 +779,7 @@ pub struct OperatingSystemsListResponse {
 }
 
 /// Placement Group List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementGroupsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#placementGroupsListResponse".
     #[serde(default)]
@@ -792,7 +793,7 @@ pub struct PlacementGroupsListResponse {
 }
 
 /// Placement Strategy List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementStrategiesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#placementStrategiesListResponse".
     #[serde(default)]
@@ -806,7 +807,7 @@ pub struct PlacementStrategiesListResponse {
 }
 
 /// Placement GenerateTags Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementsGenerateTagsResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#placementsGenerateTagsResponse".
     #[serde(default)]
@@ -817,7 +818,7 @@ pub struct PlacementsGenerateTagsResponse {
 }
 
 /// Placement List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#placementsListResponse".
     #[serde(default)]
@@ -831,7 +832,7 @@ pub struct PlacementsListResponse {
 }
 
 /// Platform Type List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlatformTypesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#platformTypesListResponse".
     #[serde(default)]
@@ -842,7 +843,7 @@ pub struct PlatformTypesListResponse {
 }
 
 /// Postal Code List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostalCodesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#postalCodesListResponse".
     #[serde(default)]
@@ -853,7 +854,7 @@ pub struct PostalCodesListResponse {
 }
 
 /// Represents a recipient.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Recipient {
     /// The delivery type for the recipient. // TODO: enum values: ["LINK", "ATTACHMENT"]
     #[serde(default, rename = "deliveryType")]
@@ -867,7 +868,7 @@ pub struct Recipient {
 }
 
 /// Region List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#regionsListResponse".
     #[serde(default)]
@@ -878,7 +879,7 @@ pub struct RegionsListResponse {
 }
 
 /// Contains properties of a remarketing list''s sharing information. Sharing allows other accounts or advertisers to target to your remarketing lists. This resource can be used to manage remarketing list sharing to other accounts and advertisers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemarketingListShare {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#remarketingListShare".
     #[serde(default)]
@@ -895,7 +896,7 @@ pub struct RemarketingListShare {
 }
 
 /// Remarketing list response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemarketingListsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#remarketingListsListResponse".
     #[serde(default)]
@@ -909,7 +910,7 @@ pub struct RemarketingListsListResponse {
 }
 
 /// Represents the list of reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportList {
     /// The eTag of this response for caching purposes.
     #[serde(default)]
@@ -926,7 +927,7 @@ pub struct ReportList {
 }
 
 /// Site List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SitesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#sitesListResponse".
     #[serde(default)]
@@ -940,7 +941,7 @@ pub struct SitesListResponse {
 }
 
 /// Size List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SizesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#sizesListResponse".
     #[serde(default)]
@@ -951,7 +952,7 @@ pub struct SizesListResponse {
 }
 
 /// Represents a sorted dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SortedDimension {
     /// The kind of resource this is, in this case dfareporting#sortedDimension.
     #[serde(default)]
@@ -965,7 +966,7 @@ pub struct SortedDimension {
 }
 
 ///  *Beta:* This API resource is available only to a very limited number of customers. If you''d like to use this resource, please reach out to your Google sales representative. Contains studio creative information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StudioCreative {
     /// List of assets associated with this studio creative. It is a required field on insertion.
     #[serde(default, rename = "assetIds")]
@@ -1009,7 +1010,7 @@ pub struct StudioCreative {
 }
 
 /// Response message for DfareportingStudioCreativeAssets.Insert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StudioCreativeAssetsResponse {
     /// The list of studio creative assets.
     #[serde(default)]
@@ -1017,7 +1018,7 @@ pub struct StudioCreativeAssetsResponse {
 }
 
 /// Subaccount List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubaccountsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#subaccountsListResponse".
     #[serde(default)]
@@ -1031,7 +1032,7 @@ pub struct SubaccountsListResponse {
 }
 
 /// Targetable remarketing list response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetableRemarketingListsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#targetableRemarketingListsListResponse".
     #[serde(default)]
@@ -1046,7 +1047,7 @@ pub struct TargetableRemarketingListsListResponse {
 }
 
 /// Targeting Template List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetingTemplatesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#targetingTemplatesListResponse".
     #[serde(default)]
@@ -1060,7 +1061,7 @@ pub struct TargetingTemplatesListResponse {
 }
 
 /// TvCampaignDetail contains data from a TV campaign for specific start dates and date windows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TvCampaignDetail {
     /// ID of this TV campaign.
     #[serde(default)]
@@ -1074,7 +1075,7 @@ pub struct TvCampaignDetail {
 }
 
 /// Response message for TvCampaignSummariesService.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TvCampaignSummariesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#tvCampaignSummariesListResponse".
     #[serde(default)]
@@ -1085,7 +1086,7 @@ pub struct TvCampaignSummariesListResponse {
 }
 
 /// Represents the list of user profiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserProfileList {
     /// Etag of this resource.
     #[serde(default)]
@@ -1099,7 +1100,7 @@ pub struct UserProfileList {
 }
 
 /// User Role Permission Group List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserRolePermissionGroupsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#userRolePermissionGroupsListResponse".
     #[serde(default)]
@@ -1111,7 +1112,7 @@ pub struct UserRolePermissionGroupsListResponse {
 }
 
 /// User Role Permission List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserRolePermissionsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#userRolePermissionsListResponse".
     #[serde(default)]
@@ -1122,7 +1123,7 @@ pub struct UserRolePermissionsListResponse {
 }
 
 /// User Role List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserRolesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#userRolesListResponse".
     #[serde(default)]
@@ -1136,7 +1137,7 @@ pub struct UserRolesListResponse {
 }
 
 /// Video Format List Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoFormatsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#videoFormatsListResponse".
     #[serde(default)]
@@ -1147,7 +1148,7 @@ pub struct VideoFormatsListResponse {
 }
 
 /// AccountPermissionGroups contains a mapping of permission group IDs to names. A permission group is a grouping of account permissions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountPermissionGroup {
     /// ID of this account permission group.
     #[serde(default)]
@@ -1161,7 +1162,7 @@ pub struct AccountPermissionGroup {
 }
 
 /// AccountPermissions contains information about a particular account permission. Some features of Campaign Manager require an account permission to be present in the account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountPermission {
     /// Account profiles associated with this account permission. Possible values are: - "ACCOUNT_PROFILE_BASIC" - "ACCOUNT_PROFILE_STANDARD"
     #[serde(default, rename = "accountProfiles")]
@@ -1184,7 +1185,7 @@ pub struct AccountPermission {
 }
 
 /// AccountUserProfiles contains properties of a Campaign Manager user profile. This resource is specifically for managing user profiles, whereas UserProfiles is for accessing the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountUserProfile {
     /// Account ID of the user profile. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -1237,7 +1238,7 @@ pub struct AccountUserProfile {
 }
 
 /// Contains properties of a Campaign Manager account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// Account permissions assigned to this account.
     #[serde(default, rename = "accountPermissionIds")]
@@ -1299,7 +1300,7 @@ pub struct Account {
 }
 
 /// Contains properties of a Campaign Manager ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Ad {
     /// Account ID of this ad. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -1425,7 +1426,7 @@ pub struct Ad {
 }
 
 /// Groups advertisers together so that reports can be generated for the entire group at once.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserGroup {
     /// Account ID of this advertiser group. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -1442,7 +1443,7 @@ pub struct AdvertiserGroup {
 }
 
 /// Contains information about a single invoice
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Invoice {
     /// The list of summarized campaign information associated with this invoice.
     #[serde(default)]
@@ -1501,7 +1502,7 @@ pub struct Invoice {
 }
 
 /// Contains information about where a user''s browser is taken after the user clicks an ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LandingPage {
     /// Advertiser ID of this landing page. This is a required field.
     #[serde(default, rename = "advertiserId")]
@@ -1527,7 +1528,7 @@ pub struct LandingPage {
 }
 
 /// Contains properties of a Campaign Manager advertiser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Advertiser {
     /// Account ID of this advertiser.This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -1583,7 +1584,7 @@ pub struct Advertiser {
 }
 
 /// List account, subaccount, advertiser, and campaign associated with a given Billing Profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingAssignment {
     /// ID of the account associated with the billing assignment.This is a read-only, auto-generated field.
     #[serde(default, rename = "accountId")]
@@ -1603,7 +1604,7 @@ pub struct BillingAssignment {
 }
 
 /// Contains properties of a Campaign Manager Billing Profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingProfile {
     /// Consolidated invoice option for this billing profile. Used to get a single, consolidated invoice across the chosen invoice level.
     #[serde(default, rename = "consolidatedInvoice")]
@@ -1647,7 +1648,7 @@ pub struct BillingProfile {
 }
 
 /// BillingRate resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingRate {
     /// Billing currency code in ISO 4217 format.
     #[serde(default, rename = "currencyCode")]
@@ -1679,7 +1680,7 @@ pub struct BillingRate {
 }
 
 /// Identifies a creative which has been associated with a given campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CampaignCreativeAssociation {
     /// ID of the creative associated with the campaign. This is a required field.
     #[serde(default, rename = "creativeId")]
@@ -1690,7 +1691,7 @@ pub struct CampaignCreativeAssociation {
 }
 
 /// Contains properties of a Campaign Manager campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Campaign {
     /// Account ID of this campaign. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -1781,7 +1782,7 @@ pub struct Campaign {
 }
 
 /// Describes a change that a user has made to a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChangeLog {
     /// Account ID of the modified object.
     #[serde(default, rename = "accountId")]
@@ -1827,7 +1828,7 @@ pub struct ChangeLog {
 }
 
 /// Represents fields that are compatible to be selected for a report of type "CROSS_DIMENSION_REACH".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrossDimensionReachReportCompatibleFields {
     /// Dimensions which are compatible to be selected in the "breakdown" section of the report.
     #[serde(default)]
@@ -1847,7 +1848,7 @@ pub struct CrossDimensionReachReportCompatibleFields {
 }
 
 /// Represents fields that are compatible to be selected for a report of type "CROSS_MEDIA_REACH".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrossMediaReachReportCompatibleFields {
     /// Dimensions which are compatible to be selected in the "dimensionFilters" section of the report.
     #[serde(default, rename = "dimensionFilters")]
@@ -1864,7 +1865,7 @@ pub struct CrossMediaReachReportCompatibleFields {
 }
 
 /// Represents fields that are compatible to be selected for a report of type "FlOODLIGHT".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightReportCompatibleFields {
     /// Dimensions which are compatible to be selected in the "dimensionFilters" section of the report.
     #[serde(default, rename = "dimensionFilters")]
@@ -1881,7 +1882,7 @@ pub struct FloodlightReportCompatibleFields {
 }
 
 /// Represents fields that are compatible to be selected for a report of type "PATH_TO_CONVERSION".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PathToConversionReportCompatibleFields {
     /// Conversion dimensions which are compatible to be selected in the "conversionDimensions" section of the report.
     #[serde(default, rename = "conversionDimensions")]
@@ -1901,7 +1902,7 @@ pub struct PathToConversionReportCompatibleFields {
 }
 
 /// Represents fields that are compatible to be selected for a report of type "REACH".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReachReportCompatibleFields {
     /// Dimensions which are compatible to be selected in the "dimensionFilters" section of the report.
     #[serde(default, rename = "dimensionFilters")]
@@ -1924,7 +1925,7 @@ pub struct ReachReportCompatibleFields {
 }
 
 /// Represents fields that are compatible to be selected for a report of type "STANDARD".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportCompatibleFields {
     /// Dimensions which are compatible to be selected in the "dimensionFilters" section of the report.
     #[serde(default, rename = "dimensionFilters")]
@@ -1944,7 +1945,7 @@ pub struct ReportCompatibleFields {
 }
 
 /// ContentCategory resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentCategory {
     /// Account ID of this content category. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -1961,7 +1962,7 @@ pub struct ContentCategory {
 }
 
 /// A description of how user IDs are encrypted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionInfo {
     /// The encryption entity ID. This should match the encryption configuration for ad serving or Data Transfer.
     #[serde(default, rename = "encryptionEntityId")]
@@ -1978,7 +1979,7 @@ pub struct EncryptionInfo {
 }
 
 /// The original conversion that was inserted or updated and whether there were any errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConversionStatus {
     /// The original conversion that was inserted or updated.
     #[serde(default)]
@@ -1992,7 +1993,7 @@ pub struct ConversionStatus {
 }
 
 /// Contains properties of a creative field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeFieldValue {
     /// ID of this creative field value. This is a read-only, auto-generated field.
     #[serde(default)]
@@ -2006,7 +2007,7 @@ pub struct CreativeFieldValue {
 }
 
 /// Contains properties of a creative field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeField {
     /// Account ID of this creative field. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -2032,7 +2033,7 @@ pub struct CreativeField {
 }
 
 /// Contains properties of a creative group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeGroup {
     /// Account ID of this creative group. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -2061,7 +2062,7 @@ pub struct CreativeGroup {
 }
 
 /// Contains properties of a Creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Creative {
     /// Account ID of this creative. This field, if left unset, will be auto-generated for both insert and update operations. Applicable to all creative types.
     #[serde(default, rename = "accountId")]
@@ -2256,7 +2257,7 @@ pub struct Creative {
 }
 
 /// Represents a dimension filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionFilter {
     /// The name of the dimension to filter.
     #[serde(default, rename = "dimensionName")]
@@ -2270,7 +2271,7 @@ pub struct DimensionFilter {
 }
 
 /// DirectorySites contains properties of a website from the Site Directory. Sites need to be added to an account via the Sites resource before they can be assigned to a placement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DirectorySite {
     /// ID of this directory site. This is a read-only, auto-generated field.
     #[serde(default)]
@@ -2302,7 +2303,7 @@ pub struct DirectorySite {
 }
 
 ///  *Beta:* This API resource is available only to a very limited number of customers. If you''d like to use this resource, please reach out to your Google sales representative. Contains dynamic feed information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicFeed {
     /// Required. The content source of the dynamic feed. This is a required field.
     #[serde(default, rename = "contentSource")]
@@ -2340,7 +2341,7 @@ pub struct DynamicFeed {
 }
 
 /// Contains dynamic profile version information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicProfileVersion {
     /// Optional. Associated dynamic feeds and their settings (including dynamic rules) for this dynamic profile version.
     #[serde(default, rename = "dynamicProfileFeedSettings")]
@@ -2352,7 +2353,7 @@ pub struct DynamicProfileVersion {
 }
 
 /// Contains properties of a dynamic targeting key. Dynamic targeting keys are unique, user-friendly labels, created at the advertiser level in DCM, that can be assigned to ads, creatives, and placements and used for targeting with Studio dynamic creatives. Use these labels instead of numeric Campaign Manager IDs (such as placement IDs) to save time and avoid errors in your dynamic feeds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicTargetingKey {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#dynamicTargetingKey".
     #[serde(default)]
@@ -2369,7 +2370,7 @@ pub struct DynamicTargetingKey {
 }
 
 /// Contains properties of an event tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventTag {
     /// Account ID of this event tag. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -2428,7 +2429,7 @@ pub struct EventTag {
 }
 
 /// Represents a File resource. A file contains the metadata for a report run. It shows the status of the run and holds the URLs to the generated report data if the run is finished and the status is "REPORT_AVAILABLE".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct File {
     /// The date range for which the file has report data. The date range will always be the absolute date range for which the report is run.
     #[serde(default, rename = "dateRange")]
@@ -2463,7 +2464,7 @@ pub struct File {
 }
 
 /// Contains properties of a Floodlight activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightActivity {
     /// Account ID of this floodlight activity. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -2559,7 +2560,7 @@ pub struct FloodlightActivity {
 }
 
 /// Contains properties of a Floodlight activity group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightActivityGroup {
     /// Account ID of this floodlight activity group. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -2600,7 +2601,7 @@ pub struct FloodlightActivityGroup {
 }
 
 /// Contains properties of a Floodlight configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightConfiguration {
     /// Account ID of this floodlight configuration. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -2661,7 +2662,7 @@ pub struct FloodlightConfiguration {
 }
 
 /// Contains properties of a package or roadblock.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementGroup {
     /// Account ID of this placement group. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -2744,7 +2745,7 @@ pub struct PlacementGroup {
 }
 
 /// Contains properties of a placement strategy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementStrategy {
     /// Account ID of this placement strategy.This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -2761,7 +2762,7 @@ pub struct PlacementStrategy {
 }
 
 /// Placement Tag
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementTag {
     /// Placement ID
     #[serde(default, rename = "placementId")]
@@ -2772,7 +2773,7 @@ pub struct PlacementTag {
 }
 
 /// Contains properties of a placement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Placement {
     /// Account ID of this placement. This field can be left blank.
     #[serde(default, rename = "accountId")]
@@ -2921,7 +2922,7 @@ pub struct Placement {
 }
 
 /// Contains properties of a remarketing list. Remarketing enables you to create lists of users who have performed specific actions on a site, then target ads to members of those lists. This resource can be used to manage remarketing lists that are owned by your advertisers. To see all remarketing lists that are visible to your advertisers, including those that are shared to your advertiser or account, use the TargetableRemarketingLists resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemarketingList {
     /// Account ID of this remarketing list. This is a read-only, auto-generated field that is only returned in GET requests.
     #[serde(default, rename = "accountId")]
@@ -2965,7 +2966,7 @@ pub struct RemarketingList {
 }
 
 /// Represents a Report resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Report {
     /// The account ID to which this report belongs.
     #[serde(default, rename = "accountId")]
@@ -3024,7 +3025,7 @@ pub struct Report {
 }
 
 /// Contains properties of a site.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Site {
     /// Account ID of this site. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -3071,7 +3072,7 @@ pub struct Site {
 }
 
 /// Dimension information for a studio creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StudioCreativeDimension {
     /// Height of the studio creative.
     #[serde(default)]
@@ -3082,7 +3083,7 @@ pub struct StudioCreativeDimension {
 }
 
 ///  *Beta:* This API resource is available only to a very limited number of customers. If you''d like to use this resource, please reach out to your Google sales representative. Contains studio creative asset information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StudioCreativeAsset {
     /// Output only. The creation timestamp of the studio creative asset. This is a read-only field.
     #[serde(default, rename = "createInfo")]
@@ -3117,7 +3118,7 @@ pub struct StudioCreativeAsset {
 }
 
 /// Contains properties of a Campaign Manager subaccount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subaccount {
     /// ID of the account that contains this subaccount. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -3137,7 +3138,7 @@ pub struct Subaccount {
 }
 
 /// Contains properties of a targetable remarketing list. Remarketing enables you to create lists of users who have performed specific actions on a site, then target ads to members of those lists. This resource is a read-only view of a remarketing list to be used to facilitate targeting ads to specific lists. Remarketing lists that are owned by your advertisers and those that are shared to your advertisers or account are accessible via this resource. To manage remarketing lists that are owned by your advertisers, use the RemarketingLists resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetableRemarketingList {
     /// Account ID of this remarketing list. This is a read-only, auto-generated field that is only returned in GET requests.
     #[serde(default, rename = "accountId")]
@@ -3178,7 +3179,7 @@ pub struct TargetableRemarketingList {
 }
 
 /// Contains properties of a targeting template. A targeting template encapsulates targeting information which can be reused across multiple ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetingTemplate {
     /// Account ID of this targeting template. This field, if left unset, will be auto-generated on insert and is read-only after insert.
     #[serde(default, rename = "accountId")]
@@ -3225,7 +3226,7 @@ pub struct TargetingTemplate {
 }
 
 /// A single data point for TvCampaignDetail, which holds information about the TV campaign for a specific start date and date window.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TvCampaignTimepoint {
     /// The date window of the timepoint. // TODO: enum values: ["WEEKS_UNSPECIFIED", "DAYS_ONE", "WEEKS_ONE", "WEEKS_FOUR", "WEEKS_EIGHT", "WEEKS_TWELVE"]
     #[serde(default, rename = "dateWindow")]
@@ -3239,7 +3240,7 @@ pub struct TvCampaignTimepoint {
 }
 
 /// TvCampaignSummary contains aggregate data from a TV campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TvCampaignSummary {
     /// The end date of the TV campaign, inclusive. A string of the format: "yyyy-MM-dd".
     #[serde(default, rename = "endDate")]
@@ -3271,7 +3272,7 @@ pub struct TvCampaignSummary {
 }
 
 /// A UserProfile resource lets you list all DFA user profiles that are associated with a Google user account. The profile_id needs to be specified in other API requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserProfile {
     /// The account ID to which this profile belongs.
     #[serde(default, rename = "accountId")]
@@ -3300,7 +3301,7 @@ pub struct UserProfile {
 }
 
 /// Represents a grouping of related user role permissions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserRolePermissionGroup {
     /// ID of this user role permission.
     #[serde(default)]
@@ -3314,7 +3315,7 @@ pub struct UserRolePermissionGroup {
 }
 
 /// Contains properties of auser role, which is used to manage user access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserRole {
     /// Account ID of this user role. This is a read-only field that can be left blank.
     #[serde(default, rename = "accountId")]
@@ -3343,7 +3344,7 @@ pub struct UserRole {
 }
 
 /// Contains information about supported video formats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoFormat {
     /// File type of the video format. // TODO: enum values: ["FLV", "THREEGPP", "MP4", "WEBM", "M3U8"]
     #[serde(default, rename = "fileType")]
@@ -3363,7 +3364,7 @@ pub struct VideoFormat {
 }
 
 /// Object Filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectFilter {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#objectFilter".
     #[serde(default)]
@@ -3377,7 +3378,7 @@ pub struct ObjectFilter {
 }
 
 /// Reporting Configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportsConfiguration {
     /// Whether the exposure to conversion report is enabled. This report shows detailed pathway information on up to 10 of the most recent ad exposures seen by a user before converting.
     #[serde(default, rename = "exposureToConversionEnabled")]
@@ -3391,7 +3392,7 @@ pub struct ReportsConfiguration {
 }
 
 /// Creative Rotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeRotation {
     /// Creative assignments in this creative rotation.
     #[serde(default, rename = "creativeAssignments")]
@@ -3408,7 +3409,7 @@ pub struct CreativeRotation {
 }
 
 /// Delivery Schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeliverySchedule {
     /// Limit on the number of times an individual user can be served the ad within a specified period of time.
     #[serde(default, rename = "frequencyCap")]
@@ -3425,7 +3426,7 @@ pub struct DeliverySchedule {
 }
 
 /// Placement Assignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementAssignment {
     /// Whether this placement assignment is active. When true, the placement will be included in the ad''s rotation.
     #[serde(default)]
@@ -3442,7 +3443,7 @@ pub struct PlacementAssignment {
 }
 
 /// Represents a summarized campaign information associated with this invoice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CampaignSummary {
     /// Campaign billing invoice code.
     #[serde(default, rename = "billingInvoiceCode")]
@@ -3462,7 +3463,7 @@ pub struct CampaignSummary {
 }
 
 /// Contains information about a landing page deep link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeepLink {
     /// The URL of the mobile app being linked to.
     #[serde(default, rename = "appUrl")]
@@ -3482,7 +3483,7 @@ pub struct DeepLink {
 }
 
 /// MeasurementPartnerAdvertiserLink resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MeasurementPartnerAdvertiserLink {
     /// Status of the partner link. // TODO: enum values: ["MEASUREMENT_PARTNER_UNLINKED", "MEASUREMENT_PARTNER_LINKED", "MEASUREMENT_PARTNER_LINK_PENDING", "MEASUREMENT_PARTNER_LINK_FAILURE", "MEASUREMENT_PARTNER_LINK_OPT_OUT", "MEASUREMENT_PARTNER_LINK_OPT_OUT_PENDING", "MEASUREMENT_PARTNER_LINK_WRAPPING_PENDING", "MEASUREMENT_PARTNER_MODE_CHANGE_PENDING", "MEASUREMENT_PARTNER_UNLINK_PENDING"]
     #[serde(default, rename = "linkStatus")]
@@ -3496,7 +3497,7 @@ pub struct MeasurementPartnerAdvertiserLink {
 }
 
 /// BillingRateTieredRate resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingRateTieredRate {
     /// The maximum for this tier range.
     #[serde(default, rename = "highValue")]
@@ -3510,7 +3511,7 @@ pub struct BillingRateTieredRate {
 }
 
 /// Campaign ad blocking settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdBlockingConfiguration {
     /// Whether this campaign has enabled ad blocking. When true, ad blocking is enabled for placements in the campaign, but this may be overridden by site and placement settings. When false, ad blocking is disabled for all placements under the campaign, regardless of site and placement settings.
     #[serde(default)]
@@ -3518,7 +3519,7 @@ pub struct AdBlockingConfiguration {
 }
 
 /// Creative optimization settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeOptimizationConfiguration {
     /// ID of this creative optimization config. This field is auto-generated when the campaign is inserted or updated. It can be null for existing campaigns.
     #[serde(default)]
@@ -3535,7 +3536,7 @@ pub struct CreativeOptimizationConfiguration {
 }
 
 /// Audience Segment Group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudienceSegmentGroup {
     /// Audience segments assigned to this group. The number of segments must be between 2 and 100.
     #[serde(default, rename = "audienceSegments")]
@@ -3549,7 +3550,7 @@ pub struct AudienceSegmentGroup {
 }
 
 /// Click Through URL Suffix settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClickThroughUrlSuffixProperties {
     /// Click-through URL suffix to apply to all ads in this entity''s scope. Must be less than 128 characters long.
     #[serde(default, rename = "clickThroughUrlSuffix")]
@@ -3560,7 +3561,7 @@ pub struct ClickThroughUrlSuffixProperties {
 }
 
 /// Properties of inheriting and overriding the default click-through event tag. A campaign may override the event tag defined at the advertiser level, and an ad may also override the campaign''s setting further.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultClickThroughEventTagProperties {
     /// ID of the click-through event tag to apply to all ads in this entity''s scope.
     #[serde(default, rename = "defaultClickThroughEventTagId")]
@@ -3571,7 +3572,7 @@ pub struct DefaultClickThroughEventTagProperties {
 }
 
 /// Event tag override information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventTagOverride {
     /// Whether this override is enabled.
     #[serde(default)]
@@ -3582,7 +3583,7 @@ pub struct EventTagOverride {
 }
 
 /// MeasurementPartnerCampaignLink resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MeasurementPartnerCampaignLink {
     /// . // TODO: enum values: ["MEASUREMENT_PARTNER_UNLINKED", "MEASUREMENT_PARTNER_LINKED", "MEASUREMENT_PARTNER_LINK_PENDING", "MEASUREMENT_PARTNER_LINK_FAILURE", "MEASUREMENT_PARTNER_LINK_OPT_OUT", "MEASUREMENT_PARTNER_LINK_OPT_OUT_PENDING", "MEASUREMENT_PARTNER_LINK_WRAPPING_PENDING", "MEASUREMENT_PARTNER_MODE_CHANGE_PENDING", "MEASUREMENT_PARTNER_UNLINK_PENDING"]
     #[serde(default, rename = "linkStatus")]
@@ -3596,7 +3597,7 @@ pub struct MeasurementPartnerCampaignLink {
 }
 
 /// Represents a dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dimension {
     /// The kind of resource this is, in this case dfareporting#dimension.
     #[serde(default)]
@@ -3607,7 +3608,7 @@ pub struct Dimension {
 }
 
 /// Represents a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metric {
     /// The kind of resource this is, in this case dfareporting#metric.
     #[serde(default)]
@@ -3618,7 +3619,7 @@ pub struct Metric {
 }
 
 /// A Conversion represents when a user successfully performs a desired action after seeing an ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Conversion {
     /// This represents consent for ad user data. // TODO: enum values: ["GRANTED", "DENIED"]
     #[serde(default, rename = "adUserDataConsent")]
@@ -3692,7 +3693,7 @@ pub struct Conversion {
 }
 
 /// The error code and description for a conversion that failed to insert or update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConversionError {
     /// The error code. // TODO: enum values: ["INVALID_ARGUMENT", "INTERNAL", "PERMISSION_DENIED", "NOT_FOUND"]
     #[serde(default)]
@@ -3706,7 +3707,7 @@ pub struct ConversionError {
 }
 
 /// Target Window.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetWindow {
     /// User-entered value.
     #[serde(default, rename = "customHtml")]
@@ -3717,7 +3718,7 @@ pub struct TargetWindow {
 }
 
 /// Creative Click Tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClickTag {
     /// Parameter value for the specified click tag. This field contains a click-through url.
     #[serde(default, rename = "clickThroughUrl")]
@@ -3731,7 +3732,7 @@ pub struct ClickTag {
 }
 
 /// Creative Asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeAsset {
     /// Whether ActionScript3 is enabled for the flash asset. This is a read-only field. Applicable to the following creative type: FLASH_INPAGE. Applicable to DISPLAY when the primary asset type is not HTML_IMAGE.
     #[serde(default, rename = "actionScript3")]
@@ -3886,7 +3887,7 @@ pub struct CreativeAsset {
 }
 
 /// Creative Field Assignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeFieldAssignment {
     /// ID of the creative field.
     #[serde(default, rename = "creativeFieldId")]
@@ -3897,7 +3898,7 @@ pub struct CreativeFieldAssignment {
 }
 
 /// FsCommand.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FsCommand {
     /// Distance from the left of the browser.Applicable when positionOption is DISTANCE_FROM_TOP_LEFT_CORNER.
     #[serde(default)]
@@ -3917,7 +3918,7 @@ pub struct FsCommand {
 }
 
 /// Third-party Tracking URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyTrackingUrl {
     /// Third-party URL type for in-stream video and in-stream audio creatives. // TODO: enum values: ["IMPRESSION", "CLICK_TRACKING", "VIDEO_START", "VIDEO_FIRST_QUARTILE", "VIDEO_MIDPOINT", "VIDEO_THIRD_QUARTILE", "VIDEO_COMPLETE", "VIDEO_MUTE", "VIDEO_PAUSE", "VIDEO_REWIND", "VIDEO_FULLSCREEN", "VIDEO_STOP", "VIDEO_CUSTOM", "SURVEY", "RICH_MEDIA_IMPRESSION", "RICH_MEDIA_RM_IMPRESSION", "RICH_MEDIA_BACKUP_IMPRESSION", "VIDEO_SKIP", "VIDEO_PROGRESS"]
     #[serde(default, rename = "thirdPartyUrlType")]
@@ -3928,7 +3929,7 @@ pub struct ThirdPartyTrackingUrl {
 }
 
 /// A Universal Ad ID as per the VAST 4.0 spec. Applicable to the following creative types: INSTREAM_AUDIO, INSTREAM_VIDEO and VPAID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UniversalAdId {
     /// Registry used for the Ad ID value. // TODO: enum values: ["OTHER", "AD_ID_OFFICIAL", "CLEARCAST", "DCM", "ARPP", "CUSV"]
     #[serde(default)]
@@ -3939,7 +3940,7 @@ pub struct UniversalAdId {
 }
 
 /// Directory Site Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DirectorySiteSettings {
     /// Whether this directory site has disabled active view creatives.
     #[serde(default, rename = "activeViewOptOut")]
@@ -3956,7 +3957,7 @@ pub struct DirectorySiteSettings {
 }
 
 /// Contains the content source of the dynamic feed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentSource {
     /// Optional. The name of the content source. It is defaulted to content source file name if not provided.
     #[serde(default, rename = "contentSourceName")]
@@ -3979,7 +3980,7 @@ pub struct ContentSource {
 }
 
 /// Contains the element of the dynamic feed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Element {
     /// Optional. The field ID to specify the active field in the feed.
     #[serde(default, rename = "activeFieldId")]
@@ -4020,7 +4021,7 @@ pub struct Element {
 }
 
 /// Contains the ingestion status of the dynamic feed. Feed ingestion is an asynchronous process. If the feed create request is successful, feed ingestion will be processed in the background, including validation, assets retrieval, and saving the data from the resource link. The processing time is dependent on the data size in the resource link. This read-only status field contains the current stage of that processing and its ingestion state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeedIngestionStatus {
     /// Output only. The ingestion error records of the feed.
     #[serde(default, rename = "ingestionErrorRecords")]
@@ -4034,7 +4035,7 @@ pub struct FeedIngestionStatus {
 }
 
 /// Contains the schedule of the dynamic feed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeedSchedule {
     /// Optional. The number of times the feed retransforms within one day. This is a required field if the schedule is enabled. Acceptable values are between 1 to 6, inclusive.
     #[serde(default, rename = "repeatValue")]
@@ -4054,7 +4055,7 @@ pub struct FeedSchedule {
 }
 
 /// Contains dynamic profile specific settings for an associated dynamic feed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicProfileFeedSettings {
     /// Optional. Dynamic feed ID associated with dynamic profile version.
     #[serde(default, rename = "dynamicFeedId")]
@@ -4068,7 +4069,7 @@ pub struct DynamicProfileFeedSettings {
 }
 
 /// Represents a date range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateRange {
     #[serde(default, rename = "endDate")]
     pub end_date: ::core::option::Option<String>,
@@ -4083,7 +4084,7 @@ pub struct DateRange {
 }
 
 /// Publisher Dynamic Tag
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightActivityPublisherDynamicTag {
     /// Whether this tag is applicable only for click-throughs.
     #[serde(default, rename = "clickThrough")]
@@ -4106,7 +4107,7 @@ pub struct FloodlightActivityPublisherDynamicTag {
 }
 
 /// Custom Viewability Metric
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomViewabilityMetric {
     /// Configuration of the custom viewability metric.
     #[serde(default)]
@@ -4120,7 +4121,7 @@ pub struct CustomViewabilityMetric {
 }
 
 /// Omniture Integration Settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OmnitureSettings {
     /// Whether placement cost data will be sent to Omniture. This property can be enabled only if omnitureIntegrationEnabled is true.
     #[serde(default, rename = "omnitureCostDataEnabled")]
@@ -4131,7 +4132,7 @@ pub struct OmnitureSettings {
 }
 
 /// Dynamic and Image Tag Settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagSettings {
     /// Whether dynamic floodlight tags are enabled.
     #[serde(default, rename = "dynamicTagEnabled")]
@@ -4142,7 +4143,7 @@ pub struct TagSettings {
 }
 
 /// Third Party Authentication Token
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyAuthenticationToken {
     /// Name of the third-party authentication token.
     #[serde(default)]
@@ -4153,7 +4154,7 @@ pub struct ThirdPartyAuthenticationToken {
 }
 
 /// User Defined Variable configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserDefinedVariableConfiguration {
     /// Data type for the variable. This is a required field. // TODO: enum values: ["STRING", "NUMBER"]
     #[serde(default, rename = "dataType")]
@@ -4167,7 +4168,7 @@ pub struct UserDefinedVariableConfiguration {
 }
 
 /// Placement Tag Data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagData {
     /// Ad associated with this placement tag. Applicable only when format is PLACEMENT_TAG_TRACKING.
     #[serde(default, rename = "adId")]
@@ -4187,7 +4188,7 @@ pub struct TagData {
 }
 
 /// PlacementConversionDomainOverride resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementConversionDomainOverride {
     #[serde(default, rename = "conversionDomains")]
     pub conversion_domains:
@@ -4195,7 +4196,7 @@ pub struct PlacementConversionDomainOverride {
 }
 
 /// Placement tag wrapping
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MeasurementPartnerWrappingData {
     /// Placement wrapping status. // TODO: enum values: ["MEASUREMENT_PARTNER_UNLINKED", "MEASUREMENT_PARTNER_LINKED", "MEASUREMENT_PARTNER_LINK_PENDING", "MEASUREMENT_PARTNER_LINK_FAILURE", "MEASUREMENT_PARTNER_LINK_OPT_OUT", "MEASUREMENT_PARTNER_LINK_OPT_OUT_PENDING", "MEASUREMENT_PARTNER_LINK_WRAPPING_PENDING", "MEASUREMENT_PARTNER_MODE_CHANGE_PENDING", "MEASUREMENT_PARTNER_UNLINK_PENDING"]
     #[serde(default, rename = "linkStatus")]
@@ -4212,7 +4213,7 @@ pub struct MeasurementPartnerWrappingData {
 }
 
 /// Pricing Schedule
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PricingSchedule {
     /// Placement cap cost option. // TODO: enum values: ["CAP_COST_NONE", "CAP_COST_MONTHLY", "CAP_COST_CUMULATIVE"]
     #[serde(default, rename = "capCostOption")]
@@ -4238,7 +4239,7 @@ pub struct PricingSchedule {
 }
 
 /// Video Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoSettings {
     /// Settings for the companion creatives of video creatives served to this placement.
     #[serde(default, rename = "companionSettings")]
@@ -4270,7 +4271,7 @@ pub struct VideoSettings {
 }
 
 /// Contains the YouTube settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeSettings {
     /// Optional. The IDs of the creatives to use for the business logo. Currently only one creative is supported.
     #[serde(default, rename = "businessLogoCreativeIds")]
@@ -4293,7 +4294,7 @@ pub struct YoutubeSettings {
 }
 
 /// Remarketing List Population Rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPopulationRule {
     /// Floodlight activity ID associated with this rule. This field can be left blank.
     #[serde(default, rename = "floodlightActivityId")]
@@ -4307,7 +4308,7 @@ pub struct ListPopulationRule {
 }
 
 /// Site Contact
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteContact {
     /// Address of this site contact.
     #[serde(default)]
@@ -4336,7 +4337,7 @@ pub struct SiteContact {
 }
 
 /// Site Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteSettings {
     /// Whether active view creatives are disabled for this site.
     #[serde(default, rename = "activeViewOptOut")]
@@ -4359,7 +4360,7 @@ pub struct SiteSettings {
 }
 
 /// Video Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteVideoSettings {
     /// Settings for the companion creatives of video creatives served to this site.
     #[serde(default, rename = "companionSettings")]
@@ -4388,7 +4389,7 @@ pub struct SiteVideoSettings {
 }
 
 /// Contains processing data for a video asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoProcessingData {
     /// For a FAILED processing state, the error reason discovered.
     #[serde(default, rename = "errorReason")]
@@ -4399,7 +4400,7 @@ pub struct VideoProcessingData {
 }
 
 /// Contextual Keyword Targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContextualKeywordTargeting {
     /// Contextual keywords that this ad targets
     #[serde(default)]
@@ -4407,7 +4408,7 @@ pub struct ContextualKeywordTargeting {
 }
 
 /// Day Part Targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DayPartTargeting {
     /// Days of the week when the ad will serve. Acceptable values are: - "SUNDAY" - "MONDAY" - "TUESDAY" - "WEDNESDAY" - "THURSDAY" - "FRIDAY" - "SATURDAY"
     #[serde(default, rename = "daysOfWeek")]
@@ -4421,7 +4422,7 @@ pub struct DayPartTargeting {
 }
 
 /// Geographical Targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeoTargeting {
     /// Cities to be targeted. For each city only dartId is required. The other fields are populated automatically when the ad is inserted or updated. If targeting a city, do not target or exclude the country of the city, and do not target the metro or region of the city.
     #[serde(default)]
@@ -4444,7 +4445,7 @@ pub struct GeoTargeting {
 }
 
 /// Key Value Targeting Expression.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyValueTargetingExpression {
     /// Keyword expression being targeted by the ad.
     #[serde(default)]
@@ -4452,7 +4453,7 @@ pub struct KeyValueTargetingExpression {
 }
 
 /// Language Targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageTargeting {
     /// Languages that this ad targets. For each language only languageId is required. The other fields are populated automatically when the ad is inserted or updated.
     #[serde(default)]
@@ -4460,7 +4461,7 @@ pub struct LanguageTargeting {
 }
 
 /// Remarketing List Targeting Expression.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTargetingExpression {
     /// Expression describing which lists are being targeted by the ad.
     #[serde(default)]
@@ -4468,7 +4469,7 @@ pub struct ListTargetingExpression {
 }
 
 /// Technology Targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TechnologyTargeting {
     /// Browsers that this ad targets. For each browser either set browserVersionId or dartId along with the version numbers. If both are specified, only browserVersionId will be used. The other fields are populated automatically when the ad is inserted or updated.
     #[serde(default)]
@@ -4491,7 +4492,7 @@ pub struct TechnologyTargeting {
 }
 
 /// Contains properties of a user role permission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserRolePermission {
     /// Levels of availability for a user role permission. // TODO: enum values: ["NOT_AVAILABLE_BY_DEFAULT", "ACCOUNT_BY_DEFAULT", "SUBACCOUNT_AND_ACCOUNT_BY_DEFAULT", "ACCOUNT_ALWAYS", "SUBACCOUNT_AND_ACCOUNT_ALWAYS", "USER_PROFILE_ONLY"]
     #[serde(default)]
@@ -4511,7 +4512,7 @@ pub struct UserRolePermission {
 }
 
 /// Lookback configuration settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookbackConfiguration {
     /// Lookback window, in days, from the last time a given user clicked on one of your ads. If you enter 0, clicks will not be considered as triggering events for floodlight tracking. If you leave this field blank, the default value for your account will be used. Acceptable values are 0 to 90, inclusive.
     #[serde(default, rename = "clickDuration")]
@@ -4522,7 +4523,7 @@ pub struct LookbackConfiguration {
 }
 
 /// Creative Assignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeAssignment {
     /// Whether this creative assignment is active. When true, the creative will be included in the ad''s rotation.
     #[serde(default)]
@@ -4566,7 +4567,7 @@ pub struct CreativeAssignment {
 }
 
 /// Frequency Cap.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FrequencyCap {
     /// Duration of time, in seconds, for this frequency cap. The maximum duration is 90 days. Acceptable values are 1 to 7776000, inclusive.
     #[serde(default)]
@@ -4577,7 +4578,7 @@ pub struct FrequencyCap {
 }
 
 /// Contains information about a mobile app. Used as a landing page deep link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileApp {
     /// Mobile app directory. // TODO: enum values: ["UNKNOWN", "APPLE_APP_STORE", "GOOGLE_PLAY_STORE", "ROKU_APP_STORE", "AMAZON_FIRETV_APP_STORE", "PLAYSTATION_APP_STORE", "APPLE_TV_APP_STORE", "XBOX_APP_STORE", "SAMSUNG_TV_APP_STORE", "ANDROID_TV_APP_STORE", "GENERIC_CTV_APP_STORE"]
     #[serde(default)]
@@ -4597,7 +4598,7 @@ pub struct MobileApp {
 }
 
 /// Creative optimization activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OptimizationActivity {
     /// Floodlight activity ID of this optimization activity. This is a required field.
     #[serde(default, rename = "floodlightActivityId")]
@@ -4611,7 +4612,7 @@ pub struct OptimizationActivity {
 }
 
 /// Audience Segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudienceSegment {
     /// Weight allocated to this segment. The weight assigned will be understood in proportion to the weights assigned to other segments in the same segment group. Acceptable values are 1 to 1000, inclusive.
     #[serde(default)]
@@ -4625,7 +4626,7 @@ pub struct AudienceSegment {
 }
 
 /// Contains additional information about cart data. This field may only be used when calling batchinsert; it is not supported by batchupdate. Cart data reporting is only supported in SA360. [Learn more](https://support.google.com/sa360/topic/13425788)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CartData {
     /// Data of the items purchased.
     #[serde(default)]
@@ -4642,7 +4643,7 @@ pub struct CartData {
 }
 
 /// A custom floodlight variable. Can be used in both batchinsert and batchupdate. Adding this in batchupdate will update or append the variable to the existing list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomFloodlightVariable {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#customFloodlightVariable".
     #[serde(default)]
@@ -4656,7 +4657,7 @@ pub struct CustomFloodlightVariable {
 }
 
 /// User identifying information. Exactly one type of identifier must be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserIdentifier {
     /// Address information.
     #[serde(default, rename = "addressInfo")]
@@ -4670,7 +4671,7 @@ pub struct UserIdentifier {
 }
 
 /// Creative Asset ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeAssetId {
     /// Name of the creative asset. This is a required field while inserting an asset. After insertion, this assetIdentifier is used to identify the uploaded asset. Characters in the name must be alphanumeric or one of the following: ".-_ ". Spaces are allowed.
     #[serde(default)]
@@ -4681,7 +4682,7 @@ pub struct CreativeAssetId {
 }
 
 /// Creative Custom Event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeCustomEvent {
     /// Unique ID of this event used by Reporting and Data Transfer. This is a read-only field.
     #[serde(default, rename = "advertiserCustomEventId")]
@@ -4716,7 +4717,7 @@ pub struct CreativeCustomEvent {
 }
 
 /// Google Ad Manager Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DfpSettings {
     /// Ad Manager network code for this directory site.
     #[serde(default, rename = "dfpNetworkCode")]
@@ -4736,7 +4737,7 @@ pub struct DfpSettings {
 }
 
 /// Contains the meta data of the content source. This is a read-only field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentSourceMetaData {
     /// Output only. The charset of the content source.
     #[serde(default)]
@@ -4753,7 +4754,7 @@ pub struct ContentSourceMetaData {
 }
 
 /// Modification timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LastModifiedInfo {
     /// Timestamp of the last change in milliseconds since epoch.
     #[serde(default)]
@@ -4761,7 +4762,7 @@ pub struct LastModifiedInfo {
 }
 
 /// Each field of the element. This is a required field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeedField {
     /// Optional. The default value of the field.
     #[serde(default, rename = "defaultValue")]
@@ -4787,7 +4788,7 @@ pub struct FeedField {
 }
 
 /// Contains the ingestion error record of the dynamic feed. limited to 100 records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestionErrorRecord {
     /// Output only. The list of field errors of the ingestion error record.
     #[serde(default)]
@@ -4798,7 +4799,7 @@ pub struct IngestionErrorRecord {
 }
 
 /// Contains the ingestion status of the dynamic feed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestionStatus {
     /// Output only. The number of active rows in the feed.
     #[serde(default, rename = "numActiveRows")]
@@ -4818,7 +4819,7 @@ pub struct IngestionStatus {
 }
 
 /// Contains dynamic rules information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicRules {
     /// Optional. List of field IDs in this element that should be auto-targeted. Applicable when rule type is AUTO.
     #[serde(default, rename = "autoTargetedFieldIds")]
@@ -4848,7 +4849,7 @@ pub struct DynamicRules {
 }
 
 /// Dynamic Tag
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightActivityDynamicTag {
     /// ID of this dynamic tag. This is a read-only, auto-generated field.
     #[serde(default)]
@@ -4862,7 +4863,7 @@ pub struct FloodlightActivityDynamicTag {
 }
 
 /// The attributes, like playtime and percent onscreen, that define the Custom Viewability Metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomViewabilityMetricConfiguration {
     /// Whether the video must be audible to count an impression.
     #[serde(default)]
@@ -4879,7 +4880,7 @@ pub struct CustomViewabilityMetricConfiguration {
 }
 
 /// PlacementSingleConversionDomain resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementSingleConversionDomain {
     #[serde(default, rename = "conversionDomainId")]
     pub conversion_domain_id: ::core::option::Option<String>,
@@ -4888,7 +4889,7 @@ pub struct PlacementSingleConversionDomain {
 }
 
 /// Pricing Period
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PricingSchedulePricingPeriod {
     #[serde(default, rename = "endDate")]
     pub end_date: ::core::option::Option<String>,
@@ -4906,7 +4907,7 @@ pub struct PricingSchedulePricingPeriod {
 }
 
 /// Companion Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompanionSetting {
     /// Whether companions are disabled for this placement.
     #[serde(default, rename = "companionsDisabled")]
@@ -4923,7 +4924,7 @@ pub struct CompanionSetting {
 }
 
 /// Skippable Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkippableSetting {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#skippableSetting".
     #[serde(default)]
@@ -4940,7 +4941,7 @@ pub struct SkippableSetting {
 }
 
 /// Transcode Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranscodeSetting {
     /// Allowlist of video formats to be served to this placement. Set this list to null or empty to serve all video formats.
     #[serde(default, rename = "enabledVideoFormats")]
@@ -4951,7 +4952,7 @@ pub struct TranscodeSetting {
 }
 
 /// A group clause made up of list population terms representing constraints joined by ORs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPopulationClause {
     /// Terms of this list population clause. Each clause is made up of list population terms representing constraints and are joined by ORs.
     #[serde(default)]
@@ -4959,7 +4960,7 @@ pub struct ListPopulationClause {
 }
 
 /// Tag Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagSetting {
     /// Additional key-values to be included in tags. Each key-value pair must be of the form key=value, and pairs must be separated by a semicolon (;). Keys and values must not contain commas. For example, id=2;color=red is a valid value for this field.
     #[serde(default, rename = "additionalKeyValues")]
@@ -4979,7 +4980,7 @@ pub struct TagSetting {
 }
 
 /// Companion Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteCompanionSetting {
     /// Whether companions are disabled for this site template.
     #[serde(default, rename = "companionsDisabled")]
@@ -4996,7 +4997,7 @@ pub struct SiteCompanionSetting {
 }
 
 /// Online Behavioral Advertiser icon.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObaIcon {
     /// URL to redirect to when an OBA icon is clicked.
     #[serde(default, rename = "iconClickThroughUrl")]
@@ -5025,7 +5026,7 @@ pub struct ObaIcon {
 }
 
 /// Skippable Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteSkippableSetting {
     /// Identifies what kind of resource this is. Value: the fixed string "dfareporting#siteSkippableSetting".
     #[serde(default)]
@@ -5042,7 +5043,7 @@ pub struct SiteSkippableSetting {
 }
 
 /// Transcode Settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteTranscodeSetting {
     /// Allowlist of video formats to be served to this site template. Set this list to null or empty to serve all video formats.
     #[serde(default, rename = "enabledVideoFormats")]
@@ -5053,7 +5054,7 @@ pub struct SiteTranscodeSetting {
 }
 
 /// Contains information about a Contextual Keyword that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContextualKeyword {
     /// The keyword that can be targeted by ads.
     #[serde(default)]
@@ -5061,7 +5062,7 @@ pub struct ContextualKeyword {
 }
 
 /// Contains information about a city that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct City {
     /// Country code of the country to which this city belongs.
     #[serde(default, rename = "countryCode")]
@@ -5093,7 +5094,7 @@ pub struct City {
 }
 
 /// Contains information about a country that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Country {
     /// Country code.
     #[serde(default, rename = "countryCode")]
@@ -5116,7 +5117,7 @@ pub struct Country {
 }
 
 /// Contains information about a metro region that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metro {
     /// Country code of the country to which this metro region belongs.
     #[serde(default, rename = "countryCode")]
@@ -5142,7 +5143,7 @@ pub struct Metro {
 }
 
 /// Contains information about a postal code that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostalCode {
     /// Postal code. This is equivalent to the id field.
     #[serde(default)]
@@ -5162,7 +5163,7 @@ pub struct PostalCode {
 }
 
 /// Contains information about a region that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Region {
     /// Country code of the country to which this region belongs.
     #[serde(default, rename = "countryCode")]
@@ -5185,7 +5186,7 @@ pub struct Region {
 }
 
 /// Contains information about a language that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Language {
     /// Language ID of this language. This is the ID used for targeting and generating reports.
     #[serde(default)]
@@ -5202,7 +5203,7 @@ pub struct Language {
 }
 
 /// Contains information about a browser that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Browser {
     /// ID referring to this grouping of browser and version numbers. This is the ID used for targeting.
     #[serde(default, rename = "browserVersionId")]
@@ -5225,7 +5226,7 @@ pub struct Browser {
 }
 
 /// Contains information about an internet connection type that can be targeted by ads. Clients can use the connection type to target mobile vs. broadband users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionType {
     /// ID of this connection type.
     #[serde(default)]
@@ -5239,7 +5240,7 @@ pub struct ConnectionType {
 }
 
 /// Contains information about a mobile carrier that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileCarrier {
     /// Country code of the country to which this mobile carrier belongs.
     #[serde(default, rename = "countryCode")]
@@ -5259,7 +5260,7 @@ pub struct MobileCarrier {
 }
 
 /// Contains information about a particular version of an operating system that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperatingSystemVersion {
     /// ID of this operating system version.
     #[serde(default)]
@@ -5282,7 +5283,7 @@ pub struct OperatingSystemVersion {
 }
 
 /// Contains information about a platform type that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlatformType {
     /// ID of this platform type.
     #[serde(default)]
@@ -5296,7 +5297,7 @@ pub struct PlatformType {
 }
 
 /// Companion Click-through override.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompanionClickThroughOverride {
     /// Click-through URL of this companion click-through override.
     #[serde(default, rename = "clickThroughUrl")]
@@ -5307,7 +5308,7 @@ pub struct CompanionClickThroughOverride {
 }
 
 /// Creative Group Assignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeGroupAssignment {
     /// ID of the creative group to be assigned.
     #[serde(default, rename = "creativeGroupId")]
@@ -5318,7 +5319,7 @@ pub struct CreativeGroupAssignment {
 }
 
 /// Rich Media Exit Override.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RichMediaExitOverride {
     /// Click-through URL of this rich media exit override. Applicable if the enabled field is set to true.
     #[serde(default, rename = "clickThroughUrl")]
@@ -5332,7 +5333,7 @@ pub struct RichMediaExitOverride {
 }
 
 /// Represents a DimensionValue resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionValue {
     /// The name of the dimension.
     #[serde(default, rename = "dimensionName")]
@@ -5355,7 +5356,7 @@ pub struct DimensionValue {
 }
 
 /// Contains data of the items purchased.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CartDataItem {
     /// The shopping id of the item. Must be equal to the Merchant Center product identifier. This is a required field.
     #[serde(default, rename = "itemId")]
@@ -5369,7 +5370,7 @@ pub struct CartDataItem {
 }
 
 /// Identify a user by name and address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfflineUserAddressInfo {
     /// City of the address.
     #[serde(default)]
@@ -5395,7 +5396,7 @@ pub struct OfflineUserAddressInfo {
 }
 
 /// Click-through URL
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeClickThroughUrl {
     /// Read-only convenience field representing the actual URL that will be used for this click-through. The URL is computed as follows: - If landingPageId is specified then that landing page''s URL is assigned to this field. - Otherwise, the customClickThroughUrl is assigned to this field.
     #[serde(default, rename = "computedClickThroughUrl")]
@@ -5409,7 +5410,7 @@ pub struct CreativeClickThroughUrl {
 }
 
 /// Popup Window Properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PopupWindowProperties {
     /// Popup dimension for a creative. This is a read-only field. Applicable to the following creative types: all RICH_MEDIA and all VPAID
     #[serde(default)]
@@ -5441,7 +5442,7 @@ pub struct PopupWindowProperties {
 }
 
 /// Contains the field error of the dynamic feed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldError {
     /// Output only. The ID of the field.
     #[serde(default, rename = "fieldId")]
@@ -5461,7 +5462,7 @@ pub struct FieldError {
 }
 
 /// Contains custom rule information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomRule {
     /// Optional. Name of this custom rule.
     #[serde(default)]
@@ -5475,7 +5476,7 @@ pub struct CustomRule {
 }
 
 /// Contains custom value field information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomValueField {
     /// Optional. Field ID in the element.
     #[serde(default, rename = "fieldId")]
@@ -5486,7 +5487,7 @@ pub struct CustomValueField {
 }
 
 /// Contains proximity filter information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProximityFilter {
     /// Optional. Field ID in the element.
     #[serde(default, rename = "fieldId")]
@@ -5503,7 +5504,7 @@ pub struct ProximityFilter {
 }
 
 /// Contains remarketing value attribute information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemarketingValueAttribute {
     /// Optional. Field ID in the element.
     #[serde(default, rename = "fieldId")]
@@ -5514,7 +5515,7 @@ pub struct RemarketingValueAttribute {
 }
 
 /// Remarketing List Population Rule Term.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPopulationTerm {
     /// Will be true if the term should check if the user is in the list and false if the term should check if the user is not in the list. This field is only relevant when type is set to LIST_MEMBERSHIP_TERM. False by default.
     #[serde(default)]
@@ -5543,7 +5544,7 @@ pub struct ListPopulationTerm {
 }
 
 /// Video Offset
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoOffset {
     /// Duration, as a percentage of video duration. Do not set when offsetSeconds is set. Acceptable values are 0 to 100, inclusive.
     #[serde(default, rename = "offsetPercentage")]
@@ -5554,7 +5555,7 @@ pub struct VideoOffset {
 }
 
 /// Contains information about an operating system that can be targeted by ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperatingSystem {
     /// DART ID of this operating system. This is the ID used for targeting.
     #[serde(default, rename = "dartId")]
@@ -5574,7 +5575,7 @@ pub struct OperatingSystem {
 }
 
 /// Click-through URL
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClickThroughUrl {
     /// Read-only convenience field representing the actual URL that will be used for this click-through. The URL is computed as follows: - If defaultLandingPage is enabled then the campaign''s default landing page URL is assigned to this field. - If defaultLandingPage is not enabled and a landingPageId is specified then that landing page''s URL is assigned to this field. - If neither of the above cases apply, then the customClickThroughUrl is assigned to this field.
     #[serde(default, rename = "computedClickThroughUrl")]
@@ -5591,7 +5592,7 @@ pub struct ClickThroughUrl {
 }
 
 /// Represents the dimensions of ads, placements, creatives, or creative assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Size {
     /// Height of this size. Acceptable values are 0 to 32767, inclusive.
     #[serde(default)]
@@ -5611,7 +5612,7 @@ pub struct Size {
 }
 
 /// Offset Position.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OffsetPosition {
     /// Offset distance from left side of an asset or a window.
     #[serde(default)]
@@ -5622,7 +5623,7 @@ pub struct OffsetPosition {
 }
 
 /// Contains a list of field filters that the given custom rule will apply.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuleBlock {
     /// Optional. A list of non-auto field filters
     #[serde(default, rename = "fieldFilter")]
@@ -5630,7 +5631,7 @@ pub struct RuleBlock {
 }
 
 /// Contains field filter information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldFilter {
     /// Optional. The boolean values, only applicable when rhs_value_type is BOOL.
     #[serde(default, rename = "boolValue")]
@@ -5656,7 +5657,7 @@ pub struct FieldFilter {
 }
 
 /// Contains dependent field value information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DependentFieldValue {
     /// Optional. The ID of the element that value''s field will match against.
     #[serde(default, rename = "elementId")]
@@ -5667,7 +5668,7 @@ pub struct DependentFieldValue {
 }
 
 /// Contains request value information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestValue {
     /// Optional. User attribute IDs in the request that should be excluded. Used only when the field type is REMARKETING_VALUE or USER_ATTRIBUTE_ID.
     #[serde(default, rename = "excludeFromUserAttributeIds")]

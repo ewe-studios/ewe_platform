@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Operation metadata returned by the CLH during resource state reconciliation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudControl2SharedOperationsReconciliationOperationMetadata {
     /// DEPRECATED. Use exclusive_action instead.
     #[serde(default, rename = "deleteResource")]
@@ -22,7 +23,7 @@ pub struct CloudControl2SharedOperationsReconciliationOperationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudCommonOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -48,7 +49,7 @@ pub struct GoogleCloudCommonOperationMetadata {
 }
 
 /// Audit log information specific to Cloud IAM admin APIs. This message is serialized as an Any type in the ServiceData message of an AuditLog message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamAdminV1AuditData {
     /// The permission_delta when when creating or updating a Role.
     #[serde(default, rename = "permissionDelta")]
@@ -56,7 +57,7 @@ pub struct GoogleIamAdminV1AuditData {
 }
 
 /// Audit log information specific to Cloud IAM. This message is serialized as an Any type in the ServiceData message of an AuditLog message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1LoggingAuditData {
     /// Policy delta between the original policy and the newly set policy.
     #[serde(default, rename = "policyDelta")]
@@ -64,11 +65,11 @@ pub struct GoogleIamV1LoggingAuditData {
 }
 
 /// Metadata for long-running WorkloadIdentityPool operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1betaWorkloadIdentityPoolOperationMetadata {}
 
 /// Response message for ListPolicies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV2ListPoliciesResponse {
     /// A page token that you can use in a ListPoliciesRequest to retrieve the next page. If this field is omitted, there are no additional pages.
     #[serde(default, rename = "nextPageToken")]
@@ -79,7 +80,7 @@ pub struct GoogleIamV2ListPoliciesResponse {
 }
 
 /// Metadata for long-running Policy operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV2PolicyOperationMetadata {
     /// Timestamp when the google.longrunning.Operation was created.
     #[serde(default, rename = "createTime")]
@@ -87,7 +88,7 @@ pub struct GoogleIamV2PolicyOperationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV3OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -113,7 +114,7 @@ pub struct GoogleIamV3OperationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV3alphaOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -139,7 +140,7 @@ pub struct GoogleIamV3alphaOperationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV3betaOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -165,7 +166,7 @@ pub struct GoogleIamV3betaOperationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV3mainOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -191,7 +192,7 @@ pub struct GoogleIamV3mainOperationMetadata {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -211,7 +212,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// A PermissionDelta message to record the added_permissions and removed_permissions inside a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamAdminV1AuditDataPermissionDelta {
     /// Added permissions.
     #[serde(default, rename = "addedPermissions")]
@@ -222,7 +223,7 @@ pub struct GoogleIamAdminV1AuditDataPermissionDelta {
 }
 
 /// The difference delta between two policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1PolicyDelta {
     /// The delta for Bindings between two policies.
     #[serde(default, rename = "bindingDeltas")]
@@ -230,7 +231,7 @@ pub struct GoogleIamV1PolicyDelta {
 }
 
 /// Data for an IAM policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV2Policy {
     /// A key-value map to store arbitrary metadata for the Policy. Keys can be up to 63 characters. Values can be up to 255 characters.
     #[serde(default)]
@@ -265,7 +266,7 @@ pub struct GoogleIamV2Policy {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -279,7 +280,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// One delta entry for Binding. Each individual change (only one member in each entry) to a binding will be a separate entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1BindingDelta {
     /// The action that was performed on a Binding. Required // TODO: enum values: ["ACTION_UNSPECIFIED", "ADD", "REMOVE"]
     #[serde(default)]
@@ -296,7 +297,7 @@ pub struct GoogleIamV1BindingDelta {
 }
 
 /// A single rule in a Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV2PolicyRule {
     /// A rule for a deny policy.
     #[serde(default, rename = "denyRule")]
@@ -307,7 +308,7 @@ pub struct GoogleIamV2PolicyRule {
 }
 
 /// A deny rule in an IAM deny policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV2DenyRule {
     /// The condition that determines whether this deny rule applies to a request. If the condition expression evaluates to true, then the deny rule is applied; otherwise, the deny rule is not applied. Each deny rule is evaluated independently. If this deny rule does not apply to a request, other deny rules might still apply. The condition can use CEL functions that evaluate [resource tags](https://cloud.google.com/iam/help/conditions/resource-tags). Other functions and operators are not supported.
     #[serde(default, rename = "denialCondition")]
@@ -327,7 +328,7 @@ pub struct GoogleIamV2DenyRule {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]

@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for FindSalesPartnerManagedClients RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindSalesPartnerManagedClientsRequest {
     /// Optional. If set, only active and just ended clients will be returned.
     #[serde(default, rename = "isActive")]
@@ -23,7 +24,7 @@ pub struct FindSalesPartnerManagedClientsRequest {
 }
 
 /// Response message for FindSalesPartnerManagedClients RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindSalesPartnerManagedClientsResponse {
     /// The clients managed by the sales org.
     #[serde(default, rename = "clientData")]
@@ -31,7 +32,7 @@ pub struct FindSalesPartnerManagedClientsResponse {
 }
 
 /// Response message for ListAnalyticsAccountLinks RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAnalyticsAccountLinksResponse {
     /// Analytics account links in this organization.
     #[serde(default, rename = "analyticsAccountLinks")]
@@ -42,7 +43,7 @@ pub struct ListAnalyticsAccountLinksResponse {
 }
 
 /// Response message for ListOrganizations RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOrganizationsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -53,7 +54,7 @@ pub struct ListOrganizationsResponse {
 }
 
 /// Request message for ReportPropertyUsage RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportPropertyUsageRequest {
     /// Required. The target month to list property usages. Format: YYYY-MM. For example, "2025-05"
     #[serde(default)]
@@ -61,7 +62,7 @@ pub struct ReportPropertyUsageRequest {
 }
 
 /// Response message for ReportPropertyUsage RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportPropertyUsageResponse {
     /// Bill amount in the specified organization and month. Will be empty if user only has access to usage data.
     #[serde(default, rename = "billInfo")]
@@ -72,7 +73,7 @@ pub struct ReportPropertyUsageResponse {
 }
 
 /// Request message for SetPropertyServiceLevel RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetPropertyServiceLevelRequest {
     /// Required. The Analytics property to change the ServiceLevel setting. This field is the name of the Google Analytics Admin API property resource. Format: analyticsadmin.googleapis.com/properties/{property_id}
     #[serde(default, rename = "analyticsProperty")]
@@ -83,11 +84,11 @@ pub struct SetPropertyServiceLevelRequest {
 }
 
 /// Response message for SetPropertyServiceLevel RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetPropertyServiceLevelResponse {}
 
 /// Contains the client data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientData {
     /// The end date of the contract between the sales org and the end client.
     #[serde(default, rename = "endDate")]
@@ -101,7 +102,7 @@ pub struct ClientData {
 }
 
 /// A resource message representing the link between a Google Analytics account and a Google Marketing Platform organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyticsAccountLink {
     /// Required. Immutable. The resource name of the AnalyticsAdmin API account. The account ID will be used as the ID of this AnalyticsAccountLink resource, which will become the final component of the resource name. Format: analyticsadmin.googleapis.com/accounts/{account_id}
     #[serde(default, rename = "analyticsAccount")]
@@ -118,7 +119,7 @@ pub struct AnalyticsAccountLink {
 }
 
 /// Contains the bill amount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillInfo {
     /// The amount of the monthly base fee.
     #[serde(default, rename = "baseFee")]
@@ -135,7 +136,7 @@ pub struct BillInfo {
 }
 
 /// Contains the count of events received by the property, along with metadata that influences the volume of billable events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyUsage {
     /// The ID of the property''s parent account.
     #[serde(default, rename = "accountId")]
@@ -161,7 +162,7 @@ pub struct PropertyUsage {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -175,7 +176,7 @@ pub struct Date {
 }
 
 /// A resource message representing a Google Marketing Platform organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Organization {
     /// The human-readable name for the organization.
     #[serde(default, rename = "displayName")]
@@ -186,7 +187,7 @@ pub struct Organization {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]

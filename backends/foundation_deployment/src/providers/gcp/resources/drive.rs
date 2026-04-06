@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Information about the user, the user''s Drive, and system capabilities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct About {
     /// Whether the user has installed the requesting app.
     #[serde(default, rename = "appInstalled")]
@@ -55,7 +56,7 @@ pub struct About {
 }
 
 /// A list of third-party applications which the user has installed or given access to Google Drive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppList {
     /// The list of app IDs that the user has specified to use by default. The list is in reverse-priority order (lowest to highest).
     #[serde(default, rename = "defaultAppIds")]
@@ -72,7 +73,7 @@ pub struct AppList {
 }
 
 /// The response of an Approvals list request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApprovalList {
     /// The list of Approvals. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
     #[serde(default)]
@@ -86,7 +87,7 @@ pub struct ApprovalList {
 }
 
 /// A list of changes for a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChangeList {
     /// The list of changes. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
     #[serde(default)]
@@ -103,7 +104,7 @@ pub struct ChangeList {
 }
 
 /// A notification channel used to watch for resource changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Channel {
     /// The address where notifications are delivered for this channel.
     #[serde(default)]
@@ -138,7 +139,7 @@ pub struct Channel {
 }
 
 /// A list of comments on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommentList {
     /// The list of comments. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
     #[serde(default)]
@@ -152,7 +153,7 @@ pub struct CommentList {
 }
 
 /// A list of shared drives.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveList {
     /// The list of shared drives. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
     #[serde(default)]
@@ -166,7 +167,7 @@ pub struct DriveList {
 }
 
 /// A list of files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileList {
     /// The list of files. If nextPageToken is populated, then this list may be incomplete and an additional page of results should be fetched.
     #[serde(default)]
@@ -183,7 +184,7 @@ pub struct FileList {
 }
 
 /// A list of generated file IDs which can be provided in create requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedIds {
     /// The IDs generated for the requesting user in the specified space.
     #[serde(default)]
@@ -197,7 +198,7 @@ pub struct GeneratedIds {
 }
 
 /// Representation of field, which is a typed key-value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelField {
     /// Only present if valueType is dateString. RFC 3339 formatted date: YYYY-MM-DD.
     #[serde(default, rename = "dateString")]
@@ -226,7 +227,7 @@ pub struct LabelField {
 }
 
 /// A list of labels applied to a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelList {
     /// This is always "drive#labelList".
     #[serde(default)]
@@ -240,7 +241,7 @@ pub struct LabelList {
 }
 
 /// The response to an access proposal list request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccessProposalsResponse {
     /// The list of access proposals. This field is only populated in Drive API v3.
     #[serde(default, rename = "accessProposals")]
@@ -251,7 +252,7 @@ pub struct ListAccessProposalsResponse {
 }
 
 /// A request to modify the set of labels on a file. This request may contain many modifications that will either all succeed or all fail atomically.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyLabelsRequest {
     /// This is always "drive#modifyLabelsRequest".
     #[serde(default)]
@@ -262,7 +263,7 @@ pub struct ModifyLabelsRequest {
 }
 
 /// Response to a ModifyLabels request. This contains only those labels which were added or updated by the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyLabelsResponse {
     /// This is always "drive#modifyLabelsResponse".
     #[serde(default)]
@@ -273,7 +274,7 @@ pub struct ModifyLabelsResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -293,7 +294,7 @@ pub struct Operation {
 }
 
 /// A list of permissions for a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PermissionList {
     /// Identifies what kind of resource this is. Value: the fixed string "drive#permissionList".
     #[serde(default)]
@@ -307,7 +308,7 @@ pub struct PermissionList {
 }
 
 /// A list of replies to a comment on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplyList {
     /// Identifies what kind of resource this is. Value: the fixed string "drive#replyList".
     #[serde(default)]
@@ -321,7 +322,7 @@ pub struct ReplyList {
 }
 
 /// Request message for resolving an AccessProposal on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResolveAccessProposalRequest {
     /// Required. The action to take on the access proposal. // TODO: enum values: ["ACTION_UNSPECIFIED", "ACCEPT", "DENY"]
     #[serde(default)]
@@ -338,7 +339,7 @@ pub struct ResolveAccessProposalRequest {
 }
 
 /// A list of revisions of a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevisionList {
     /// Identifies what kind of resource this is. Value: the fixed string "drive#revisionList".
     #[serde(default)]
@@ -352,7 +353,7 @@ pub struct RevisionList {
 }
 
 /// StartPageToken resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartPageToken {
     /// Identifies what kind of resource this is. Value: the fixed string "drive#startPageToken".
     #[serde(default)]
@@ -363,7 +364,7 @@ pub struct StartPageToken {
 }
 
 /// A list of Team Drives.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamDriveList {
     /// Identifies what kind of resource this is. Value: the fixed string "drive#teamDriveList".
     #[serde(default)]
@@ -377,7 +378,7 @@ pub struct TeamDriveList {
 }
 
 /// The apps resource provides a list of apps that a user has installed, with information about each app''s supported MIME types, file extensions, and other details. Some resource methods (such as apps.get) require an appId. Use the apps.list method to retrieve the ID for an installed application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct App {
     /// Whether the app is authorized to access data on the user''s Drive.
     #[serde(default)]
@@ -454,7 +455,7 @@ pub struct App {
 }
 
 /// Metadata for an approval. An approval is a review/approve process for a Drive item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Approval {
     /// The Approval ID.
     #[serde(default, rename = "approvalId")]
@@ -489,7 +490,7 @@ pub struct Approval {
 }
 
 /// A change to a file or shared drive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Change {
     /// The type of the change. Possible values are file and drive.
     #[serde(default, rename = "changeType")]
@@ -527,7 +528,7 @@ pub struct Change {
 }
 
 /// A comment on a file. Some resource methods (such as comments.update) require a commentId. Use the comments.list method to retrieve the ID for a comment in a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Comment {
     /// A region of the document represented as a JSON string. For details on defining anchor properties, refer to [Manage comments and replies](https://developers.google.com/workspace/drive/api/v3/manage-comments).
     #[serde(default)]
@@ -574,7 +575,7 @@ pub struct Comment {
 }
 
 /// Manage outstanding access proposals on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessProposal {
     /// The creation time.
     #[serde(default, rename = "createTime")]
@@ -600,7 +601,7 @@ pub struct AccessProposal {
 }
 
 /// A modification to a label on a file. A LabelModification can be used to apply a label to a file, update an existing label on a file, or remove a label from a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelModification {
     /// The list of modifications to this label''s fields.
     #[serde(default, rename = "fieldModifications")]
@@ -617,7 +618,7 @@ pub struct LabelModification {
 }
 
 /// Representation of label and label fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Label {
     /// A map of the fields on the label, keyed by the field''s ID.
     #[serde(default)]
@@ -634,7 +635,7 @@ pub struct Label {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -648,7 +649,7 @@ pub struct Status {
 }
 
 /// The metadata for a revision to a file. Some resource methods (such as revisions.update) require a revisionId. Use the revisions.list method to retrieve the ID for a revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Revision {
     /// Output only. Links for exporting Docs Editors files to specific formats.
     #[serde(default, rename = "exportLinks")]
@@ -695,7 +696,7 @@ pub struct Revision {
 }
 
 /// AppIcons resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppIcons {
     /// Category of the icon. Allowed values are: * application - The icon for the application. * document - The icon for a file associated with the app. * documentShared - The icon for a shared file associated with the app.
     #[serde(default)]
@@ -709,7 +710,7 @@ pub struct AppIcons {
 }
 
 /// A response on an Approval made by a specific Reviewer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReviewerResponse {
     /// This is always drive#reviewerResponse.
     #[serde(default)]
@@ -723,7 +724,7 @@ pub struct ReviewerResponse {
 }
 
 /// Representation of a shared drive. Some resource methods (such as drives.update) require a driveId. Use the drives.list method to retrieve the ID for a shared drive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Drive {
     /// An image file and cropping parameters from which a background image for this shared drive is set. This is a write only field; it can only be set on drive.drives.update requests that don''t set themeId. When specified, all fields of the backgroundImageFile must be set.
     #[serde(default, rename = "backgroundImageFile")]
@@ -764,7 +765,7 @@ pub struct Drive {
 }
 
 /// The metadata for a file. Some resource methods (such as files.update) require a fileId. Use the files.list method to retrieve the ID for a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct File {
     /// A collection of arbitrary key-value pairs which are private to the requesting app.
     #[serde(default, rename = "appProperties")]
@@ -961,7 +962,7 @@ pub struct File {
 }
 
 /// Deprecated: use the drive collection instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamDrive {
     /// An image file and cropping parameters from which a background image for this Team Drive is set. This is a write only field; it can only be set on drive.teamdrives.update requests that don''t set themeId. When specified, all fields of the backgroundImageFile must be set.
     #[serde(default, rename = "backgroundImageFile")]
@@ -999,7 +1000,7 @@ pub struct TeamDrive {
 }
 
 /// A reply to a comment on a file. Some resource methods (such as replies.update) require a replyId. Use the replies.list method to retrieve the ID for a reply.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reply {
     /// The action the reply performed to the parent comment. The supported values are: * resolve * reopen
     #[serde(default)]
@@ -1037,7 +1038,7 @@ pub struct Reply {
 }
 
 /// A wrapper for the role and view of an access proposal. For more information, see [Roles and permissions](https://developers.google.com/workspace/drive/api/guides/ref-roles).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessProposalRoleAndView {
     /// The role that was proposed by the requester. The supported values are: * writer * commenter * reader
     #[serde(default)]
@@ -1048,7 +1049,7 @@ pub struct AccessProposalRoleAndView {
 }
 
 /// A modification to a label''s field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelFieldModification {
     /// The ID of the field to be modified.
     #[serde(default, rename = "fieldId")]
@@ -1077,7 +1078,7 @@ pub struct LabelFieldModification {
 }
 
 /// A restriction for accessing the content of the file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentRestriction {
     /// Whether the content restriction can only be modified or removed by a user who owns the file. For files in shared drives, any user with organizer capabilities can modify or remove this content restriction.
     #[serde(default, rename = "ownerRestricted")]
@@ -1103,7 +1104,7 @@ pub struct ContentRestriction {
 }
 
 /// Download restrictions applied to the file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadRestrictionsMetadata {
     /// Output only. The effective download restriction applied to this file. This considers all restriction settings and DLP rules.
     #[serde(default, rename = "effectiveDownloadRestrictionWithContext")]
@@ -1114,7 +1115,7 @@ pub struct DownloadRestrictionsMetadata {
 }
 
 /// A permission for a file. A permission grants a user, group, domain, or the world access to a file or a folder hierarchy. For more information, see [Share files, folders, and drives](https://developers.google.com/workspace/drive/api/guides/manage-sharing). By default, permission requests only return a subset of fields. Permission kind, ID, type, and role are always returned. To retrieve specific fields, see [Return specific fields](https://developers.google.com/workspace/drive/api/guides/fields-parameter). Some resource methods (such as permissions.update) require a permissionId. Use the permissions.list method to retrieve the ID for a file, folder, or shared drive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Permission {
     /// Whether the permission allows the file to be discovered through search. This is only applicable for permissions of type domain or anyone.
     #[serde(default, rename = "allowFileDiscovery")]
@@ -1167,7 +1168,7 @@ pub struct Permission {
 }
 
 /// Information about a Drive user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// Output only. A plain text displayable name for this user.
     #[serde(default, rename = "displayName")]
@@ -1190,7 +1191,7 @@ pub struct User {
 }
 
 /// A restriction for copy and download of the file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadRestriction {
     /// Whether download and copy is restricted for readers.
     #[serde(default, rename = "restrictedForReaders")]

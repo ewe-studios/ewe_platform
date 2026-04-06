@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response from searching fact-checked claims by image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponse {
     /// The next pagination token in the Search response. It should be used as the page_token for the following request. An empty value means no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -26,7 +27,7 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchRe
 }
 
 /// Response from searching fact-checked claims.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchResponse {
     /// The list of claims and all of their associated information.
     #[serde(default)]
@@ -38,7 +39,7 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchRespons
 }
 
 /// Response from listing ClaimReview markup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse {
     /// The result list of pages of ClaimReview markup.
     #[serde(default, rename = "claimReviewMarkupPages")]
@@ -51,11 +52,11 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesRes
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// A claim and its associated information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponseResult {
     /// A claim which matched the query.
     #[serde(default)]
@@ -63,7 +64,7 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchRe
 }
 
 /// Holds one or more instances of ClaimReview markup for a webpage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage {
     /// Info about the author of this claim review. Similar to the above, semantically these are page-level fields, and each ClaimReview on this page will contain the same values.
     #[serde(default, rename = "claimReviewAuthor")]
@@ -89,7 +90,7 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage {
 }
 
 /// Information about the claim.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1Claim {
     /// The date that the claim was made.
     #[serde(default, rename = "claimDate")]
@@ -108,7 +109,7 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1Claim {
 }
 
 /// Information about the claim review author.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewAuthor {
     /// Corresponds to ClaimReview.author.image.
     #[serde(default, rename = "imageUrl")]
@@ -119,7 +120,7 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewAuthor {
 }
 
 /// Fields for an individual ClaimReview element. Except for sub-messages that group fields together, each of these fields correspond those in https://schema.org/ClaimReview. We list the precise mapping for each field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkup {
     /// A list of links to works in which this claim appears, aside from the one specified in claim_first_appearance. Corresponds to ClaimReview.itemReviewed[@type=Claim].appearance.url.
     #[serde(default, rename = "claimAppearances")]
@@ -148,7 +149,7 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkup {
 }
 
 /// Information about a claim review.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReview {
     /// The language this review was written in. For instance, "en" or "de".
     #[serde(default, rename = "languageCode")]
@@ -171,7 +172,7 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimReview {
 }
 
 /// Information about the claim author.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimAuthor {
     /// Corresponds to ClaimReview.itemReviewed.author.image.
     #[serde(default, rename = "imageUrl")]
@@ -188,7 +189,7 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimAuthor {
 }
 
 /// Information about the claim rating.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimRating {
     /// For numeric ratings, the best value possible in the scale from worst to best. Corresponds to ClaimReview.reviewRating.bestRating.
     #[serde(default, rename = "bestRating")]
@@ -211,7 +212,7 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1ClaimRating {
 }
 
 /// Information about the publisher.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFactcheckingFactchecktoolsV1alpha1Publisher {
     /// The name of this publisher. For instance, "Awesome Fact Checks".
     #[serde(default)]

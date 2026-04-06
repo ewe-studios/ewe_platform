@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Input definition for the ComputeFlightEmissions request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeFlightEmissionsRequest {
     /// Required. Direct flights to return emission estimates for.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct ComputeFlightEmissionsRequest {
 }
 
 /// Output definition for the ComputeFlightEmissions response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeFlightEmissionsResponse {
     /// List of flight legs with emission estimates.
     #[serde(default, rename = "flightEmissions")]
@@ -30,7 +31,7 @@ pub struct ComputeFlightEmissionsResponse {
 }
 
 /// A list of flight segments to request the Scope 3 emissions for.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeScope3FlightEmissionsRequest {
     /// Required. Flights to return emission estimates for.
     #[serde(default)]
@@ -41,7 +42,7 @@ pub struct ComputeScope3FlightEmissionsRequest {
 }
 
 /// A list of flights with Scope 3 emission estimates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeScope3FlightEmissionsResponse {
     /// List of flight segments with emission estimates.
     #[serde(default, rename = "flightEmissions")]
@@ -52,7 +53,7 @@ pub struct ComputeScope3FlightEmissionsResponse {
 }
 
 /// A list of pair of airports (markets) to request the typical emissions for.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeTypicalFlightEmissionsRequest {
     /// Required. Request the typical flight emissions estimates for this market pair. A maximum of 1000 markets can be requested.
     #[serde(default)]
@@ -60,7 +61,7 @@ pub struct ComputeTypicalFlightEmissionsRequest {
 }
 
 /// The response includes the emissions but also the model version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeTypicalFlightEmissionsResponse {
     /// The model version under which typical flight emission estimates for all flights in this response were computed.
     #[serde(default, rename = "modelVersion")]
@@ -71,7 +72,7 @@ pub struct ComputeTypicalFlightEmissionsResponse {
 }
 
 /// Direct flight with emission estimates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlightWithEmissions {
     /// Optional. The significance of contrails warming impact compared to the total CO2e emissions impact. // TODO: enum values: ["CONTRAILS_IMPACT_UNSPECIFIED", "CONTRAILS_IMPACT_NEGLIGIBLE", "CONTRAILS_IMPACT_MODERATE", "CONTRAILS_IMPACT_SEVERE"]
     #[serde(default, rename = "contrailsImpactBucket")]
@@ -91,7 +92,7 @@ pub struct FlightWithEmissions {
 }
 
 /// Scope 3 flight with emission estimates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Scope3FlightEmissions {
     /// Identifier. Matches the flight identifiers in the request.
     #[serde(default)]
@@ -111,7 +112,7 @@ pub struct Scope3FlightEmissions {
 }
 
 /// Travel Impact Model version. For more information about the model versioning see [GitHub](https://github.com/google/travel-impact-model/#versioning).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModelVersion {
     /// Dated versions: Model datasets are recreated with refreshed input data but no change to the algorithms regularly.
     #[serde(default)]
@@ -128,7 +129,7 @@ pub struct ModelVersion {
 }
 
 /// Typical flight emission estimates for a certain market
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TypicalFlightEmissions {
     /// Optional. Typical flight emissions per passenger for requested market. Will not be present if a typical emissions could not be computed. For the list of reasons why typical flight emissions could not be computed, see [GitHub](https://github.com/google/travel-impact-model/blob/main/projects/typical_flight_emissions.md#step-7-validate-dataset).
     #[serde(default, rename = "emissionsGramsPerPax")]
@@ -139,7 +140,7 @@ pub struct TypicalFlightEmissions {
 }
 
 /// Metadata about the EASA Flight Emissions Label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EasaLabelMetadata {
     /// The date when the label expires. The label can be displayed until the end of this date.
     #[serde(default, rename = "labelExpiryDate")]
@@ -156,7 +157,7 @@ pub struct EasaLabelMetadata {
 }
 
 /// All details related to a single request item for a direct flight emission estimates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Flight {
     /// Required. Date of the flight in the time zone of the origin airport. Must be a date in the present or future.
     #[serde(default, rename = "departureDate")]
@@ -176,7 +177,7 @@ pub struct Flight {
 }
 
 /// Flight parameters with which the Scope 3 emissions are fetched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Scope3FlightSegment {
     /// Required. The cabin class of the flight. // TODO: enum values: ["CABIN_CLASS_UNSPECIFIED", "ECONOMY", "PREMIUM_ECONOMY", "BUSINESS", "FIRST"]
     #[serde(default, rename = "cabinClass")]
@@ -202,7 +203,7 @@ pub struct Scope3FlightSegment {
 }
 
 /// Grouped emissions per seating class results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmissionsGramsPerPax {
     /// Emissions for one passenger in business class in grams. This field is always computed and populated, regardless of whether the aircraft has business class seats or not.
     #[serde(default)]
@@ -219,7 +220,7 @@ pub struct EmissionsGramsPerPax {
 }
 
 /// A pair of airports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Market {
     /// Required. IATA airport code for flight destination, e.g. "JFK".
     #[serde(default)]
@@ -230,7 +231,7 @@ pub struct Market {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]

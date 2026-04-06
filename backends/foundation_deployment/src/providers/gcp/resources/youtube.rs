@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// AbuseReport resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbuseReport {
     #[serde(default, rename = "abuseTypes")]
     pub abuse_types: ::core::option::Option<::std::vec::Vec<AbuseType>>,
@@ -24,7 +25,7 @@ pub struct AbuseReport {
 }
 
 /// ActivityListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -54,7 +55,7 @@ pub struct ActivityListResponse {
 }
 
 /// CaptionListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CaptionListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -74,7 +75,7 @@ pub struct CaptionListResponse {
 }
 
 /// A channel banner returned as the response to a channel_banner.insert call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelBannerResource {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -87,7 +88,7 @@ pub struct ChannelBannerResource {
 }
 
 /// ChannelListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -117,7 +118,7 @@ pub struct ChannelListResponse {
 }
 
 /// ChannelSectionListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelSectionListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -137,7 +138,7 @@ pub struct ChannelSectionListResponse {
 }
 
 /// CommentListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommentListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -165,7 +166,7 @@ pub struct CommentListResponse {
 }
 
 /// CommentThreadListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommentThreadListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -193,7 +194,7 @@ pub struct CommentThreadListResponse {
 }
 
 /// Note that there may be a 5-second end-point resolution issue. For instance, if a cuepoint comes in for 22:03:27, we may stuff the cuepoint into 22:03:25 or 22:03:30, depending. This is an artifact of HLS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cuepoint {
     /// TODO: enum values: ["cueTypeUnspecified", "cueTypeAd"]
     #[serde(default, rename = "cueType")]
@@ -215,7 +216,7 @@ pub struct Cuepoint {
 }
 
 /// I18nLanguageListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct I18nLanguageListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -235,7 +236,7 @@ pub struct I18nLanguageListResponse {
 }
 
 /// I18nRegionListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct I18nRegionListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -255,7 +256,7 @@ pub struct I18nRegionListResponse {
 }
 
 /// Describes an invideo branding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvideoBranding {
     /// The bytes the uploaded image. Only used in api to youtube communication.
     #[serde(default, rename = "imageBytes")]
@@ -275,7 +276,7 @@ pub struct InvideoBranding {
 }
 
 /// LiveBroadcastListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveBroadcastListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -306,7 +307,7 @@ pub struct LiveBroadcastListResponse {
 }
 
 /// A __liveChatBan__ resource represents a ban for a YouTube live chat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatBan {
     /// Etag of this resource.
     #[serde(default)]
@@ -323,7 +324,7 @@ pub struct LiveChatBan {
 }
 
 /// LiveChatMessageListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatMessageListResponse {
     /// Set when there is an active poll.
     #[serde(default, rename = "activePollItem")]
@@ -358,7 +359,7 @@ pub struct LiveChatMessageListResponse {
 }
 
 /// LiveChatModeratorListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatModeratorListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -389,7 +390,7 @@ pub struct LiveChatModeratorListResponse {
 }
 
 /// LiveStreamListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveStreamListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -419,7 +420,7 @@ pub struct LiveStreamListResponse {
 }
 
 /// LocalizedString resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedString {
     #[serde(default)]
     pub language: ::core::option::Option<String>,
@@ -428,7 +429,7 @@ pub struct LocalizedString {
 }
 
 /// MemberListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemberListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -455,7 +456,7 @@ pub struct MemberListResponse {
 }
 
 /// MembershipsLevelListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipsLevelListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -475,7 +476,7 @@ pub struct MembershipsLevelListResponse {
 }
 
 /// PlaylistImageListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistImageListResponse {
     #[serde(default)]
     pub items: ::core::option::Option<::std::vec::Vec<PlaylistImage>>,
@@ -494,7 +495,7 @@ pub struct PlaylistImageListResponse {
 }
 
 /// PlaylistItemListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistItemListResponse {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -524,7 +525,7 @@ pub struct PlaylistItemListResponse {
 }
 
 /// PlaylistListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -555,7 +556,7 @@ pub struct PlaylistListResponse {
 }
 
 /// SearchListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -588,7 +589,7 @@ pub struct SearchListResponse {
 }
 
 /// SubscriptionListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -618,7 +619,7 @@ pub struct SubscriptionListResponse {
 }
 
 /// SuperChatEventListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuperChatEventListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -645,7 +646,7 @@ pub struct SuperChatEventListResponse {
 }
 
 /// TestItem resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestItem {
     /// Etag for the resource. See https://en.wikipedia.org/wiki/HTTP_ETag.
     #[serde(default)]
@@ -661,11 +662,11 @@ pub struct TestItem {
 }
 
 /// TestItemTestItemSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestItemTestItemSnippet {}
 
 /// ThirdPartyLinkListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyLinkListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -678,7 +679,7 @@ pub struct ThirdPartyLinkListResponse {
 }
 
 /// ThumbnailSetResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThumbnailSetResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -698,11 +699,11 @@ pub struct ThumbnailSetResponse {
 }
 
 /// Stub token pagination template to suppress results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TokenPagination {}
 
 /// VideoAbuseReport resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoAbuseReport {
     /// Additional comments regarding the abuse report.
     #[serde(default)]
@@ -722,7 +723,7 @@ pub struct VideoAbuseReport {
 }
 
 /// VideoAbuseReportReasonListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoAbuseReportReasonListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -742,7 +743,7 @@ pub struct VideoAbuseReportReasonListResponse {
 }
 
 /// VideoCategoryListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoCategoryListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -773,7 +774,7 @@ pub struct VideoCategoryListResponse {
 }
 
 /// VideoGetRatingResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoGetRatingResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -793,7 +794,7 @@ pub struct VideoGetRatingResponse {
 }
 
 /// VideoListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoListResponse {
     /// Etag of this resource.
     #[serde(default)]
@@ -823,11 +824,11 @@ pub struct VideoListResponse {
 }
 
 /// DEPRECATED. b/157517979: This part was never populated after it was added. However, it sees non-zero traffic because there is generated client code in the wild that refers to it [1]. We keep this field and do NOT remove it because otherwise V3 would return an error when this part gets requested [2]. [1] https://developers.google.com/resources/api-libraries/documentation/youtube/v3/csharp/latest/classGoogle_1_1Apis_1_1YouTube_1_1v3_1_1Data_1_1VideoProjectDetails.html [2] http://google3/video/youtube/src/python/servers/data_api/common.py?l=1565-1569&rcl=344141677
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoProjectDetails {}
 
 /// Specifies who is allowed to train on the video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoTrainability {
     /// Etag of this resource.
     #[serde(default)]
@@ -844,21 +845,21 @@ pub struct VideoTrainability {
 }
 
 /// AbuseType resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbuseType {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
 
 /// RelatedEntity resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelatedEntity {
     #[serde(default)]
     pub entity: ::core::option::Option<Entity>,
 }
 
 /// An *activity* resource contains information about an action that a particular channel, or user, has taken on YouTube.The actions reported in activity feeds include rating a video, sharing a video, marking a video as a favorite, commenting on a video, uploading a video, and so forth. Each activity resource identifies the type of action, the channel associated with the action, and the resource(s) associated with the action, such as the video that was rated or uploaded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Activity {
     /// The contentDetails object contains information about the content associated with the activity. For example, if the snippet.type value is videoRated, then the contentDetails object''s content identifies the rated video.
     #[serde(default, rename = "contentDetails")]
@@ -878,7 +879,7 @@ pub struct Activity {
 }
 
 /// A *caption* resource represents a YouTube caption track. A caption track is associated with exactly one YouTube video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Caption {
     /// Etag of this resource.
     #[serde(default)]
@@ -895,7 +896,7 @@ pub struct Caption {
 }
 
 /// A *channel* resource contains information about a YouTube channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Channel {
     /// The auditionDetails object encapsulates channel data that is relevant for YouTube Partners during the audition process.
     #[serde(default, rename = "auditDetails")]
@@ -939,7 +940,7 @@ pub struct Channel {
 }
 
 /// ChannelSection resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelSection {
     /// The contentDetails object contains details about the channel section content, such as a list of playlists or channels featured in the section.
     #[serde(default, rename = "contentDetails")]
@@ -965,7 +966,7 @@ pub struct ChannelSection {
 }
 
 /// A *comment thread* represents information that applies to a top level comment and all its replies. It can also include the top level comment itself and some of the replies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommentThread {
     /// Etag of this resource.
     #[serde(default)]
@@ -985,7 +986,7 @@ pub struct CommentThread {
 }
 
 /// An *i18nLanguage* resource identifies a UI language currently supported by YouTube.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct I18nLanguage {
     /// Etag of this resource.
     #[serde(default)]
@@ -1002,7 +1003,7 @@ pub struct I18nLanguage {
 }
 
 /// A *i18nRegion* resource identifies a region where YouTube is available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct I18nRegion {
     /// Etag of this resource.
     #[serde(default)]
@@ -1019,7 +1020,7 @@ pub struct I18nRegion {
 }
 
 /// Describes the spatial position of a visual widget inside a video. It is a union of various position types, out of which only will be set one.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvideoPosition {
     /// Describes in which corner of the video the visual widget will appear. // TODO: enum values: ["topLeft", "topRight", "bottomLeft", "bottomRight"]
     #[serde(default, rename = "cornerPosition")]
@@ -1030,7 +1031,7 @@ pub struct InvideoPosition {
 }
 
 /// Describes a temporal position of a visual widget inside a video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvideoTiming {
     /// Defines the duration in milliseconds for which the promotion should be displayed. If missing, the client should use the default.
     #[serde(default, rename = "durationMs")]
@@ -1044,7 +1045,7 @@ pub struct InvideoTiming {
 }
 
 /// A *liveBroadcast* resource represents an event that will be streamed, via live video, on YouTube.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveBroadcast {
     /// The contentDetails object contains information about the event''s video content, such as whether the content can be shown in an embedded video player or if it will be archived and therefore available for viewing after the event has concluded.
     #[serde(default, rename = "contentDetails")]
@@ -1073,7 +1074,7 @@ pub struct LiveBroadcast {
 }
 
 /// LiveChatBanSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatBanSnippet {
     /// The duration of a ban, only filled if the ban has type TEMPORARY.
     #[serde(default, rename = "banDurationSeconds")]
@@ -1089,7 +1090,7 @@ pub struct LiveChatBanSnippet {
 }
 
 /// A *liveChatMessage* resource represents a chat message in a YouTube Live Chat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatMessage {
     /// The authorDetails object contains basic details about the user that posted this message.
     #[serde(default, rename = "authorDetails")]
@@ -1109,7 +1110,7 @@ pub struct LiveChatMessage {
 }
 
 /// A *liveChatModerator* resource represents a moderator for a YouTube live chat. A chat moderator has the ability to ban/unban users from a chat, remove message, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatModerator {
     /// Etag of this resource.
     #[serde(default)]
@@ -1126,7 +1127,7 @@ pub struct LiveChatModerator {
 }
 
 /// A live stream describes a live ingestion point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveStream {
     /// The cdn object defines the live stream''s content delivery network (CDN) settings. These settings provide details about the manner in which you stream your content to YouTube.
     #[serde(default)]
@@ -1152,7 +1153,7 @@ pub struct LiveStream {
 }
 
 /// A *member* resource represents a member for a YouTube channel. A member provides recurring monetary support to a creator and receives special benefits.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Member {
     /// Etag of this resource.
     #[serde(default)]
@@ -1166,7 +1167,7 @@ pub struct Member {
 }
 
 /// A *membershipsLevel* resource represents an offer made by YouTube creators for their fans. Users can become members of the channel by joining one of the available levels. They will provide recurring monetary support and receives special benefits.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipsLevel {
     /// Etag of this resource.
     #[serde(default)]
@@ -1183,7 +1184,7 @@ pub struct MembershipsLevel {
 }
 
 /// PlaylistImage resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistImage {
     /// Identifies this resource (playlist id and image type).
     #[serde(default)]
@@ -1196,7 +1197,7 @@ pub struct PlaylistImage {
 }
 
 /// A *playlistItem* resource identifies another resource, such as a video, that is included in a playlist. In addition, the playlistItem resource contains details about the included resource that pertain specifically to how that resource is used in that playlist. YouTube uses playlists to identify special collections of videos for a channel, such as: - uploaded videos - favorite videos - positively rated (liked) videos - watch history - watch later To be more specific, these lists are associated with a channel, which is a collection of a person, group, or company''s videos, playlists, and other YouTube information. You can retrieve the playlist IDs for each of these lists from the channel resource for a given channel. You can then use the playlistItems.list method to retrieve any of those lists. You can also add or remove items from those lists by calling the playlistItems.insert and playlistItems.delete methods. For example, if a user gives a positive rating to a video, you would insert that video into the liked videos playlist for that user''s channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistItem {
     /// The contentDetails object is included in the resource if the included item is a YouTube video. The object contains additional information about the video.
     #[serde(default, rename = "contentDetails")]
@@ -1219,7 +1220,7 @@ pub struct PlaylistItem {
 }
 
 /// A *playlist* resource represents a YouTube playlist. A playlist is a collection of videos that can be viewed sequentially and shared with other users. A playlist can contain up to 200 videos, and YouTube does not limit the number of playlists that each user creates. By default, playlists are publicly visible to other users, but playlists can be public or private. YouTube also uses playlists to identify special collections of videos for a channel, such as: - uploaded videos - favorite videos - positively rated (liked) videos - watch history - watch later To be more specific, these lists are associated with a channel, which is a collection of a person, group, or company''s videos, playlists, and other YouTube information. You can retrieve the playlist IDs for each of these lists from the channel resource for a given channel. You can then use the playlistItems.list method to retrieve any of those lists. You can also add or remove items from those lists by calling the playlistItems.insert and playlistItems.delete methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Playlist {
     /// The contentDetails object contains information like video count.
     #[serde(default, rename = "contentDetails")]
@@ -1248,7 +1249,7 @@ pub struct Playlist {
 }
 
 /// A search result contains information about a YouTube video, channel, or playlist that matches the search parameters specified in an API request. While a search result points to a uniquely identifiable resource, like a video, it does not have its own persistent data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchResult {
     /// Etag of this resource.
     #[serde(default)]
@@ -1265,7 +1266,7 @@ pub struct SearchResult {
 }
 
 /// A *subscription* resource contains information about a YouTube user subscription. A subscription notifies a user when new videos are added to a channel or when another user takes one of several actions on YouTube, such as uploading a video, rating a video, or commenting on a video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subscription {
     /// The contentDetails object contains basic statistics about the subscription.
     #[serde(default, rename = "contentDetails")]
@@ -1288,7 +1289,7 @@ pub struct Subscription {
 }
 
 /// A __superChatEvent__ resource represents a Super Chat purchase on a YouTube channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuperChatEvent {
     /// Etag of this resource.
     #[serde(default)]
@@ -1305,7 +1306,7 @@ pub struct SuperChatEvent {
 }
 
 /// A *third party account link* resource represents a link between a YouTube account or a channel and an account on a third-party service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyLink {
     /// Etag of this resource
     #[serde(default)]
@@ -1325,7 +1326,7 @@ pub struct ThirdPartyLink {
 }
 
 /// A __videoAbuseReportReason__ resource identifies a reason that a video could be reported as abusive. Video abuse report reasons are used with video.ReportAbuse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoAbuseReportReason {
     /// Etag of this resource.
     #[serde(default)]
@@ -1342,7 +1343,7 @@ pub struct VideoAbuseReportReason {
 }
 
 /// A *videoCategory* resource identifies a category that has been or could be associated with uploaded videos.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoCategory {
     /// Etag of this resource.
     #[serde(default)]
@@ -1359,7 +1360,7 @@ pub struct VideoCategory {
 }
 
 /// Basic details about rating of a video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoRating {
     /// Rating of a video. // TODO: enum values: ["none", "like", "dislike"]
     #[serde(default)]
@@ -1370,7 +1371,7 @@ pub struct VideoRating {
 }
 
 /// A *video* resource represents a YouTube video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Video {
     /// Age restriction details related to a video. This data can only be retrieved by the video owner.
     #[serde(default, rename = "ageGating")]
@@ -1431,7 +1432,7 @@ pub struct Video {
 }
 
 /// Paging details for lists of resources, including total number of items available and number of resources returned in a single page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageInfo {
     /// The number of results included in the API response.
     #[serde(default, rename = "resultsPerPage")]
@@ -1442,7 +1443,7 @@ pub struct PageInfo {
 }
 
 /// Entity resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entity {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
@@ -1453,7 +1454,7 @@ pub struct Entity {
 }
 
 /// Details about the content of an activity: the video that was shared, the channel that was subscribed to, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetails {
     /// The bulletin object contains details about a channel bulletin post. This object is only present if the snippet.type is bulletin.
     #[serde(default)]
@@ -1491,7 +1492,7 @@ pub struct ActivityContentDetails {
 }
 
 /// Basic details about an activity, including title, description, thumbnails, activity type and group. Next ID: 12
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivitySnippet {
     /// The ID that YouTube uses to uniquely identify the channel associated with the activity.
     #[serde(default, rename = "channelId")]
@@ -1520,7 +1521,7 @@ pub struct ActivitySnippet {
 }
 
 /// Basic details about a caption track, such as its language and name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CaptionSnippet {
     /// The type of audio track associated with the caption track. // TODO: enum values: ["unknown", "primary", "commentary", "descriptive"]
     #[serde(default, rename = "audioTrackType")]
@@ -1564,7 +1565,7 @@ pub struct CaptionSnippet {
 }
 
 /// The auditDetails object encapsulates channel data that is relevant for YouTube Partners during the audit process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelAuditDetails {
     /// Whether or not the channel respects the community guidelines.
     #[serde(default, rename = "communityGuidelinesGoodStanding")]
@@ -1578,7 +1579,7 @@ pub struct ChannelAuditDetails {
 }
 
 /// Branding properties of a YouTube channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelBrandingSettings {
     /// Branding properties for the channel view.
     #[serde(default)]
@@ -1595,14 +1596,14 @@ pub struct ChannelBrandingSettings {
 }
 
 /// Details about the content of a channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelContentDetails {
     #[serde(default, rename = "relatedPlaylists")]
     pub related_playlists: ::core::option::Option<serde_json::Value>,
 }
 
 /// The contentOwnerDetails object encapsulates channel data that is relevant for YouTube Partners linked with the channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelContentOwnerDetails {
     /// The ID of the content owner linked to the channel.
     #[serde(default, rename = "contentOwner")]
@@ -1613,7 +1614,7 @@ pub struct ChannelContentOwnerDetails {
 }
 
 /// The conversionPings object encapsulates information about conversion pings that need to be respected by the channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelConversionPings {
     /// Pings that the app shall fire (authenticated by biscotti cookie). Each ping has a context, in which the app must fire the ping, and a url identifying the ping.
     #[serde(default)]
@@ -1621,7 +1622,7 @@ pub struct ChannelConversionPings {
 }
 
 /// Basic details about a channel, including title, description and thumbnails.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelSnippet {
     /// The country of the channel.
     #[serde(default)]
@@ -1650,7 +1651,7 @@ pub struct ChannelSnippet {
 }
 
 /// Statistics about a channel: number of subscribers, number of videos in the channel, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelStatistics {
     /// The number of comments for the channel.
     #[serde(default, rename = "commentCount")]
@@ -1670,7 +1671,7 @@ pub struct ChannelStatistics {
 }
 
 /// JSON template for the status part of a channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelStatus {
     /// Whether the channel is considered ypp monetization enabled. See go/yppornot for more details.
     #[serde(default, rename = "isChannelMonetizationEnabled")]
@@ -1691,7 +1692,7 @@ pub struct ChannelStatus {
 }
 
 /// Freebase topic information related to the channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelTopicDetails {
     /// A list of Wikipedia URLs that describe the channel''s content.
     #[serde(default, rename = "topicCategories")]
@@ -1702,7 +1703,7 @@ pub struct ChannelTopicDetails {
 }
 
 /// Details about a channelsection, including playlists and channels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelSectionContentDetails {
     /// The channel ids for type multiple_channels.
     #[serde(default)]
@@ -1713,7 +1714,7 @@ pub struct ChannelSectionContentDetails {
 }
 
 /// Basic details about a channel section, including title, style and position.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelSectionSnippet {
     /// The ID that YouTube uses to uniquely identify the channel that published the channel section.
     #[serde(default, rename = "channelId")]
@@ -1739,7 +1740,7 @@ pub struct ChannelSectionSnippet {
 }
 
 /// ChannelSection targeting setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelSectionTargeting {
     /// The country the channel section is targeting.
     #[serde(default)]
@@ -1753,7 +1754,7 @@ pub struct ChannelSectionTargeting {
 }
 
 /// Comments written in (direct or indirect) reply to the top level comment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommentThreadReplies {
     /// A limited number of replies. Unless the number of replies returned equals total_reply_count in the snippet the returned replies are only a subset of the total number of replies.
     #[serde(default)]
@@ -1761,7 +1762,7 @@ pub struct CommentThreadReplies {
 }
 
 /// Basic details about a comment thread.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommentThreadSnippet {
     /// Whether the current viewer of the thread can reply to it. This is viewer specific - other viewers may see a different value for this field.
     #[serde(default, rename = "canReply")]
@@ -1787,7 +1788,7 @@ pub struct CommentThreadSnippet {
 }
 
 /// Basic details about an i18n language, such as language code and human-readable name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct I18nLanguageSnippet {
     /// A short BCP-47 code that uniquely identifies a language.
     #[serde(default)]
@@ -1798,7 +1799,7 @@ pub struct I18nLanguageSnippet {
 }
 
 /// Basic details about an i18n region, such as region code and human-readable name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct I18nRegionSnippet {
     /// The region code as a 2-letter ISO country code.
     #[serde(default)]
@@ -1809,7 +1810,7 @@ pub struct I18nRegionSnippet {
 }
 
 /// Detailed settings of a broadcast.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveBroadcastContentDetails {
     /// This value uniquely identifies the live stream bound to the broadcast.
     #[serde(default, rename = "boundStreamId")]
@@ -1865,14 +1866,14 @@ pub struct LiveBroadcastContentDetails {
 }
 
 /// Monetization settings of a broadcast.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveBroadcastMonetizationDetails {
     #[serde(default, rename = "cuepointSchedule")]
     pub cuepoint_schedule: ::core::option::Option<CuepointSchedule>,
 }
 
 /// Basic broadcast information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveBroadcastSnippet {
     /// The date and time that the broadcast actually ended. This information is only available once the broadcast''s state is complete.
     #[serde(default, rename = "actualEndTime")]
@@ -1910,7 +1911,7 @@ pub struct LiveBroadcastSnippet {
 }
 
 /// Statistics about the live broadcast. These represent a snapshot of the values at the time of the request. Statistics are only returned for live broadcasts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveBroadcastStatistics {
     /// The number of viewers currently watching the broadcast. The property and its value will be present if the broadcast has current viewers and the broadcast owner has not hidden the viewcount for the video. Note that YouTube stops tracking the number of concurrent viewers for a broadcast when the broadcast ends. So, this property would not identify the number of viewers watching an archived video of a live broadcast that already ended.
     #[serde(default, rename = "concurrentViewers")]
@@ -1918,7 +1919,7 @@ pub struct LiveBroadcastStatistics {
 }
 
 /// Live broadcast state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveBroadcastStatus {
     /// The broadcast''s status. The status can be updated using the API''s liveBroadcasts.transition method. // TODO: enum values: ["lifeCycleStatusUnspecified", "created", "ready", "testing", "live", "complete", "revoked", "testStarting", "liveStarting"]
     #[serde(default, rename = "lifeCycleStatus")]
@@ -1941,7 +1942,7 @@ pub struct LiveBroadcastStatus {
 }
 
 /// LiveChatMessageAuthorDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatMessageAuthorDetails {
     /// The YouTube channel ID.
     #[serde(default, rename = "channelId")]
@@ -1970,7 +1971,7 @@ pub struct LiveChatMessageAuthorDetails {
 }
 
 /// Next ID: 35
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatMessageSnippet {
     /// The ID of the user that authored this message, this field is not always filled. textMessageEvent - the user that wrote the message fanFundingEvent - the user that funded the broadcast newSponsorEvent - the user that just became a sponsor memberMilestoneChatEvent - the member that sent the message membershipGiftingEvent - the user that made the purchase giftMembershipReceivedEvent - the user that received the gift membership messageDeletedEvent - the moderator that took the action messageRetractedEvent - the author that retracted their message userBannedEvent - the moderator that took the action superChatEvent - the user that made the purchase superStickerEvent - the user that made the purchase pollEvent - the user that created the poll
     #[serde(default, rename = "authorChannelId")]
@@ -2029,7 +2030,7 @@ pub struct LiveChatMessageSnippet {
 }
 
 /// LiveChatModeratorSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatModeratorSnippet {
     /// The ID of the live chat this moderator can act on.
     #[serde(default, rename = "liveChatId")]
@@ -2040,7 +2041,7 @@ pub struct LiveChatModeratorSnippet {
 }
 
 /// Brief description of the live stream cdn settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CdnSettings {
     /// The format of the video stream that you are sending to Youtube.
     #[serde(default)]
@@ -2060,7 +2061,7 @@ pub struct CdnSettings {
 }
 
 /// Detailed settings of a stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveStreamContentDetails {
     /// The ingestion URL where the closed captions of this stream are sent.
     #[serde(default, rename = "closedCaptionsIngestionUrl")]
@@ -2071,7 +2072,7 @@ pub struct LiveStreamContentDetails {
 }
 
 /// LiveStreamSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveStreamSnippet {
     /// The ID that YouTube uses to uniquely identify the channel that is transmitting the stream.
     #[serde(default, rename = "channelId")]
@@ -2090,7 +2091,7 @@ pub struct LiveStreamSnippet {
 }
 
 /// Brief description of the live stream status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveStreamStatus {
     /// The health status of the stream.
     #[serde(default, rename = "healthStatus")]
@@ -2101,7 +2102,7 @@ pub struct LiveStreamStatus {
 }
 
 /// MemberSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemberSnippet {
     /// The id of the channel that''s offering memberships.
     #[serde(default, rename = "creatorChannelId")]
@@ -2115,7 +2116,7 @@ pub struct MemberSnippet {
 }
 
 /// MembershipsLevelSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipsLevelSnippet {
     /// The id of the channel that''s offering channel memberships.
     #[serde(default, rename = "creatorChannelId")]
@@ -2126,7 +2127,7 @@ pub struct MembershipsLevelSnippet {
 }
 
 /// A *playlistImage* resource identifies another resource, such as a image, that is associated with a playlist. In addition, the playlistImage resource contains details about the included resource that pertain specifically to how that resource is used in that playlist. YouTube uses playlists to identify special collections of videos for a channel, such as: - uploaded videos - favorite videos - positively rated (liked) videos - watch history To be more specific, these lists are associated with a channel, which is a collection of a person, group, or company''s videos, playlists, and other YouTube information. You can retrieve the playlist IDs for each of these lists from the channel resource for a given channel. You can then use the playlistImages.list method to retrieve image data for any of those playlists. You can also add or remove images from those lists by calling the playlistImages.insert and playlistImages.delete methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistImageSnippet {
     /// The image height.
     #[serde(default)]
@@ -2143,7 +2144,7 @@ pub struct PlaylistImageSnippet {
 }
 
 /// PlaylistItemContentDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistItemContentDetails {
     /// The time, measured in seconds from the start of the video, when the video should stop playing. (The playlist owner can specify the times when the video should start and stop playing when the video is played in the context of the playlist.) By default, assume that the video.endTime is the end of the video.
     #[serde(default, rename = "endAt")]
@@ -2163,7 +2164,7 @@ pub struct PlaylistItemContentDetails {
 }
 
 /// Basic details about a playlist, including title, description and thumbnails. Basic details of a YouTube Playlist item provided by the author. Next ID: 15
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistItemSnippet {
     /// The ID that YouTube uses to uniquely identify the user that added the item to the playlist.
     #[serde(default, rename = "channelId")]
@@ -2201,7 +2202,7 @@ pub struct PlaylistItemSnippet {
 }
 
 /// Information about the playlist item''s privacy status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistItemStatus {
     /// This resource''s privacy status. // TODO: enum values: ["public", "unlisted", "private"]
     #[serde(default, rename = "privacyStatus")]
@@ -2209,7 +2210,7 @@ pub struct PlaylistItemStatus {
 }
 
 /// PlaylistContentDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistContentDetails {
     /// The number of videos in the playlist.
     #[serde(default, rename = "itemCount")]
@@ -2217,7 +2218,7 @@ pub struct PlaylistContentDetails {
 }
 
 /// PlaylistPlayer resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistPlayer {
     /// An &lt;iframe&gt; tag that embeds a player that will play the playlist.
     #[serde(default, rename = "embedHtml")]
@@ -2225,7 +2226,7 @@ pub struct PlaylistPlayer {
 }
 
 /// Basic details about a playlist, including title, description and thumbnails.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistSnippet {
     /// The ID that YouTube uses to uniquely identify the channel that published the playlist.
     #[serde(default, rename = "channelId")]
@@ -2260,7 +2261,7 @@ pub struct PlaylistSnippet {
 }
 
 /// PlaylistStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistStatus {
     /// The playlist''s podcast status. // TODO: enum values: ["enabled", "disabled"]
     #[serde(default, rename = "podcastStatus")]
@@ -2271,7 +2272,7 @@ pub struct PlaylistStatus {
 }
 
 /// Basic details about a search result, including title, description and thumbnails of the item referenced by the search result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchResultSnippet {
     /// The value that YouTube uses to uniquely identify the channel that published the resource that the search result identifies.
     #[serde(default, rename = "channelId")]
@@ -2297,7 +2298,7 @@ pub struct SearchResultSnippet {
 }
 
 /// Details about the content to witch a subscription refers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionContentDetails {
     /// The type of activity this subscription is for (only uploads, everything). // TODO: enum values: ["subscriptionActivityTypeUnspecified", "all", "uploads"]
     #[serde(default, rename = "activityType")]
@@ -2311,7 +2312,7 @@ pub struct SubscriptionContentDetails {
 }
 
 /// Basic details about a subscription, including title, description and thumbnails of the subscribed item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionSnippet {
     /// The ID that YouTube uses to uniquely identify the subscriber''s channel.
     #[serde(default, rename = "channelId")]
@@ -2334,7 +2335,7 @@ pub struct SubscriptionSnippet {
 }
 
 /// Basic details about a subscription''s subscriber including title, description, channel ID and thumbnails.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionSubscriberSnippet {
     /// The channel ID of the subscriber.
     #[serde(default, rename = "channelId")]
@@ -2351,7 +2352,7 @@ pub struct SubscriptionSubscriberSnippet {
 }
 
 /// SuperChatEventSnippet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuperChatEventSnippet {
     /// The purchase amount, in micros of the purchase currency. e.g., 1 is represented as 1000000.
     #[serde(default, rename = "amountMicros")]
@@ -2386,7 +2387,7 @@ pub struct SuperChatEventSnippet {
 }
 
 /// Basic information about a third party account link, including its type and type-specific information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyLinkSnippet {
     /// Information specific to a link between a channel and a store on a merchandising platform.
     #[serde(default, rename = "channelToStoreLink")]
@@ -2397,7 +2398,7 @@ pub struct ThirdPartyLinkSnippet {
 }
 
 /// The third-party link status object contains information about the status of the link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyLinkStatus {
     /// TODO: enum values: ["unknown", "failed", "pending", "linked"]
     #[serde(default, rename = "linkStatus")]
@@ -2405,7 +2406,7 @@ pub struct ThirdPartyLinkStatus {
 }
 
 /// Basic details about a video category, such as its localized title.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoAbuseReportReasonSnippet {
     /// The localized label belonging to this abuse report reason.
     #[serde(default)]
@@ -2416,7 +2417,7 @@ pub struct VideoAbuseReportReasonSnippet {
 }
 
 /// Basic details about a video category, such as its localized title.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoCategorySnippet {
     #[serde(default)]
     pub assignable: ::core::option::Option<bool>,
@@ -2429,7 +2430,7 @@ pub struct VideoCategorySnippet {
 }
 
 /// VideoAgeGating resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoAgeGating {
     /// Indicates whether or not the video has alcoholic beverage content. Only users of legal purchasing age in a particular country, as identified by ICAP, can view the content.
     #[serde(default, rename = "alcoholContent")]
@@ -2443,7 +2444,7 @@ pub struct VideoAgeGating {
 }
 
 /// Details about the content of a YouTube Video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoContentDetails {
     /// The value of captions indicates whether the video has captions or not. // TODO: enum values: ["true", "false"]
     #[serde(default)]
@@ -2478,7 +2479,7 @@ pub struct VideoContentDetails {
 }
 
 /// Describes original video file properties, including technical details about audio and video streams, but also metadata information like content length, digitization time, or geotagging information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoFileDetails {
     /// A list of audio streams contained in the uploaded video file. Each item in the list contains detailed metadata about an audio stream.
     #[serde(default, rename = "audioStreams")]
@@ -2510,7 +2511,7 @@ pub struct VideoFileDetails {
 }
 
 /// Details about the live streaming metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoLiveStreamingDetails {
     /// The ID of the currently active live chat attached to this video. This field is filled only if the video is a currently live broadcast that has live chat. Once the broadcast transitions to complete this field will be removed and the live chat closed down. For persistent broadcasts that live chat id will no longer be tied to this video but rather to the new video being displayed at the persistent page.
     #[serde(default, rename = "activeLiveChatId")]
@@ -2533,7 +2534,7 @@ pub struct VideoLiveStreamingDetails {
 }
 
 /// Details about monetization of a YouTube Video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoMonetizationDetails {
     /// The value of access indicates whether the video can be monetized or not.
     #[serde(default)]
@@ -2541,7 +2542,7 @@ pub struct VideoMonetizationDetails {
 }
 
 /// Details about paid content, such as paid product placement, sponsorships or endorsement, contained in a YouTube video and a method to inform viewers of paid promotion. This data can only be retrieved by the video owner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoPaidProductPlacementDetails {
     /// This boolean represents whether the video contains Paid Product Placement, Studio equivalent: https://screenshot.googleplex.com/4Me79DE6AfT2ktp.png
     #[serde(default, rename = "hasPaidProductPlacement")]
@@ -2549,7 +2550,7 @@ pub struct VideoPaidProductPlacementDetails {
 }
 
 /// Player to be used for a video playback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoPlayer {
     #[serde(default, rename = "embedHeight")]
     pub embed_height: ::core::option::Option<String>,
@@ -2562,7 +2563,7 @@ pub struct VideoPlayer {
 }
 
 /// Describes processing status and progress and availability of some other Video resource parts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoProcessingDetails {
     /// This value indicates whether video editing suggestions, which might improve video quality or the playback experience, are available for the video. You can retrieve these suggestions by requesting the suggestions part in your videos.list() request.
     #[serde(default, rename = "editorSuggestionsAvailability")]
@@ -2591,7 +2592,7 @@ pub struct VideoProcessingDetails {
 }
 
 /// Recording information associated with the video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoRecordingDetails {
     /// The geolocation information associated with the video.
     #[serde(default)]
@@ -2605,7 +2606,7 @@ pub struct VideoRecordingDetails {
 }
 
 /// Basic details about a video, including title, description, uploader, thumbnails and category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoSnippet {
     /// The YouTube video category associated with the video.
     #[serde(default, rename = "categoryId")]
@@ -2646,7 +2647,7 @@ pub struct VideoSnippet {
 }
 
 /// Statistics about the video, such as the number of times the video was viewed or liked.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoStatistics {
     /// The number of comments for the video.
     #[serde(default, rename = "commentCount")]
@@ -2666,7 +2667,7 @@ pub struct VideoStatistics {
 }
 
 /// Basic details about a video category, such as its localized title. Next Id: 19
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoStatus {
     /// Indicates if the video contains altered or synthetic media.
     #[serde(default, rename = "containsSyntheticMedia")]
@@ -2702,7 +2703,7 @@ pub struct VideoStatus {
 }
 
 /// Specifies suggestions on how to improve video content, including encoding hints, tag suggestions, and editor suggestions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoSuggestions {
     /// A list of video editing operations that might improve the video quality or playback experience of the uploaded video.
     #[serde(default, rename = "editorSuggestions")]
@@ -2722,7 +2723,7 @@ pub struct VideoSuggestions {
 }
 
 /// Freebase topic information related to the video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoTopicDetails {
     /// Similar to topic_id, except that these topics are merely relevant to the video. These are topics that may be mentioned in, or appear in the video. You can retrieve information about each topic using Freebase Topic API.
     #[serde(default, rename = "relevantTopicIds")]
@@ -2736,7 +2737,7 @@ pub struct VideoTopicDetails {
 }
 
 /// Details about a channel bulletin post.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetailsBulletin {
     /// The resourceId object contains information that identifies the resource associated with a bulletin post. @mutable youtube.activities.insert
     #[serde(default, rename = "resourceId")]
@@ -2744,7 +2745,7 @@ pub struct ActivityContentDetailsBulletin {
 }
 
 /// Details about a resource which was added to a channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetailsChannelItem {
     /// The resourceId object contains information that identifies the resource that was added to the channel.
     #[serde(default, rename = "resourceId")]
@@ -2752,7 +2753,7 @@ pub struct ActivityContentDetailsChannelItem {
 }
 
 /// Information about a resource that received a comment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetailsComment {
     /// The resourceId object contains information that identifies the resource associated with the comment.
     #[serde(default, rename = "resourceId")]
@@ -2760,7 +2761,7 @@ pub struct ActivityContentDetailsComment {
 }
 
 /// Information about a video that was marked as a favorite video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetailsFavorite {
     /// The resourceId object contains information that identifies the resource that was marked as a favorite.
     #[serde(default, rename = "resourceId")]
@@ -2768,7 +2769,7 @@ pub struct ActivityContentDetailsFavorite {
 }
 
 /// Information about a resource that received a positive (like) rating.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetailsLike {
     /// The resourceId object contains information that identifies the rated resource.
     #[serde(default, rename = "resourceId")]
@@ -2776,7 +2777,7 @@ pub struct ActivityContentDetailsLike {
 }
 
 /// Information about a new playlist item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetailsPlaylistItem {
     /// The value that YouTube uses to uniquely identify the playlist.
     #[serde(default, rename = "playlistId")]
@@ -2790,7 +2791,7 @@ pub struct ActivityContentDetailsPlaylistItem {
 }
 
 /// Details about a resource which is being promoted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetailsPromotedItem {
     /// The URL the client should fetch to request a promoted item.
     #[serde(default, rename = "adTag")]
@@ -2825,7 +2826,7 @@ pub struct ActivityContentDetailsPromotedItem {
 }
 
 /// Information that identifies the recommended resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetailsRecommendation {
     /// The reason that the resource is recommended to the user. // TODO: enum values: ["reasonUnspecified", "videoFavorited", "videoLiked", "videoWatched"]
     #[serde(default)]
@@ -2839,7 +2840,7 @@ pub struct ActivityContentDetailsRecommendation {
 }
 
 /// Details about a social network post.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetailsSocial {
     /// The author of the social network post.
     #[serde(default)]
@@ -2859,7 +2860,7 @@ pub struct ActivityContentDetailsSocial {
 }
 
 /// Information about a channel that a user subscribed to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetailsSubscription {
     /// The resourceId object contains information that identifies the resource that the user subscribed to.
     #[serde(default, rename = "resourceId")]
@@ -2867,7 +2868,7 @@ pub struct ActivityContentDetailsSubscription {
 }
 
 /// Information about the uploaded video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityContentDetailsUpload {
     /// The ID that YouTube uses to uniquely identify the uploaded video.
     #[serde(default, rename = "videoId")]
@@ -2875,7 +2876,7 @@ pub struct ActivityContentDetailsUpload {
 }
 
 /// Branding properties for the channel view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelSettings {
     /// The country of the channel.
     #[serde(default)]
@@ -2921,7 +2922,7 @@ pub struct ChannelSettings {
 }
 
 /// A pair Property / Value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyValue {
     /// A property.
     #[serde(default)]
@@ -2932,7 +2933,7 @@ pub struct PropertyValue {
 }
 
 /// Branding properties for images associated with the channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageSettings {
     /// The URL for the background image shown on the video watch page. The image should be 1200px by 615px, with a maximum file size of 128k.
     #[serde(default, rename = "backgroundImageUrl")]
@@ -3002,7 +3003,7 @@ pub struct ImageSettings {
 }
 
 /// Branding properties for the watch. All deprecated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WatchSettings {
     /// The text color for the video watch page''s branded area.
     #[serde(default, rename = "backgroundColor")]
@@ -3016,7 +3017,7 @@ pub struct WatchSettings {
 }
 
 /// Pings that the app shall fire (authenticated by biscotti cookie). Each ping has a context, in which the app must fire the ping, and a url identifying the ping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelConversionPing {
     /// Defines the context of the ping. // TODO: enum values: ["subscribe", "unsubscribe", "cview"]
     #[serde(default)]
@@ -3027,7 +3028,7 @@ pub struct ChannelConversionPing {
 }
 
 /// Channel localization setting
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelLocalization {
     /// The localized strings for channel''s description.
     #[serde(default)]
@@ -3038,7 +3039,7 @@ pub struct ChannelLocalization {
 }
 
 /// ChannelSection localization setting
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelSectionLocalization {
     /// The localized strings for channel section''s title.
     #[serde(default)]
@@ -3046,7 +3047,7 @@ pub struct ChannelSectionLocalization {
 }
 
 /// A *comment* represents a single YouTube comment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Comment {
     /// Etag of this resource.
     #[serde(default)]
@@ -3063,7 +3064,7 @@ pub struct Comment {
 }
 
 /// Settings and Info of the monitor stream
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MonitorStreamInfo {
     /// If you have set the enableMonitorStream property to true, then this property determines the length of the live broadcast delay.
     #[serde(default, rename = "broadcastStreamDelayMs")]
@@ -3077,7 +3078,7 @@ pub struct MonitorStreamInfo {
 }
 
 /// Schedule to insert cuepoints into a broadcast by ads automator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CuepointSchedule {
     /// This field is semantically required. If it is set false or not set, other fields in this message will be ignored.
     #[serde(default)]
@@ -3094,7 +3095,7 @@ pub struct CuepointSchedule {
 }
 
 /// LiveChatFanFundingEventDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatFanFundingEventDetails {
     /// A rendered string that displays the fund amount and currency to the user.
     #[serde(default, rename = "amountDisplayString")]
@@ -3111,7 +3112,7 @@ pub struct LiveChatFanFundingEventDetails {
 }
 
 /// Details about the gift event, this is only set if the type is ''giftEvent''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatGiftDetails {
     /// The alternative text to be used for accessibility.
     #[serde(default, rename = "altText")]
@@ -3140,7 +3141,7 @@ pub struct LiveChatGiftDetails {
 }
 
 /// LiveChatGiftMembershipReceivedDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatGiftMembershipReceivedDetails {
     /// The ID of the membership gifting message that is related to this gift membership. This ID will always refer to a message whose type is ''membershipGiftingEvent''.
     #[serde(default, rename = "associatedMembershipGiftingMessageId")]
@@ -3154,7 +3155,7 @@ pub struct LiveChatGiftMembershipReceivedDetails {
 }
 
 /// LiveChatMemberMilestoneChatDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatMemberMilestoneChatDetails {
     /// The name of the Level at which the viever is a member. The Level names are defined by the YouTube channel offering the Membership. In some situations this field isn''t filled.
     #[serde(default, rename = "memberLevelName")]
@@ -3168,7 +3169,7 @@ pub struct LiveChatMemberMilestoneChatDetails {
 }
 
 /// LiveChatMembershipGiftingDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatMembershipGiftingDetails {
     /// The number of gift memberships purchased by the user.
     #[serde(default, rename = "giftMembershipsCount")]
@@ -3179,21 +3180,21 @@ pub struct LiveChatMembershipGiftingDetails {
 }
 
 /// LiveChatMessageDeletedDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatMessageDeletedDetails {
     #[serde(default, rename = "deletedMessageId")]
     pub deleted_message_id: ::core::option::Option<String>,
 }
 
 /// LiveChatMessageRetractedDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatMessageRetractedDetails {
     #[serde(default, rename = "retractedMessageId")]
     pub retracted_message_id: ::core::option::Option<String>,
 }
 
 /// LiveChatNewSponsorDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatNewSponsorDetails {
     /// If the viewer just had upgraded from a lower level. For viewers that were not members at the time of purchase, this field is false.
     #[serde(default, rename = "isUpgrade")]
@@ -3204,7 +3205,7 @@ pub struct LiveChatNewSponsorDetails {
 }
 
 /// LiveChatPollDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatPollDetails {
     #[serde(default)]
     pub metadata: ::core::option::Option<LiveChatPollDetailsPollMetadata>,
@@ -3214,7 +3215,7 @@ pub struct LiveChatPollDetails {
 }
 
 /// LiveChatSuperChatDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatSuperChatDetails {
     /// A rendered string that displays the fund amount and currency to the user.
     #[serde(default, rename = "amountDisplayString")]
@@ -3234,7 +3235,7 @@ pub struct LiveChatSuperChatDetails {
 }
 
 /// LiveChatSuperStickerDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatSuperStickerDetails {
     /// A rendered string that displays the fund amount and currency to the user.
     #[serde(default, rename = "amountDisplayString")]
@@ -3254,7 +3255,7 @@ pub struct LiveChatSuperStickerDetails {
 }
 
 /// LiveChatTextMessageDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatTextMessageDetails {
     /// The user''s message.
     #[serde(default, rename = "messageText")]
@@ -3262,7 +3263,7 @@ pub struct LiveChatTextMessageDetails {
 }
 
 /// LiveChatUserBannedMessageDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatUserBannedMessageDetails {
     /// The duration of the ban. This property is only present if the banType is temporary.
     #[serde(default, rename = "banDurationSeconds")]
@@ -3276,7 +3277,7 @@ pub struct LiveChatUserBannedMessageDetails {
 }
 
 /// Describes information necessary for ingesting an RTMP, HTTP, or SRT stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestionInfo {
     /// The backup ingestion URL that you should use to stream video to YouTube. You have the option of simultaneously streaming the content that you are sending to the ingestionAddress to this URL.
     #[serde(default, rename = "backupIngestionAddress")]
@@ -3296,7 +3297,7 @@ pub struct IngestionInfo {
 }
 
 /// LiveStreamHealthStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveStreamHealthStatus {
     /// The configurations issues on this stream
     #[serde(default, rename = "configurationIssues")]
@@ -3310,7 +3311,7 @@ pub struct LiveStreamHealthStatus {
 }
 
 /// MembershipsDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipsDetails {
     /// Ids of all levels that the user has access to. This includes the currently active level and all other levels that are included because of a higher purchase.
     #[serde(default, rename = "accessibleLevels")]
@@ -3331,7 +3332,7 @@ pub struct MembershipsDetails {
 }
 
 /// LevelDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LevelDetails {
     /// The name that should be used when referring to this level.
     #[serde(default, rename = "displayName")]
@@ -3339,7 +3340,7 @@ pub struct LevelDetails {
 }
 
 /// Playlist localization setting
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaylistLocalization {
     /// The localized strings for playlist''s description.
     #[serde(default)]
@@ -3350,7 +3351,7 @@ pub struct PlaylistLocalization {
 }
 
 /// Information specific to a store on a merchandising platform linked to a YouTube channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelToStoreLinkDetails {
     /// Information specific to billing (read-only).
     #[serde(default, rename = "billingDetails")]
@@ -3371,7 +3372,7 @@ pub struct ChannelToStoreLinkDetails {
 }
 
 /// VideoAbuseReportSecondaryReason resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoAbuseReportSecondaryReason {
     /// The ID of this abuse report secondary reason.
     #[serde(default)]
@@ -3382,7 +3383,7 @@ pub struct VideoAbuseReportSecondaryReason {
 }
 
 /// Ratings schemes. The country-specific ratings are mostly for movies and shows. LINT.IfChange
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentRating {
     /// The video''s Australian Classification Board (ACB) or Australian Communications and Media Authority (ACMA) rating. ACMA ratings are used to classify children''s television programming. // TODO: enum values: ["acbUnspecified", "acbE", "acbP", "acbC", "acbG", "acbPg", "acbM", "acbMa15plus", "acbR18plus", "acbUnrated"]
     #[serde(default, rename = "acbRating")]
@@ -3600,7 +3601,7 @@ pub struct ContentRating {
 }
 
 /// DEPRECATED Region restriction of the video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoContentDetailsRegionRestriction {
     /// A list of region codes that identify countries where the video is viewable. If this property is present and a country is not listed in its value, then the video is blocked from appearing in that country. If this property is present and contains an empty list, the video is blocked in all countries.
     #[serde(default)]
@@ -3611,7 +3612,7 @@ pub struct VideoContentDetailsRegionRestriction {
 }
 
 /// Information about an audio stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoFileDetailsAudioStream {
     /// The audio stream''s bitrate, in bits per second.
     #[serde(default, rename = "bitrateBps")]
@@ -3628,7 +3629,7 @@ pub struct VideoFileDetailsAudioStream {
 }
 
 /// Information about a video stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoFileDetailsVideoStream {
     /// The video content''s display aspect ratio, which specifies the aspect ratio in which the video should be displayed.
     #[serde(default, rename = "aspectRatio")]
@@ -3657,7 +3658,7 @@ pub struct VideoFileDetailsVideoStream {
 }
 
 /// Rights management policy for YouTube resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessPolicy {
     /// The value of allowed indicates whether the access to the policy is allowed or denied by default.
     #[serde(default)]
@@ -3668,7 +3669,7 @@ pub struct AccessPolicy {
 }
 
 /// Video processing progress and completion time estimate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoProcessingDetailsProcessingProgress {
     /// The number of parts of the video that YouTube has already processed. You can estimate the percentage of the video that YouTube has already processed by calculating: 100 * parts_processed / parts_total Note that since the estimated number of parts could increase without a corresponding increase in the number of parts that have already been processed, it is possible that the calculated progress could periodically decrease while YouTube processes a video.
     #[serde(default, rename = "partsProcessed")]
@@ -3682,7 +3683,7 @@ pub struct VideoProcessingDetailsProcessingProgress {
 }
 
 /// Geographical coordinates of a point, in WGS84.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeoPoint {
     /// Altitude above the reference ellipsoid, in meters.
     #[serde(default)]
@@ -3696,7 +3697,7 @@ pub struct GeoPoint {
 }
 
 /// Localized versions of certain video properties (e.g. title).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoLocalization {
     /// Localized version of the video''s description.
     #[serde(default)]
@@ -3707,7 +3708,7 @@ pub struct VideoLocalization {
 }
 
 /// Internal representation of thumbnails for a YouTube resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThumbnailDetails {
     /// The default image for this resource.
     #[serde(default)]
@@ -3727,7 +3728,7 @@ pub struct ThumbnailDetails {
 }
 
 /// A single tag suggestion with its relevance information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoSuggestionsTagSuggestion {
     /// A set of video categories for which the tag is relevant. You can use this information to display appropriate tag suggestions based on the video category that the video uploader associates with the video. By default, tag suggestions are relevant for all categories if there are no restricts defined for the keyword.
     #[serde(default, rename = "categoryRestricts")]
@@ -3738,7 +3739,7 @@ pub struct VideoSuggestionsTagSuggestion {
 }
 
 /// A resource id is a generic reference that points to another YouTube resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceId {
     /// The ID that YouTube uses to uniquely identify the referred resource, if that resource is a channel. This property is only present if the resourceId.kind value is youtube#channel.
     #[serde(default, rename = "channelId")]
@@ -3755,7 +3756,7 @@ pub struct ResourceId {
 }
 
 /// LocalizedProperty resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedProperty {
     #[serde(default)]
     pub default: ::core::option::Option<String>,
@@ -3767,7 +3768,7 @@ pub struct LocalizedProperty {
 }
 
 /// Basic details about a comment, such as its author and text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommentSnippet {
     #[serde(default, rename = "authorChannelId")]
     pub author_channel_id: ::core::option::Option<CommentSnippetAuthorChannelId>,
@@ -3819,7 +3820,7 @@ pub struct CommentSnippet {
 }
 
 /// LiveChatPollDetailsPollMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatPollDetailsPollMetadata {
     /// The options will be returned in the order that is displayed in 1P
     #[serde(default)]
@@ -3829,7 +3830,7 @@ pub struct LiveChatPollDetailsPollMetadata {
 }
 
 /// SuperStickerMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuperStickerMetadata {
     /// Internationalized alt text that describes the sticker image and any animation associated with it.
     #[serde(default, rename = "altText")]
@@ -3843,7 +3844,7 @@ pub struct SuperStickerMetadata {
 }
 
 /// ChannelProfileDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelProfileDetails {
     /// The YouTube channel ID.
     #[serde(default, rename = "channelId")]
@@ -3860,7 +3861,7 @@ pub struct ChannelProfileDetails {
 }
 
 /// LiveStreamConfigurationIssue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveStreamConfigurationIssue {
     /// The long-form description of the issue and how to resolve it.
     #[serde(default)]
@@ -3877,7 +3878,7 @@ pub struct LiveStreamConfigurationIssue {
 }
 
 /// MembershipsDuration resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipsDuration {
     /// The date and time when the user became a continuous member across all levels.
     #[serde(default, rename = "memberSince")]
@@ -3888,7 +3889,7 @@ pub struct MembershipsDuration {
 }
 
 /// MembershipsDurationAtLevel resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipsDurationAtLevel {
     /// Pricing level ID.
     #[serde(default)]
@@ -3902,7 +3903,7 @@ pub struct MembershipsDurationAtLevel {
 }
 
 /// Information specific to billing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelToStoreLinkDetailsBillingDetails {
     /// The current billing profile status. // TODO: enum values: ["billingStatusUnspecified", "billingStatusPending", "billingStatusActive", "billingStatusInactive"]
     #[serde(default, rename = "billingStatus")]
@@ -3910,7 +3911,7 @@ pub struct ChannelToStoreLinkDetailsBillingDetails {
 }
 
 /// Information specific to merchant affiliate program.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelToStoreLinkDetailsMerchantAffiliateProgramDetails {
     /// The current merchant affiliate program status. // TODO: enum values: ["merchantAffiliateProgramStatusUnspecified", "merchantAffiliateProgramStatusEligible", "merchantAffiliateProgramStatusActive", "merchantAffiliateProgramStatusPaused"]
     #[serde(default)]
@@ -3918,7 +3919,7 @@ pub struct ChannelToStoreLinkDetailsMerchantAffiliateProgramDetails {
 }
 
 /// A thumbnail is an image representing a YouTube resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Thumbnail {
     /// (Optional) Height of the thumbnail image.
     #[serde(default)]
@@ -3932,14 +3933,14 @@ pub struct Thumbnail {
 }
 
 /// LanguageTag resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageTag {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
 
 /// Contains the id of the author''s YouTube channel, if any.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommentSnippetAuthorChannelId {
     /// The id of the author''s YouTube channel.
     #[serde(default)]
@@ -3947,7 +3948,7 @@ pub struct CommentSnippetAuthorChannelId {
 }
 
 /// LiveChatPollDetailsPollMetadataPollOption resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveChatPollDetailsPollMetadataPollOption {
     #[serde(default, rename = "optionText")]
     pub option_text: ::core::option::Option<String>,

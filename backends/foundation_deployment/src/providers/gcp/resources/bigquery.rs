@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for the BatchDeleteRowAccessPoliciesRequest method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteRowAccessPoliciesRequest {
     /// If set to true, it deletes the row access policy even if it''s the last row access policy on the table and the deletion will widen the access rather narrowing it.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct BatchDeleteRowAccessPoliciesRequest {
 }
 
 /// Represents a BigQuery dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dataset {
     /// Optional. An array of objects that define dataset access for one or more entities. You can set this property when inserting or updating a dataset in order to control who is allowed to access the data. If unspecified at dataset creation time, BigQuery adds default dataset access for the following entities: access.specialGroup: projectReaders; access.role: READER; access.specialGroup: projectWriters; access.role: WRITER; access.specialGroup: projectOwners; access.role: OWNER; access.userByEmail: [dataset creator email]; access.role: OWNER; If you patch a dataset, then this field is overwritten by the patched dataset''s access field. To add entities, you must supply the entire existing access array in addition to any new entities that you want to add.
     #[serde(default)]
@@ -120,7 +121,7 @@ pub struct Dataset {
 }
 
 /// Grants all resources of particular types in a particular dataset read access to the current dataset. Similar to how individually authorized views work, updates to any resource granted through its dataset (including creation of new resources) requires read permission to referenced resources, plus write permission to the authorizing dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatasetAccessEntry {
     /// The dataset this entry applies to
     #[serde(default)]
@@ -131,7 +132,7 @@ pub struct DatasetAccessEntry {
 }
 
 /// Response format for a page of results when listing datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatasetList {
     /// An array of the dataset resources in the project. Each resource contains basic information. For full information about a particular dataset resource, use the Datasets: get method. This property is omitted when there are no datasets in the project.
     #[serde(default)]
@@ -151,7 +152,7 @@ pub struct DatasetList {
 }
 
 /// Request message for GetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
@@ -159,7 +160,7 @@ pub struct GetIamPolicyRequest {
 }
 
 /// Response object of GetQueryResults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetQueryResultsResponse {
     /// Whether the query result was fetched from the query cache.
     #[serde(default, rename = "cacheHit")]
@@ -200,7 +201,7 @@ pub struct GetQueryResultsResponse {
 }
 
 /// Response object of GetServiceAccount
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetServiceAccountResponse {
     /// The service account email address.
     #[serde(default)]
@@ -211,7 +212,7 @@ pub struct GetServiceAccountResponse {
 }
 
 /// Describes format of a jobs cancellation response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobCancelResponse {
     /// The final state of the job.
     #[serde(default)]
@@ -222,7 +223,7 @@ pub struct JobCancelResponse {
 }
 
 /// JobList is the response format for a jobs.list call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobList {
     /// A hash of this page of results.
     #[serde(default)]
@@ -242,11 +243,11 @@ pub struct JobList {
 }
 
 /// Represents a single JSON object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JsonObject {}
 
 /// Response format for a single page when listing BigQuery ML models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListModelsResponse {
     /// Models in the requested dataset. Only the following fields are populated: model_reference, model_type, creation_time, last_modified_time and labels.
     #[serde(default)]
@@ -257,7 +258,7 @@ pub struct ListModelsResponse {
 }
 
 /// Describes the format of a single result page when listing routines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRoutinesResponse {
     /// A token to request the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -268,7 +269,7 @@ pub struct ListRoutinesResponse {
 }
 
 /// Response message for the ListRowAccessPolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRowAccessPoliciesResponse {
     /// A token to request the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -279,7 +280,7 @@ pub struct ListRowAccessPoliciesResponse {
 }
 
 /// BigQuery-specific metadata about a location. This will be set on google.cloud.location.Location.metadata in Cloud Location API responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationMetadata {
     /// The legacy BigQuery location ID, e.g. “EU” for the “europe” location. This is for any API consumers that need the legacy “US” and “EU” locations.
     #[serde(default, rename = "legacyLocationId")]
@@ -287,7 +288,7 @@ pub struct LocationMetadata {
 }
 
 /// Response object of ListProjects
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectList {
     /// A hash of the page of results.
     #[serde(default)]
@@ -307,7 +308,7 @@ pub struct ProjectList {
 }
 
 /// A unique reference to a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectReference {
     /// Required. ID of the project. Can be either the numeric ID or the assigned ID of the project.
     #[serde(default, rename = "projectId")]
@@ -315,7 +316,7 @@ pub struct ProjectReference {
 }
 
 /// Describes the format of the jobs.query request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryRequest {
     /// Optional. Connection properties which can modify the query behavior.
     #[serde(default, rename = "connectionProperties")]
@@ -395,7 +396,7 @@ pub struct QueryRequest {
 }
 
 /// QueryResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryResponse {
     /// Whether the query result was fetched from the query cache.
     #[serde(default, rename = "cacheHit")]
@@ -463,7 +464,7 @@ pub struct QueryResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -474,7 +475,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Search space for string and enum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StringHparamSearchSpace {
     /// Canididates for the string or enum parameter in lower case.
     #[serde(default)]
@@ -482,7 +483,7 @@ pub struct StringHparamSearchSpace {
 }
 
 /// Table resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Table {
     /// Optional. Specifies the configuration of a BigQuery table for Apache Iceberg.
     #[serde(default, rename = "biglakeConfiguration")]
@@ -643,7 +644,7 @@ pub struct Table {
 }
 
 /// Request for sending a single streaming insert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableDataInsertAllRequest {
     /// Optional. Accept rows that contain values that do not match the schema. The unknown values are ignored. Default is false, which treats unknown values as errors.
     #[serde(default, rename = "ignoreUnknownValues")]
@@ -665,7 +666,7 @@ pub struct TableDataInsertAllRequest {
 }
 
 /// Describes the format of a streaming insert response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableDataInsertAllResponse {
     /// Describes specific errors encountered while processing the request.
     #[serde(default, rename = "insertErrors")]
@@ -676,7 +677,7 @@ pub struct TableDataInsertAllResponse {
 }
 
 /// TableDataList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableDataList {
     /// A hash of this page of results.
     #[serde(default)]
@@ -696,7 +697,7 @@ pub struct TableDataList {
 }
 
 /// Partial projection of the metadata for a given table in a list response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableList {
     /// A hash of this page of results.
     #[serde(default)]
@@ -716,7 +717,7 @@ pub struct TableList {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -724,7 +725,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -732,7 +733,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Request format for undeleting a dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteDatasetRequest {
     /// Optional. The exact time when the dataset was deleted. If not specified, the most recently deleted version is undeleted. Undeleting a dataset using deletion time is not supported.
     #[serde(default, rename = "deletionTime")]
@@ -740,7 +741,7 @@ pub struct UndeleteDatasetRequest {
 }
 
 /// Options defining open source compatible datasets living in the BigQuery catalog. Contains metadata of open source database, schema, or namespace represented by the current dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalCatalogDatasetOptions {
     /// Optional. The storage location URI for all tables in the dataset. Equivalent to hive metastore''s database locationUri. Maximum length of 1024 characters.
     #[serde(default, rename = "defaultStorageLocationUri")]
@@ -751,7 +752,7 @@ pub struct ExternalCatalogDatasetOptions {
 }
 
 /// Configures the access a dataset defined in an external metadata storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalDatasetReference {
     /// Required. The connection id that is used to access the external_source. Format: projects/{project_id}/locations/{location_id}/connections/{connection_id}
     #[serde(default)]
@@ -762,7 +763,7 @@ pub struct ExternalDatasetReference {
 }
 
 /// Metadata about the Linked Dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedDatasetMetadata {
     /// Output only. Specifies whether Linked Dataset is currently in a linked state or not. // TODO: enum values: ["LINK_STATE_UNSPECIFIED", "LINKED", "UNLINKED"]
     #[serde(default, rename = "linkState")]
@@ -770,7 +771,7 @@ pub struct LinkedDatasetMetadata {
 }
 
 /// A dataset source type which refers to another BigQuery dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedDatasetSource {
     /// The source dataset reference contains project numbers and not project ids.
     #[serde(default, rename = "sourceDataset")]
@@ -778,7 +779,7 @@ pub struct LinkedDatasetSource {
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
@@ -786,7 +787,7 @@ pub struct GetPolicyOptions {
 }
 
 /// Job resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Job {
     /// Required. Describes the job configuration.
     #[serde(default)]
@@ -824,7 +825,7 @@ pub struct Job {
 }
 
 /// Model resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Model {
     /// The best trial_id across all training runs.
     #[serde(default, rename = "bestTrialId")]
@@ -892,7 +893,7 @@ pub struct Model {
 }
 
 /// A user-defined function or a stored procedure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Routine {
     /// Optional.
     #[serde(default)]
@@ -960,7 +961,7 @@ pub struct Routine {
 }
 
 /// Represents access on a subset of rows on the specified table, defined by its filter predicate. Access to the subset of rows is controlled by its IAM policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RowAccessPolicy {
     /// Output only. The time when this row access policy was created, in milliseconds since the epoch.
     #[serde(default, rename = "creationTime")]
@@ -983,7 +984,7 @@ pub struct RowAccessPolicy {
 }
 
 /// Options for data format adjustments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataFormatOptions {
     /// Optional. The API output format for a timestamp. This offers more explicit control over the timestamp output format as compared to the existing use_int64_timestamp option. // TODO: enum values: ["TIMESTAMP_OUTPUT_FORMAT_UNSPECIFIED", "FLOAT64", "INT64", "ISO8601_STRING"]
     #[serde(default, rename = "timestampOutputFormat")]
@@ -994,7 +995,7 @@ pub struct DataFormatOptions {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -1011,7 +1012,7 @@ pub struct Policy {
 }
 
 /// Configuration for BigQuery tables for Apache Iceberg (formerly BigLake managed tables.)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigLakeConfiguration {
     /// Optional. The connection specifying the credentials to be used to read and write to external storage, such as Cloud Storage. The connection_id can have the form {project}.{location}.{connection_id} or projects/{project}/locations/{location}/connections/{connection_id}".
     #[serde(default, rename = "connectionId")]
@@ -1028,7 +1029,7 @@ pub struct BigLakeConfiguration {
 }
 
 /// Information about base table and clone time of a table clone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloneDefinition {
     /// Required. Reference describing the ID of the table that was cloned.
     #[serde(default, rename = "baseTableReference")]
@@ -1039,7 +1040,7 @@ pub struct CloneDefinition {
 }
 
 /// Metadata about open source compatible table. The fields contained in these options correspond to Hive metastore''s table-level properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalCatalogTableOptions {
     /// Optional. A connection ID that specifies the credentials to be used to read external storage, such as Azure Blob, Cloud Storage, or Amazon S3. This connection is needed to read the open source table from BigQuery. The connection_id format must be either .. or projects//locations//connections/.
     #[serde(default, rename = "connectionId")]
@@ -1053,7 +1054,7 @@ pub struct ExternalCatalogTableOptions {
 }
 
 /// ExternalDataConfiguration resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalDataConfiguration {
     /// Try to detect schema and format options automatically. Any option specified explicitly will be honored.
     #[serde(default)]
@@ -1139,7 +1140,7 @@ pub struct ExternalDataConfiguration {
 }
 
 /// Definition and configuration of a materialized view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaterializedViewDefinition {
     /// Optional. This option declares the intention to construct a materialized view that isn''t refreshed incrementally. Non-incremental materialized views support an expanded range of SQL queries. The allow_non_incremental_definition option can''t be changed after the materialized view is created.
     #[serde(default, rename = "allowNonIncrementalDefinition")]
@@ -1162,7 +1163,7 @@ pub struct MaterializedViewDefinition {
 }
 
 /// Status of a materialized view. The last refresh timestamp status is omitted here, but is present in the MaterializedViewDefinition message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaterializedViewStatus {
     /// Output only. Error result of the last automatic refresh. If present, indicates that the last automatic refresh was unsuccessful.
     #[serde(default, rename = "lastRefreshStatus")]
@@ -1173,7 +1174,7 @@ pub struct MaterializedViewStatus {
 }
 
 /// ModelDefinition resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModelDefinition {
     /// Deprecated.
     #[serde(default, rename = "modelOptions")]
@@ -1184,7 +1185,7 @@ pub struct ModelDefinition {
 }
 
 /// The partitioning information, which includes managed table, external table and metastore partitioned table partition information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitioningDefinition {
     /// Optional. Details about each partitioning column. This field is output only for all partitioning types other than metastore partitioned tables. BigQuery native tables only support 1 partitioning column. Other table types may support 0, 1 or more partitioning columns. For metastore partitioned tables, the order must match the definition order in the Hive Metastore, where it must match the physical layout of the table. For example, CREATE TABLE a_table(id BIGINT, name STRING) PARTITIONED BY (city STRING, state STRING). In this case the values must be [''city'', ''state''] in that order.
     #[serde(default, rename = "partitionedColumn")]
@@ -1192,7 +1193,7 @@ pub struct PartitioningDefinition {
 }
 
 /// RestrictionConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestrictionConfig {
     /// Output only. Specifies the type of dataset/table restriction. // TODO: enum values: ["RESTRICTION_TYPE_UNSPECIFIED", "RESTRICTED_DATA_EGRESS"]
     #[serde(default, rename = "type")]
@@ -1200,7 +1201,7 @@ pub struct RestrictionConfig {
 }
 
 /// Information about base table and snapshot time of the snapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotDefinition {
     /// Required. Reference describing the ID of the table that was snapshot.
     #[serde(default, rename = "baseTableReference")]
@@ -1211,7 +1212,7 @@ pub struct SnapshotDefinition {
 }
 
 /// Streamingbuffer resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Streamingbuffer {
     /// Output only. A lower-bound estimate of the number of bytes currently in the streaming buffer.
     #[serde(default, rename = "estimatedBytes")]
@@ -1225,7 +1226,7 @@ pub struct Streamingbuffer {
 }
 
 /// The TableConstraints defines the primary key and foreign key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableConstraints {
     /// Optional. Present only if the table has a foreign key. The foreign key is not enforced.
     #[serde(default, rename = "foreignKeys")]
@@ -1236,7 +1237,7 @@ pub struct TableConstraints {
 }
 
 /// Replication info of a table created using AS REPLICA DDL like: CREATE MATERIALIZED VIEW mv1 AS REPLICA OF src_mv
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableReplicationInfo {
     /// Optional. Output only. If source is a materialized view, this field signifies the last refresh time of the source.
     #[serde(default, rename = "replicatedSourceLastRefreshTime")]
@@ -1256,7 +1257,7 @@ pub struct TableReplicationInfo {
 }
 
 /// Describes the definition of a logical view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ViewDefinition {
     /// Optional. Foreign view representations.
     #[serde(default, rename = "foreignDefinitions")]
@@ -1280,7 +1281,7 @@ pub struct ViewDefinition {
 }
 
 /// TableRow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableRow {
     /// Represents a single row in the result set, consisting of one or more fields.
     #[serde(default)]
@@ -1288,7 +1289,7 @@ pub struct TableRow {
 }
 
 /// JobConfiguration resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobConfiguration {
     /// [Pick one] Copies a table.
     #[serde(default)]
@@ -1323,7 +1324,7 @@ pub struct JobConfiguration {
 }
 
 /// Reason about why a Job was created from a [jobs.query](https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query) method when used with JOB_CREATION_OPTIONAL Job creation mode. For [jobs.insert](https://cloud.google.com/bigquery/docs/reference/rest/v2/jobs/insert) method calls it will always be REQUESTED.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobCreationReason {
     /// Output only. Specifies the high level reason why a Job was created. // TODO: enum values: ["CODE_UNSPECIFIED", "REQUESTED", "LONG_RUNNING", "LARGE_RESULTS", "OTHER"]
     #[serde(default)]
@@ -1331,7 +1332,7 @@ pub struct JobCreationReason {
 }
 
 /// A job reference is a fully qualified identifier for referring to a job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobReference {
     /// Required. The ID of the job. The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), or dashes (-). The maximum length is 1,024 characters.
     #[serde(default, rename = "jobId")]
@@ -1345,7 +1346,7 @@ pub struct JobReference {
 }
 
 /// Statistics for a single job execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobStatistics {
     /// Output only. [TrustedTester] Job progress (0.0 -&gt; 1.0) for LOAD and EXTRACT jobs.
     #[serde(default, rename = "completionRatio")]
@@ -1419,7 +1420,7 @@ pub struct JobStatistics {
 }
 
 /// JobStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobStatus {
     /// Output only. Final error result of the job. If present, indicates that the job has completed and was unsuccessful.
     #[serde(default, rename = "errorResult")]
@@ -1433,7 +1434,7 @@ pub struct JobStatus {
 }
 
 /// Hyperparameter search spaces. These should be a subset of training_options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HparamSearchSpaces {
     /// Activation functions of neural network models.
     #[serde(default, rename = "activationFn")]
@@ -1504,7 +1505,7 @@ pub struct HparamSearchSpaces {
 }
 
 /// Remote Model Info
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoteModelInfo {
     /// Output only. Fully qualified name of the user-provided connection object of the remote model. Format: "projects/{project_id}/locations/{location_id}/connections/{connection_id}"
     #[serde(default)]
@@ -1527,7 +1528,7 @@ pub struct RemoteModelInfo {
 }
 
 /// Information about a single training query run for the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrainingRun {
     /// Output only. Global explanation contains the explanation of top features on the class level. Applies to classification models only.
     #[serde(default, rename = "classLevelGlobalExplanations")]
@@ -1562,7 +1563,7 @@ pub struct TrainingRun {
 }
 
 /// Information about a single transform column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransformColumn {
     /// Output only. Name of the column.
     #[serde(default)]
@@ -1576,7 +1577,7 @@ pub struct TransformColumn {
 }
 
 /// Input/output argument of a function or a stored procedure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Argument {
     /// Optional. Defaults to FIXED_TYPE. // TODO: enum values: ["ARGUMENT_KIND_UNSPECIFIED", "FIXED_TYPE", "ANY_TYPE"]
     #[serde(default, rename = "argumentKind")]
@@ -1596,7 +1597,7 @@ pub struct Argument {
 }
 
 /// The status of a routine build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoutineBuildStatus {
     /// Output only. The time taken for the image build. Populated only after the build succeeds or fails.
     #[serde(default, rename = "buildDuration")]
@@ -1616,7 +1617,7 @@ pub struct RoutineBuildStatus {
 }
 
 /// Options for the runtime of the external system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalRuntimeOptions {
     /// Optional. Amount of CPU provisioned for a Python UDF container instance. For more information, see [Configure container limits for Python UDFs](https://cloud.google.com/bigquery/docs/user-defined-functions-python#configure-container-limits)
     #[serde(default, rename = "containerCpu")]
@@ -1636,7 +1637,7 @@ pub struct ExternalRuntimeOptions {
 }
 
 /// Options for a user-defined Python function.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PythonOptions {
     /// Required. The name of the function defined in Python code as the entry point when the Python UDF is invoked.
     #[serde(default, rename = "entryPoint")]
@@ -1647,7 +1648,7 @@ pub struct PythonOptions {
 }
 
 /// Options for a remote user-defined function.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoteFunctionOptions {
     /// Fully qualified name of the user-provided connection object which holds the authentication information to send requests to the remote service. Format: "projects/{projectId}/locations/{locationId}/connections/{connectionId}"
     #[serde(default)]
@@ -1664,7 +1665,7 @@ pub struct RemoteFunctionOptions {
 }
 
 /// A table type
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandardSqlTableType {
     /// The columns in this table type
     #[serde(default)]
@@ -1672,7 +1673,7 @@ pub struct StandardSqlTableType {
 }
 
 /// Options for a user-defined Spark routine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkOptions {
     /// Archive files to be extracted into the working directory of each executor. For more information about Apache Spark, see [Apache Spark](https://spark.apache.org/docs/latest/index.html).
     #[serde(default, rename = "archiveUris")]
@@ -1707,7 +1708,7 @@ pub struct SparkOptions {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1718,7 +1719,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1732,7 +1733,7 @@ pub struct Binding {
 }
 
 /// Contains information about how a table''s data is stored and accessed by open source query engines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageDescriptor {
     /// Optional. Specifies the fully qualified class name of the InputFormat (e.g. "org.apache.hadoop.hive.ql.io.orc.OrcInputFormat"). The maximum length is 128 characters.
     #[serde(default, rename = "inputFormat")]
@@ -1749,7 +1750,7 @@ pub struct StorageDescriptor {
 }
 
 /// Options for external data sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AvroOptions {
     /// Optional. If sourceFormat is set to "AVRO", indicates whether to interpret logical types as the corresponding BigQuery data type (for example, TIMESTAMP), instead of using the raw type (for example, INTEGER).
     #[serde(default, rename = "useAvroLogicalTypes")]
@@ -1757,7 +1758,7 @@ pub struct AvroOptions {
 }
 
 /// Options specific to Google Cloud Bigtable data sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigtableOptions {
     /// Optional. List of column families to expose in the table schema along with their types. This list restricts the column families that can be referenced in queries and specifies their value types. You can use this list to do type conversions - see the ''type'' field for more details. If you leave this list empty, all column families are present in the table schema and their values are read as BYTES. During a query only the column families referenced in that query are read from Bigtable.
     #[serde(default, rename = "columnFamilies")]
@@ -1774,7 +1775,7 @@ pub struct BigtableOptions {
 }
 
 /// Information related to a CSV data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CsvOptions {
     /// Optional. Indicates if BigQuery should accept rows that are missing trailing optional columns. If true, BigQuery treats missing trailing columns as null values. If false, records with missing trailing columns are treated as bad records, and if there are too many bad records, an invalid error is returned in the job result. The default value is false.
     #[serde(default, rename = "allowJaggedRows")]
@@ -1809,7 +1810,7 @@ pub struct CsvOptions {
 }
 
 /// Options specific to Google Sheets data sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSheetsOptions {
     /// Optional. Range of a sheet to query from. Only used when non-empty. Typical format: sheet_name!top_left_cell_id:bottom_right_cell_id For example: sheet1!A1:B20
     #[serde(default)]
@@ -1820,7 +1821,7 @@ pub struct GoogleSheetsOptions {
 }
 
 /// Json Options for load and make external tables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JsonOptions {
     /// Optional. The character encoding of the data. The supported values are UTF-8, UTF-16BE, UTF-16LE, UTF-32BE, and UTF-32LE. The default value is UTF-8.
     #[serde(default)]
@@ -1828,7 +1829,7 @@ pub struct JsonOptions {
 }
 
 /// BqmlTrainingRun resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BqmlTrainingRun {
     /// Deprecated.
     #[serde(default, rename = "iterationResults")]
@@ -1845,7 +1846,7 @@ pub struct BqmlTrainingRun {
 }
 
 /// The partitioning column information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionedColumn {
     /// Required. The name of the partition column.
     #[serde(default)]
@@ -1853,7 +1854,7 @@ pub struct PartitionedColumn {
 }
 
 /// A view can be represented in multiple ways. Each representation has its own dialect. This message stores the metadata required for these representations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForeignViewDefinition {
     /// Optional. Represents the dialect of the query.
     #[serde(default)]
@@ -1864,7 +1865,7 @@ pub struct ForeignViewDefinition {
 }
 
 /// Represents privacy policy that contains the privacy requirements specified by the data owner. Currently, this is only supported on views.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivacyPolicy {
     /// Optional. Policy used for aggregation thresholds.
     #[serde(default, rename = "aggregationThresholdPolicy")]
@@ -1878,14 +1879,14 @@ pub struct PrivacyPolicy {
 }
 
 /// TableCell resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableCell {
     #[serde(default)]
     pub v: ::core::option::Option<serde_json::Value>,
 }
 
 /// JobConfigurationTableCopy configures a job that copies data from one table to another. For more information on copying tables, see [Copy a table](https://cloud.google.com/bigquery/docs/managing-tables#copy-table).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobConfigurationTableCopy {
     /// Optional. Specifies whether the job is allowed to create new tables. The following values are supported: * CREATE_IF_NEEDED: If the table does not exist, BigQuery creates the table. * CREATE_NEVER: The table must already exist. If it does not, a ''notFound'' error is returned in the job result. The default value is CREATE_IF_NEEDED. Creation, truncation and append actions occur as one atomic update upon job completion.
     #[serde(default, rename = "createDisposition")]
@@ -1914,7 +1915,7 @@ pub struct JobConfigurationTableCopy {
 }
 
 /// JobConfigurationExtract configures a job that exports data from a BigQuery table into Google Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobConfigurationExtract {
     /// Optional. The compression type to use for exported files. Possible values include DEFLATE, GZIP, NONE, SNAPPY, and ZSTD. The default value is NONE. Not all compression formats are support for all file formats. DEFLATE is only supported for Avro. ZSTD is only supported for Parquet. Not applicable when extracting models.
     #[serde(default)]
@@ -1949,7 +1950,7 @@ pub struct JobConfigurationExtract {
 }
 
 /// JobConfigurationLoad contains the configuration properties for loading data into a destination table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobConfigurationLoad {
     /// Optional. Accept rows that are missing trailing optional columns. The missing values are treated as nulls. If false, records with missing trailing columns are treated as bad records, and if there are too many bad records, an invalid error is returned in the job result. The default value is false. Only applicable to CSV, ignored for other formats.
     #[serde(default, rename = "allowJaggedRows")]
@@ -2089,7 +2090,7 @@ pub struct JobConfigurationLoad {
 }
 
 /// JobConfigurationQuery configures a BigQuery query job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobConfigurationQuery {
     /// Optional. If true and query uses legacy SQL dialect, allows the query to produce arbitrarily large result tables at a slight cost in performance. Requires destinationTable to be set. For GoogleSQL queries, this flag is ignored and large results are always allowed. However, you must still set destinationTable when result size exceeds the allowed maximum response size.
     #[serde(default, rename = "allowLargeResults")]
@@ -2179,7 +2180,7 @@ pub struct JobConfigurationQuery {
 }
 
 /// Statistics for a copy job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobStatistics5 {
     /// Output only. Number of logical bytes copied to the destination table.
     #[serde(default, rename = "copiedLogicalBytes")]
@@ -2190,7 +2191,7 @@ pub struct JobStatistics5 {
 }
 
 /// Statistics for data-masking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataMaskingStatistics {
     /// Whether any accessed data was protected by the data masking.
     #[serde(default, rename = "dataMaskingApplied")]
@@ -2198,7 +2199,7 @@ pub struct DataMaskingStatistics {
 }
 
 /// Statistics for an extract job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobStatistics4 {
     /// Output only. Number of files per destination URI or URI pattern specified in the extract configuration. These values will be in the same order as the URIs specified in the ''destinationUris'' field.
     #[serde(default, rename = "destinationUriFileCounts")]
@@ -2212,7 +2213,7 @@ pub struct JobStatistics4 {
 }
 
 /// Statistics for a load job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobStatistics3 {
     /// Output only. The number of bad records encountered. Note that if the job has failed because of more bad records encountered than the maximum allowed in the load job configuration, then this number can be less than the total number of bad records present in the input data.
     #[serde(default, rename = "badRecords")]
@@ -2235,7 +2236,7 @@ pub struct JobStatistics3 {
 }
 
 /// Statistics for a query job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobStatistics2 {
     /// Output only. BI Engine specific Statistics.
     #[serde(default, rename = "biEngineStatistics")]
@@ -2384,7 +2385,7 @@ pub struct JobStatistics2 {
 }
 
 /// Statistics for row-level security.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RowLevelSecurityStatistics {
     /// Whether any accessed data was protected by row access policies.
     #[serde(default, rename = "rowLevelSecurityApplied")]
@@ -2392,7 +2393,7 @@ pub struct RowLevelSecurityStatistics {
 }
 
 /// Job statistics specific to the child job of a script.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScriptStatistics {
     /// Whether this child job was a statement or expression. // TODO: enum values: ["EVALUATION_KIND_UNSPECIFIED", "STATEMENT", "EXPRESSION"]
     #[serde(default, rename = "evaluationKind")]
@@ -2403,7 +2404,7 @@ pub struct ScriptStatistics {
 }
 
 /// [Preview] Information related to sessions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionInfo {
     /// Output only. The id of the session.
     #[serde(default, rename = "sessionId")]
@@ -2411,7 +2412,7 @@ pub struct SessionInfo {
 }
 
 /// [Alpha] Information of a multi-statement transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransactionInfo {
     /// Output only. [Alpha] Id of the transaction.
     #[serde(default, rename = "transactionId")]
@@ -2419,7 +2420,7 @@ pub struct TransactionInfo {
 }
 
 /// Search space for an int hyperparameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntHparamSearchSpace {
     /// Candidates of the int hyperparameter.
     #[serde(default)]
@@ -2430,7 +2431,7 @@ pub struct IntHparamSearchSpace {
 }
 
 /// Search space for a double hyperparameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleHparamSearchSpace {
     /// Candidates of the double hyperparameter.
     #[serde(default)]
@@ -2441,7 +2442,7 @@ pub struct DoubleHparamSearchSpace {
 }
 
 /// Search space for int array.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntArrayHparamSearchSpace {
     /// Candidates for the int array parameter.
     #[serde(default)]
@@ -2449,7 +2450,7 @@ pub struct IntArrayHparamSearchSpace {
 }
 
 /// Global explanations containing the top most important features after training.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlobalExplanation {
     /// Class label for this set of global explanations. Will be empty/null for binary logistic and linear regression models. Sorted alphabetically in descending order.
     #[serde(default, rename = "classLabel")]
@@ -2460,7 +2461,7 @@ pub struct GlobalExplanation {
 }
 
 /// Data split result. This contains references to the training and evaluation data tables that were used to train the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSplitResult {
     /// Table reference of the evaluation data after split.
     #[serde(default, rename = "evaluationTable")]
@@ -2474,7 +2475,7 @@ pub struct DataSplitResult {
 }
 
 /// Error details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorProto {
     /// Debugging information. This property is internal to Google and should not be used.
     #[serde(default, rename = "debugInfo")]
@@ -2491,7 +2492,7 @@ pub struct ErrorProto {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -2502,7 +2503,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -2519,7 +2520,7 @@ pub struct Expr {
 }
 
 /// Serializer and deserializer information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SerDeInfo {
     /// Optional. Name of the SerDe. The maximum length is 256 characters.
     #[serde(default)]
@@ -2533,7 +2534,7 @@ pub struct SerDeInfo {
 }
 
 /// Information related to a Bigtable column family.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigtableColumnFamily {
     /// Optional. Lists of columns that should be exposed as individual fields as opposed to a list of (column name, value) pairs. All columns whose qualifier matches a qualifier in this list can be accessed as .. Other columns can be accessed as a list through the .Column field.
     #[serde(default)]
@@ -2556,7 +2557,7 @@ pub struct BigtableColumnFamily {
 }
 
 /// BqmlIterationResult resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BqmlIterationResult {
     /// Deprecated.
     #[serde(default, rename = "durationMs")]
@@ -2576,7 +2577,7 @@ pub struct BqmlIterationResult {
 }
 
 /// Represents privacy policy associated with "aggregation threshold" method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationThresholdPolicy {
     /// Optional. The privacy unit column(s) associated with this policy. For now, only one column per data source object (table, view) is allowed as a privacy unit column. Representing as a repeated field in metadata for extensibility to multiple columns in future. Duplicates and Repeated struct fields are not allowed. For nested fields, use dot notation ("outer.inner")
     #[serde(default, rename = "privacyUnitColumns")]
@@ -2587,7 +2588,7 @@ pub struct AggregationThresholdPolicy {
 }
 
 /// Represents privacy policy associated with "differential privacy" method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DifferentialPrivacyPolicy {
     /// Optional. The total delta budget for all queries against the privacy-protected view. Each subscriber query against this view charges the amount of delta that is pre-defined by the contributor through the privacy policy delta_per_query field. If there is sufficient budget, then the subscriber query attempts to complete. It might still fail due to other reasons, in which case the charge is refunded. If there is insufficient budget the query is rejected. There might be multiple charge attempts if a single query references multiple views. In this case there must be sufficient budget for all charges or the query is rejected and charges are refunded in best effort. The budget does not have a refresh policy and can only be updated via ALTER VIEW or circumvented by creating a new view that can be queried with a fresh budget.
     #[serde(default, rename = "deltaBudget")]
@@ -2616,7 +2617,7 @@ pub struct DifferentialPrivacyPolicy {
 }
 
 /// Represents privacy policy associated with "join restrictions". Join restriction gives data providers the ability to enforce joins on the ''join_allowed_columns'' when data is queried from a privacy protected view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JoinRestrictionPolicy {
     /// Optional. The only columns that joins are allowed on. This field is must be specified for join_conditions JOIN_ANY and JOIN_ALL and it cannot be set for JOIN_BLOCKED.
     #[serde(default, rename = "joinAllowedColumns")]
@@ -2627,7 +2628,7 @@ pub struct JoinRestrictionPolicy {
 }
 
 /// Options related to model extraction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModelExtractOptions {
     /// The 1-based ID of the trial to be exported from a hyperparameter tuning model. If not specified, the trial with id = [Model](https://cloud.google.com/bigquery/docs/reference/rest/v2/models#resource:-model).defaultTrialId is exported. This field is ignored for models not trained with hyperparameter tuning.
     #[serde(default, rename = "trialId")]
@@ -2635,7 +2636,7 @@ pub struct ModelExtractOptions {
 }
 
 /// Id path of a model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModelReference {
     /// Required. The ID of the dataset containing this model.
     #[serde(default, rename = "datasetId")]
@@ -2649,7 +2650,7 @@ pub struct ModelReference {
 }
 
 /// Properties for the destination table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationTableProperties {
     /// Optional. The description for the destination table. This will only be used if the destination table is newly created. If the table already exists and a value different than the current description is provided, the job will fail.
     #[serde(default)]
@@ -2666,7 +2667,7 @@ pub struct DestinationTableProperties {
 }
 
 /// Options for configuring hive partitioning detect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HivePartitioningOptions {
     /// Output only. For permanent external tables, this field is populated with the hive partition keys in the order they were inferred. The types of the partition keys can be deduced by checking the table schema (which will include the partition keys). Not every API will populate this field in the output. For example, Tables.Get will populate it, but Tables.List will not contain this field.
     #[serde(default)]
@@ -2683,7 +2684,7 @@ pub struct HivePartitioningOptions {
 }
 
 /// Parquet Options for load and make external tables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParquetOptions {
     /// Optional. Indicates whether to use schema inference specifically for Parquet LIST logical type.
     #[serde(default, rename = "enableListInference")]
@@ -2697,7 +2698,7 @@ pub struct ParquetOptions {
 }
 
 /// Configures table clustering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Clustering {
     /// One or more fields on which data should be clustered. Only top-level, non-repeated, simple-type fields are supported. The ordering of the clustering fields should be prioritized from most to least important for filtering purposes. For additional information, see [Introduction to clustered tables](https://cloud.google.com/bigquery/docs/clustered-tables#limitations).
     #[serde(default)]
@@ -2705,7 +2706,7 @@ pub struct Clustering {
 }
 
 /// A connection-level property to customize query behavior. Under JDBC, these correspond directly to connection properties passed to the DriverManager. Under ODBC, these correspond to properties in the connection string. Currently supported connection properties: * **dataset_project_id**: represents the default project for datasets that are used in the query. Setting the system variable @@dataset_project_id achieves the same behavior. For more information about system variables, see: https://cloud.google.com/bigquery/docs/reference/system-variables * **time_zone**: represents the default timezone used to run the query. * **session_id**: associates the query with a given session. * **query_label**: associates the query with a given job label. If set, all subsequent queries in a script or session will have this label. For the format in which a you can specify a query label, see labels in the JobConfiguration resource type: https://cloud.google.com/bigquery/docs/reference/rest/v2/Job#jobconfiguration * **service_account**: indicates the service account to use to run a continuous query. If set, the query job uses the service account to access Google Cloud resources. Service account access is bounded by the IAM permissions that you have granted to the service account. Additional properties are allowed, but ignored. Specifying multiple connection properties with the same key returns an error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionProperty {
     /// The key of the property to set.
     #[serde(default)]
@@ -2716,7 +2717,7 @@ pub struct ConnectionProperty {
 }
 
 /// Configuration for Cloud KMS encryption settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionConfiguration {
     /// Optional. Describes the Cloud KMS encryption key that will be used to protect destination BigQuery table. The BigQuery Service Account associated with your project requires access to this encryption key.
     #[serde(default, rename = "kmsKeyName")]
@@ -2724,7 +2725,7 @@ pub struct EncryptionConfiguration {
 }
 
 /// RangePartitioning resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RangePartitioning {
     /// Required. The name of the column to partition the table on. It must be a top-level, INT64 column whose mode is NULLABLE or REQUIRED.
     #[serde(default)]
@@ -2735,7 +2736,7 @@ pub struct RangePartitioning {
 }
 
 /// Options related to script execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScriptOptions {
     /// Determines which statement in the script represents the "key result", used to populate the schema and query results of the script job. Default is LAST. // TODO: enum values: ["KEY_RESULT_STATEMENT_KIND_UNSPECIFIED", "LAST", "FIRST_SELECT"]
     #[serde(default, rename = "keyResultStatement")]
@@ -2749,7 +2750,7 @@ pub struct ScriptOptions {
 }
 
 /// System variables given to a query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SystemVariables {
     /// Output only. Data type for each system variable.
     #[serde(default)]
@@ -2760,7 +2761,7 @@ pub struct SystemVariables {
 }
 
 /// TimePartitioning resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimePartitioning {
     /// Optional. Number of milliseconds for which to keep the storage for a partition. A wrapper is used here because 0 is an invalid value.
     #[serde(default, rename = "expirationMs")]
@@ -2777,7 +2778,7 @@ pub struct TimePartitioning {
 }
 
 ///  This is used for defining User Defined Function (UDF) resources only when using legacy SQL. Users of GoogleSQL should leverage either DDL (e.g. CREATE [TEMPORARY] FUNCTION ... ) or the Routines API to define UDF resources. For additional information on migrating, see: https://cloud.google.com/bigquery/docs/reference/standard-sql/migrating-from-legacy-sql#differences_in_user-defined_javascript_functions
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserDefinedFunctionResource {
     /// [Pick one] An inline resource that contains code for a user-defined function (UDF). Providing a inline code resource is equivalent to providing a URI for a file containing the same code.
     #[serde(default, rename = "inlineCode")]
@@ -2788,7 +2789,7 @@ pub struct UserDefinedFunctionResource {
 }
 
 /// Statistics for a BI Engine specific query. Populated as part of JobStatistics2
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BiEngineStatistics {
     /// Output only. Specifies which mode of BI Engine acceleration was performed (if any). // TODO: enum values: ["BI_ENGINE_ACCELERATION_MODE_UNSPECIFIED", "BI_ENGINE_DISABLED", "PARTIAL_INPUT", "FULL_INPUT", "FULL_QUERY"]
     #[serde(default, rename = "accelerationMode")]
@@ -2802,7 +2803,7 @@ pub struct BiEngineStatistics {
 }
 
 /// Identifier for a dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatasetReference {
     /// Required. A unique ID for this dataset, without the project name. The ID must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_). The maximum length is 1,024 characters.
     #[serde(default, rename = "datasetId")]
@@ -2813,7 +2814,7 @@ pub struct DatasetReference {
 }
 
 /// Id path of a routine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoutineReference {
     /// Required. The ID of the dataset containing this routine.
     #[serde(default, rename = "datasetId")]
@@ -2827,7 +2828,7 @@ pub struct RoutineReference {
 }
 
 /// Id path of a row access policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RowAccessPolicyReference {
     /// Required. The ID of the dataset containing this row access policy.
     #[serde(default, rename = "datasetId")]
@@ -2844,7 +2845,7 @@ pub struct RowAccessPolicyReference {
 }
 
 /// Detailed statistics for DML statements
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DmlStatistics {
     /// Output only. Number of deleted Rows. populated by DML DELETE, MERGE and TRUNCATE statements.
     #[serde(default, rename = "deletedRowCount")]
@@ -2864,7 +2865,7 @@ pub struct DmlStatistics {
 }
 
 /// Statistics for the EXPORT DATA statement as part of Query Job. EXTRACT JOB statistics are populated in JobStatistics4.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportDataStatistics {
     /// Number of destination files generated in case of EXPORT DATA statement only.
     #[serde(default, rename = "fileCount")]
@@ -2875,7 +2876,7 @@ pub struct ExportDataStatistics {
 }
 
 /// The external service cost is a portion of the total cost, these costs are not additive with total_bytes_billed. Moreover, this field only track external service costs that will show up as BigQuery costs (e.g. training BigQuery ML job with google cloud CAIP or Automl Tables services), not other costs which may be accrued by running the query (e.g. reading from Bigtable or Cloud Storage). The external service costs with different billing sku (e.g. CAIP job is charged based on VM usage) are converted to BigQuery billed_bytes and slot_ms with equivalent amount of US dollars. Services may not directly correlate to these metrics, but these are the equivalents for billing purposes. Output only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalServiceCost {
     /// The billing method used for the external job. This field, set to SERVICES_SKU, is only used when billing under the services SKU. Otherwise, it is unspecified for backward compatibility.
     #[serde(default, rename = "billingMethod")]
@@ -2898,7 +2899,7 @@ pub struct ExternalServiceCost {
 }
 
 /// GenAi stats for the query job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenAiStats {
     /// Job level error stats across all GenAi functions
     #[serde(default, rename = "errorStats")]
@@ -2909,7 +2910,7 @@ pub struct GenAiStats {
 }
 
 /// Statistics related to Incremental Query Results. Populated as part of JobStatistics2. This feature is not yet available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IncrementalResultStats {
     /// Output only. Reason why incremental query results are/were not written by the query. // TODO: enum values: ["DISABLED_REASON_UNSPECIFIED", "OTHER", "UNSUPPORTED_OPERATOR"]
     #[serde(default, rename = "disabledReason")]
@@ -2935,7 +2936,7 @@ pub struct IncrementalResultStats {
 }
 
 /// Statistics for a LOAD query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadQueryStatistics {
     /// Output only. The number of bad records encountered while processing a LOAD query. Note that if the job has failed because of more bad records encountered than the maximum allowed in the load job configuration, then this number can be less than the total number of bad records present in the input data.
     #[serde(default, rename = "badRecords")]
@@ -2958,7 +2959,7 @@ pub struct LoadQueryStatistics {
 }
 
 /// Statistics of materialized views considered in a query job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaterializedViewStatistics {
     /// Materialized views considered for the query job. Only certain materialized views are used. For a detailed list, see the child message. If many materialized views are considered, then the list might be incomplete.
     #[serde(default, rename = "materializedView")]
@@ -2966,7 +2967,7 @@ pub struct MaterializedViewStatistics {
 }
 
 /// Statistics for metadata caching in queried tables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetadataCacheStatistics {
     /// Set for the Metadata caching eligible tables referenced in the query.
     #[serde(default, rename = "tableMetadataCacheUsage")]
@@ -2975,7 +2976,7 @@ pub struct MetadataCacheStatistics {
 }
 
 /// Job statistics specific to a BigQuery ML training job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MlStatistics {
     /// Output only. Trials of a [hyperparameter tuning job](https://cloud.google.com/bigquery-ml/docs/reference/standard-sql/bigqueryml-syntax-hp-tuning-overview) sorted by trial_id.
     #[serde(default, rename = "hparamTrials")]
@@ -2995,7 +2996,7 @@ pub struct MlStatistics {
 }
 
 /// BigQueryModelTraining resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryModelTraining {
     /// Deprecated.
     #[serde(default, rename = "currentIteration")]
@@ -3006,7 +3007,7 @@ pub struct BigQueryModelTraining {
 }
 
 /// Performance insights for the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerformanceInsights {
     /// Output only. Average execution ms of previous runs. Indicates the job ran slow compared to previous executions. To find previous executions, use INFORMATION_SCHEMA tables and filter jobs with same query hash.
     #[serde(default, rename = "avgPreviousExecutionMs")]
@@ -3022,7 +3023,7 @@ pub struct PerformanceInsights {
 }
 
 /// Query optimization information for a QUERY job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryInfo {
     /// Output only. Information about query optimizations.
     #[serde(default, rename = "optimizationDetails")]
@@ -3030,7 +3031,7 @@ pub struct QueryInfo {
 }
 
 /// A single stage of query execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExplainQueryStage {
     /// Number of parallel input segments completed.
     #[serde(default, rename = "completedParallelInputs")]
@@ -3128,7 +3129,7 @@ pub struct ExplainQueryStage {
 }
 
 /// Id path of a property graph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyGraphReference {
     /// Required. The ID of the dataset containing this property graph.
     #[serde(default, rename = "datasetId")]
@@ -3142,7 +3143,7 @@ pub struct PropertyGraphReference {
 }
 
 /// Schema of a table
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableSchema {
     /// Describes the fields in a table.
     #[serde(default)]
@@ -3153,7 +3154,7 @@ pub struct TableSchema {
 }
 
 /// Statistics for a search query. Populated as part of JobStatistics2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchStatistics {
     /// Search index pruning statistics, one for each base table that has a search index. If a base table does not have a search index or the index does not help with pruning on the base table, then there is no pruning statistics for that table.
     #[serde(default, rename = "indexPruningStats")]
@@ -3167,7 +3168,7 @@ pub struct SearchStatistics {
 }
 
 /// Statistics for a BigSpark query. Populated as part of JobStatistics2
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkStatistics {
     /// Output only. Endpoints returned from Dataproc. Key list: - history_server_endpoint: A link to Spark job UI.
     #[serde(default)]
@@ -3190,7 +3191,7 @@ pub struct SparkStatistics {
 }
 
 /// Summary of the state of query execution at a given time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryTimelineSample {
     /// Total number of active workers. This does not correspond directly to slot usage. This is the largest value observed since the last sample.
     #[serde(default, rename = "activeUnits")]
@@ -3216,7 +3217,7 @@ pub struct QueryTimelineSample {
 }
 
 /// A parameter given to a query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryParameter {
     /// Optional. If unset, this is a positional parameter. Otherwise, should be unique within a query.
     #[serde(default)]
@@ -3230,7 +3231,7 @@ pub struct QueryParameter {
 }
 
 /// Statistics for a vector search query. Populated as part of JobStatistics2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VectorSearchStatistics {
     /// When indexUsageMode is UNUSED or PARTIALLY_USED, this field explains why indexes were not used in all or part of the vector search query. If indexUsageMode is FULLY_USED, this field is not populated.
     #[serde(default, rename = "indexUnusedReasons")]
@@ -3244,7 +3245,7 @@ pub struct VectorSearchStatistics {
 }
 
 /// Represents the location of the statement/expression being evaluated. Line and column numbers are defined as follows: - Line and column numbers start with one. That is, line 1 column 1 denotes the start of the script. - When inside a stored procedure, all line/column numbers are relative to the procedure body, not the script in which the procedure was defined. - Start/end positions exclude leading/trailing comments and whitespace. The end position always ends with a ";", when present. - Multi-byte Unicode characters are treated as just one column. - If the original script (or procedure definition) contains TAB characters, a tab "snaps" the indentation forward to the nearest multiple of 8 characters, plus 1. For example, a TAB on column 1, 2, 3, 4, 5, 6 , or 8 will advance the next character to column 9. A TAB on column 9, 10, 11, 12, 13, 14, 15, or 16 will advance the next character to column 17.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScriptStackFrame {
     /// Output only. One-based end column.
     #[serde(default, rename = "endColumn")]
@@ -3267,7 +3268,7 @@ pub struct ScriptStackFrame {
 }
 
 /// Discrete candidates of an int hyperparameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntCandidates {
     /// Candidates for the int parameter in increasing order.
     #[serde(default)]
@@ -3275,7 +3276,7 @@ pub struct IntCandidates {
 }
 
 /// Range of an int hyperparameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntRange {
     /// Max value of the int parameter.
     #[serde(default)]
@@ -3286,7 +3287,7 @@ pub struct IntRange {
 }
 
 /// Discrete candidates of a double hyperparameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleCandidates {
     /// Candidates for the double parameter in increasing order.
     #[serde(default)]
@@ -3294,7 +3295,7 @@ pub struct DoubleCandidates {
 }
 
 /// Range of a double hyperparameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleRange {
     /// Max value of the double parameter.
     #[serde(default)]
@@ -3305,7 +3306,7 @@ pub struct DoubleRange {
 }
 
 /// An array of int.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntArray {
     /// Elements in the int array.
     #[serde(default)]
@@ -3313,7 +3314,7 @@ pub struct IntArray {
 }
 
 /// Explanation for a single feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Explanation {
     /// Attribution of feature.
     #[serde(default)]
@@ -3324,7 +3325,7 @@ pub struct Explanation {
 }
 
 /// Information related to a Bigtable column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigtableColumn {
     /// Optional. The encoding of the values when the type is not STRING. Acceptable encoding values are: TEXT - indicates values are alphanumeric text strings. BINARY - indicates values are encoded using HBase Bytes.toBytes family of functions. PROTO_BINARY - indicates values are encoded using serialized proto messages. This can only be used in combination with JSON type. ''encoding'' can also be set at the column family level. However, the setting at this level takes precedence if ''encoding'' is set at both levels.
     #[serde(default)]
@@ -3350,7 +3351,7 @@ pub struct BigtableColumn {
 }
 
 /// Provides error statistics for the query job across all AI function calls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenAiErrorStats {
     /// A list of unique errors at query level (up to 5, truncated to 100 chars)
     #[serde(default)]
@@ -3358,7 +3359,7 @@ pub struct GenAiErrorStats {
 }
 
 /// Provides statistics for each Ai function call within a query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenAiFunctionStats {
     /// Cost optimization stats if applied on the rows processed by the function.
     #[serde(default, rename = "costOptimizationStats")]
@@ -3378,7 +3379,7 @@ pub struct GenAiFunctionStats {
 }
 
 /// A materialized view considered for a query job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaterializedView {
     /// Whether the materialized view is chosen for the query. A materialized view can be chosen to rewrite multiple parts of the same query. If a materialized view is chosen to rewrite any part of the query, then this field is true, even if the materialized view was not chosen to rewrite others parts.
     #[serde(default)]
@@ -3395,7 +3396,7 @@ pub struct MaterializedView {
 }
 
 /// Table level detail on the usage of metadata caching. Only set for Metadata caching eligible tables referenced in the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableMetadataCacheUsage {
     /// Free form human-readable reason metadata caching was unused for the job.
     #[serde(default)]
@@ -3418,7 +3419,7 @@ pub struct TableMetadataCacheUsage {
 }
 
 /// Training info of a trial in [hyperparameter tuning](https://cloud.google.com/bigquery-ml/docs/reference/standard-sql/bigqueryml-syntax-hp-tuning-overview) models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HparamTuningTrial {
     /// Ending time of the trial.
     #[serde(default, rename = "endTimeMs")]
@@ -3453,7 +3454,7 @@ pub struct HparamTuningTrial {
 }
 
 /// Information about a single iteration of the training run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IterationResult {
     /// Arima result.
     #[serde(default, rename = "arimaResult")]
@@ -3482,7 +3483,7 @@ pub struct IterationResult {
 }
 
 /// Performance insights compared to the previous executions for a specific stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StagePerformanceChangeInsight {
     /// Output only. Input data change insight of the query stage.
     #[serde(default, rename = "inputDataChange")]
@@ -3493,7 +3494,7 @@ pub struct StagePerformanceChangeInsight {
 }
 
 /// Standalone performance insights for a specific stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StagePerformanceStandaloneInsight {
     /// Output only. If present, the stage had the following reasons for being disqualified from BI Engine execution.
     #[serde(default, rename = "biEngineReasons")]
@@ -3516,7 +3517,7 @@ pub struct StagePerformanceStandaloneInsight {
 }
 
 /// An operation within a stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExplainQueryStep {
     /// Machine-readable operation type.
     #[serde(default)]
@@ -3527,7 +3528,7 @@ pub struct ExplainQueryStep {
 }
 
 /// A field in TableSchema
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableFieldSchema {
     /// Deprecated.
     #[serde(default)]
@@ -3586,7 +3587,7 @@ pub struct TableFieldSchema {
 }
 
 /// Metadata about the foreign data type definition such as the system in which the type is defined.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForeignTypeInfo {
     /// Required. Specifies the system which defines the foreign data type. // TODO: enum values: ["TYPE_SYSTEM_UNSPECIFIED", "HIVE"]
     #[serde(default, rename = "typeSystem")]
@@ -3594,7 +3595,7 @@ pub struct ForeignTypeInfo {
 }
 
 /// Statistics for index pruning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IndexPruningStats {
     /// The base table reference.
     #[serde(default, rename = "baseTable")]
@@ -3611,7 +3612,7 @@ pub struct IndexPruningStats {
 }
 
 /// Spark job logs can be filtered by these fields in Cloud Logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkLoggingInfo {
     /// Output only. Project ID where the Spark logs were written.
     #[serde(default, rename = "projectId")]
@@ -3622,7 +3623,7 @@ pub struct SparkLoggingInfo {
 }
 
 /// The type of a query parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryParameterType {
     /// Optional. The type of the array''s elements, if this is an array.
     #[serde(default, rename = "arrayType")]
@@ -3642,7 +3643,7 @@ pub struct QueryParameterType {
 }
 
 /// Reason about why no search index was used in the search query (or sub-query).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IndexUnusedReason {
     /// Specifies the base table involved in the reason that no search index was used.
     #[serde(default, rename = "baseTable")]
@@ -3659,7 +3660,7 @@ pub struct IndexUnusedReason {
 }
 
 /// Indicates the stored columns usage in the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoredColumnsUsage {
     /// Specifies the base table.
     #[serde(default, rename = "baseTable")]
@@ -3674,7 +3675,7 @@ pub struct StoredColumnsUsage {
 }
 
 /// Information related to a Bigtable protobuf column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigtableProtoConfig {
     /// Optional. The fully qualified proto message name of the protobuf. In the format of "foo.bar.Message".
     #[serde(default, rename = "protoMessageName")]
@@ -3685,7 +3686,7 @@ pub struct BigtableProtoConfig {
 }
 
 /// Provides cost optimization statistics for a GenAi function call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenAiFunctionCostOptimizationStats {
     /// System generated message to provide insights into cost optimization state.
     #[serde(default)]
@@ -3696,7 +3697,7 @@ pub struct GenAiFunctionCostOptimizationStats {
 }
 
 /// Provides error statistics for a GenAi function call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenAiFunctionErrorStats {
     /// A list of unique errors at function level (up to 5, truncated to 100 chars).
     #[serde(default)]
@@ -3707,7 +3708,7 @@ pub struct GenAiFunctionErrorStats {
 }
 
 /// The column metadata index pruning statistics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PruningStats {
     /// The number of parallel inputs matched.
     #[serde(default, rename = "postCmetaPruningParallelInputCount")]
@@ -3721,7 +3722,7 @@ pub struct PruningStats {
 }
 
 /// Evaluation metrics of a model. These are either computed on all training data or just the eval data based on whether eval data was used during training. These are not present for imported models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvaluationMetrics {
     /// Populated for ARIMA models.
     #[serde(default, rename = "arimaForecastingMetrics")]
@@ -3747,7 +3748,7 @@ pub struct EvaluationMetrics {
 }
 
 /// Options used in model training.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrainingOptions {
     /// Activation function of the neural nets.
     #[serde(default, rename = "activationFn")]
@@ -4055,7 +4056,7 @@ pub struct TrainingOptions {
 }
 
 /// (Auto-)arima fitting result. Wrap everything in ArimaResult for easier refactoring if we want to use model-specific iteration results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArimaResult {
     /// This message is repeated because there are multiple arima models fitted in auto-arima. For non-auto-arima model, its size is one.
     #[serde(default, rename = "arimaModelInfo")]
@@ -4066,7 +4067,7 @@ pub struct ArimaResult {
 }
 
 /// Information about a single cluster for clustering model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterInfo {
     /// Centroid id.
     #[serde(default, rename = "centroidId")]
@@ -4080,7 +4081,7 @@ pub struct ClusterInfo {
 }
 
 /// Principal component infos, used only for eigen decomposition based models, e.g., PCA. Ordered by explained_variance in the descending order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrincipalComponentInfo {
     /// The explained_variance is pre-ordered in the descending order to compute the cumulative explained variance ratio.
     #[serde(default, rename = "cumulativeExplainedVarianceRatio")]
@@ -4097,7 +4098,7 @@ pub struct PrincipalComponentInfo {
 }
 
 /// Details about the input data change insight.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputDataChange {
     /// Output only. Records read difference percentage compared to a previous run.
     #[serde(default, rename = "recordsReadDiffPercentage")]
@@ -4105,7 +4106,7 @@ pub struct InputDataChange {
 }
 
 /// Reason why BI Engine didn''t accelerate the query (or sub-query).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BiEngineReason {
     /// Output only. High-level BI Engine reason for partial or disabled acceleration // TODO: enum values: ["CODE_UNSPECIFIED", "NO_RESERVATION", "INSUFFICIENT_RESERVATION", "UNSUPPORTED_SQL_TEXT", "INPUT_TOO_LARGE", "OTHER_REASON", "TABLE_EXCLUDED"]
     #[serde(default)]
@@ -4116,7 +4117,7 @@ pub struct BiEngineReason {
 }
 
 /// High cardinality join detailed information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HighCardinalityJoin {
     /// Output only. Count of left input rows.
     #[serde(default, rename = "leftRows")]
@@ -4133,7 +4134,7 @@ pub struct HighCardinalityJoin {
 }
 
 /// Partition skew detailed information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionSkew {
     /// Output only. Source stages which produce skewed data.
     #[serde(default, rename = "skewSources")]
@@ -4141,7 +4142,7 @@ pub struct PartitionSkew {
 }
 
 /// Data policy option. For more information, see [Mask data by applying data policies to a column](https://docs.cloud.google.com/bigquery/docs/column-data-masking#data-policies-on-column).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataPolicyOption {
     /// Data policy resource name in the form of projects/project_id/locations/location_id/dataPolicies/data_policy_id.
     #[serde(default)]
@@ -4149,7 +4150,7 @@ pub struct DataPolicyOption {
 }
 
 /// Optional. Definition of how values are generated for the field. Only valid for top-level schema fields (not nested fields).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedColumn {
     /// Definition of the expression used to generate the field.
     #[serde(default, rename = "generatedExpressionInfo")]
@@ -4160,7 +4161,7 @@ pub struct GeneratedColumn {
 }
 
 /// TableReference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableReference {
     /// Required. The ID of the dataset containing this table.
     #[serde(default, rename = "datasetId")]
@@ -4174,7 +4175,7 @@ pub struct TableReference {
 }
 
 /// If the stored column was not used, explain why.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoredColumnsUnusedReason {
     /// Specifies the high-level reason for the unused scenario, each reason must have a code associated. // TODO: enum values: ["CODE_UNSPECIFIED", "STORED_COLUMNS_COVER_INSUFFICIENT", "BASE_TABLE_HAS_RLS", "BASE_TABLE_HAS_CLS", "UNSUPPORTED_PREFILTER", "INTERNAL_ERROR", "OTHER_REASON"]
     #[serde(default)]
@@ -4188,7 +4189,7 @@ pub struct StoredColumnsUnusedReason {
 }
 
 /// Model evaluation metrics for ARIMA forecasting models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArimaForecastingMetrics {
     /// Arima model fitting metrics.
     #[serde(default, rename = "arimaFittingMetrics")]
@@ -4212,7 +4213,7 @@ pub struct ArimaForecastingMetrics {
 }
 
 /// Evaluation metrics for binary classification/classifier models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BinaryClassificationMetrics {
     /// Aggregate classification metrics.
     #[serde(default, rename = "aggregateClassificationMetrics")]
@@ -4230,7 +4231,7 @@ pub struct BinaryClassificationMetrics {
 }
 
 /// Evaluation metrics for clustering models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusteringMetrics {
     /// Information for all clusters.
     #[serde(default)]
@@ -4244,7 +4245,7 @@ pub struct ClusteringMetrics {
 }
 
 /// Model evaluation metrics for dimensionality reduction models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionalityReductionMetrics {
     /// Total percentage of variance explained by the selected principal components.
     #[serde(default, rename = "totalExplainedVarianceRatio")]
@@ -4252,7 +4253,7 @@ pub struct DimensionalityReductionMetrics {
 }
 
 /// Evaluation metrics for multi-class classification/classifier models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiClassClassificationMetrics {
     /// Aggregate classification metrics.
     #[serde(default, rename = "aggregateClassificationMetrics")]
@@ -4263,7 +4264,7 @@ pub struct MultiClassClassificationMetrics {
 }
 
 /// Evaluation metrics used by weighted-ALS models specified by feedback_type=implicit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RankingMetrics {
     /// Determines the goodness of a ranking by computing the percentile rank from the predicted confidence and dividing it by the original rank.
     #[serde(default, rename = "averageRank")]
@@ -4280,7 +4281,7 @@ pub struct RankingMetrics {
 }
 
 /// Evaluation metrics for regression and explicit feedback type matrix factorization models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegressionMetrics {
     /// Mean absolute error.
     #[serde(default, rename = "meanAbsoluteError")]
@@ -4300,7 +4301,7 @@ pub struct RegressionMetrics {
 }
 
 /// Arima model information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArimaModelInfo {
     /// Arima coefficients.
     #[serde(default, rename = "arimaCoefficients")]
@@ -4335,7 +4336,7 @@ pub struct ArimaModelInfo {
 }
 
 /// Details about source stages which produce skewed data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkewSource {
     /// Output only. Stage id of the skew source stage.
     #[serde(default, rename = "stageId")]
@@ -4343,7 +4344,7 @@ pub struct SkewSource {
 }
 
 /// Definition of the expression used to generate the field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedExpressionInfo {
     /// Optional. Whether the column generation is done asynchronously.
     #[serde(default)]
@@ -4357,7 +4358,7 @@ pub struct GeneratedExpressionInfo {
 }
 
 /// Model evaluation metrics for a single ARIMA forecasting model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArimaSingleModelForecastingMetrics {
     /// Arima fitting metrics.
     #[serde(default, rename = "arimaFittingMetrics")]
@@ -4389,7 +4390,7 @@ pub struct ArimaSingleModelForecastingMetrics {
 }
 
 /// Confusion matrix for binary classification models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BinaryConfusionMatrix {
     /// The fraction of predictions given the correct label.
     #[serde(default)]
@@ -4421,7 +4422,7 @@ pub struct BinaryConfusionMatrix {
 }
 
 /// Message containing the information about one cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cluster {
     /// Centroid id.
     #[serde(default, rename = "centroidId")]
@@ -4435,7 +4436,7 @@ pub struct Cluster {
 }
 
 /// Aggregate metrics for classification/classifier models. For multi-class models, the metrics are either macro-averaged or micro-averaged. When macro-averaged, the metrics are calculated for each label and then an unweighted average is taken of those values. When micro-averaged, the metric is calculated globally by counting the total number of correctly predicted rows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregateClassificationMetrics {
     /// Accuracy is the fraction of predictions given the correct label. For multiclass this is a micro-averaged metric.
     #[serde(default)]
@@ -4461,7 +4462,7 @@ pub struct AggregateClassificationMetrics {
 }
 
 /// Confusion matrix for multi-class classification models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfusionMatrix {
     /// Confidence threshold used when computing the entries of the confusion matrix.
     #[serde(default, rename = "confidenceThreshold")]
@@ -4472,7 +4473,7 @@ pub struct ConfusionMatrix {
 }
 
 /// Arima coefficients.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArimaCoefficients {
     /// Auto-regressive coefficients, an array of double.
     #[serde(default, rename = "autoRegressiveCoefficients")]
@@ -4486,7 +4487,7 @@ pub struct ArimaCoefficients {
 }
 
 /// ARIMA model fitting metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArimaFittingMetrics {
     /// AIC.
     #[serde(default)]
@@ -4500,7 +4501,7 @@ pub struct ArimaFittingMetrics {
 }
 
 /// Arima order, can be used for both non-seasonal and seasonal parts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArimaOrder {
     /// Order of the differencing part.
     #[serde(default)]
@@ -4514,7 +4515,7 @@ pub struct ArimaOrder {
 }
 
 /// Representative value of a single feature within the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeatureValue {
     /// The categorical feature value.
     #[serde(default, rename = "categoricalValue")]
@@ -4528,7 +4529,7 @@ pub struct FeatureValue {
 }
 
 /// A single row in the confusion matrix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Row {
     /// The original label of this row.
     #[serde(default, rename = "actualLabel")]
@@ -4539,7 +4540,7 @@ pub struct Row {
 }
 
 /// Representative value of a categorical feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CategoricalValue {
     /// Counts of all categories for the categorical feature. If there are more than ten categories, we return top ten (by count) and return one more CategoryCount with category "_OTHER_" and count as aggregate counts of remaining categories.
     #[serde(default, rename = "categoryCounts")]
@@ -4547,7 +4548,7 @@ pub struct CategoricalValue {
 }
 
 /// A single entry in the confusion matrix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entry {
     /// Number of items being predicted as this label.
     #[serde(default, rename = "itemCount")]
@@ -4558,7 +4559,7 @@ pub struct Entry {
 }
 
 /// Represents the count of a single category within the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CategoryCount {
     /// The name of category.
     #[serde(default)]
@@ -4569,7 +4570,7 @@ pub struct CategoryCount {
 }
 
 /// The value of a query parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryParameterValue {
     /// Optional. The array values, if this is an array type.
     #[serde(default, rename = "arrayValues")]
@@ -4586,7 +4587,7 @@ pub struct QueryParameterValue {
 }
 
 /// Represents the value of a range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RangeValue {
     /// Optional. The end value of the range. A missing value represents an unbounded end.
     #[serde(default)]
@@ -4597,7 +4598,7 @@ pub struct RangeValue {
 }
 
 /// The data type of a variable such as a function argument. Examples include: * INT64: {"typeKind": "INT64"} * ARRAY: { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "STRING"} } * STRUCT&gt;: { "typeKind": "STRUCT", "structType": { "fields": [ { "name": "x", "type": {"typeKind": "STRING"} }, { "name": "y", "type": { "typeKind": "ARRAY", "arrayElementType": {"typeKind": "DATE"} } } ] } } * RANGE: { "typeKind": "RANGE", "rangeElementType": {"typeKind": "DATE"} }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandardSqlDataType {
     /// The type of the array''s elements, if type_kind = "ARRAY".
     #[serde(default, rename = "arrayElementType")]
@@ -4614,7 +4615,7 @@ pub struct StandardSqlDataType {
 }
 
 /// A field or a column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandardSqlField {
     /// Optional. The name of this field. Can be absent for struct fields.
     #[serde(default)]
@@ -4625,7 +4626,7 @@ pub struct StandardSqlField {
 }
 
 /// The representation of a SQL STRUCT type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandardSqlStructType {
     /// Fields within the struct.
     #[serde(default)]

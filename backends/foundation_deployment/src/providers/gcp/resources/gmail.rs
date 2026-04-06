@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Auto-forwarding settings for an account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoForwarding {
     /// The state that a message should be left in after it has been forwarded. // TODO: enum values: ["dispositionUnspecified", "leaveInInbox", "archive", "trash", "markRead"]
     #[serde(default)]
@@ -25,7 +26,7 @@ pub struct AutoForwarding {
 }
 
 /// BatchDeleteMessagesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteMessagesRequest {
     /// The IDs of the messages to delete.
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct BatchDeleteMessagesRequest {
 }
 
 /// BatchModifyMessagesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchModifyMessagesRequest {
     /// A list of label IDs to add to messages.
     #[serde(default, rename = "addLabelIds")]
@@ -47,15 +48,15 @@ pub struct BatchModifyMessagesRequest {
 }
 
 /// Requests to turn off a client-side encryption key pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisableCseKeyPairRequest {}
 
 /// Requests to turn on a client-side encryption key pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnableCseKeyPairRequest {}
 
 /// IMAP settings for an account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImapSettings {
     /// If this value is true, Gmail will immediately expunge a message when it is marked as deleted in IMAP. Otherwise, Gmail will wait for an update from the client before expunging messages marked as deleted.
     #[serde(default, rename = "autoExpunge")]
@@ -72,7 +73,7 @@ pub struct ImapSettings {
 }
 
 /// Language settings for an account. These settings correspond to the "Language settings" feature in the web interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageSettings {
     /// The language to display Gmail in, formatted as an RFC 3066 Language Tag (for example en-GB, fr or ja for British English, French, or Japanese respectively). The set of languages supported by Gmail evolves over time, so please refer to the "Language" dropdown in the Gmail settings for all available options, as described in the language settings help article. For a table of sample values, see [Manage language settings](https://developers.google.com/workspace/gmail/api/guides/language-settings). Not all Gmail clients can display the same set of languages. In the case that a user''s display language is not available for use on a particular client, said client automatically chooses to display in the closest supported variant (or a reasonable default).
     #[serde(default, rename = "displayLanguage")]
@@ -80,7 +81,7 @@ pub struct LanguageSettings {
 }
 
 /// ListCseIdentitiesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCseIdentitiesResponse {
     /// One page of the list of CSE identities configured for the user.
     #[serde(default, rename = "cseIdentities")]
@@ -91,7 +92,7 @@ pub struct ListCseIdentitiesResponse {
 }
 
 /// ListCseKeyPairsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCseKeyPairsResponse {
     /// One page of the list of CSE key pairs installed for the user.
     #[serde(default, rename = "cseKeyPairs")]
@@ -102,7 +103,7 @@ pub struct ListCseKeyPairsResponse {
 }
 
 /// Response for the ListDelegates method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDelegatesResponse {
     /// List of the user''s delegates (with any verification status). If an account doesn''t have delegates, this field doesn''t appear.
     #[serde(default)]
@@ -110,7 +111,7 @@ pub struct ListDelegatesResponse {
 }
 
 /// ListDraftsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDraftsResponse {
     /// List of drafts. Note that the Message property in each Draft resource only contains an id and a threadId. The [messages.get](https://developers.google.com/workspace/gmail/api/v1/reference/users/messages/get) method can fetch additional message details.
     #[serde(default)]
@@ -124,7 +125,7 @@ pub struct ListDraftsResponse {
 }
 
 /// Response for the ListFilters method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFiltersResponse {
     /// List of a user''s filters.
     #[serde(default)]
@@ -132,7 +133,7 @@ pub struct ListFiltersResponse {
 }
 
 /// Response for the ListForwardingAddresses method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListForwardingAddressesResponse {
     /// List of addresses that may be used for forwarding.
     #[serde(default, rename = "forwardingAddresses")]
@@ -140,7 +141,7 @@ pub struct ListForwardingAddressesResponse {
 }
 
 /// ListHistoryResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHistoryResponse {
     /// List of history records. Any messages contained in the response will typically only have id and threadId fields populated.
     #[serde(default)]
@@ -154,7 +155,7 @@ pub struct ListHistoryResponse {
 }
 
 /// ListLabelsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLabelsResponse {
     /// List of labels. Note that each label resource only contains an id, name, messageListVisibility, labelListVisibility, and type. The [labels.get](https://developers.google.com/workspace/gmail/api/v1/reference/users/labels/get) method can fetch additional label details.
     #[serde(default)]
@@ -162,7 +163,7 @@ pub struct ListLabelsResponse {
 }
 
 /// ListMessagesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMessagesResponse {
     /// List of messages. Note that each message resource contains only an id and a threadId. Additional message details can be fetched using the messages.get method.
     #[serde(default)]
@@ -176,7 +177,7 @@ pub struct ListMessagesResponse {
 }
 
 /// Response for the ListSendAs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSendAsResponse {
     /// List of send-as aliases.
     #[serde(default, rename = "sendAs")]
@@ -184,7 +185,7 @@ pub struct ListSendAsResponse {
 }
 
 /// ListSmimeInfoResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSmimeInfoResponse {
     /// List of SmimeInfo.
     #[serde(default, rename = "smimeInfo")]
@@ -192,7 +193,7 @@ pub struct ListSmimeInfoResponse {
 }
 
 /// ListThreadsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListThreadsResponse {
     /// Page token to retrieve the next page of results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -206,7 +207,7 @@ pub struct ListThreadsResponse {
 }
 
 /// ModifyMessageRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyMessageRequest {
     /// A list of IDs of labels to add to this message. You can add up to 100 labels with each update.
     #[serde(default, rename = "addLabelIds")]
@@ -217,7 +218,7 @@ pub struct ModifyMessageRequest {
 }
 
 /// ModifyThreadRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyThreadRequest {
     /// A list of IDs of labels to add to this thread. You can add up to 100 labels with each update.
     #[serde(default, rename = "addLabelIds")]
@@ -228,11 +229,11 @@ pub struct ModifyThreadRequest {
 }
 
 /// Request to obliterate a CSE key pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObliterateCseKeyPairRequest {}
 
 /// POP settings for an account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PopSettings {
     /// The range of messages which are accessible via POP. // TODO: enum values: ["accessWindowUnspecified", "disabled", "fromNowOn", "allMail"]
     #[serde(default, rename = "accessWindow")]
@@ -243,7 +244,7 @@ pub struct PopSettings {
 }
 
 /// Profile for a Gmail user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Profile {
     /// The user''s email address.
     #[serde(default, rename = "emailAddress")]
@@ -260,7 +261,7 @@ pub struct Profile {
 }
 
 /// Vacation auto-reply settings for an account. These settings correspond to the "Vacation responder" feature in the web interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VacationSettings {
     /// Flag that controls whether Gmail automatically replies to messages.
     #[serde(default, rename = "enableAutoReply")]
@@ -289,7 +290,7 @@ pub struct VacationSettings {
 }
 
 /// Set up or update a new push notification watch on this user''s mailbox.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WatchRequest {
     /// Filtering behavior of labelIds list specified. This field is deprecated because it caused incorrect behavior in some cases; use label_filter_behavior instead. // TODO: enum values: ["include", "exclude"]
     #[serde(default, rename = "labelFilterAction")]
@@ -306,7 +307,7 @@ pub struct WatchRequest {
 }
 
 /// Push notification watch response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WatchResponse {
     /// When Gmail will stop sending notifications for mailbox updates (epoch millis). Call watch again before this time to renew the watch.
     #[serde(default)]
@@ -317,7 +318,7 @@ pub struct WatchResponse {
 }
 
 /// The client-side encryption (CSE) configuration for the email address of an authenticated user. Gmail uses CSE configurations to save drafts of client-side encrypted email messages, and to sign and send encrypted email messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](https://developers.google.com/identity/protocols/OAuth2ServiceAccount) that has [domain-wide delegation authority](https://developers.google.com/identity/protocols/OAuth2ServiceAccount#delegatingauthority) to impersonate users with the https://www.googleapis.com/auth/gmail.settings.basic scope. For users managing their own identities and keypairs, requests require [hardware key encryption](https://support.google.com/a/answer/14153163) turned on and configured.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CseIdentity {
     /// The email address for the sending identity. The email address must be the primary email address of the authenticated user.
     #[serde(default, rename = "emailAddress")]
@@ -331,7 +332,7 @@ pub struct CseIdentity {
 }
 
 /// A client-side encryption S/MIME key pair, which is comprised of a public key, its certificate chain, and metadata for its paired private key. Gmail uses the key pair to complete the following tasks: - Sign outgoing client-side encrypted messages. - Save and reopen drafts of client-side encrypted messages. - Save and reopen sent messages. - Decrypt incoming or archived S/MIME messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](https://developers.google.com/identity/protocols/OAuth2ServiceAccount) that has [domain-wide delegation authority](https://developers.google.com/identity/protocols/OAuth2ServiceAccount#delegatingauthority) to impersonate users with the https://www.googleapis.com/auth/gmail.settings.basic scope. For users managing their own identities and keypairs, requests require [hardware key encryption](https://support.google.com/a/answer/14153163) turned on and configured.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CseKeyPair {
     /// Output only. If a key pair is set to DISABLED, the time that the key pair''s state changed from ENABLED to DISABLED. This field is present only when the key pair is in state DISABLED.
     #[serde(default, rename = "disableTime")]
@@ -357,7 +358,7 @@ pub struct CseKeyPair {
 }
 
 /// Settings for a delegate. Delegates can read, send, and delete messages, as well as view and add contacts, for the delegator''s account. See "Set up mail delegation" for more information about delegates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Delegate {
     /// The email address of the delegate.
     #[serde(default, rename = "delegateEmail")]
@@ -368,7 +369,7 @@ pub struct Delegate {
 }
 
 /// A draft email in the user''s mailbox.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Draft {
     /// The immutable ID of the draft.
     #[serde(default)]
@@ -379,7 +380,7 @@ pub struct Draft {
 }
 
 /// Resource definition for Gmail filters. Filters apply to specific messages instead of an entire email thread.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Filter {
     /// Action that the filter performs.
     #[serde(default)]
@@ -393,7 +394,7 @@ pub struct Filter {
 }
 
 /// Settings for a forwarding address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardingAddress {
     /// An email address to which messages can be forwarded.
     #[serde(default, rename = "forwardingEmail")]
@@ -404,7 +405,7 @@ pub struct ForwardingAddress {
 }
 
 /// A record of a change to the user''s mailbox. Each history change may affect multiple messages in multiple ways.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct History {
     /// The mailbox sequence ID.
     #[serde(default)]
@@ -427,7 +428,7 @@ pub struct History {
 }
 
 /// Labels are used to categorize messages and threads within the user''s mailbox. The maximum number of labels supported for a user''s mailbox is 10,000.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Label {
     /// The color to assign to the label. Color is only available for labels that have their type set to user.
     #[serde(default)]
@@ -462,7 +463,7 @@ pub struct Label {
 }
 
 /// Settings associated with a send-as alias, which can be either the primary login address associated with the account or a custom "from" address. Send-as aliases correspond to the "Send Mail As" feature in the web interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendAs {
     /// A name that appears in the "From:" header for mail sent using this alias. For custom "from" addresses, when this is empty, Gmail will populate the "From:" header with the name that is used for the primary address associated with the account. If the admin has disabled the ability for users to update their name format, requests to update this field for the primary login will silently fail.
     #[serde(default, rename = "displayName")]
@@ -494,7 +495,7 @@ pub struct SendAs {
 }
 
 /// An S/MIME email config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmimeInfo {
     /// Encrypted key password, when key is encrypted.
     #[serde(default, rename = "encryptedKeyPassword")]
@@ -520,7 +521,7 @@ pub struct SmimeInfo {
 }
 
 /// A collection of messages representing a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Thread {
     /// The ID of the last history record that modified this thread.
     #[serde(default, rename = "historyId")]
@@ -537,7 +538,7 @@ pub struct Thread {
 }
 
 /// The configuration of a CSE identity that uses different key pairs for signing and encryption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignAndEncryptKeyPairs {
     /// The ID of the CseKeyPair that encrypts signed outgoing mail.
     #[serde(default, rename = "encryptionKeyPairId")]
@@ -548,7 +549,7 @@ pub struct SignAndEncryptKeyPairs {
 }
 
 /// Metadata for a private key instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CsePrivateKeyMetadata {
     /// Metadata for hardware keys.
     #[serde(default, rename = "hardwareKeyMetadata")]
@@ -562,7 +563,7 @@ pub struct CsePrivateKeyMetadata {
 }
 
 /// A set of actions to perform on a message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterAction {
     /// List of labels to add to the message.
     #[serde(default, rename = "addLabelIds")]
@@ -576,7 +577,7 @@ pub struct FilterAction {
 }
 
 /// Message matching criteria.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterCriteria {
     /// Whether the response should exclude chats.
     #[serde(default, rename = "excludeChats")]
@@ -608,7 +609,7 @@ pub struct FilterCriteria {
 }
 
 /// HistoryLabelAdded resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HistoryLabelAdded {
     /// Label IDs added to the message.
     #[serde(default, rename = "labelIds")]
@@ -618,7 +619,7 @@ pub struct HistoryLabelAdded {
 }
 
 /// HistoryLabelRemoved resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HistoryLabelRemoved {
     /// Label IDs removed from the message.
     #[serde(default, rename = "labelIds")]
@@ -628,21 +629,21 @@ pub struct HistoryLabelRemoved {
 }
 
 /// HistoryMessageAdded resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HistoryMessageAdded {
     #[serde(default)]
     pub message: ::core::option::Option<Message>,
 }
 
 /// HistoryMessageDeleted resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HistoryMessageDeleted {
     #[serde(default)]
     pub message: ::core::option::Option<Message>,
 }
 
 /// LabelColor resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelColor {
     /// The background color represented as hex string #RRGGBB (ex #000000). This field is required in order to set the color of a label. Only the following predefined set of color values are allowed: \#000000, #434343, #666666, #999999, #cccccc, #efefef, #f3f3f3, #ffffff, \#fb4c2f, #ffad47, #fad165, #16a766, #43d692, #4a86e8, #a479e2, #f691b3, \#f6c5be, #ffe6c7, #fef1d1, #b9e4d0, #c6f3de, #c9daf8, #e4d7f5, #fcdee8, \#efa093, #ffd6a2, #fce8b3, #89d3b2, #a0eac9, #a4c2f4, #d0bcf1, #fbc8d9, \#e66550, #ffbc6b, #fcda83, #44b984, #68dfa9, #6d9eeb, #b694e8, #f7a7c0, \#cc3a21, #eaa041, #f2c960, #149e60, #3dc789, #3c78d8, #8e63ce, #e07798, \#ac2b16, #cf8933, #d5ae49, #0b804b, #2a9c68, #285bac, #653e9b, #b65775, \#822111, #a46a21, #aa8831, #076239, #1a764d, #1c4587, #41236d, #83334c \#464646, #e7e7e7, #0d3472, #b6cff5, #0d3b44, #98d7e4, #3d188e, #e3d7ff, \#711a36, #fbd3e0, #8a1c0a, #f2b2a8, #7a2e0b, #ffc8af, #7a4706, #ffdeb5, \#594c05, #fbe983, #684e07, #fdedc1, #0b4f30, #b3efd3, #04502e, #a2dcc1, \#c2c2c2, #4986e7, #2da2bb, #b99aff, #994a64, #f691b2, #ff7537, #ffad46, \#662e37, #ebdbde, #cca6ac, #094228, #42d692, #16a765
     #[serde(default, rename = "backgroundColor")]
@@ -653,7 +654,7 @@ pub struct LabelColor {
 }
 
 /// Configuration for communication with an SMTP service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmtpMsa {
     /// The hostname of the SMTP service. Required.
     #[serde(default)]
@@ -673,7 +674,7 @@ pub struct SmtpMsa {
 }
 
 /// Metadata for hardware keys. If [hardware key encryption](https://support.google.com/a/answer/14153163) is set up for the Google Workspace organization, users can optionally store their private key on their smart card and use it to sign and decrypt email messages in Gmail by inserting their smart card into a reader attached to their Windows device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HardwareKeyMetadata {
     /// Description about the hardware key.
     #[serde(default)]
@@ -681,7 +682,7 @@ pub struct HardwareKeyMetadata {
 }
 
 /// Metadata for private keys managed by an external key access control list service. For details about managing key access, see [Google Workspace CSE API Reference](https://developers.google.com/workspace/cse/reference).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KaclsKeyMetadata {
     /// Opaque data generated and used by the key access control list service. Maximum size: 8 KiB.
     #[serde(default, rename = "kaclsData")]
@@ -692,7 +693,7 @@ pub struct KaclsKeyMetadata {
 }
 
 /// An email message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Message {
     /// Classification Label values on the message. Available Classification Label schemas can be queried using the Google Drive Labels API. Each classification label ID must be unique. If duplicate IDs are provided, only one will be retained, and the selection is arbitrary. Only used for Google Workspace accounts.
     #[serde(default, rename = "classificationLabelValues")]
@@ -728,7 +729,7 @@ pub struct Message {
 }
 
 /// Classification Labels applied to the email message. Classification Labels are different from Gmail inbox labels. Only used for Google Workspace accounts. [Learn more about classification labels](https://support.google.com/a/answer/9292382).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClassificationLabelValue {
     /// Field values for the given classification label ID.
     #[serde(default)]
@@ -739,7 +740,7 @@ pub struct ClassificationLabelValue {
 }
 
 /// A single MIME message part.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessagePart {
     /// The message part body for this part, which may be empty for container MIME message parts.
     #[serde(default)]
@@ -762,7 +763,7 @@ pub struct MessagePart {
 }
 
 /// Field values for a classification label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClassificationLabelFieldValue {
     /// Required. The field ID for the Classification Label Value. Maps to the ID field of the Google Drive Label.Field object.
     #[serde(default, rename = "fieldId")]
@@ -773,7 +774,7 @@ pub struct ClassificationLabelFieldValue {
 }
 
 /// The body of a single MIME message part.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessagePartBody {
     /// When present, contains the ID of an external attachment that can be retrieved in a separate messages.attachments.get request. When not present, the entire content of the message part body is contained in the data field.
     #[serde(default, rename = "attachmentId")]
@@ -787,7 +788,7 @@ pub struct MessagePartBody {
 }
 
 /// MessagePartHeader resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessagePartHeader {
     /// The name of the header before the : separator. For example, To.
     #[serde(default)]

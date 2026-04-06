@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Video annotation progress. Included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1AnnotateVideoProgress {
     /// Progress metadata for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationProgress")]
@@ -21,7 +22,7 @@ pub struct GoogleCloudVideointelligenceV1AnnotateVideoProgress {
 }
 
 /// Video annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1AnnotateVideoRequest {
     /// Required. Requested video annotation features.
     #[serde(default)]
@@ -44,7 +45,7 @@ pub struct GoogleCloudVideointelligenceV1AnnotateVideoRequest {
 }
 
 /// Video annotation response. Included in the response field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1AnnotateVideoResponse {
     /// Annotation results for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationResults")]
@@ -54,7 +55,7 @@ pub struct GoogleCloudVideointelligenceV1AnnotateVideoResponse {
 }
 
 /// Video annotation progress. Included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2AnnotateVideoProgress {
     /// Progress metadata for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationProgress")]
@@ -64,7 +65,7 @@ pub struct GoogleCloudVideointelligenceV1beta2AnnotateVideoProgress {
 }
 
 /// Video annotation response. Included in the response field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2AnnotateVideoResponse {
     /// Annotation results for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationResults")]
@@ -74,7 +75,7 @@ pub struct GoogleCloudVideointelligenceV1beta2AnnotateVideoResponse {
 }
 
 /// Video annotation progress. Included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1AnnotateVideoProgress {
     /// Progress metadata for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationProgress")]
@@ -84,7 +85,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1AnnotateVideoProgress {
 }
 
 /// Video annotation response. Included in the response field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1AnnotateVideoResponse {
     /// Annotation results for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationResults")]
@@ -94,7 +95,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1AnnotateVideoResponse {
 }
 
 /// Video annotation progress. Included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1AnnotateVideoProgress {
     /// Progress metadata for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationProgress")]
@@ -104,7 +105,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1AnnotateVideoProgress {
 }
 
 /// Video annotation response. Included in the response field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1AnnotateVideoResponse {
     /// Annotation results for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationResults")]
@@ -114,7 +115,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1AnnotateVideoResponse {
 }
 
 /// Video annotation progress. Included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1AnnotateVideoProgress {
     /// Progress metadata for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationProgress")]
@@ -124,7 +125,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1AnnotateVideoProgress {
 }
 
 /// Video annotation response. Included in the response field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1AnnotateVideoResponse {
     /// Annotation results for all videos specified in AnnotateVideoRequest.
     #[serde(default, rename = "annotationResults")]
@@ -134,7 +135,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1AnnotateVideoResponse {
 }
 
 /// StreamingAnnotateVideoResponse is the only message returned to the client by StreamingAnnotateVideo. A series of zero or more StreamingAnnotateVideoResponse messages are streamed back to the client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1StreamingAnnotateVideoResponse {
     /// Streaming annotation results.
     #[serde(default, rename = "annotationResults")]
@@ -150,11 +151,11 @@ pub struct GoogleCloudVideointelligenceV1p3beta1StreamingAnnotateVideoResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -168,11 +169,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Annotation progress for a single video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1VideoAnnotationProgress {
     /// Status of exporting annotation response to user specified output_uri. Only set if output_uri is set in the request.
     #[serde(default, rename = "exportStatus")]
@@ -199,7 +200,7 @@ pub struct GoogleCloudVideointelligenceV1VideoAnnotationProgress {
 }
 
 /// Video context and/or feature-specific parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1VideoContext {
     /// Config for EXPLICIT_CONTENT_DETECTION.
     #[serde(default, rename = "explicitContentDetectionConfig")]
@@ -240,7 +241,7 @@ pub struct GoogleCloudVideointelligenceV1VideoContext {
 }
 
 /// Annotation results for a single video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1VideoAnnotationResults {
     /// If set, indicates an error. Note that for a single AnnotateVideoRequest some videos may succeed and some may fail.
     #[serde(default)]
@@ -314,7 +315,7 @@ pub struct GoogleCloudVideointelligenceV1VideoAnnotationResults {
 }
 
 /// Annotation progress for a single video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2VideoAnnotationProgress {
     /// Status of exporting annotation response to user specified output_uri. Only set if output_uri is set in the request.
     #[serde(default, rename = "exportStatus")]
@@ -341,7 +342,7 @@ pub struct GoogleCloudVideointelligenceV1beta2VideoAnnotationProgress {
 }
 
 /// Annotation results for a single video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2VideoAnnotationResults {
     /// If set, indicates an error. Note that for a single AnnotateVideoRequest some videos may succeed and some may fail.
     #[serde(default)]
@@ -416,7 +417,7 @@ pub struct GoogleCloudVideointelligenceV1beta2VideoAnnotationResults {
 }
 
 /// Annotation progress for a single video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1VideoAnnotationProgress {
     /// Status of exporting annotation response to user specified output_uri. Only set if output_uri is set in the request.
     #[serde(default, rename = "exportStatus")]
@@ -443,7 +444,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1VideoAnnotationProgress {
 }
 
 /// Annotation results for a single video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1VideoAnnotationResults {
     /// If set, indicates an error. Note that for a single AnnotateVideoRequest some videos may succeed and some may fail.
     #[serde(default)]
@@ -525,7 +526,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1VideoAnnotationResults {
 }
 
 /// Annotation progress for a single video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1VideoAnnotationProgress {
     /// Status of exporting annotation response to user specified output_uri. Only set if output_uri is set in the request.
     #[serde(default, rename = "exportStatus")]
@@ -552,7 +553,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1VideoAnnotationProgress {
 }
 
 /// Annotation results for a single video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1VideoAnnotationResults {
     /// If set, indicates an error. Note that for a single AnnotateVideoRequest some videos may succeed and some may fail.
     #[serde(default)]
@@ -634,7 +635,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1VideoAnnotationResults {
 }
 
 /// Annotation progress for a single video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1VideoAnnotationProgress {
     /// Status of exporting annotation response to user specified output_uri. Only set if output_uri is set in the request.
     #[serde(default, rename = "exportStatus")]
@@ -661,7 +662,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1VideoAnnotationProgress {
 }
 
 /// Annotation results for a single video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1VideoAnnotationResults {
     /// Celebrity recognition annotations.
     #[serde(default, rename = "celebrityRecognitionAnnotations")]
@@ -747,7 +748,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1VideoAnnotationResults {
 }
 
 /// Streaming annotation results corresponding to a portion of the video that is currently being processed. Only ONE type of annotation will be specified in the response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults {
     /// Explicit content annotation results.
     #[serde(default, rename = "explicitAnnotation")]
@@ -773,7 +774,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1StreamingVideoAnnotationResults 
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -793,7 +794,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// Status of exporting annotation response to user specified output_uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1ExportToOutputUriStatus {
     /// Output only. State of the output_uri export. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
@@ -804,7 +805,7 @@ pub struct GoogleCloudVideointelligenceV1ExportToOutputUriStatus {
 }
 
 /// Config for EXPLICIT_CONTENT_DETECTION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1ExplicitContentDetectionConfig {
     /// Model to use for explicit content detection. Supported values: "builtin/stable" (the default if unset) and "builtin/latest".
     #[serde(default)]
@@ -812,7 +813,7 @@ pub struct GoogleCloudVideointelligenceV1ExplicitContentDetectionConfig {
 }
 
 /// Config for FACE_DETECTION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1FaceDetectionConfig {
     /// Whether to enable face attributes detection, such as glasses, dark_glasses, mouth_open etc. Ignored if ''include_bounding_boxes'' is set to false.
     #[serde(default, rename = "includeAttributes")]
@@ -826,7 +827,7 @@ pub struct GoogleCloudVideointelligenceV1FaceDetectionConfig {
 }
 
 /// Config for LABEL_DETECTION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1LabelDetectionConfig {
     /// The confidence threshold we perform filtering on the labels from frame-level detection. If not set, it is set to 0.4 by default. The valid range for this threshold is [0.1, 0.9]. Any value set outside of this range will be clipped. Note: For best results, follow the default threshold. We will update the default threshold everytime when we release a new model.
     #[serde(default, rename = "frameConfidenceThreshold")]
@@ -846,7 +847,7 @@ pub struct GoogleCloudVideointelligenceV1LabelDetectionConfig {
 }
 
 /// Config for OBJECT_TRACKING.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1ObjectTrackingConfig {
     /// Model to use for object tracking. Supported values: "builtin/stable" (the default if unset) and "builtin/latest".
     #[serde(default)]
@@ -854,7 +855,7 @@ pub struct GoogleCloudVideointelligenceV1ObjectTrackingConfig {
 }
 
 /// Config for PERSON_DETECTION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1PersonDetectionConfig {
     /// Whether to enable person attributes detection, such as cloth color (black, blue, etc), type (coat, dress, etc), pattern (plain, floral, etc), hair, etc. Ignored if ''include_bounding_boxes'' is set to false.
     #[serde(default, rename = "includeAttributes")]
@@ -868,7 +869,7 @@ pub struct GoogleCloudVideointelligenceV1PersonDetectionConfig {
 }
 
 /// Config for SHOT_CHANGE_DETECTION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1ShotChangeDetectionConfig {
     /// Model to use for shot change detection. Supported values: "builtin/stable" (the default if unset), "builtin/latest", and "builtin/legacy".
     #[serde(default)]
@@ -876,7 +877,7 @@ pub struct GoogleCloudVideointelligenceV1ShotChangeDetectionConfig {
 }
 
 /// Config for SPEECH_TRANSCRIPTION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1SpeechTranscriptionConfig {
     /// Optional. Legacy field. This field must be a Cloud Storage URI prefix. (e.g., gs://bucket/path/).
     #[serde(default, rename = "audioOutputUriPrefix")]
@@ -912,7 +913,7 @@ pub struct GoogleCloudVideointelligenceV1SpeechTranscriptionConfig {
 }
 
 /// Config for TEXT_DETECTION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1TextDetectionConfig {
     /// Language hint can be specified if the language to be detected is known a priori. It can increase the accuracy of the detection. Language hint must be language code in BCP-47 format. Automatic language detection is performed if no hint is provided.
     #[serde(default, rename = "languageHints")]
@@ -923,7 +924,7 @@ pub struct GoogleCloudVideointelligenceV1TextDetectionConfig {
 }
 
 /// Explicit content annotation (based on per-frame visual signals only). If no explicit content has been detected in a frame, no annotations are present for that frame.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1ExplicitContentAnnotation {
     /// All video frames where explicit content was detected.
     #[serde(default)]
@@ -935,7 +936,7 @@ pub struct GoogleCloudVideointelligenceV1ExplicitContentAnnotation {
 }
 
 /// Deprecated. No effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1FaceAnnotation {
     /// All video frames where a face was detected.
     #[serde(default)]
@@ -950,7 +951,7 @@ pub struct GoogleCloudVideointelligenceV1FaceAnnotation {
 }
 
 /// Face detection annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1FaceDetectionAnnotation {
     /// The thumbnail of a person''s face.
     #[serde(default)]
@@ -964,7 +965,7 @@ pub struct GoogleCloudVideointelligenceV1FaceDetectionAnnotation {
 }
 
 /// Label annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1LabelAnnotation {
     /// Common categories for the detected entity. For example, when the label is Terrier, the category is likely dog. And in some cases there might be more than one categories e.g., Terrier could also be a pet.
     #[serde(default, rename = "categoryEntities")]
@@ -986,7 +987,7 @@ pub struct GoogleCloudVideointelligenceV1LabelAnnotation {
 }
 
 /// Annotation corresponding to one detected, tracked and recognized logo class.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1LogoRecognitionAnnotation {
     /// Entity category information to specify the logo class that all the logo tracks within this LogoRecognitionAnnotation are recognized as.
     #[serde(default)]
@@ -1001,7 +1002,7 @@ pub struct GoogleCloudVideointelligenceV1LogoRecognitionAnnotation {
 }
 
 /// Annotations corresponding to one tracked object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1ObjectTrackingAnnotation {
     /// Object category''s labeling confidence of this track.
     #[serde(default)]
@@ -1025,7 +1026,7 @@ pub struct GoogleCloudVideointelligenceV1ObjectTrackingAnnotation {
 }
 
 /// Person detection annotation per video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1PersonDetectionAnnotation {
     /// The detected tracks of a person.
     #[serde(default)]
@@ -1036,7 +1037,7 @@ pub struct GoogleCloudVideointelligenceV1PersonDetectionAnnotation {
 }
 
 /// A speech recognition result corresponding to a portion of the audio.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1SpeechTranscription {
     /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
     #[serde(default)]
@@ -1049,7 +1050,7 @@ pub struct GoogleCloudVideointelligenceV1SpeechTranscription {
 }
 
 /// Annotations related to one detected OCR text snippet. This will contain the corresponding text, confidence value, and frame level information for each detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1TextAnnotation {
     /// All video segments where OCR detected text appears.
     #[serde(default)]
@@ -1064,7 +1065,7 @@ pub struct GoogleCloudVideointelligenceV1TextAnnotation {
 }
 
 /// Status of exporting annotation response to user specified output_uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2ExportToOutputUriStatus {
     /// Output only. State of the output_uri export. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
@@ -1075,7 +1076,7 @@ pub struct GoogleCloudVideointelligenceV1beta2ExportToOutputUriStatus {
 }
 
 /// Explicit content annotation (based on per-frame visual signals only). If no explicit content has been detected in a frame, no annotations are present for that frame.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2ExplicitContentAnnotation {
     /// All video frames where explicit content was detected.
     #[serde(default)]
@@ -1088,7 +1089,7 @@ pub struct GoogleCloudVideointelligenceV1beta2ExplicitContentAnnotation {
 }
 
 /// Deprecated. No effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2FaceAnnotation {
     /// All video frames where a face was detected.
     #[serde(default)]
@@ -1104,7 +1105,7 @@ pub struct GoogleCloudVideointelligenceV1beta2FaceAnnotation {
 }
 
 /// Face detection annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2FaceDetectionAnnotation {
     /// The thumbnail of a person''s face.
     #[serde(default)]
@@ -1118,7 +1119,7 @@ pub struct GoogleCloudVideointelligenceV1beta2FaceDetectionAnnotation {
 }
 
 /// Label annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2LabelAnnotation {
     /// Common categories for the detected entity. For example, when the label is Terrier, the category is likely dog. And in some cases there might be more than one categories e.g., Terrier could also be a pet.
     #[serde(default, rename = "categoryEntities")]
@@ -1141,7 +1142,7 @@ pub struct GoogleCloudVideointelligenceV1beta2LabelAnnotation {
 }
 
 /// Annotation corresponding to one detected, tracked and recognized logo class.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2LogoRecognitionAnnotation {
     /// Entity category information to specify the logo class that all the logo tracks within this LogoRecognitionAnnotation are recognized as.
     #[serde(default)]
@@ -1156,7 +1157,7 @@ pub struct GoogleCloudVideointelligenceV1beta2LogoRecognitionAnnotation {
 }
 
 /// Annotations corresponding to one tracked object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2ObjectTrackingAnnotation {
     /// Object category''s labeling confidence of this track.
     #[serde(default)]
@@ -1181,7 +1182,7 @@ pub struct GoogleCloudVideointelligenceV1beta2ObjectTrackingAnnotation {
 }
 
 /// Person detection annotation per video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2PersonDetectionAnnotation {
     /// The detected tracks of a person.
     #[serde(default)]
@@ -1192,7 +1193,7 @@ pub struct GoogleCloudVideointelligenceV1beta2PersonDetectionAnnotation {
 }
 
 /// A speech recognition result corresponding to a portion of the audio.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2SpeechTranscription {
     /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
     #[serde(default)]
@@ -1205,7 +1206,7 @@ pub struct GoogleCloudVideointelligenceV1beta2SpeechTranscription {
 }
 
 /// Annotations related to one detected OCR text snippet. This will contain the corresponding text, confidence value, and frame level information for each detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2TextAnnotation {
     /// All video segments where OCR detected text appears.
     #[serde(default)]
@@ -1220,7 +1221,7 @@ pub struct GoogleCloudVideointelligenceV1beta2TextAnnotation {
 }
 
 /// Status of exporting annotation response to user specified output_uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1ExportToOutputUriStatus {
     /// Output only. State of the output_uri export. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
@@ -1231,7 +1232,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1ExportToOutputUriStatus {
 }
 
 /// Explicit content annotation (based on per-frame visual signals only). If no explicit content has been detected in a frame, no annotations are present for that frame.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1ExplicitContentAnnotation {
     /// All video frames where explicit content was detected.
     #[serde(default)]
@@ -1244,7 +1245,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1ExplicitContentAnnotation {
 }
 
 /// Deprecated. No effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1FaceAnnotation {
     /// All video frames where a face was detected.
     #[serde(default)]
@@ -1260,7 +1261,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1FaceAnnotation {
 }
 
 /// Face detection annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1FaceDetectionAnnotation {
     /// The thumbnail of a person''s face.
     #[serde(default)]
@@ -1274,7 +1275,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1FaceDetectionAnnotation {
 }
 
 /// Label annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1LabelAnnotation {
     /// Common categories for the detected entity. For example, when the label is Terrier, the category is likely dog. And in some cases there might be more than one categories e.g., Terrier could also be a pet.
     #[serde(default, rename = "categoryEntities")]
@@ -1297,7 +1298,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1LabelAnnotation {
 }
 
 /// Annotation corresponding to one detected, tracked and recognized logo class.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1LogoRecognitionAnnotation {
     /// Entity category information to specify the logo class that all the logo tracks within this LogoRecognitionAnnotation are recognized as.
     #[serde(default)]
@@ -1312,7 +1313,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1LogoRecognitionAnnotation {
 }
 
 /// Annotations corresponding to one tracked object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1ObjectTrackingAnnotation {
     /// Object category''s labeling confidence of this track.
     #[serde(default)]
@@ -1337,7 +1338,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1ObjectTrackingAnnotation {
 }
 
 /// Person detection annotation per video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1PersonDetectionAnnotation {
     /// The detected tracks of a person.
     #[serde(default)]
@@ -1348,7 +1349,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1PersonDetectionAnnotation {
 }
 
 /// A speech recognition result corresponding to a portion of the audio.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1SpeechTranscription {
     /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
     #[serde(default)]
@@ -1361,7 +1362,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1SpeechTranscription {
 }
 
 /// Annotations related to one detected OCR text snippet. This will contain the corresponding text, confidence value, and frame level information for each detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1TextAnnotation {
     /// All video segments where OCR detected text appears.
     #[serde(default)]
@@ -1376,7 +1377,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1TextAnnotation {
 }
 
 /// Status of exporting annotation response to user specified output_uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1ExportToOutputUriStatus {
     /// Output only. State of the output_uri export. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
@@ -1387,7 +1388,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1ExportToOutputUriStatus {
 }
 
 /// Explicit content annotation (based on per-frame visual signals only). If no explicit content has been detected in a frame, no annotations are present for that frame.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1ExplicitContentAnnotation {
     /// All video frames where explicit content was detected.
     #[serde(default)]
@@ -1400,7 +1401,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1ExplicitContentAnnotation {
 }
 
 /// Deprecated. No effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1FaceAnnotation {
     /// All video frames where a face was detected.
     #[serde(default)]
@@ -1416,7 +1417,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1FaceAnnotation {
 }
 
 /// Face detection annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1FaceDetectionAnnotation {
     /// The thumbnail of a person''s face.
     #[serde(default)]
@@ -1430,7 +1431,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1FaceDetectionAnnotation {
 }
 
 /// Label annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1LabelAnnotation {
     /// Common categories for the detected entity. For example, when the label is Terrier, the category is likely dog. And in some cases there might be more than one categories e.g., Terrier could also be a pet.
     #[serde(default, rename = "categoryEntities")]
@@ -1453,7 +1454,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1LabelAnnotation {
 }
 
 /// Annotation corresponding to one detected, tracked and recognized logo class.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1LogoRecognitionAnnotation {
     /// Entity category information to specify the logo class that all the logo tracks within this LogoRecognitionAnnotation are recognized as.
     #[serde(default)]
@@ -1468,7 +1469,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1LogoRecognitionAnnotation {
 }
 
 /// Annotations corresponding to one tracked object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1ObjectTrackingAnnotation {
     /// Object category''s labeling confidence of this track.
     #[serde(default)]
@@ -1493,7 +1494,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1ObjectTrackingAnnotation {
 }
 
 /// Person detection annotation per video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1PersonDetectionAnnotation {
     /// The detected tracks of a person.
     #[serde(default)]
@@ -1504,7 +1505,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1PersonDetectionAnnotation {
 }
 
 /// A speech recognition result corresponding to a portion of the audio.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1SpeechTranscription {
     /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
     #[serde(default)]
@@ -1517,7 +1518,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1SpeechTranscription {
 }
 
 /// Annotations related to one detected OCR text snippet. This will contain the corresponding text, confidence value, and frame level information for each detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1TextAnnotation {
     /// All video segments where OCR detected text appears.
     #[serde(default)]
@@ -1532,7 +1533,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1TextAnnotation {
 }
 
 /// Status of exporting annotation response to user specified output_uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1ExportToOutputUriStatus {
     /// Output only. State of the output_uri export. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
@@ -1543,7 +1544,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1ExportToOutputUriStatus {
 }
 
 /// Celebrity recognition annotation per video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1CelebrityRecognitionAnnotation {
     /// The tracks detected from the input video, including recognized celebrities and other detected faces in the video.
     #[serde(default, rename = "celebrityTracks")]
@@ -1556,7 +1557,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1CelebrityRecognitionAnnotation {
 }
 
 /// Deprecated. No effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1FaceAnnotation {
     /// All video frames where a face was detected.
     #[serde(default)]
@@ -1572,7 +1573,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1FaceAnnotation {
 }
 
 /// Face detection annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1FaceDetectionAnnotation {
     /// The thumbnail of a person''s face.
     #[serde(default)]
@@ -1586,7 +1587,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1FaceDetectionAnnotation {
 }
 
 /// Annotation corresponding to one detected, tracked and recognized logo class.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1LogoRecognitionAnnotation {
     /// Entity category information to specify the logo class that all the logo tracks within this LogoRecognitionAnnotation are recognized as.
     #[serde(default)]
@@ -1601,7 +1602,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1LogoRecognitionAnnotation {
 }
 
 /// Person detection annotation per video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1PersonDetectionAnnotation {
     /// The detected tracks of a person.
     #[serde(default)]
@@ -1612,7 +1613,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1PersonDetectionAnnotation {
 }
 
 /// A speech recognition result corresponding to a portion of the audio.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1SpeechTranscription {
     /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
     #[serde(default)]
@@ -1625,7 +1626,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1SpeechTranscription {
 }
 
 /// Annotations related to one detected OCR text snippet. This will contain the corresponding text, confidence value, and frame level information for each detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1TextAnnotation {
     /// All video segments where OCR detected text appears.
     #[serde(default)]
@@ -1640,7 +1641,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1TextAnnotation {
 }
 
 /// Explicit content annotation (based on per-frame visual signals only). If no explicit content has been detected in a frame, no annotations are present for that frame.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation {
     /// All video frames where explicit content was detected.
     #[serde(default)]
@@ -1653,7 +1654,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1ExplicitContentAnnotation {
 }
 
 /// Label annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1LabelAnnotation {
     /// Common categories for the detected entity. For example, when the label is Terrier, the category is likely dog. And in some cases there might be more than one categories e.g., Terrier could also be a pet.
     #[serde(default, rename = "categoryEntities")]
@@ -1676,7 +1677,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1LabelAnnotation {
 }
 
 /// Annotations corresponding to one tracked object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1ObjectTrackingAnnotation {
     /// Object category''s labeling confidence of this track.
     #[serde(default)]
@@ -1701,7 +1702,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1ObjectTrackingAnnotation {
 }
 
 /// Provides "hints" to the speech recognizer to favor specific words and phrases in the results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1SpeechContext {
     /// Optional. A list of strings containing words and phrases "hints" so that the speech recognition is more likely to recognize them. This can be used to improve the accuracy for specific words and phrases, for example, if specific commands are typically spoken by the user. This can also be used to add additional words to the vocabulary of the recognizer. See [usage limits](https://cloud.google.com/speech/limits#content).
     #[serde(default)]
@@ -1709,7 +1710,7 @@ pub struct GoogleCloudVideointelligenceV1SpeechContext {
 }
 
 /// Video frame level annotation results for explicit content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1ExplicitContentFrame {
     /// Likelihood of the pornography content.. // TODO: enum values: ["LIKELIHOOD_UNSPECIFIED", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "pornographyLikelihood")]
@@ -1720,7 +1721,7 @@ pub struct GoogleCloudVideointelligenceV1ExplicitContentFrame {
 }
 
 /// Deprecated. No effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1FaceFrame {
     /// Normalized Bounding boxes in a frame. There can be more than one boxes if the same face is detected in multiple locations within the current frame.
     #[serde(default, rename = "normalizedBoundingBoxes")]
@@ -1733,7 +1734,7 @@ pub struct GoogleCloudVideointelligenceV1FaceFrame {
 }
 
 /// Video segment level annotation results for face detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1FaceSegment {
     /// Video segment where a face was detected.
     #[serde(default)]
@@ -1741,7 +1742,7 @@ pub struct GoogleCloudVideointelligenceV1FaceSegment {
 }
 
 /// Video frame level annotation results for label detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1LabelFrame {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
@@ -1752,7 +1753,7 @@ pub struct GoogleCloudVideointelligenceV1LabelFrame {
 }
 
 /// Video segment level annotation results for label detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1LabelSegment {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
@@ -1763,7 +1764,7 @@ pub struct GoogleCloudVideointelligenceV1LabelSegment {
 }
 
 /// Detected entity from video analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1Entity {
     /// Textual description, e.g., Fixed-gear bicycle.
     #[serde(default)]
@@ -1777,7 +1778,7 @@ pub struct GoogleCloudVideointelligenceV1Entity {
 }
 
 /// Video frame level annotations for object detection and tracking. This field stores per frame location, time offset, and confidence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1ObjectTrackingFrame {
     /// The normalized bounding box location of this object track for the frame.
     #[serde(default, rename = "normalizedBoundingBox")]
@@ -1789,7 +1790,7 @@ pub struct GoogleCloudVideointelligenceV1ObjectTrackingFrame {
 }
 
 /// A track of an object instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1Track {
     /// Optional. Attributes in the track level.
     #[serde(default)]
@@ -1808,7 +1809,7 @@ pub struct GoogleCloudVideointelligenceV1Track {
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1SpeechRecognitionAlternative {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -1822,7 +1823,7 @@ pub struct GoogleCloudVideointelligenceV1SpeechRecognitionAlternative {
 }
 
 /// Video segment level annotation results for text detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1TextSegment {
     /// Confidence for the track of detected text. It is calculated as the highest over all frames where OCR detected text appears.
     #[serde(default)]
@@ -1836,7 +1837,7 @@ pub struct GoogleCloudVideointelligenceV1TextSegment {
 }
 
 /// Video frame level annotation results for explicit content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2ExplicitContentFrame {
     /// Likelihood of the pornography content.. // TODO: enum values: ["LIKELIHOOD_UNSPECIFIED", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "pornographyLikelihood")]
@@ -1847,7 +1848,7 @@ pub struct GoogleCloudVideointelligenceV1beta2ExplicitContentFrame {
 }
 
 /// Deprecated. No effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2FaceFrame {
     /// Normalized Bounding boxes in a frame. There can be more than one boxes if the same face is detected in multiple locations within the current frame.
     #[serde(default, rename = "normalizedBoundingBoxes")]
@@ -1860,7 +1861,7 @@ pub struct GoogleCloudVideointelligenceV1beta2FaceFrame {
 }
 
 /// Video segment level annotation results for face detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2FaceSegment {
     /// Video segment where a face was detected.
     #[serde(default)]
@@ -1868,7 +1869,7 @@ pub struct GoogleCloudVideointelligenceV1beta2FaceSegment {
 }
 
 /// Video frame level annotation results for label detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2LabelFrame {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
@@ -1879,7 +1880,7 @@ pub struct GoogleCloudVideointelligenceV1beta2LabelFrame {
 }
 
 /// Video segment level annotation results for label detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2LabelSegment {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
@@ -1890,7 +1891,7 @@ pub struct GoogleCloudVideointelligenceV1beta2LabelSegment {
 }
 
 /// Detected entity from video analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2Entity {
     /// Textual description, e.g., Fixed-gear bicycle.
     #[serde(default)]
@@ -1904,7 +1905,7 @@ pub struct GoogleCloudVideointelligenceV1beta2Entity {
 }
 
 /// Video frame level annotations for object detection and tracking. This field stores per frame location, time offset, and confidence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2ObjectTrackingFrame {
     /// The normalized bounding box location of this object track for the frame.
     #[serde(default, rename = "normalizedBoundingBox")]
@@ -1916,7 +1917,7 @@ pub struct GoogleCloudVideointelligenceV1beta2ObjectTrackingFrame {
 }
 
 /// A track of an object instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2Track {
     /// Optional. Attributes in the track level.
     #[serde(default)]
@@ -1937,7 +1938,7 @@ pub struct GoogleCloudVideointelligenceV1beta2Track {
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2SpeechRecognitionAlternative {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -1951,7 +1952,7 @@ pub struct GoogleCloudVideointelligenceV1beta2SpeechRecognitionAlternative {
 }
 
 /// Video segment level annotation results for text detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2TextSegment {
     /// Confidence for the track of detected text. It is calculated as the highest over all frames where OCR detected text appears.
     #[serde(default)]
@@ -1966,7 +1967,7 @@ pub struct GoogleCloudVideointelligenceV1beta2TextSegment {
 }
 
 /// Video frame level annotation results for explicit content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1ExplicitContentFrame {
     /// Likelihood of the pornography content.. // TODO: enum values: ["LIKELIHOOD_UNSPECIFIED", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "pornographyLikelihood")]
@@ -1977,7 +1978,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1ExplicitContentFrame {
 }
 
 /// Deprecated. No effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1FaceFrame {
     /// Normalized Bounding boxes in a frame. There can be more than one boxes if the same face is detected in multiple locations within the current frame.
     #[serde(default, rename = "normalizedBoundingBoxes")]
@@ -1990,7 +1991,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1FaceFrame {
 }
 
 /// Video segment level annotation results for face detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1FaceSegment {
     /// Video segment where a face was detected.
     #[serde(default)]
@@ -1998,7 +1999,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1FaceSegment {
 }
 
 /// Video frame level annotation results for label detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1LabelFrame {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
@@ -2009,7 +2010,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1LabelFrame {
 }
 
 /// Video segment level annotation results for label detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1LabelSegment {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
@@ -2020,7 +2021,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1LabelSegment {
 }
 
 /// Detected entity from video analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1Entity {
     /// Textual description, e.g., Fixed-gear bicycle.
     #[serde(default)]
@@ -2034,7 +2035,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1Entity {
 }
 
 /// Video frame level annotations for object detection and tracking. This field stores per frame location, time offset, and confidence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1ObjectTrackingFrame {
     /// The normalized bounding box location of this object track for the frame.
     #[serde(default, rename = "normalizedBoundingBox")]
@@ -2046,7 +2047,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1ObjectTrackingFrame {
 }
 
 /// A track of an object instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1Track {
     /// Optional. Attributes in the track level.
     #[serde(default)]
@@ -2067,7 +2068,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1Track {
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1SpeechRecognitionAlternative {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -2082,7 +2083,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1SpeechRecognitionAlternative {
 }
 
 /// Video segment level annotation results for text detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1TextSegment {
     /// Confidence for the track of detected text. It is calculated as the highest over all frames where OCR detected text appears.
     #[serde(default)]
@@ -2097,7 +2098,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1TextSegment {
 }
 
 /// Video frame level annotation results for explicit content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1ExplicitContentFrame {
     /// Likelihood of the pornography content.. // TODO: enum values: ["LIKELIHOOD_UNSPECIFIED", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "pornographyLikelihood")]
@@ -2108,7 +2109,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1ExplicitContentFrame {
 }
 
 /// Deprecated. No effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1FaceFrame {
     /// Normalized Bounding boxes in a frame. There can be more than one boxes if the same face is detected in multiple locations within the current frame.
     #[serde(default, rename = "normalizedBoundingBoxes")]
@@ -2121,7 +2122,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1FaceFrame {
 }
 
 /// Video segment level annotation results for face detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1FaceSegment {
     /// Video segment where a face was detected.
     #[serde(default)]
@@ -2129,7 +2130,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1FaceSegment {
 }
 
 /// Video frame level annotation results for label detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1LabelFrame {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
@@ -2140,7 +2141,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1LabelFrame {
 }
 
 /// Video segment level annotation results for label detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1LabelSegment {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
@@ -2151,7 +2152,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1LabelSegment {
 }
 
 /// Detected entity from video analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1Entity {
     /// Textual description, e.g., Fixed-gear bicycle.
     #[serde(default)]
@@ -2165,7 +2166,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1Entity {
 }
 
 /// Video frame level annotations for object detection and tracking. This field stores per frame location, time offset, and confidence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1ObjectTrackingFrame {
     /// The normalized bounding box location of this object track for the frame.
     #[serde(default, rename = "normalizedBoundingBox")]
@@ -2177,7 +2178,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1ObjectTrackingFrame {
 }
 
 /// A track of an object instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1Track {
     /// Optional. Attributes in the track level.
     #[serde(default)]
@@ -2198,7 +2199,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1Track {
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1SpeechRecognitionAlternative {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -2213,7 +2214,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1SpeechRecognitionAlternative {
 }
 
 /// Video segment level annotation results for text detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1TextSegment {
     /// Confidence for the track of detected text. It is calculated as the highest over all frames where OCR detected text appears.
     #[serde(default)]
@@ -2228,7 +2229,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1TextSegment {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2242,7 +2243,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// The annotation result of a celebrity face track. RecognizedCelebrity field could be empty if the face track does not have any matched celebrities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1CelebrityTrack {
     /// Top N match of the celebrities for the face in this track.
     #[serde(default)]
@@ -2255,7 +2256,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1CelebrityTrack {
 }
 
 /// Deprecated. No effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1FaceFrame {
     /// Normalized Bounding boxes in a frame. There can be more than one boxes if the same face is detected in multiple locations within the current frame.
     #[serde(default, rename = "normalizedBoundingBoxes")]
@@ -2268,7 +2269,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1FaceFrame {
 }
 
 /// Video segment level annotation results for face detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1FaceSegment {
     /// Video segment where a face was detected.
     #[serde(default)]
@@ -2276,7 +2277,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1FaceSegment {
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1SpeechRecognitionAlternative {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -2291,7 +2292,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1SpeechRecognitionAlternative {
 }
 
 /// Video segment level annotation results for text detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1TextSegment {
     /// Confidence for the track of detected text. It is calculated as the highest over all frames where OCR detected text appears.
     #[serde(default)]
@@ -2306,7 +2307,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1TextSegment {
 }
 
 /// Video frame level annotation results for explicit content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1ExplicitContentFrame {
     /// Likelihood of the pornography content.. // TODO: enum values: ["LIKELIHOOD_UNSPECIFIED", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "pornographyLikelihood")]
@@ -2317,7 +2318,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1ExplicitContentFrame {
 }
 
 /// Video frame level annotation results for label detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1LabelFrame {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
@@ -2328,7 +2329,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1LabelFrame {
 }
 
 /// Video segment level annotation results for label detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1LabelSegment {
     /// Confidence that the label is accurate. Range: [0, 1].
     #[serde(default)]
@@ -2339,7 +2340,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1LabelSegment {
 }
 
 /// Detected entity from video analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1Entity {
     /// Textual description, e.g., Fixed-gear bicycle.
     #[serde(default)]
@@ -2353,7 +2354,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1Entity {
 }
 
 /// Video frame level annotations for object detection and tracking. This field stores per frame location, time offset, and confidence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1ObjectTrackingFrame {
     /// The normalized bounding box location of this object track for the frame.
     #[serde(default, rename = "normalizedBoundingBox")]
@@ -2365,7 +2366,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1ObjectTrackingFrame {
 }
 
 /// For tracking related features. An object at time_offset with attributes, and located with normalized_bounding_box.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1TimestampedObject {
     /// Optional. The attributes of the object in the bounding box.
     #[serde(default)]
@@ -2385,7 +2386,7 @@ pub struct GoogleCloudVideointelligenceV1TimestampedObject {
 }
 
 /// Word-specific information for recognized words. Word information is only included in the response when certain request parameters are set, such as enable_word_time_offsets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1WordInfo {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -2408,7 +2409,7 @@ pub struct GoogleCloudVideointelligenceV1WordInfo {
 }
 
 /// Video frame level annotation results for text annotation (OCR). Contains information regarding timestamp and bounding box locations for the frames containing detected OCR text snippets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1TextFrame {
     /// Bounding polygon of the detected text for this frame.
     #[serde(default, rename = "rotatedBoundingBox")]
@@ -2420,7 +2421,7 @@ pub struct GoogleCloudVideointelligenceV1TextFrame {
 }
 
 /// Video segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1VideoSegment {
     /// Time-offset, relative to the beginning of the video, corresponding to the end of the segment (inclusive).
     #[serde(default, rename = "endTimeOffset")]
@@ -2431,7 +2432,7 @@ pub struct GoogleCloudVideointelligenceV1VideoSegment {
 }
 
 /// For tracking related features. An object at time_offset with attributes, and located with normalized_bounding_box.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2TimestampedObject {
     /// Optional. The attributes of the object in the bounding box.
     #[serde(default)]
@@ -2453,7 +2454,7 @@ pub struct GoogleCloudVideointelligenceV1beta2TimestampedObject {
 }
 
 /// Word-specific information for recognized words. Word information is only included in the response when certain request parameters are set, such as enable_word_time_offsets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2WordInfo {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -2476,7 +2477,7 @@ pub struct GoogleCloudVideointelligenceV1beta2WordInfo {
 }
 
 /// Video frame level annotation results for text annotation (OCR). Contains information regarding timestamp and bounding box locations for the frames containing detected OCR text snippets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2TextFrame {
     /// Bounding polygon of the detected text for this frame.
     #[serde(default, rename = "rotatedBoundingBox")]
@@ -2488,7 +2489,7 @@ pub struct GoogleCloudVideointelligenceV1beta2TextFrame {
 }
 
 /// Video segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2VideoSegment {
     /// Time-offset, relative to the beginning of the video, corresponding to the end of the segment (inclusive).
     #[serde(default, rename = "endTimeOffset")]
@@ -2499,7 +2500,7 @@ pub struct GoogleCloudVideointelligenceV1beta2VideoSegment {
 }
 
 /// For tracking related features. An object at time_offset with attributes, and located with normalized_bounding_box.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1TimestampedObject {
     /// Optional. The attributes of the object in the bounding box.
     #[serde(default)]
@@ -2521,7 +2522,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1TimestampedObject {
 }
 
 /// Word-specific information for recognized words. Word information is only included in the response when certain request parameters are set, such as enable_word_time_offsets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1WordInfo {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -2544,7 +2545,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1WordInfo {
 }
 
 /// Video frame level annotation results for text annotation (OCR). Contains information regarding timestamp and bounding box locations for the frames containing detected OCR text snippets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1TextFrame {
     /// Bounding polygon of the detected text for this frame.
     #[serde(default, rename = "rotatedBoundingBox")]
@@ -2556,7 +2557,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1TextFrame {
 }
 
 /// Video segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1VideoSegment {
     /// Time-offset, relative to the beginning of the video, corresponding to the end of the segment (inclusive).
     #[serde(default, rename = "endTimeOffset")]
@@ -2567,7 +2568,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1VideoSegment {
 }
 
 /// For tracking related features. An object at time_offset with attributes, and located with normalized_bounding_box.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1TimestampedObject {
     /// Optional. The attributes of the object in the bounding box.
     #[serde(default)]
@@ -2589,7 +2590,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1TimestampedObject {
 }
 
 /// Word-specific information for recognized words. Word information is only included in the response when certain request parameters are set, such as enable_word_time_offsets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1WordInfo {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -2612,7 +2613,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1WordInfo {
 }
 
 /// Video frame level annotation results for text annotation (OCR). Contains information regarding timestamp and bounding box locations for the frames containing detected OCR text snippets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1TextFrame {
     /// Bounding polygon of the detected text for this frame.
     #[serde(default, rename = "rotatedBoundingBox")]
@@ -2624,7 +2625,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1TextFrame {
 }
 
 /// Video segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1VideoSegment {
     /// Time-offset, relative to the beginning of the video, corresponding to the end of the segment (inclusive).
     #[serde(default, rename = "endTimeOffset")]
@@ -2635,7 +2636,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1VideoSegment {
 }
 
 /// The recognized celebrity with confidence score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1RecognizedCelebrity {
     /// The recognized celebrity.
     #[serde(default)]
@@ -2646,7 +2647,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1RecognizedCelebrity {
 }
 
 /// A track of an object instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1Track {
     /// Optional. Attributes in the track level.
     #[serde(default)]
@@ -2667,7 +2668,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1Track {
 }
 
 /// Word-specific information for recognized words. Word information is only included in the response when certain request parameters are set, such as enable_word_time_offsets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1WordInfo {
     /// Output only. The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -2690,7 +2691,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1WordInfo {
 }
 
 /// Video frame level annotation results for text annotation (OCR). Contains information regarding timestamp and bounding box locations for the frames containing detected OCR text snippets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1TextFrame {
     /// Bounding polygon of the detected text for this frame.
     #[serde(default, rename = "rotatedBoundingBox")]
@@ -2702,7 +2703,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1TextFrame {
 }
 
 /// A generic detected attribute represented by name in string format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1DetectedAttribute {
     /// Detected attribute confidence. Range [0, 1].
     #[serde(default)]
@@ -2716,7 +2717,7 @@ pub struct GoogleCloudVideointelligenceV1DetectedAttribute {
 }
 
 /// A generic detected landmark represented by name in string format and a 2D location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1DetectedLandmark {
     /// The confidence score of the detected landmark. Range [0, 1].
     #[serde(default)]
@@ -2730,7 +2731,7 @@ pub struct GoogleCloudVideointelligenceV1DetectedLandmark {
 }
 
 /// Normalized bounding box. The normalized vertex coordinates are relative to the original image. Range: [0, 1].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1NormalizedBoundingBox {
     /// Bottom Y coordinate.
     #[serde(default)]
@@ -2747,7 +2748,7 @@ pub struct GoogleCloudVideointelligenceV1NormalizedBoundingBox {
 }
 
 /// Normalized bounding polygon for text (that might not be aligned with axis). Contains list of the corner points in clockwise order starting from top-left corner. For example, for a rectangular bounding box: When the text is horizontal it might look like: 0----1 | | 3----2 When it''s clockwise rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3). Note that values can be less than 0, or greater than 1 due to trigonometric calculations for location of the box.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1NormalizedBoundingPoly {
     /// Normalized vertices of the bounding polygon.
     #[serde(default)]
@@ -2756,7 +2757,7 @@ pub struct GoogleCloudVideointelligenceV1NormalizedBoundingPoly {
 }
 
 /// A generic detected attribute represented by name in string format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2DetectedAttribute {
     /// Detected attribute confidence. Range [0, 1].
     #[serde(default)]
@@ -2770,7 +2771,7 @@ pub struct GoogleCloudVideointelligenceV1beta2DetectedAttribute {
 }
 
 /// A generic detected landmark represented by name in string format and a 2D location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2DetectedLandmark {
     /// The confidence score of the detected landmark. Range [0, 1].
     #[serde(default)]
@@ -2784,7 +2785,7 @@ pub struct GoogleCloudVideointelligenceV1beta2DetectedLandmark {
 }
 
 /// Normalized bounding box. The normalized vertex coordinates are relative to the original image. Range: [0, 1].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2NormalizedBoundingBox {
     /// Bottom Y coordinate.
     #[serde(default)]
@@ -2801,7 +2802,7 @@ pub struct GoogleCloudVideointelligenceV1beta2NormalizedBoundingBox {
 }
 
 /// Normalized bounding polygon for text (that might not be aligned with axis). Contains list of the corner points in clockwise order starting from top-left corner. For example, for a rectangular bounding box: When the text is horizontal it might look like: 0----1 | | 3----2 When it''s clockwise rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3). Note that values can be less than 0, or greater than 1 due to trigonometric calculations for location of the box.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2NormalizedBoundingPoly {
     /// Normalized vertices of the bounding polygon.
     #[serde(default)]
@@ -2811,7 +2812,7 @@ pub struct GoogleCloudVideointelligenceV1beta2NormalizedBoundingPoly {
 }
 
 /// A generic detected attribute represented by name in string format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1DetectedAttribute {
     /// Detected attribute confidence. Range [0, 1].
     #[serde(default)]
@@ -2825,7 +2826,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1DetectedAttribute {
 }
 
 /// A generic detected landmark represented by name in string format and a 2D location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1DetectedLandmark {
     /// The confidence score of the detected landmark. Range [0, 1].
     #[serde(default)]
@@ -2839,7 +2840,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1DetectedLandmark {
 }
 
 /// Normalized bounding box. The normalized vertex coordinates are relative to the original image. Range: [0, 1].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox {
     /// Bottom Y coordinate.
     #[serde(default)]
@@ -2856,7 +2857,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingBox {
 }
 
 /// Normalized bounding polygon for text (that might not be aligned with axis). Contains list of the corner points in clockwise order starting from top-left corner. For example, for a rectangular bounding box: When the text is horizontal it might look like: 0----1 | | 3----2 When it''s clockwise rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3). Note that values can be less than 0, or greater than 1 due to trigonometric calculations for location of the box.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingPoly {
     /// Normalized vertices of the bounding polygon.
     #[serde(default)]
@@ -2866,7 +2867,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedBoundingPoly {
 }
 
 /// A generic detected attribute represented by name in string format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1DetectedAttribute {
     /// Detected attribute confidence. Range [0, 1].
     #[serde(default)]
@@ -2880,7 +2881,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1DetectedAttribute {
 }
 
 /// A generic detected landmark represented by name in string format and a 2D location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1DetectedLandmark {
     /// The confidence score of the detected landmark. Range [0, 1].
     #[serde(default)]
@@ -2894,7 +2895,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1DetectedLandmark {
 }
 
 /// Normalized bounding box. The normalized vertex coordinates are relative to the original image. Range: [0, 1].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingBox {
     /// Bottom Y coordinate.
     #[serde(default)]
@@ -2911,7 +2912,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingBox {
 }
 
 /// Normalized bounding polygon for text (that might not be aligned with axis). Contains list of the corner points in clockwise order starting from top-left corner. For example, for a rectangular bounding box: When the text is horizontal it might look like: 0----1 | | 3----2 When it''s clockwise rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3). Note that values can be less than 0, or greater than 1 due to trigonometric calculations for location of the box.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingPoly {
     /// Normalized vertices of the bounding polygon.
     #[serde(default)]
@@ -2921,7 +2922,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedBoundingPoly {
 }
 
 /// Celebrity definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1Celebrity {
     /// Textual description of additional information about the celebrity, if applicable.
     #[serde(default)]
@@ -2935,7 +2936,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1Celebrity {
 }
 
 /// Video segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1VideoSegment {
     /// Time-offset, relative to the beginning of the video, corresponding to the end of the segment (inclusive).
     #[serde(default, rename = "endTimeOffset")]
@@ -2946,7 +2947,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1VideoSegment {
 }
 
 /// For tracking related features. An object at time_offset with attributes, and located with normalized_bounding_box.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1TimestampedObject {
     /// Optional. The attributes of the object in the bounding box.
     #[serde(default)]
@@ -2968,7 +2969,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1TimestampedObject {
 }
 
 /// Normalized bounding polygon for text (that might not be aligned with axis). Contains list of the corner points in clockwise order starting from top-left corner. For example, for a rectangular bounding box: When the text is horizontal it might look like: 0----1 | | 3----2 When it''s clockwise rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3). Note that values can be less than 0, or greater than 1 due to trigonometric calculations for location of the box.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingPoly {
     /// Normalized vertices of the bounding polygon.
     #[serde(default)]
@@ -2978,7 +2979,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingPoly {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
@@ -2989,7 +2990,7 @@ pub struct GoogleCloudVideointelligenceV1NormalizedVertex {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1beta2NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
@@ -3000,7 +3001,7 @@ pub struct GoogleCloudVideointelligenceV1beta2NormalizedVertex {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
@@ -3011,7 +3012,7 @@ pub struct GoogleCloudVideointelligenceV1p1beta1NormalizedVertex {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
@@ -3022,7 +3023,7 @@ pub struct GoogleCloudVideointelligenceV1p2beta1NormalizedVertex {
 }
 
 /// A generic detected attribute represented by name in string format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1DetectedAttribute {
     /// Detected attribute confidence. Range [0, 1].
     #[serde(default)]
@@ -3036,7 +3037,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1DetectedAttribute {
 }
 
 /// A generic detected landmark represented by name in string format and a 2D location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1DetectedLandmark {
     /// The confidence score of the detected landmark. Range [0, 1].
     #[serde(default)]
@@ -3050,7 +3051,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1DetectedLandmark {
 }
 
 /// Normalized bounding box. The normalized vertex coordinates are relative to the original image. Range: [0, 1].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox {
     /// Bottom Y coordinate.
     #[serde(default)]
@@ -3067,7 +3068,7 @@ pub struct GoogleCloudVideointelligenceV1p3beta1NormalizedBoundingBox {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVideointelligenceV1p3beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]

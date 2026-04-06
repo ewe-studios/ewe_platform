@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for ListViolatingSites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ViolatingSitesResponse {
     /// The list of violating sites.
     #[serde(default, rename = "violatingSites")]
@@ -19,7 +20,7 @@ pub struct ViolatingSitesResponse {
 }
 
 /// Response message for GetSiteSummary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteSummaryResponse {
     /// The site''s Ad Experience Report summary on desktop.
     #[serde(default, rename = "desktopSummary")]
@@ -33,7 +34,7 @@ pub struct SiteSummaryResponse {
 }
 
 /// A site''s Ad Experience Report summary on a single platform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlatformSummary {
     /// The site''s Ad Experience Report status on this platform. // TODO: enum values: ["UNKNOWN", "PASSING", "WARNING", "FAILING"]
     #[serde(default, rename = "betterAdsStatus")]

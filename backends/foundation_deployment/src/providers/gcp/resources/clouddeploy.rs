@@ -8,22 +8,23 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request object used by AbandonRelease.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbandonReleaseRequest {}
 
 /// The response object for AbandonRelease.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbandonReleaseResponse {}
 
 /// An advanceChildRollout Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvanceChildRolloutJob {}
 
 /// The request object used by AdvanceRollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvanceRolloutRequest {
     /// Optional. Deploy policies to override. Format is projects/{project}/locations/{location}/deployPolicies/{deployPolicy}.
     #[serde(default, rename = "overrideDeployPolicy")]
@@ -34,11 +35,11 @@ pub struct AdvanceRolloutRequest {
 }
 
 /// The response object from AdvanceRollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvanceRolloutResponse {}
 
 /// The request object used by ApproveRollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApproveRolloutRequest {
     /// Required. True = approve; false = reject
     #[serde(default)]
@@ -49,11 +50,11 @@ pub struct ApproveRolloutRequest {
 }
 
 /// The response object from ApproveRollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApproveRolloutResponse {}
 
 /// Information about entities associated with a Target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssociatedEntities {
     /// Optional. Information specifying Anthos clusters as associated entities.
     #[serde(default, rename = "anthosClusters")]
@@ -64,7 +65,7 @@ pub struct AssociatedEntities {
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/automation" Platform Log event that describes the Automation related events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomationEvent {
     /// The name of the AutomationRun.
     #[serde(default)]
@@ -81,7 +82,7 @@ pub struct AutomationEvent {
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/automation_run" Platform Log event that describes the AutomationRun related events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomationRunEvent {
     /// Identifier of the Automation.
     #[serde(default, rename = "automationId")]
@@ -107,19 +108,19 @@ pub struct AutomationRunEvent {
 }
 
 /// The request object used by CancelAutomationRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelAutomationRunRequest {}
 
 /// The response object from CancelAutomationRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelAutomationRunResponse {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// The request object used by CancelRollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelRolloutRequest {
     /// Optional. Deploy policies to override. Format is projects/{project}/locations/{location}/deployPolicies/{deployPolicy}.
     #[serde(default, rename = "overrideDeployPolicy")]
@@ -127,11 +128,11 @@ pub struct CancelRolloutRequest {
 }
 
 /// The response object from CancelRollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelRolloutResponse {}
 
 /// Service-wide configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Config {
     /// Default Skaffold version that is assigned when a Release is created without specifying a Skaffold version.
     #[serde(default, rename = "defaultSkaffoldVersion")]
@@ -148,11 +149,11 @@ pub struct Config {
 }
 
 /// A createChildRollout Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateChildRolloutJob {}
 
 /// Payload proto for "clouddeploy.googleapis.com/customtargettype_notification" Platform Log event that describes the failure to send a custom target type status change Pub/Sub notification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomTargetTypeNotificationEvent {
     /// The name of the CustomTargetType.
     #[serde(default, rename = "customTargetType")]
@@ -169,7 +170,7 @@ pub struct CustomTargetTypeNotificationEvent {
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/deliverypipeline_notification" Platform Log event that describes the failure to send delivery pipeline status change Pub/Sub notification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeliveryPipelineNotificationEvent {
     /// The name of the Delivery Pipeline.
     #[serde(default, rename = "deliveryPipeline")]
@@ -186,11 +187,11 @@ pub struct DeliveryPipelineNotificationEvent {
 }
 
 /// A deploy Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployJob {}
 
 /// Payload proto for "clouddeploy.googleapis.com/deploypolicy_evaluation" Platform Log event that describes the deploy policy evaluation event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployPolicyEvaluationEvent {
     /// Whether the request is allowed. Allowed is set as true if: (1) the request complies with the policy; or (2) the request doesn''t comply with the policy but the policy was overridden; or (3) the request doesn''t comply with the policy but the policy was suspended
     #[serde(default)]
@@ -234,7 +235,7 @@ pub struct DeployPolicyEvaluationEvent {
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/deploypolicy_notification". Platform Log event that describes the failure to send a pub/sub notification when there is a DeployPolicy status change.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployPolicyNotificationEvent {
     /// The name of the DeployPolicy.
     #[serde(default, rename = "deployPolicy")]
@@ -251,11 +252,11 @@ pub struct DeployPolicyNotificationEvent {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The request object used by IgnoreJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IgnoreJobRequest {
     /// Required. The job ID for the Job to ignore.
     #[serde(default, rename = "jobId")]
@@ -269,11 +270,11 @@ pub struct IgnoreJobRequest {
 }
 
 /// The response object from IgnoreJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IgnoreJobResponse {}
 
 /// Payload proto for "clouddeploy.googleapis.com/jobrun_notification" Platform Log event that describes the failure to send JobRun resource update Pub/Sub notification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobRunNotificationEvent {
     /// The name of the JobRun.
     #[serde(default, rename = "jobRun")]
@@ -305,7 +306,7 @@ pub struct JobRunNotificationEvent {
 }
 
 /// The response object from ListAutomationRuns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAutomationRunsResponse {
     /// The AutomationRuns objects.
     #[serde(default, rename = "automationRuns")]
@@ -319,7 +320,7 @@ pub struct ListAutomationRunsResponse {
 }
 
 /// The response object from ListAutomations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAutomationsResponse {
     /// The Automation objects.
     #[serde(default)]
@@ -333,7 +334,7 @@ pub struct ListAutomationsResponse {
 }
 
 /// The response object from ListCustomTargetTypes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCustomTargetTypesResponse {
     /// The CustomTargetType objects.
     #[serde(default, rename = "customTargetTypes")]
@@ -347,7 +348,7 @@ pub struct ListCustomTargetTypesResponse {
 }
 
 /// The response object from ListDeliveryPipelines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDeliveryPipelinesResponse {
     /// The DeliveryPipeline objects.
     #[serde(default, rename = "deliveryPipelines")]
@@ -361,7 +362,7 @@ pub struct ListDeliveryPipelinesResponse {
 }
 
 /// The response object from ListDeployPolicies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDeployPoliciesResponse {
     /// The DeployPolicy objects.
     #[serde(default, rename = "deployPolicies")]
@@ -375,7 +376,7 @@ pub struct ListDeployPoliciesResponse {
 }
 
 /// ListJobRunsResponse is the response object returned by ListJobRuns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListJobRunsResponse {
     /// The JobRun objects.
     #[serde(default, rename = "jobRuns")]
@@ -389,7 +390,7 @@ pub struct ListJobRunsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -400,7 +401,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -414,7 +415,7 @@ pub struct ListOperationsResponse {
 }
 
 /// The response object from ListReleases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReleasesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -428,7 +429,7 @@ pub struct ListReleasesResponse {
 }
 
 /// ListRolloutsResponse is the response object returned by ListRollouts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRolloutsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -442,7 +443,7 @@ pub struct ListRolloutsResponse {
 }
 
 /// The response object from ListTargets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTargetsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -456,7 +457,7 @@ pub struct ListTargetsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -482,7 +483,7 @@ pub struct OperationMetadata {
 }
 
 /// Contains the paths to the artifacts, relative to the URI, for a phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhaseArtifact {
     /// Output only. File path of the directory of rendered job manifests relative to the URI. This is only set if it is applicable.
     #[serde(default, rename = "jobManifestsPath")]
@@ -496,7 +497,7 @@ pub struct PhaseArtifact {
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/release_notification" Platform Log event that describes the failure to send release status change Pub/Sub notification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReleaseNotificationEvent {
     /// Debug message for when a notification fails to send.
     #[serde(default)]
@@ -516,7 +517,7 @@ pub struct ReleaseNotificationEvent {
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/release_render" Platform Log event that describes the render status change.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReleaseRenderEvent {
     /// Debug message for when a render transition occurs. Provides further details as rendering progresses through render states.
     #[serde(default)]
@@ -536,7 +537,7 @@ pub struct ReleaseRenderEvent {
 }
 
 /// RetryJobRequest is the request object used by RetryJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetryJobRequest {
     /// Required. The job ID for the Job to retry.
     #[serde(default, rename = "jobId")]
@@ -550,11 +551,11 @@ pub struct RetryJobRequest {
 }
 
 /// The response object from ''RetryJob''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetryJobResponse {}
 
 /// The request object for RollbackTarget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackTargetRequest {
     /// Optional. Deploy policies to override. Format is projects/{project}/locations/{location}/deployPolicies/{deploy_policy}.
     #[serde(default, rename = "overrideDeployPolicy")]
@@ -580,7 +581,7 @@ pub struct RollbackTargetRequest {
 }
 
 /// The response object from RollbackTarget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackTargetResponse {
     /// The config of the rollback Rollout created or will be created.
     #[serde(default, rename = "rollbackConfig")]
@@ -588,7 +589,7 @@ pub struct RollbackTargetResponse {
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/rollout_notification" Platform Log event that describes the failure to send rollout status change Pub/Sub notification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RolloutNotificationEvent {
     /// Debug message for when a notification fails to send.
     #[serde(default)]
@@ -617,7 +618,7 @@ pub struct RolloutNotificationEvent {
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/rollout_update" Platform Log event that describes the rollout update event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RolloutUpdateEvent {
     /// Debug message for when a rollout update event occurs.
     #[serde(default)]
@@ -646,7 +647,7 @@ pub struct RolloutUpdateEvent {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -657,7 +658,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// The artifacts produced by a target render operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetArtifact {
     /// Output only. URI of a directory containing the artifacts. This contains deployment configuration used by Skaffold during a rollout, and all paths are relative to this location.
     #[serde(default, rename = "artifactUri")]
@@ -674,7 +675,7 @@ pub struct TargetArtifact {
 }
 
 /// Payload proto for "clouddeploy.googleapis.com/target_notification" Platform Log event that describes the failure to send target status change Pub/Sub notification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetNotificationEvent {
     /// Debug message for when a notification fails to send.
     #[serde(default)]
@@ -688,7 +689,7 @@ pub struct TargetNotificationEvent {
 }
 
 /// Details of rendering for a single target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetRender {
     /// Output only. Reason this render failed. This will always be unspecified while the render in progress. // TODO: enum values: ["FAILURE_CAUSE_UNSPECIFIED", "CLOUD_BUILD_UNAVAILABLE", "EXECUTION_FAILED", "CLOUD_BUILD_REQUEST_FAILED", "VERIFICATION_CONFIG_NOT_FOUND", "CUSTOM_ACTION_NOT_FOUND", "DEPLOYMENT_STRATEGY_NOT_SUPPORTED", "RENDER_FEATURE_NOT_SUPPORTED"]
     #[serde(default, rename = "failureCause")]
@@ -708,7 +709,7 @@ pub struct TargetRender {
 }
 
 /// The request object used by TerminateJobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminateJobRunRequest {
     /// Optional. Deploy policies to override. Format is projects/{project}/locations/{location}/deployPolicies/{deployPolicy}.
     #[serde(default, rename = "overrideDeployPolicy")]
@@ -716,11 +717,11 @@ pub struct TerminateJobRunRequest {
 }
 
 /// The response object from TerminateJobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminateJobRunResponse {}
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -728,7 +729,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -736,7 +737,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Details of a supported Skaffold version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkaffoldVersion {
     /// The time at which this version of Skaffold will enter maintenance mode.
     #[serde(default, rename = "maintenanceModeTime")]
@@ -753,7 +754,7 @@ pub struct SkaffoldVersion {
 }
 
 /// An AutomationRun resource in the Cloud Deploy API. An AutomationRun represents an execution instance of an automation rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomationRun {
     /// Output only. Advances a rollout to the next phase.
     #[serde(default, rename = "advanceRolloutOperation")]
@@ -815,7 +816,7 @@ pub struct AutomationRun {
 }
 
 /// A DeployPolicy resource in the Cloud Deploy API. A DeployPolicy inhibits manual or automation-driven actions within a Delivery Pipeline or Target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployPolicy {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy. Annotations must meet the following constraints: * Annotations are key/value pairs. * Valid annotation keys have two segments: an optional prefix and name, separated by a slash (/). * The name segment is required and must be 63 characters or less, beginning and ending with an alphanumeric character ([a-z0-9A-Z]) with dashes (-), underscores (_), dots (.), and alphanumerics between. * The prefix is optional. If specified, the prefix must be a DNS subdomain: a series of DNS labels separated by dots(.), not longer than 253 characters in total, followed by a slash (/). See https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set for more details.
     #[serde(default)]
@@ -853,7 +854,7 @@ pub struct DeployPolicy {
 }
 
 /// A JobRun resource in the Cloud Deploy API. A JobRun contains information of a single Rollout job evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobRun {
     /// Output only. Information specific to an advanceChildRollout JobRun
     #[serde(default, rename = "advanceChildRolloutJobRun")]
@@ -906,7 +907,7 @@ pub struct JobRun {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -926,7 +927,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -946,7 +947,7 @@ pub struct Operation {
 }
 
 /// A Release resource in the Cloud Deploy API. A Release defines a specific Skaffold configuration instance that can be deployed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Release {
     /// Output only. Indicates whether this is an abandoned release.
     #[serde(default)]
@@ -1020,7 +1021,7 @@ pub struct Release {
 }
 
 /// Configs for the Rollback rollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackTargetConfig {
     /// Optional. The rollback Rollout to create.
     #[serde(default)]
@@ -1031,7 +1032,7 @@ pub struct RollbackTargetConfig {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -1048,7 +1049,7 @@ pub struct Policy {
 }
 
 /// RenderMetadata includes information associated with a Release render.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenderMetadata {
     /// Output only. Metadata associated with rendering for Cloud Run.
     #[serde(default, rename = "cloudRun")]
@@ -1062,7 +1063,7 @@ pub struct RenderMetadata {
 }
 
 /// Contains the information of an automated advance-rollout operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvanceRolloutOperation {
     /// Output only. The phase the rollout will be advanced to.
     #[serde(default, rename = "destinationPhase")]
@@ -1079,7 +1080,7 @@ pub struct AdvanceRolloutOperation {
 }
 
 /// An Automation resource in the Cloud Deploy API. An Automation enables the automation of manually driven actions for a Delivery Pipeline, which includes Release promotion among Targets, Rollout repair and Rollout deployment strategy advancement. The intention of Automation is to reduce manual intervention in the continuous delivery process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Automation {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy. Annotations must meet the following constraints: * Annotations are key/value pairs. * Valid annotation keys have two segments: an optional prefix and name, separated by a slash (/). * The name segment is required and must be 63 characters or less, beginning and ending with an alphanumeric character ([a-z0-9A-Z]) with dashes (-), underscores (_), dots (.), and alphanumerics between. * The prefix is optional. If specified, the prefix must be a DNS subdomain: a series of DNS labels separated by dots(.), not longer than 253 characters in total, followed by a slash (/). See https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/#syntax-and-character-set for more details.
     #[serde(default)]
@@ -1120,7 +1121,7 @@ pub struct Automation {
 }
 
 /// Returned from an action if one or more policies were violated, and therefore the action was prevented. Contains information about what policies were violated and why.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyViolation {
     /// Policy violation details.
     #[serde(default, rename = "policyViolationDetails")]
@@ -1128,7 +1129,7 @@ pub struct PolicyViolation {
 }
 
 /// Contains the information of an automated promote-release operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromoteReleaseOperation {
     /// Output only. The starting phase of the rollout created by this operation.
     #[serde(default)]
@@ -1145,7 +1146,7 @@ pub struct PromoteReleaseOperation {
 }
 
 /// Contains the information for an automated repair rollout operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepairRolloutOperation {
     /// Output only. The index of the current repair action in the repair sequence.
     #[serde(default, rename = "currentRepairPhaseIndex")]
@@ -1165,7 +1166,7 @@ pub struct RepairRolloutOperation {
 }
 
 /// Contains the information of an automated timed promote-release operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimedPromoteReleaseOperation {
     /// Output only. The starting phase of the rollout created by this operation.
     #[serde(default)]
@@ -1179,7 +1180,7 @@ pub struct TimedPromoteReleaseOperation {
 }
 
 /// Deploy Policy rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyRule {
     /// Optional. Rollout restrictions.
     #[serde(default, rename = "rolloutRestriction")]
@@ -1187,7 +1188,7 @@ pub struct PolicyRule {
 }
 
 /// Contains information on the resources to select for a deploy policy. Attributes provided must all match the resource in order for policy restrictions to apply. For example, if delivery pipelines attributes given are an id "prod" and labels "foo: bar", a delivery pipeline resource must match both that id and have that label in order to be subject to the policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployPolicyResourceSelector {
     /// Optional. Contains attributes about a delivery pipeline.
     #[serde(default, rename = "deliveryPipeline")]
@@ -1198,7 +1199,7 @@ pub struct DeployPolicyResourceSelector {
 }
 
 /// AdvanceChildRolloutJobRun contains information specific to a advanceChildRollout JobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvanceChildRolloutJobRun {
     /// Output only. Name of the ChildRollout. Format is projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}/releases/{release}/rollouts/{rollout}.
     #[serde(default)]
@@ -1209,7 +1210,7 @@ pub struct AdvanceChildRolloutJobRun {
 }
 
 /// AnalysisJobRun contains information specific to an analysis JobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalysisJobRun {
     /// Output only. The status of the running alert policy checks configured for this analysis.
     #[serde(default, rename = "alertPolicyAnalyses")]
@@ -1223,7 +1224,7 @@ pub struct AnalysisJobRun {
 }
 
 /// CreateChildRolloutJobRun contains information specific to a createChildRollout JobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateChildRolloutJobRun {
     /// Output only. Name of the ChildRollout. Format is projects/{project}/locations/{location}/deliveryPipelines/{deliveryPipeline}/releases/{release}/rollouts/{rollout}.
     #[serde(default)]
@@ -1234,7 +1235,7 @@ pub struct CreateChildRolloutJobRun {
 }
 
 /// DeployJobRun contains information specific to a deploy JobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployJobRun {
     /// Output only. The artifact of a deploy job run, if available.
     #[serde(default)]
@@ -1254,7 +1255,7 @@ pub struct DeployJobRun {
 }
 
 /// PostdeployJobRun contains information specific to a postdeploy JobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostdeployJobRun {
     /// Output only. The resource name of the Cloud Build Build object that is used to execute the custom actions associated with the postdeploy Job. Format is projects/{project}/locations/{location}/builds/{build}.
     #[serde(default)]
@@ -1271,7 +1272,7 @@ pub struct PostdeployJobRun {
 }
 
 /// PredeployJobRun contains information specific to a predeploy JobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PredeployJobRun {
     /// Output only. The resource name of the Cloud Build Build object that is used to execute the custom actions associated with the predeploy Job. Format is projects/{project}/locations/{location}/builds/{build}.
     #[serde(default)]
@@ -1288,7 +1289,7 @@ pub struct PredeployJobRun {
 }
 
 /// VerifyJobRun contains information specific to a verify JobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyJobRun {
     /// Output only. URI of a directory containing the verify artifacts. This contains the Skaffold event log.
     #[serde(default, rename = "artifactUri")]
@@ -1311,7 +1312,7 @@ pub struct VerifyJobRun {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1325,7 +1326,7 @@ pub struct Status {
 }
 
 /// Description of an a image to use during Skaffold rendering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildArtifact {
     /// Optional. Image name in Skaffold configuration.
     #[serde(default)]
@@ -1336,7 +1337,7 @@ pub struct BuildArtifact {
 }
 
 /// ReleaseCondition contains all conditions relevant to a Release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReleaseCondition {
     /// Output only. Details around the support state of the release''s Docker version.
     #[serde(default, rename = "dockerVersionSupportedCondition")]
@@ -1366,7 +1367,7 @@ pub struct ReleaseCondition {
 }
 
 /// A CustomTargetType resource in the Cloud Deploy API. A CustomTargetType defines a type of custom target that can be referenced in a Target in order to facilitate deploying to other systems besides the supported runtimes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomTargetType {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy. See https://google.aip.dev/128#annotations for more details such as format and size limitations.
     #[serde(default)]
@@ -1404,7 +1405,7 @@ pub struct CustomTargetType {
 }
 
 /// A DeliveryPipeline resource in the Cloud Deploy API. A DeliveryPipeline defines a pipeline through which a Skaffold configuration can progress.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeliveryPipeline {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy.
     #[serde(default)]
@@ -1442,7 +1443,7 @@ pub struct DeliveryPipeline {
 }
 
 /// A Target resource in the Cloud Deploy API. A Target defines a location to which a Skaffold configuration can be deployed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Target {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Cloud Deploy. See https://google.aip.dev/128#annotations for more details such as format and size limitations.
     #[serde(default)]
@@ -1501,7 +1502,7 @@ pub struct Target {
 }
 
 /// Details of ToolVersions for the release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolVersions {
     /// Optional. The Docker version to use for Cloud Deploy operations.
     #[serde(default)]
@@ -1524,7 +1525,7 @@ pub struct ToolVersions {
 }
 
 /// A Rollout resource in the Cloud Deploy API. A Rollout contains information around a specific deployment to a Target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Rollout {
     /// Output only. The AutomationRun actively repairing the rollout.
     #[serde(default, rename = "activeRepairAutomationRun")]
@@ -1598,7 +1599,7 @@ pub struct Rollout {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1609,7 +1610,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1623,7 +1624,7 @@ pub struct Binding {
 }
 
 /// CloudRunRenderMetadata contains Cloud Run information associated with a Release render.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudRunRenderMetadata {
     /// Output only. The name of the Cloud Run Job in the rendered manifest. Format is projects/{project}/locations/{location}/jobs/{job}.
     #[serde(default)]
@@ -1640,7 +1641,7 @@ pub struct CloudRunRenderMetadata {
 }
 
 /// KubernetesRenderMetadata contains Kubernetes information associated with a Release render.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KubernetesRenderMetadata {
     /// Output only. Name of the canary version of the Kubernetes Deployment that will be applied to the GKE cluster. Only set if a canary deployment strategy was configured.
     #[serde(default, rename = "canaryDeployment")]
@@ -1654,7 +1655,7 @@ pub struct KubernetesRenderMetadata {
 }
 
 /// AutomationRule defines the automation activities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomationRule {
     /// Optional. The AdvanceRolloutRule will automatically advance a successful Rollout.
     #[serde(default, rename = "advanceRolloutRule")]
@@ -1671,7 +1672,7 @@ pub struct AutomationRule {
 }
 
 /// AutomationResourceSelector contains the information to select the resources to which an Automation is going to be applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomationResourceSelector {
     /// Optional. Contains attributes about a target.
     #[serde(default)]
@@ -1679,7 +1680,7 @@ pub struct AutomationResourceSelector {
 }
 
 /// Policy violation details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyViolationDetails {
     /// User readable message about why the request violated a policy. This is not intended for machine parsing.
     #[serde(default, rename = "failureMessage")]
@@ -1693,7 +1694,7 @@ pub struct PolicyViolationDetails {
 }
 
 /// RepairPhase tracks the repair attempts that have been made for each RepairPhaseConfig specified in the Automation resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepairPhase {
     /// Output only. Records of the retry attempts for retry repair mode.
     #[serde(default)]
@@ -1704,7 +1705,7 @@ pub struct RepairPhase {
 }
 
 /// Rollout restrictions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RolloutRestriction {
     /// Optional. Rollout actions to be restricted as part of the policy. If left empty, all actions will be restricted.
     #[serde(default)]
@@ -1721,7 +1722,7 @@ pub struct RolloutRestriction {
 }
 
 /// Contains criteria for selecting DeliveryPipelines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeliveryPipelineAttribute {
     /// Optional. ID of the DeliveryPipeline. The value of this field could be one of the following: * The last segment of a pipeline name * "*", all delivery pipelines in a location
     #[serde(default)]
@@ -1732,7 +1733,7 @@ pub struct DeliveryPipelineAttribute {
 }
 
 /// AlertPolicyCheckStatus contains information specific to a single run of an alert policy check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlertPolicyCheckStatus {
     /// Output only. The alert policies that this analysis monitors. Format is projects/{project}/locations/{location}/alertPolicies/{alertPolicy}.
     #[serde(default, rename = "alertPolicies")]
@@ -1752,7 +1753,7 @@ pub struct AlertPolicyCheckStatus {
 }
 
 /// CustomCheckStatus contains information specific to a single iteration of a custom analysis job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomCheckStatus {
     /// Output only. The reason the analysis failed. This will always be unspecified while the analysis is in progress or if it succeeded. // TODO: enum values: ["FAILURE_CAUSE_UNSPECIFIED", "CLOUD_BUILD_UNAVAILABLE", "EXECUTION_FAILED", "DEADLINE_EXCEEDED", "CLOUD_BUILD_REQUEST_FAILED"]
     #[serde(default, rename = "failureCause")]
@@ -1778,7 +1779,7 @@ pub struct CustomCheckStatus {
 }
 
 /// The artifacts produced by a deploy operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployArtifact {
     /// Output only. URI of a directory containing the artifacts. All paths are relative to this location.
     #[serde(default, rename = "artifactUri")]
@@ -1789,7 +1790,7 @@ pub struct DeployArtifact {
 }
 
 /// DeployJobRunMetadata surfaces information associated with a DeployJobRun to the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployJobRunMetadata {
     /// Output only. The name of the Cloud Run Service that is associated with a DeployJobRun.
     #[serde(default, rename = "cloudRun")]
@@ -1803,7 +1804,7 @@ pub struct DeployJobRunMetadata {
 }
 
 /// PostdeployJobRunMetadata contains metadata about the postdeploy JobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostdeployJobRunMetadata {
     /// Output only. Custom metadata provided by user-defined postdeploy operation.
     #[serde(default)]
@@ -1811,7 +1812,7 @@ pub struct PostdeployJobRunMetadata {
 }
 
 /// PredeployJobRunMetadata contains metadata about the predeploy JobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PredeployJobRunMetadata {
     /// Output only. Custom metadata provided by user-defined predeploy operation.
     #[serde(default)]
@@ -1819,7 +1820,7 @@ pub struct PredeployJobRunMetadata {
 }
 
 /// VerifyJobRunMetadata contains metadata about the verify JobRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyJobRunMetadata {
     /// Output only. Custom metadata provided by user-defined verify operation.
     #[serde(default)]
@@ -1827,7 +1828,7 @@ pub struct VerifyJobRunMetadata {
 }
 
 /// ToolVersionSupportedCondition contains information about when support for the release''s version of a tool ends.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolVersionSupportedCondition {
     /// Output only. The time at which this release''s version of the tool will enter maintenance mode.
     #[serde(default, rename = "maintenanceModeTime")]
@@ -1844,7 +1845,7 @@ pub struct ToolVersionSupportedCondition {
 }
 
 /// ReleaseReadyCondition contains information around the status of the Release. If a release is not ready, you cannot create a rollout with the release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReleaseReadyCondition {
     /// True if the Release is in a valid state. Otherwise at least one condition in ReleaseCondition is in an invalid state. Iterate over those conditions and see which condition(s) has status = false to find out what is wrong with the Release.
     #[serde(default)]
@@ -1852,7 +1853,7 @@ pub struct ReleaseReadyCondition {
 }
 
 /// SkaffoldSupportedCondition contains information about when support for the release''s version of Skaffold ends.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkaffoldSupportedCondition {
     /// The time at which this release''s version of Skaffold will enter maintenance mode.
     #[serde(default, rename = "maintenanceModeTime")]
@@ -1869,7 +1870,7 @@ pub struct SkaffoldSupportedCondition {
 }
 
 /// CustomTargetSkaffoldActions represents the CustomTargetType configuration using Skaffold custom actions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomTargetSkaffoldActions {
     /// Required. The Skaffold custom action responsible for deploy operations.
     #[serde(default, rename = "deployAction")]
@@ -1883,7 +1884,7 @@ pub struct CustomTargetSkaffoldActions {
 }
 
 /// CustomTargetTasks represents the CustomTargetType configuration using tasks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomTargetTasks {
     /// Required. The task responsible for deploy operations.
     #[serde(default)]
@@ -1894,7 +1895,7 @@ pub struct CustomTargetTasks {
 }
 
 /// PipelineCondition contains all conditions relevant to a Delivery Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PipelineCondition {
     /// Details around the Pipeline''s overall status.
     #[serde(default, rename = "pipelineReadyCondition")]
@@ -1908,7 +1909,7 @@ pub struct PipelineCondition {
 }
 
 /// SerialPipeline defines a sequential set of stages for a DeliveryPipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SerialPipeline {
     /// Optional. Each stage specifies configuration for a Target. The ordering of this list defines the promotion flow.
     #[serde(default)]
@@ -1916,7 +1917,7 @@ pub struct SerialPipeline {
 }
 
 /// Information specifying an Anthos Cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnthosCluster {
     /// Optional. Membership of the GKE Hub-registered cluster to which to apply the Skaffold configuration. Format is projects/{project}/locations/{location}/memberships/{membership_name}.
     #[serde(default)]
@@ -1924,7 +1925,7 @@ pub struct AnthosCluster {
 }
 
 /// Information specifying a Custom Target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomTarget {
     /// Required. The name of the CustomTargetType. Format must be projects/{project}/locations/{location}/customTargetTypes/{custom_target_type}.
     #[serde(default, rename = "customTargetType")]
@@ -1932,7 +1933,7 @@ pub struct CustomTarget {
 }
 
 /// Configuration of the environment to use when calling Skaffold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionConfig {
     /// Optional. Cloud Storage location in which to store execution outputs. This can either be a bucket ("gs://my-bucket") or a path within a bucket ("gs://my-bucket/my-dir"). If unspecified, a default bucket located in the same region will be used.
     #[serde(default, rename = "artifactStorage")]
@@ -1961,7 +1962,7 @@ pub struct ExecutionConfig {
 }
 
 /// Information specifying a GKE Cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeCluster {
     /// Optional. Information specifying a GKE Cluster. Format is projects/{project_id}/locations/{location_id}/clusters/{cluster_id}.
     #[serde(default)]
@@ -1978,7 +1979,7 @@ pub struct GkeCluster {
 }
 
 /// Information specifying a multiTarget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiTarget {
     /// Required. The target_ids of this multiTarget.
     #[serde(default, rename = "targetIds")]
@@ -1986,7 +1987,7 @@ pub struct MultiTarget {
 }
 
 /// Information specifying where to deploy a Cloud Run Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudRunLocation {
     /// Required. The location for the Cloud Run Service. Format must be projects/{project}/locations/{location}.
     #[serde(default)]
@@ -1994,7 +1995,7 @@ pub struct CloudRunLocation {
 }
 
 /// Metadata includes information associated with a Rollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// Output only. AutomationRolloutMetadata contains the information about the interactions between Automation service and this rollout.
     #[serde(default)]
@@ -2008,7 +2009,7 @@ pub struct Metadata {
 }
 
 /// Phase represents a collection of jobs that are logically grouped together for a Rollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Phase {
     /// Output only. ChildRollout job composition.
     #[serde(default, rename = "childRolloutJobs")]
@@ -2028,7 +2029,7 @@ pub struct Phase {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -2039,7 +2040,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -2056,7 +2057,7 @@ pub struct Expr {
 }
 
 /// The AdvanceRollout automation rule will automatically advance a successful Rollout to the next phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvanceRolloutRule {
     /// Output only. Information around the state of the Automation rule.
     #[serde(default)]
@@ -2073,7 +2074,7 @@ pub struct AdvanceRolloutRule {
 }
 
 /// The PromoteRelease rule will automatically promote a release from the current target to a specified target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromoteReleaseRule {
     /// Output only. Information around the state of the Automation rule.
     #[serde(default)]
@@ -2093,7 +2094,7 @@ pub struct PromoteReleaseRule {
 }
 
 /// The RepairRolloutRule automation rule will automatically repair a failed Rollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepairRolloutRule {
     /// Output only. Information around the state of the ''Automation'' rule.
     #[serde(default)]
@@ -2113,7 +2114,7 @@ pub struct RepairRolloutRule {
 }
 
 /// The TimedPromoteReleaseRule will automatically promote a release from the current target(s) to the specified target(s) on a configured schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimedPromoteReleaseRule {
     /// Output only. Information around the state of the Automation rule.
     #[serde(default)]
@@ -2136,7 +2137,7 @@ pub struct TimedPromoteReleaseRule {
 }
 
 /// Contains criteria for selecting Targets. This could be used to select targets for a Deploy Policy or for an Automation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetAttribute {
     /// Optional. ID of the Target. The value of this field could be one of the following: * The last segment of a target name * "*", all targets in a location
     #[serde(default)]
@@ -2147,7 +2148,7 @@ pub struct TargetAttribute {
 }
 
 /// RetryPhase contains the retry attempts and the metadata for initiating a new attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetryPhase {
     /// Output only. Detail of a retry action.
     #[serde(default)]
@@ -2161,7 +2162,7 @@ pub struct RetryPhase {
 }
 
 /// RollbackAttempt represents an action of rolling back a Cloud Deploy ''Target''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackAttempt {
     /// Output only. The phase to which the rollout will be rolled back to.
     #[serde(default, rename = "destinationPhase")]
@@ -2181,7 +2182,7 @@ pub struct RollbackAttempt {
 }
 
 /// Time windows within which actions are restricted. See the [documentation](https://cloud.google.com/deploy/docs/deploy-policy#dates_times) for more information on how to configure dates/times.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeWindows {
     /// Optional. One-time windows within which actions are restricted.
     #[serde(default, rename = "oneTimeWindows")]
@@ -2195,7 +2196,7 @@ pub struct TimeWindows {
 }
 
 /// FailedAlertPolicy contains information about an alert policy that was found to be firing during an alert policy check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FailedAlertPolicy {
     /// Output only. The name of the alert policy that was found to be firing. Format is projects/{project}/locations/{location}/alertPolicies/{alertPolicy}.
     #[serde(default, rename = "alertPolicy")]
@@ -2206,7 +2207,7 @@ pub struct FailedAlertPolicy {
 }
 
 /// CustomTargetDeployMetadata contains information from a Custom Target deploy operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomTargetDeployMetadata {
     /// Output only. Skip message provided in the results of a custom deploy operation.
     #[serde(default, rename = "skipMessage")]
@@ -2214,7 +2215,7 @@ pub struct CustomTargetDeployMetadata {
 }
 
 /// Skaffold Config modules and their remote source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkaffoldModules {
     /// Optional. The Skaffold Config modules to use from the specified source.
     #[serde(default)]
@@ -2231,7 +2232,7 @@ pub struct SkaffoldModules {
 }
 
 /// PipelineReadyCondition contains information around the status of the Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PipelineReadyCondition {
     /// True if the Pipeline is in a valid state. Otherwise at least one condition in PipelineCondition is in an invalid state. Iterate over those conditions and see which condition(s) has status = false to find out what is wrong with the Pipeline.
     #[serde(default)]
@@ -2242,7 +2243,7 @@ pub struct PipelineReadyCondition {
 }
 
 /// TargetsTypeCondition contains information on whether the Targets defined in the Delivery Pipeline are of the same type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetsTypeCondition {
     /// Human readable error message.
     #[serde(default, rename = "errorDetails")]
@@ -2253,7 +2254,7 @@ pub struct TargetsTypeCondition {
 }
 
 /// Stage specifies a location to which to deploy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Stage {
     /// Optional. The deploy parameters to use for the target in this stage.
     #[serde(default, rename = "deployParameters")]
@@ -2270,7 +2271,7 @@ pub struct Stage {
 }
 
 /// Execution using the default Cloud Build pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultPool {
     /// Optional. Cloud Storage location where execution outputs should be stored. This can either be a bucket ("gs://my-bucket") or a path within a bucket ("gs://my-bucket/my-dir"). If unspecified, a default bucket located in the same region will be used.
     #[serde(default, rename = "artifactStorage")]
@@ -2281,7 +2282,7 @@ pub struct DefaultPool {
 }
 
 /// Execution using a private Cloud Build pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivatePool {
     /// Optional. Cloud Storage location where execution outputs should be stored. This can either be a bucket ("gs://my-bucket") or a path within a bucket ("gs://my-bucket/my-dir"). If unspecified, a default bucket located in the same region will be used.
     #[serde(default, rename = "artifactStorage")]
@@ -2295,7 +2296,7 @@ pub struct PrivatePool {
 }
 
 /// AutomationRolloutMetadata contains Automation-related actions that were performed on a rollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomationRolloutMetadata {
     /// Output only. The names of the AutomationRuns initiated by an advance rollout rule.
     #[serde(default, rename = "advanceAutomationRuns")]
@@ -2309,7 +2310,7 @@ pub struct AutomationRolloutMetadata {
 }
 
 /// CloudRunMetadata contains information from a Cloud Run deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudRunMetadata {
     /// Output only. The name of the Cloud Run job that is associated with a Rollout. Format is projects/{project}/locations/{location}/jobs/{job_name}.
     #[serde(default)]
@@ -2332,7 +2333,7 @@ pub struct CloudRunMetadata {
 }
 
 /// CustomMetadata contains information from a user-defined operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomMetadata {
     /// Output only. Key-value pairs provided by the user-defined operation.
     #[serde(default)]
@@ -2340,7 +2341,7 @@ pub struct CustomMetadata {
 }
 
 /// ChildRollouts job composition
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChildRolloutJobs {
     /// Output only. List of AdvanceChildRolloutJobs
     #[serde(default, rename = "advanceRolloutJobs")]
@@ -2351,7 +2352,7 @@ pub struct ChildRolloutJobs {
 }
 
 /// Deployment job composition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentJobs {
     /// Output only. The analysis Job. Runs after a verify if there is a verify job and the verify job succeeds.
     #[serde(default, rename = "analysisJob")]
@@ -2371,7 +2372,7 @@ pub struct DeploymentJobs {
 }
 
 /// Configuration of the repair phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepairPhaseConfig {
     /// Optional. Retries a failed job.
     #[serde(default)]
@@ -2382,7 +2383,7 @@ pub struct RepairPhaseConfig {
 }
 
 /// AutomationRuleCondition contains conditions relevant to an Automation rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomationRuleCondition {
     /// Optional. Details around targets enumerated in the rule.
     #[serde(default, rename = "targetsPresentCondition")]
@@ -2393,7 +2394,7 @@ pub struct AutomationRuleCondition {
 }
 
 /// RetryAttempt represents an action of retrying the failed Cloud Deploy job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetryAttempt {
     /// Output only. The index of this retry attempt.
     #[serde(default)]
@@ -2410,7 +2411,7 @@ pub struct RetryAttempt {
 }
 
 /// One-time window within which actions are restricted. For example, blocking actions over New Year''s Eve from December 31st at 5pm to January 1st at 9am.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeWindow {
     /// Required. End date.
     #[serde(default, rename = "endDate")]
@@ -2427,7 +2428,7 @@ pub struct OneTimeWindow {
 }
 
 /// Weekly windows. For example, blocking actions every Saturday and Sunday. Another example would be blocking actions every weekday from 5pm to midnight.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeeklyWindow {
     /// Optional. Days of week. If left empty, all days of the week will be included.
     #[serde(default, rename = "daysOfWeek")]
@@ -2441,7 +2442,7 @@ pub struct WeeklyWindow {
 }
 
 /// Git repository containing Skaffold Config modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkaffoldGitSource {
     /// Optional. Relative path from the repository root to the Skaffold file.
     #[serde(default)]
@@ -2455,7 +2456,7 @@ pub struct SkaffoldGitSource {
 }
 
 /// Cloud Build V2 Repository containing Skaffold Configs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkaffoldGCBRepoSource {
     /// Optional. Relative path from the repository root to the Skaffold Config file.
     #[serde(default)]
@@ -2469,7 +2470,7 @@ pub struct SkaffoldGCBRepoSource {
 }
 
 /// Cloud Storage bucket containing Skaffold Config modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkaffoldGCSSource {
     /// Optional. Relative path from the source to the Skaffold file.
     #[serde(default)]
@@ -2480,7 +2481,7 @@ pub struct SkaffoldGCSSource {
 }
 
 /// DeployParameters contains deploy parameters information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployParameters {
     /// Optional. Deploy parameters are applied to targets with match labels. If unspecified, deploy parameters are applied to all targets (including child targets of a multi-target).
     #[serde(default, rename = "matchTargetLabels")]
@@ -2491,7 +2492,7 @@ pub struct DeployParameters {
 }
 
 /// Strategy contains deployment strategy information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Strategy {
     /// Optional. Canary deployment strategy provides progressive percentage based deployments to a Target.
     #[serde(default)]
@@ -2502,7 +2503,7 @@ pub struct Strategy {
 }
 
 /// Job represents an operation for a Rollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Job {
     /// Output only. An advanceChildRollout Job.
     #[serde(default, rename = "advanceChildRolloutJob")]
@@ -2540,7 +2541,7 @@ pub struct Job {
 }
 
 /// Retries the failed job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Retry {
     /// Required. Total number of retries. Retry is skipped if set to 0; The minimum value is 1, and the maximum value is 10.
     #[serde(default)]
@@ -2554,7 +2555,7 @@ pub struct Retry {
 }
 
 /// Rolls back a Rollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Rollback {
     /// Optional. The starting phase ID for the Rollout. If unspecified, the Rollout will start in the stable phase.
     #[serde(default, rename = "destinationPhase")]
@@ -2565,7 +2566,7 @@ pub struct Rollback {
 }
 
 /// TargetsPresentCondition contains information on any Targets referenced in the Delivery Pipeline that do not actually exist.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetsPresentCondition {
     /// The list of Target names that do not exist. For example, projects/{project_id}/locations/{location_name}/targets/{target_name}.
     #[serde(default, rename = "missingTargets")]
@@ -2579,7 +2580,7 @@ pub struct TargetsPresentCondition {
 }
 
 /// TimedPromoteReleaseCondition contains conditions specific to an Automation with a Timed Promote Release rule defined.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimedPromoteReleaseCondition {
     /// Output only. When the next scheduled promotion(s) will occur.
     #[serde(default, rename = "nextPromotionTime")]
@@ -2590,7 +2591,7 @@ pub struct TimedPromoteReleaseCondition {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -2604,7 +2605,7 @@ pub struct Date {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -2621,7 +2622,7 @@ pub struct TimeOfDay {
 }
 
 /// Canary represents the canary deployment strategy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Canary {
     /// Optional. Configures the progressive based deployment for a Target.
     #[serde(default, rename = "canaryDeployment")]
@@ -2635,7 +2636,7 @@ pub struct Canary {
 }
 
 /// Standard represents the standard deployment strategy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Standard {
     /// Optional. Configuration for the analysis job. If this is not configured, the analysis job will not be present.
     #[serde(default)]
@@ -2655,7 +2656,7 @@ pub struct Standard {
 }
 
 /// An analysis Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalysisJob {
     /// Output only. Custom analysis checks from 3P metric providers that are run as part of the analysis Job.
     #[serde(default, rename = "customChecks")]
@@ -2669,7 +2670,7 @@ pub struct AnalysisJob {
 }
 
 /// A postdeploy Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostdeployJob {
     /// Output only. The custom actions that the postdeploy Job executes.
     #[serde(default)]
@@ -2680,7 +2681,7 @@ pub struct PostdeployJob {
 }
 
 /// A predeploy Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PredeployJob {
     /// Output only. The custom actions that the predeploy Job executes.
     #[serde(default)]
@@ -2691,7 +2692,7 @@ pub struct PredeployJob {
 }
 
 /// A verify Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyJob {
     /// Output only. The tasks that are executed as part of the verify Job.
     #[serde(default)]
@@ -2699,7 +2700,7 @@ pub struct VerifyJob {
 }
 
 /// The targets involved in a single timed promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Targets {
     /// Optional. The destination target ID.
     #[serde(default, rename = "destinationTargetId")]
@@ -2710,7 +2711,7 @@ pub struct Targets {
 }
 
 /// CanaryDeployment represents the canary deployment configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CanaryDeployment {
     /// Optional. Configuration for the analysis job. If configured, the analysis will run after each percentage deployment.
     #[serde(default)]
@@ -2733,7 +2734,7 @@ pub struct CanaryDeployment {
 }
 
 /// CustomCanaryDeployment represents the custom canary deployment configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomCanaryDeployment {
     /// Required. Configuration for each phase in the canary deployment in the order executed.
     #[serde(default, rename = "phaseConfigs")]
@@ -2741,7 +2742,7 @@ pub struct CustomCanaryDeployment {
 }
 
 /// RuntimeConfig contains the runtime specific configurations for a deployment strategy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeConfig {
     /// Optional. Cloud Run runtime configuration.
     #[serde(default, rename = "cloudRun")]
@@ -2752,7 +2753,7 @@ pub struct RuntimeConfig {
 }
 
 /// PhaseConfig represents the configuration for a phase in the custom canary deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhaseConfig {
     /// Optional. Configuration for the analysis job of this phase. If this is not configured, there will be no analysis job for this phase.
     #[serde(default)]
@@ -2781,7 +2782,7 @@ pub struct PhaseConfig {
 }
 
 /// CloudRunConfig contains the Cloud Run runtime configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudRunConfig {
     /// Optional. Whether Cloud Deploy should update the traffic stanza in a Cloud Run Service on the user''s behalf to facilitate traffic splitting. This is required to be true for CanaryDeployments, but optional for CustomCanaryDeployments.
     #[serde(default, rename = "automaticTrafficControl")]
@@ -2798,7 +2799,7 @@ pub struct CloudRunConfig {
 }
 
 /// KubernetesConfig contains the Kubernetes runtime configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KubernetesConfig {
     /// Optional. Kubernetes Gateway API service mesh configuration.
     #[serde(default, rename = "gatewayServiceMesh")]
@@ -2809,7 +2810,7 @@ pub struct KubernetesConfig {
 }
 
 /// Analysis contains the configuration for the set of analyses to be performed on the target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Analysis {
     /// Optional. Custom analysis checks from 3P metric providers.
     #[serde(default, rename = "customChecks")]
@@ -2823,7 +2824,7 @@ pub struct Analysis {
 }
 
 /// Postdeploy contains the postdeploy job configuration information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Postdeploy {
     /// Optional. A sequence of Skaffold custom actions to invoke during execution of the postdeploy job.
     #[serde(default)]
@@ -2834,7 +2835,7 @@ pub struct Postdeploy {
 }
 
 /// Predeploy contains the predeploy job configuration information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Predeploy {
     /// Optional. A sequence of Skaffold custom actions to invoke during execution of the predeploy job.
     #[serde(default)]
@@ -2845,7 +2846,7 @@ pub struct Predeploy {
 }
 
 /// Verify contains the verify job configuration information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Verify {
     /// Optional. The tasks that will run as a part of the verify job. The tasks are executed sequentially in the order specified.
     #[serde(default)]
@@ -2853,7 +2854,7 @@ pub struct Verify {
 }
 
 /// Information about the Kubernetes Gateway API service mesh configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GatewayServiceMesh {
     /// Required. Name of the Kubernetes Deployment whose traffic is managed by the specified HTTPRoute and Service.
     #[serde(default)]
@@ -2879,7 +2880,7 @@ pub struct GatewayServiceMesh {
 }
 
 /// Information about the Kubernetes Service networking configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceNetworking {
     /// Required. Name of the Kubernetes Deployment whose traffic is managed by the specified Service.
     #[serde(default)]
@@ -2896,7 +2897,7 @@ pub struct ServiceNetworking {
 }
 
 /// CustomCheck configures a third-party metric provider to run the analysis, via a Task that runs at a specified frequency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomCheck {
     /// Optional. The frequency at which the custom check will be run, with a minimum and default of 5 minutes.
     #[serde(default)]
@@ -2910,7 +2911,7 @@ pub struct CustomCheck {
 }
 
 /// GoogleCloudAnalysis is a set of Google Cloud-based checks to perform on the deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAnalysis {
     /// Optional. A list of Cloud Monitoring Alert Policy checks to perform as part of the analysis.
     #[serde(default, rename = "alertPolicyChecks")]
@@ -2918,7 +2919,7 @@ pub struct GoogleCloudAnalysis {
 }
 
 /// Information about route destinations for the Gateway API service mesh.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouteDestinations {
     /// Required. The clusters where the Gateway API HTTPRoute resource will be deployed to. Valid entries include the associated entities IDs configured in the Target resource and "@self" to include the Target cluster.
     #[serde(default, rename = "destinationIds")]
@@ -2929,7 +2930,7 @@ pub struct RouteDestinations {
 }
 
 /// A Task represents a unit of work that is executed as part of a Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Task {
     /// Optional. This task is represented by a container that is executed in the Cloud Build execution environment.
     #[serde(default)]
@@ -2937,7 +2938,7 @@ pub struct Task {
 }
 
 /// AlertPolicyCheck configures a set of Cloud Monitoring alerting policies that will be periodically polled for alerts. If any of the listed policies have an active alert, the analysis check will fail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlertPolicyCheck {
     /// Required. The Cloud Monitoring Alert Policies to check for active alerts. Format is projects/{project}/alertPolicies/{alert_policy}.
     #[serde(default, rename = "alertPolicies")]
@@ -2951,7 +2952,7 @@ pub struct AlertPolicyCheck {
 }
 
 /// This task is represented by a container that is executed in the Cloud Build execution environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerTask {
     /// Optional. Args is the container arguments to use. This overrides the default arguments defined in the container image.
     #[serde(default)]

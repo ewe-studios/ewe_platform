@@ -884,6 +884,7 @@ impl ResourceGenerator {
              #![allow(unused_imports)]\n\
              \n\
              use serde::{{Deserialize, Serialize}};\n\
+             use foundation_macros::JsonHash;\n\
              use super::*;\n\
              "
         )
@@ -947,7 +948,7 @@ impl ResourceGenerator {
                 }
             })?;
         }
-        writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize)]").map_err(|e| {
+        writeln!(out, "#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]").map_err(|e| {
             GenResourceError::WriteFile {
                 path: format!("struct {}", resource.name),
                 source: std::io::Error::new(std::io::ErrorKind::Other, e),
@@ -1230,6 +1231,7 @@ impl ResourceGenerator {
              #![cfg(feature = \"{feature_name}\")]\n\
              \n\
              use serde::{{Deserialize, Serialize}};\n\
+             use foundation_macros::JsonHash;\n\
              use super::*;\n"
         ).map_err(|e| GenResourceError::WriteFile { path: format!("generated code for {label}"), source: std::io::Error::new(std::io::ErrorKind::Other, e) })?;
 

@@ -245,9 +245,10 @@ Features are listed in dependency order. Each feature contains detailed requirem
 
 | #  | Feature | Description | Dependencies | Status |
 |----|---------|-------------|--------------|--------|
-| 0a | [foundation-db](./features/00a-foundation-db/feature.md) | Unified storage backend with Turso sync backend, D1, R2, in-memory — Valtron-only async | None | 🔄 In Progress |
+| 0a | [foundation-db](./features/00a-foundation-db/feature.md) | Unified storage backend with Turso sync backend, D1, R2, in-memory — Valtron-only async | None | ✅ Complete |
 | 0b | [auth-infrastructure](./features/00b-auth-infrastructure/feature.md) | Comprehensive authentication infrastructure for foundation_auth (JWT, OAuth 2.0, credential storage via foundation_db, auth state machine, 2FA) | 00a-foundation-db | ⬜ Pending |
 | 0c | [openai-provider](./features/00c-openai-provider/feature.md) | OpenAI-compatible HTTP provider for connecting to OpenAI, llama.cpp server, vLLM, Ollama | 00b-auth-infrastructure | ⬜ Pending |
+| 0d | [state-store-streaming](./features/00d-state-store-streaming/feature.md) | Fix all state stores (D1, R2, SQLite) to use run_future_iter for proper row streaming | 00a-foundation-db | ⬜ Pending |
 | 1  | [llamacpp-integration](./features/01-llamacpp-integration/feature.md) | Complete llama.cpp inference engine integration via `infrastructure_llama_cpp` | None | ⬜ Pending |
 | 2  | [huggingface-provider](./features/02-huggingface-provider/feature.md) | HuggingFace Hub model discovery, download, and GGUF serving via `hf-hub` | 01-llamacpp-integration | ⬜ Pending |
 | 3  | [candle-integration](./features/03-candle-integration/feature.md) | Alternative ModelProvider using HuggingFace Candle for native Rust inference with safetensors | 01-llamacpp-integration | ⬜ Pending |

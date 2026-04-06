@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// GenerateAccessTokenRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateAccessTokenRequest {
     /// The sequence of service accounts in a delegation chain. This field is required for [delegated requests](https://cloud.google.com/iam/help/credentials/delegated-request). For [direct requests](https://cloud.google.com/iam/help/credentials/direct-request), which are more common, do not specify this field. Each service account must be granted the roles/iam.serviceAccountTokenCreator role on its next service account in the chain. The last service account in the chain must be granted the roles/iam.serviceAccountTokenCreator role on the service account that is specified in the name field of the request. The delegates must have the following format: projects/-/serviceAccounts/{ACCOUNT_EMAIL_OR_UNIQUEID}. The - wildcard character is required; replacing it with a project ID is invalid.
     #[serde(default)]
@@ -25,7 +26,7 @@ pub struct GenerateAccessTokenRequest {
 }
 
 /// GenerateAccessTokenResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateAccessTokenResponse {
     /// The OAuth 2.0 access token.
     #[serde(default, rename = "accessToken")]
@@ -36,7 +37,7 @@ pub struct GenerateAccessTokenResponse {
 }
 
 /// GenerateIdTokenRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateIdTokenRequest {
     /// Required. The audience for the token, such as the API or account that this token grants access to.
     #[serde(default)]
@@ -53,7 +54,7 @@ pub struct GenerateIdTokenRequest {
 }
 
 /// GenerateIdTokenResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateIdTokenResponse {
     /// The OpenId Connect ID token. The token is a JSON Web Token (JWT) that contains a payload with claims. See the [JSON Web Token spec](https://tools.ietf.org/html/rfc7519) for more information. Here is an example of a decoded JWT payload:  { "iss": "https://accounts.google.com", "iat": 1496953245, "exp": 1496953245, "aud": "https://www.example.com", "sub": "107517467455664443765", "azp": "107517467455664443765", "email": "my-iam-account@my-project.iam.gserviceaccount.com", "email_verified": true, "google": { "organization_number": 123456 } }
     #[serde(default)]
@@ -61,7 +62,7 @@ pub struct GenerateIdTokenResponse {
 }
 
 /// Represents a list of allowed locations for given service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccountAllowedLocations {
     /// Output only. The hex encoded bitmap of the trust boundary locations
     #[serde(default, rename = "encodedLocations")]
@@ -72,7 +73,7 @@ pub struct ServiceAccountAllowedLocations {
 }
 
 /// SignBlobRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignBlobRequest {
     /// The sequence of service accounts in a delegation chain. Each service account must be granted the roles/iam.serviceAccountTokenCreator role on its next service account in the chain. The last service account in the chain must be granted the roles/iam.serviceAccountTokenCreator role on the service account that is specified in the name field of the request. The delegates must have the following format: projects/-/serviceAccounts/{ACCOUNT_EMAIL_OR_UNIQUEID}. The - wildcard character is required; replacing it with a project ID is invalid.
     #[serde(default)]
@@ -83,7 +84,7 @@ pub struct SignBlobRequest {
 }
 
 /// SignBlobResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignBlobResponse {
     /// The ID of the key used to sign the blob. The key used for signing will remain valid for at least 12 hours after the blob is signed. To verify the signature, you can retrieve the public key in several formats from the following endpoints: - RSA public key wrapped in an X.509 v3 certificate: https://www.googleapis.com/service_accounts/v1/metadata/x509/{ACCOUNT_EMAIL} - Raw key in JSON format: https://www.googleapis.com/service_accounts/v1/metadata/raw/{ACCOUNT_EMAIL} - JSON Web Key (JWK): https://www.googleapis.com/service_accounts/v1/metadata/jwk/{ACCOUNT_EMAIL}
     #[serde(default, rename = "keyId")]
@@ -94,7 +95,7 @@ pub struct SignBlobResponse {
 }
 
 /// SignJwtRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignJwtRequest {
     /// The sequence of service accounts in a delegation chain. Each service account must be granted the roles/iam.serviceAccountTokenCreator role on its next service account in the chain. The last service account in the chain must be granted the roles/iam.serviceAccountTokenCreator role on the service account that is specified in the name field of the request. The delegates must have the following format: projects/-/serviceAccounts/{ACCOUNT_EMAIL_OR_UNIQUEID}. The - wildcard character is required; replacing it with a project ID is invalid.
     #[serde(default)]
@@ -105,7 +106,7 @@ pub struct SignJwtRequest {
 }
 
 /// SignJwtResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignJwtResponse {
     /// The ID of the key used to sign the JWT. The key used for signing will remain valid for at least 12 hours after the JWT is signed. To verify the signature, you can retrieve the public key in several formats from the following endpoints: - RSA public key wrapped in an X.509 v3 certificate: https://www.googleapis.com/service_accounts/v1/metadata/x509/{ACCOUNT_EMAIL} - Raw key in JSON format: https://www.googleapis.com/service_accounts/v1/metadata/raw/{ACCOUNT_EMAIL} - JSON Web Key (JWK): https://www.googleapis.com/service_accounts/v1/metadata/jwk/{ACCOUNT_EMAIL}
     #[serde(default, rename = "keyId")]
@@ -116,7 +117,7 @@ pub struct SignJwtResponse {
 }
 
 /// Represents a list of allowed locations for given workforce pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkforcePoolAllowedLocations {
     /// Output only. The hex encoded bitmap of the trust boundary locations
     #[serde(default, rename = "encodedLocations")]
@@ -127,7 +128,7 @@ pub struct WorkforcePoolAllowedLocations {
 }
 
 /// Represents a list of allowed locations for given workload identity pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadIdentityPoolAllowedLocations {
     /// Output only. The hex encoded bitmap of the trust boundary locations
     #[serde(default, rename = "encodedLocations")]

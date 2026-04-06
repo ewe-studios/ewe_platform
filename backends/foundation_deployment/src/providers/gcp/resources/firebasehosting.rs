@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Metadata associated with aCustomDomain operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomDomainMetadata {
     /// The CertState of the domain name''s SSL certificate. // TODO: enum values: ["CERT_STATE_UNSPECIFIED", "CERT_PREPARING", "CERT_VALIDATING", "CERT_PROPAGATING", "CERT_ACTIVE", "CERT_EXPIRING_SOON", "CERT_EXPIRED"]
     #[serde(default, rename = "certState")]
@@ -38,11 +39,11 @@ pub struct CustomDomainMetadata {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -56,7 +57,7 @@ pub struct ListOperationsResponse {
 }
 
 /// A set of updates including ACME challenges and DNS records that allow Hosting to create an SSL certificate and establish project ownership for your domain name before you direct traffic to Hosting servers. Use these updates to facilitate zero downtime migrations to Hosting from other services. After you''ve made the recommended updates, check your custom domain''s ownershipState and certState. To avoid downtime, they should be OWNERSHIP_ACTIVE and CERT_ACTIVE, respectively, before you update your A and AAAA records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveMigrationStep {
     /// Output only. A pair of ACME challenges that Hosting''s Certificate Authority (CA) can use to create an SSL cert for your domain name. Use either the DNS or HTTP challenge; it''s not necessary to provide both.
     #[serde(default, rename = "certVerification")]
@@ -73,7 +74,7 @@ pub struct LiveMigrationStep {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -93,7 +94,7 @@ pub struct Operation {
 }
 
 /// A set of ACME challenges you can use to allow Hosting to create an SSL certificate for your domain name before directing traffic to Hosting servers. Use either the DNS or HTTP challenge; it''s not necessary to provide both.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertVerification {
     /// Output only. A TXT record to add to your DNS records that confirms your intent to let Hosting create an SSL cert for your domain name.
     #[serde(default)]
@@ -104,7 +105,7 @@ pub struct CertVerification {
 }
 
 /// A set of DNS record updates that you should make to allow Hosting to serve secure content in response to requests against your domain name. These updates present the current state of your domain name''s DNS records when Hosting last queried them, and the desired set of records that Hosting needs to see before your custom domain can be fully active.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsUpdates {
     /// The last time Hosting checked your custom domain''s DNS records.
     #[serde(default, rename = "checkTime")]
@@ -118,7 +119,7 @@ pub struct DnsUpdates {
 }
 
 /// A file you can add to your existing, non-Hosting hosting service that confirms your intent to allow Hosting''s Certificate Authorities to create an SSL certificate for your domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpUpdate {
     /// Output only. An error encountered during the last contents check. If null, the check completed successfully.
     #[serde(default, rename = "checkError")]
@@ -138,7 +139,7 @@ pub struct HttpUpdate {
 }
 
 /// A set of DNS records relevant to the setup and maintenance of a custom domain in Firebase Hosting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordSet {
     /// Output only. An error Hosting services encountered when querying your domain name''s DNS records. Note: Hosting ignores NXDOMAIN errors, as those generally just mean that a domain name hasn''t been set up yet.
     #[serde(default, rename = "checkError")]
@@ -152,7 +153,7 @@ pub struct DnsRecordSet {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -166,7 +167,7 @@ pub struct Status {
 }
 
 /// DNS records are resource records that define how systems and services should behave when handling requests for a domain name. For example, when you add A records to your domain name''s DNS records, you''re informing other systems (such as your users'' web browsers) to contact those IPv4 addresses to retrieve resources relevant to your domain name (such as your Hosting site files).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecord {
     /// Output only. The domain name the record pertains to, e.g. foo.bar.com..
     #[serde(default, rename = "domainName")]

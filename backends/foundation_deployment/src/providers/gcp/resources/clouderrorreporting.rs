@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for deleting error events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteEventsResponse {}
 
 /// Contains a set of requested error events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEventsResponse {
     /// The error events which match the given request.
     #[serde(default, rename = "errorEvents")]
@@ -29,7 +30,7 @@ pub struct ListEventsResponse {
 }
 
 /// Contains a set of requested error group stats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGroupStatsResponse {
     /// The error group stats which match the given request.
     #[serde(default, rename = "errorGroupStats")]
@@ -43,11 +44,11 @@ pub struct ListGroupStatsResponse {
 }
 
 /// Response for reporting an individual error event. Data may be added to this message in the future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportErrorEventResponse {}
 
 /// An error event which is reported to the Error Reporting system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportedErrorEvent {
     /// Optional. A description of the context in which the error occurred.
     #[serde(default)]
@@ -64,7 +65,7 @@ pub struct ReportedErrorEvent {
 }
 
 /// Data extracted for a specific group based on certain filter criteria, such as a given time period and/or service filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorGroupStats {
     /// Service contexts with a non-zero error count for the given filter criteria. This list can be truncated if multiple services are affected. Refer to num_affected_services for the total count.
     #[serde(default, rename = "affectedServices")]
@@ -96,7 +97,7 @@ pub struct ErrorGroupStats {
 }
 
 /// Description of a group of similar error events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorGroup {
     /// An opaque identifier of the group. This field is assigned by the Error Reporting system and always populated. In the group resource name, the group_id is a unique identifier for a particular error group. The identifier is derived from key parts of the error-log content and is treated as Service Data. For information about how Service Data is handled, see [Google Cloud Privacy Notice](https://cloud.google.com/terms/cloud-privacy-notice).
     #[serde(default, rename = "groupId")]
@@ -113,7 +114,7 @@ pub struct ErrorGroup {
 }
 
 /// An error event which is returned by the Error Reporting system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorEvent {
     /// Data about the context in which the error occurred.
     #[serde(default)]
@@ -130,7 +131,7 @@ pub struct ErrorEvent {
 }
 
 /// The number of errors in a given time period. All numbers are approximate since the error events are sampled before counting them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimedCount {
     /// Approximate number of occurrences in the given time period.
     #[serde(default)]
@@ -144,7 +145,7 @@ pub struct TimedCount {
 }
 
 /// Information related to tracking the progress on resolving the error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrackingIssue {
     /// A URL pointing to a related entry in an issue tracking system. Example: https://github.com/user/project/issues/4
     #[serde(default)]
@@ -152,7 +153,7 @@ pub struct TrackingIssue {
 }
 
 /// A description of the context in which an error occurred. This data should be provided by the application when reporting an error, unless the error report has been generated automatically from Google App Engine logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorContext {
     /// The HTTP request which was processed when the error was triggered.
     #[serde(default, rename = "httpRequest")]
@@ -169,7 +170,7 @@ pub struct ErrorContext {
 }
 
 /// Describes a running service that sends errors. Its version changes over time and multiple versions can run in parallel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceContext {
     /// Type of the MonitoredResource. List of possible values: https://cloud.google.com/monitoring/api/resources Value is set automatically for incoming errors and must not be set when reporting errors.
     #[serde(default, rename = "resourceType")]
@@ -183,7 +184,7 @@ pub struct ServiceContext {
 }
 
 /// HTTP request data that is related to a reported error. This data should be provided by the application when reporting an error, unless the error report has been generated automatically from Google App Engine logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRequestContext {
     /// The type of HTTP request, such as GET, POST, etc.
     #[serde(default)]
@@ -206,7 +207,7 @@ pub struct HttpRequestContext {
 }
 
 /// Indicates a location in the source code of the service for which errors are reported. functionName must be provided by the application when reporting an error, unless the error report contains a message with a supported exception stack trace. All fields are optional for the later case.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceLocation {
     /// The source code filename, which can include a truncated relative path, or a full path from a production machine.
     #[serde(default, rename = "filePath")]
@@ -220,7 +221,7 @@ pub struct SourceLocation {
 }
 
 /// A reference to a particular snapshot of the source tree used to build and deploy an application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceReference {
     /// Optional. A URI string identifying the repository. Example: "https://github.com/GoogleCloudPlatform/kubernetes.git"
     #[serde(default)]

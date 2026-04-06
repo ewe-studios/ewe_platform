@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Represents a quota for contact centers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactCenterQuota {
     /// Deprecated: Use the Quota fields instead. Reflects the count limit of contact centers on a billing account.
     #[serde(default, rename = "contactCenterCountLimit")]
@@ -29,15 +30,15 @@ pub struct ContactCenterQuota {
 }
 
 /// LINT.IfChange First Channel to receive the updates. Meant to dev/test instances
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Early {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request with constraints for generating shifts. The shifts generated must adhere to these constraints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateShiftsRequest {
     /// Optional. Employee information that should be considered when generating shifts.
     #[serde(default, rename = "employeeInfo")]
@@ -57,7 +58,7 @@ pub struct GenerateShiftsRequest {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudCommonOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -83,7 +84,7 @@ pub struct GoogleCloudCommonOperationMetadata {
 }
 
 /// Message for response to listing ContactCenters
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListContactCentersResponse {
     /// The list of ContactCenter
     #[serde(default, rename = "contactCenters")]
@@ -97,7 +98,7 @@ pub struct ListContactCentersResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -108,7 +109,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -122,11 +123,11 @@ pub struct ListOperationsResponse {
 }
 
 /// Instances in this Channel will receive updates after all instances in Early were updated + 2 days.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Normal {}
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -155,7 +156,7 @@ pub struct OperationMetadata {
 }
 
 /// Quota details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Quota {
     /// Reflects the count limit of contact centers on a billing account.
     #[serde(default, rename = "contactCenterCountLimit")]
@@ -169,7 +170,7 @@ pub struct Quota {
 }
 
 /// Information about a particular employee for planning purposes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmployeeInfo {
     /// Required. Unique ID of this employee.
     #[serde(default)]
@@ -180,7 +181,7 @@ pub struct EmployeeInfo {
 }
 
 /// Specifies the time interval during which the solver should generate shifts. The start time must be before the end time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlanningHorizon {
     /// Required. End of the time interval for the given demand (exclusive). These values are read down to the minute; seconds and all smaller units are ignored.
     #[serde(default, rename = "endTime")]
@@ -191,7 +192,7 @@ pub struct PlanningHorizon {
 }
 
 /// Template specifying rules for generating shifts. A shift is a unit of work that specifies a start time, end time, and may contain events (e.g. lunch, breaks etc.). Shifts will be assigned to specific dates in the response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShiftTemplate {
     /// Optional. A list of specific employee IDs that can be assigned to shifts generated by this template. If this field is present, there will be EmployeeSchedules in the response for which the EmployeeSchedule.employee_id field is set to one of the IDs in this list. The number of employee schedules with an assigned employee ID will be between minimum_employee_count and maximum_employee_count. If this field is empty, between minimum_employee_count and maximum_employee_count employees can be assigned to shifts generated by this template and the employee schedules won''t have an assigned employee ID. Currently, only one assignable employee ID is supported.
     #[serde(default, rename = "assignableEmployeeIds")]
@@ -232,7 +233,7 @@ pub struct ShiftTemplate {
 }
 
 /// Specifies additional parameters for the solver generating shifts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SolverConfig {
     /// Optional. Maximum time the solver should spend on the problem. If not set, defaults to 1 minute. The choice of a time limit should depend on the size of the problem. To give an example, when solving a 7-day instance with 2 ShiftTemplates, each with ~20 possible start times and holding 2 events with ~30 possible start times, and two days off per week, recommended values are: &lt;10s for fast solutions (and likely suboptimal), (10s, 300s) for good quality solutions, and &gt;300s for an exhaustive search. Larger instances may require longer time limits. This value is not a hard limit and it does not account for the communication overhead. The expected latency to solve the problem may slightly exceed this value.
     #[serde(default, rename = "maximumProcessingDuration")]
@@ -243,7 +244,7 @@ pub struct SolverConfig {
 }
 
 /// List of workforce demands.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkforceDemandList {
     /// Optional. Values in the list.
     #[serde(default)]
@@ -251,7 +252,7 @@ pub struct WorkforceDemandList {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -271,7 +272,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -291,7 +292,7 @@ pub struct Operation {
 }
 
 /// Message describing ContactCenter object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactCenter {
     /// Optional. Info about the first admin user, such as given name and family name.
     #[serde(default, rename = "adminUser")]
@@ -371,7 +372,7 @@ pub struct ContactCenter {
 }
 
 /// Specifies a time interval during which the overlap with events (generated from event templates) should be minimal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnwantedEventInterval {
     /// Required. Duration of the event.
     #[serde(default, rename = "durationMinutes")]
@@ -382,7 +383,7 @@ pub struct UnwantedEventInterval {
 }
 
 /// List of dates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateList {
     /// Optional. Values in the list.
     #[serde(default)]
@@ -390,7 +391,7 @@ pub struct DateList {
 }
 
 /// Template specifying rules for generating a single event that occurs during a shift. An event may represent a meeting, break, lunch, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventTemplate {
     /// Required. Fixed duration in minutes of this event.
     #[serde(default, rename = "durationMinutes")]
@@ -410,7 +411,7 @@ pub struct EventTemplate {
 }
 
 /// Specifies the number of employees required to cover the demand in the given time interval. The length of the interval must be strictly positive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkforceDemand {
     /// Optional. Number of employees needed to cover the demand for this interval.
     #[serde(default, rename = "employeeCount")]
@@ -424,7 +425,7 @@ pub struct WorkforceDemand {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -438,7 +439,7 @@ pub struct Status {
 }
 
 /// Message storing info about the first admin user. Next ID: 3
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdminUser {
     /// Optional. Last/family name of the first admin user.
     #[serde(default, rename = "familyName")]
@@ -449,7 +450,7 @@ pub struct AdminUser {
 }
 
 /// Instances in this Channel will receive updates after all instances in Normal were updated. They also will only be updated outside of their peak hours.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Critical {
     /// Required. Hours during which the instance should not be updated.
     #[serde(default, rename = "peakHours")]
@@ -457,7 +458,7 @@ pub struct Critical {
 }
 
 /// FeatureConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeatureConfig {
     /// Optional. If true - enables the agent desktop feature. Default is false.
     #[serde(default, rename = "agentDesktopEnabled")]
@@ -465,7 +466,7 @@ pub struct FeatureConfig {
 }
 
 /// Message storing the instance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceConfig {
     /// The instance size of this the instance configuration. // TODO: enum values: ["INSTANCE_SIZE_UNSPECIFIED", "STANDARD_SMALL", "STANDARD_MEDIUM", "STANDARD_LARGE", "STANDARD_XLARGE", "STANDARD_2XLARGE", "STANDARD_3XLARGE", "MULTIREGION_SMALL", "MULTIREGION_MEDIUM", "MULTIREGION_LARGE", "MULTIREGION_XLARGE", "MULTIREGION_2XLARGE", "MULTIREGION_3XLARGE", "DEV_SMALL", "SANDBOX_SMALL", "TRIAL_SMALL", "TIME_LIMITED_TRIAL_SMALL"]
     #[serde(default, rename = "instanceSize")]
@@ -473,7 +474,7 @@ pub struct InstanceConfig {
 }
 
 /// Defines ingress and egress private traffic settings for CCAIP instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateAccess {
     /// List of egress components that should not be accessed via the Internet. For more information see go/ccaip-private-path-v2.
     #[serde(default, rename = "egressSettings")]
@@ -487,7 +488,7 @@ pub struct PrivateAccess {
 }
 
 /// Message storing SAML params to enable Google as IDP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SAMLParams {
     /// Additional contexts used for authentication.
     #[serde(default, rename = "authenticationContexts")]
@@ -510,7 +511,7 @@ pub struct SAMLParams {
 }
 
 /// Message storing the URIs of the ContactCenter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct URIs {
     /// Chat Bot Uri of the ContactCenter
     #[serde(default, rename = "chatBotUri")]
@@ -527,7 +528,7 @@ pub struct URIs {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -541,7 +542,7 @@ pub struct Date {
 }
 
 /// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateTime {
     /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
     #[serde(default)]
@@ -573,7 +574,7 @@ pub struct DateTime {
 }
 
 /// Message representing a weekly schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeeklySchedule {
     /// Required. Days of the week this schedule applies to.
     #[serde(default)]
@@ -590,7 +591,7 @@ pub struct WeeklySchedule {
 }
 
 /// Defines a logical CCAIP component that e.g. “EMAIL”, "CRM". For more information see go/ccaip-private-path-v2. Each logical component is associated with a list of service attachments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Component {
     /// Name of the component.
     #[serde(default)]
@@ -601,7 +602,7 @@ pub struct Component {
 }
 
 /// Private service connect settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PscSetting {
     /// The list of project ids that are allowed to send traffic to the service attachment. This field should be filled only for the ingress components.
     #[serde(default, rename = "allowedConsumerProjectIds")]
@@ -612,7 +613,7 @@ pub struct PscSetting {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
@@ -623,7 +624,7 @@ pub struct TimeZone {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]

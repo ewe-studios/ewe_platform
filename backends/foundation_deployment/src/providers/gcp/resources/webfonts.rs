@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response containing the list of fonts currently served by the Google Fonts API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebfontList {
     /// The list of fonts currently served by the Google Fonts API.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct WebfontList {
 }
 
 /// Metadata describing a family of fonts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Webfont {
     /// Axis for variable fonts.
     #[serde(default)]
@@ -63,7 +64,7 @@ pub struct Webfont {
 }
 
 /// Metadata for a variable font axis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Axis {
     /// maximum value
     #[serde(default)]
@@ -77,7 +78,7 @@ pub struct Axis {
 }
 
 /// Metadata for a tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tag {
     /// The name of the tag.
     #[serde(default)]

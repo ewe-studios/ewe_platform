@@ -8,22 +8,23 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request definition for the account close rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloseAccountRequest {}
 
 /// Response definition for the account close rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloseAccountResponse {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// A platform sub-account event to record spam signals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Event {
     /// Required. Information associated with the event.
     #[serde(default, rename = "eventInfo")]
@@ -37,7 +38,7 @@ pub struct Event {
 }
 
 /// Response definition for the list accounts rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountsResponse {
     /// The Accounts returned in the list response. Represented by a partial view of the Account resource, populating name and creation_request_id.
     #[serde(default)]
@@ -48,7 +49,7 @@ pub struct ListAccountsResponse {
 }
 
 /// Response definition for the site list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSitesResponse {
     /// Continuation token used to page through sites. To retrieve the next page of the results, set the next request''s "page_token" value to this.
     #[serde(default, rename = "nextPageToken")]
@@ -59,7 +60,7 @@ pub struct ListSitesResponse {
 }
 
 /// Response definition for the lookup account rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupAccountResponse {
     /// The name of the Account Format: platforms/{platform}/accounts/{account_id}
     #[serde(default)]
@@ -67,11 +68,11 @@ pub struct LookupAccountResponse {
 }
 
 /// Response definition for the site request review rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestSiteReviewResponse {}
 
 /// Private information for partner recorded events (PII).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventInfo {
     /// The billing address of the publisher associated with this event, if available.
     #[serde(default, rename = "billingAddress")]
@@ -82,7 +83,7 @@ pub struct EventInfo {
 }
 
 /// Representation of an Account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// Output only. Creation time of the account.
     #[serde(default, rename = "createTime")]
@@ -108,7 +109,7 @@ pub struct Account {
 }
 
 /// Representation of a Site.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Site {
     /// Domain/sub-domain of the site. Must be a valid domain complying with [RFC 1035](https://www.ietf.org/rfc/rfc1035.txt) and formatted as punycode [RFC 3492](https://www.ietf.org/rfc/rfc3492.txt) in case the domain contains unicode characters.
     #[serde(default)]
@@ -122,7 +123,7 @@ pub struct Site {
 }
 
 /// Address data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Address {
     /// First line of address. Max length 64 bytes or 30 characters.
     #[serde(default)]
@@ -157,7 +158,7 @@ pub struct Address {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]

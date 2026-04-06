@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Metadata of Access Context Manager''s Long Running Operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessContextManagerOperationMetadata {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A request to commit dry-run specs in all Service Perimeters belonging to an Access Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitServicePerimetersRequest {
     /// Optional. The etag for the version of the Access Policy that this commit operation is to be performed on. If, at the time of commit, the etag for the Access Policy stored in Access Context Manager is different from the specified etag, then the commit operation will not be performed and the call will fail. This field is not required. If etag is not provided, the operation will be performed as if a valid etag is provided.
     #[serde(default)]
@@ -27,7 +28,7 @@ pub struct CommitServicePerimetersRequest {
 }
 
 /// A response to CommitServicePerimetersRequest. This will be put inside of Operation.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitServicePerimetersResponse {
     /// List of all the Service Perimeter instances in the Access Policy.
     #[serde(default, rename = "servicePerimeters")]
@@ -35,15 +36,15 @@ pub struct CommitServicePerimetersResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Metadata of Google Cloud Access Binding Long Running Operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcpUserAccessBindingOperationMetadata {}
 
 /// Request message for GetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
@@ -51,7 +52,7 @@ pub struct GetIamPolicyRequest {
 }
 
 /// A response to ListAccessLevelsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccessLevelsResponse {
     /// List of the Access Level instances.
     #[serde(default, rename = "accessLevels")]
@@ -62,7 +63,7 @@ pub struct ListAccessLevelsResponse {
 }
 
 /// A response to ListAccessPoliciesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccessPoliciesResponse {
     /// List of the AccessPolicy instances.
     #[serde(default, rename = "accessPolicies")]
@@ -73,7 +74,7 @@ pub struct ListAccessPoliciesResponse {
 }
 
 /// A response to ListAuthorizedOrgsDescsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAuthorizedOrgsDescsResponse {
     /// List of all the Authorized Orgs Desc instances.
     #[serde(default, rename = "authorizedOrgsDescs")]
@@ -84,7 +85,7 @@ pub struct ListAuthorizedOrgsDescsResponse {
 }
 
 /// Response of ListGcpUserAccessBindings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGcpUserAccessBindingsResponse {
     /// GcpUserAccessBinding
     #[serde(default, rename = "gcpUserAccessBindings")]
@@ -95,7 +96,7 @@ pub struct ListGcpUserAccessBindingsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -109,7 +110,7 @@ pub struct ListOperationsResponse {
 }
 
 /// A response to ListServicePerimetersRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServicePerimetersResponse {
     /// The pagination token to retrieve the next page of results. If the value is empty, no further results remain.
     #[serde(default, rename = "nextPageToken")]
@@ -120,7 +121,7 @@ pub struct ListServicePerimetersResponse {
 }
 
 /// A response to ListSupportedPermissionsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSupportedPermissionsResponse {
     /// The pagination token to retrieve the next page of results. If the value is empty, no further results remain.
     #[serde(default, rename = "nextPageToken")]
@@ -131,7 +132,7 @@ pub struct ListSupportedPermissionsResponse {
 }
 
 /// A response to ListSupportedServicesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSupportedServicesResponse {
     /// The pagination token to retrieve the next page of results. If the value is empty, no further results remain.
     #[serde(default, rename = "nextPageToken")]
@@ -142,7 +143,7 @@ pub struct ListSupportedServicesResponse {
 }
 
 /// A request to replace all existing Access Levels in an Access Policy with the Access Levels provided. This is done atomically.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceAccessLevelsRequest {
     /// Required. The desired Access Levels that should replace all existing Access Levels in the Access Policy.
     #[serde(default, rename = "accessLevels")]
@@ -153,7 +154,7 @@ pub struct ReplaceAccessLevelsRequest {
 }
 
 /// A response to ReplaceAccessLevelsRequest. This will be put inside of Operation.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceAccessLevelsResponse {
     /// List of the Access Level instances.
     #[serde(default, rename = "accessLevels")]
@@ -161,7 +162,7 @@ pub struct ReplaceAccessLevelsResponse {
 }
 
 /// A request to replace all existing Service Perimeters in an Access Policy with the Service Perimeters provided. This is done atomically.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceServicePerimetersRequest {
     /// Optional. The etag for the version of the Access Policy that this replace operation is to be performed on. If, at the time of replace, the etag for the Access Policy stored in Access Context Manager is different from the specified etag, then the replace operation will not be performed and the call will fail. This field is not required. If etag is not provided, the operation will be performed as if a valid etag is provided.
     #[serde(default)]
@@ -172,7 +173,7 @@ pub struct ReplaceServicePerimetersRequest {
 }
 
 /// A response to ReplaceServicePerimetersRequest. This will be put inside of Operation.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceServicePerimetersResponse {
     /// List of the Service Perimeter instances.
     #[serde(default, rename = "servicePerimeters")]
@@ -180,7 +181,7 @@ pub struct ReplaceServicePerimetersResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -191,7 +192,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -199,7 +200,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -207,7 +208,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
@@ -215,7 +216,7 @@ pub struct GetPolicyOptions {
 }
 
 /// AccessPolicy is a container for AccessLevels (which define the necessary attributes to use Google Cloud services) and ServicePerimeters (which define regions of services able to freely pass data within a perimeter). An access policy is globally visible within an organization, and the restrictions it specifies apply to all projects within an organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessPolicy {
     /// Output only. An opaque identifier for the current version of the AccessPolicy. This will always be a strongly validated etag, meaning that two Access Policies will be identical if and only if their etags are identical. Clients should not expect this to be in any specific format.
     #[serde(default)]
@@ -235,7 +236,7 @@ pub struct AccessPolicy {
 }
 
 /// AuthorizedOrgsDesc contains data for an organization''s authorization policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizedOrgsDesc {
     /// The asset type of this authorized orgs desc. Valid values are ASSET_TYPE_DEVICE, and ASSET_TYPE_CREDENTIAL_STRENGTH. // TODO: enum values: ["ASSET_TYPE_UNSPECIFIED", "ASSET_TYPE_DEVICE", "ASSET_TYPE_CREDENTIAL_STRENGTH"]
     #[serde(default, rename = "assetType")]
@@ -255,7 +256,7 @@ pub struct AuthorizedOrgsDesc {
 }
 
 /// Restricts access to Cloud Console and Google Cloud APIs for a set of users using Context-Aware Access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcpUserAccessBinding {
     /// Optional. Access level that a user must have to be granted access. Only one access level is supported, not multiple. This repeated field must have exactly one element. Example: "accessPolicies/9522/accessLevels/device_trusted"
     #[serde(default, rename = "accessLevels")]
@@ -281,7 +282,7 @@ pub struct GcpUserAccessBinding {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -301,7 +302,7 @@ pub struct Operation {
 }
 
 /// SupportedService specifies the VPC Service Controls and its properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SupportedService {
     /// True if the service is available on the restricted VIP. Services on the restricted VIP typically either support VPC Service Controls or are core infrastructure services required for the functioning of Google Cloud.
     #[serde(default, rename = "availableOnRestrictedVip")]
@@ -327,7 +328,7 @@ pub struct SupportedService {
 }
 
 /// An AccessLevel is a label that can be applied to requests to Google Cloud services, along with a list of requirements necessary for the label to be applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessLevel {
     /// A BasicLevel composed of Conditions.
     #[serde(default)]
@@ -347,7 +348,7 @@ pub struct AccessLevel {
 }
 
 /// ServicePerimeter describes a set of Google Cloud resources which can freely import and export data amongst themselves, but not export outside of the ServicePerimeter. If a request with a source within this ServicePerimeter has a target outside of the ServicePerimeter, the request will be blocked. Otherwise the request is allowed. There are two types of Service Perimeter - Regular and Bridge. Regular Service Perimeters cannot overlap, a single Google Cloud project or VPC network can only belong to a single regular Service Perimeter. Service Perimeter Bridges can contain only Google Cloud projects as members, a single Google Cloud project may belong to multiple Service Perimeter Bridges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServicePerimeter {
     /// Description of the ServicePerimeter and its use. Does not affect behavior.
     #[serde(default)]
@@ -376,7 +377,7 @@ pub struct ServicePerimeter {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -393,7 +394,7 @@ pub struct Policy {
 }
 
 /// A relationship between access settings and its scope.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScopedAccessSettings {
     /// Optional. Access settings for this scoped access settings. This field may be empty if dry_run_settings is set.
     #[serde(default, rename = "activeSettings")]
@@ -407,7 +408,7 @@ pub struct ScopedAccessSettings {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -421,7 +422,7 @@ pub struct Status {
 }
 
 /// BasicLevel is an AccessLevel using a set of recommended features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasicLevel {
     /// How the conditions list should be combined to determine if a request is granted this AccessLevel. If AND is used, each Condition in conditions must be satisfied for the AccessLevel to be applied. If OR is used, at least one Condition in conditions must be satisfied for the AccessLevel to be applied. Default behavior is AND. // TODO: enum values: ["AND", "OR"]
     #[serde(default, rename = "combiningFunction")]
@@ -432,7 +433,7 @@ pub struct BasicLevel {
 }
 
 /// CustomLevel is an AccessLevel using the Cloud Common Expression Language to represent the necessary conditions for the level to apply to a request. See CEL spec at: https://github.com/google/cel-spec
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomLevel {
     /// Required. A Cloud CEL expression evaluating to a boolean.
     #[serde(default)]
@@ -440,7 +441,7 @@ pub struct CustomLevel {
 }
 
 /// ServicePerimeterConfig specifies a set of Google Cloud resources that describe specific Service Perimeter configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServicePerimeterConfig {
     /// A list of AccessLevel resource names that allow resources within the ServicePerimeter to be accessed from the internet. AccessLevels listed must be in the same policy as this ServicePerimeter. Referencing a nonexistent AccessLevel is a syntax error. If no AccessLevel names are listed, resources within the perimeter can only be accessed via Google Cloud calls with request origins within the perimeter. Example: "accessPolicies/MY_POLICY/accessLevels/MY_LEVEL". For Service Perimeter Bridge, must be empty.
     #[serde(default, rename = "accessLevels")]
@@ -463,7 +464,7 @@ pub struct ServicePerimeterConfig {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -474,7 +475,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -488,7 +489,7 @@ pub struct Binding {
 }
 
 /// Access settings represent the set of conditions that must be met for access to be granted. At least one of the fields must be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSettings {
     /// Optional. Access level that a user must have to be granted access. Only one access level is supported, not multiple. This repeated field must have exactly one element. Example: "accessPolicies/9522/accessLevels/device_trusted"
     #[serde(default, rename = "accessLevels")]
@@ -499,7 +500,7 @@ pub struct AccessSettings {
 }
 
 /// Access scope represents the client scope, etc. to which the settings will be applied to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessScope {
     /// Optional. Client scope for this access scope.
     #[serde(default, rename = "clientScope")]
@@ -507,7 +508,7 @@ pub struct AccessScope {
 }
 
 /// A condition necessary for an AccessLevel to be granted. The Condition is an AND over its fields. So a Condition is true if: 1) the request IP is from one of the listed subnetworks AND 2) the originating device complies with the listed device policy AND 3) all listed access levels are granted AND 4) the request was sent at a time allowed by the DateTimeRestriction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Condition {
     /// Device specific restrictions, all restrictions must hold for the Condition to be true. If not specified, all devices are allowed.
     #[serde(default, rename = "devicePolicy")]
@@ -533,7 +534,7 @@ pub struct Condition {
 }
 
 /// Policy for egress from perimeter. EgressPolicies match requests based on egress_from and egress_to stanzas. For an EgressPolicy to match, both egress_from and egress_to stanzas must be matched. If an EgressPolicy matches a request, the request is allowed to span the ServicePerimeter boundary. For example, an EgressPolicy can be used to allow VMs on networks within the ServicePerimeter to access a defined set of projects outside the perimeter in certain contexts (e.g. to read data from a Cloud Storage bucket or query against a BigQuery dataset). EgressPolicies are concerned with the *resources* that a request relates as well as the API services and API actions being used. They do not related to the direction of data movement. More detailed documentation for this concept can be found in the descriptions of EgressFrom and EgressTo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EgressPolicy {
     /// Defines conditions on the source of a request causing this EgressPolicy to apply.
     #[serde(default, rename = "egressFrom")]
@@ -547,7 +548,7 @@ pub struct EgressPolicy {
 }
 
 /// Policy for ingress into ServicePerimeter. IngressPolicies match requests based on ingress_from and ingress_to stanzas. For an ingress policy to match, both the ingress_from and ingress_to stanzas must be matched. If an IngressPolicy matches a request, the request is allowed through the perimeter boundary from outside the perimeter. For example, access from the internet can be allowed either based on an AccessLevel or, for traffic hosted on Google Cloud, the project of the source network. For access from private networks, using the project of the hosting network is required. Individual ingress policies can be limited by restricting which services and/or actions they match using the ingress_to field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngressPolicy {
     /// Defines the conditions on the source of a request causing this IngressPolicy to apply.
     #[serde(default, rename = "ingressFrom")]
@@ -561,7 +562,7 @@ pub struct IngressPolicy {
 }
 
 /// Specifies how APIs are allowed to communicate within the Service Perimeter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpcAccessibleServices {
     /// The list of APIs usable within the Service Perimeter. Must be empty unless ''enable_restriction'' is True. You can specify a list of individual services, as well as include the ''RESTRICTED-SERVICES'' value, which automatically includes all of the services protected by the perimeter.
     #[serde(default, rename = "allowedServices")]
@@ -572,7 +573,7 @@ pub struct VpcAccessibleServices {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -583,7 +584,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -600,7 +601,7 @@ pub struct Expr {
 }
 
 /// Stores settings related to Google Cloud Session Length including session duration, the type of challenge (i.e. method) they should face when their session expires, and other related settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionSettings {
     /// Optional. How long a user is allowed to take between actions before a new access token must be issued. Only set for Google Cloud apps.
     #[serde(default, rename = "maxInactivity")]
@@ -620,7 +621,7 @@ pub struct SessionSettings {
 }
 
 /// Client scope represents the application, etc. subject to this binding''s restrictions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientScope {
     /// Optional. The application that is subject to this binding''s scope.
     #[serde(default, rename = "restrictedClientApplication")]
@@ -628,7 +629,7 @@ pub struct ClientScope {
 }
 
 /// DevicePolicy specifies device specific restrictions necessary to acquire a given access level. A DevicePolicy specifies requirements for requests from devices to be granted access levels, it does not do any enforcement on the device. DevicePolicy acts as an AND over all specified fields, and each repeated field is an OR over its elements. Any unset fields are ignored. For example, if the proto is { os_type : DESKTOP_WINDOWS, os_type : DESKTOP_LINUX, encryption_status: ENCRYPTED}, then the DevicePolicy will be true for requests originating from encrypted Linux desktops and encrypted Windows desktops.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DevicePolicy {
     /// Allowed device management levels, an empty list allows all management levels.
     #[serde(default, rename = "allowedDeviceManagementLevels")]
@@ -651,7 +652,7 @@ pub struct DevicePolicy {
 }
 
 /// The originating network source in Google Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpcNetworkSource {
     /// Sub-segment ranges of a VPC network.
     #[serde(default, rename = "vpcSubnetwork")]
@@ -659,7 +660,7 @@ pub struct VpcNetworkSource {
 }
 
 /// Defines the conditions under which an EgressPolicy matches a request. Conditions based on information about the source of the request. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EgressFrom {
     /// A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.
     #[serde(default)]
@@ -676,7 +677,7 @@ pub struct EgressFrom {
 }
 
 /// Defines the conditions under which an EgressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the resources specified. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed. The request must match operations AND resources fields in order to be allowed egress out of the perimeter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EgressTo {
     /// A list of external resources that are allowed to be accessed. Only AWS and Azure resources are supported. For Amazon S3, the supported formats are s3://BUCKET_NAME, s3a://BUCKET_NAME, and s3n://BUCKET_NAME. For Azure Storage, the supported format is azure://myaccount.blob.core.windows.net/CONTAINER_NAME. A request matches if it contains an external resource in this list (Example: s3://bucket/path). Currently ''*'' is not allowed.
     #[serde(default, rename = "externalResources")]
@@ -693,7 +694,7 @@ pub struct EgressTo {
 }
 
 /// Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the source of the request. The request must satisfy what is defined in sources AND identity related fields in order to match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngressFrom {
     /// A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.
     #[serde(default)]
@@ -707,7 +708,7 @@ pub struct IngressFrom {
 }
 
 /// Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the target resource of the request. The request must satisfy what is defined in operations AND resources in order to match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngressTo {
     /// A list of ApiOperations allowed to be performed by the sources specified in corresponding IngressFrom in this ServicePerimeter.
     #[serde(default)]
@@ -721,7 +722,7 @@ pub struct IngressTo {
 }
 
 /// An application that accesses Google Cloud APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
     /// The OAuth client ID of the application.
     #[serde(default, rename = "clientId")]
@@ -732,7 +733,7 @@ pub struct Application {
 }
 
 /// A restriction on the OS type and version of devices making requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OsConstraint {
     /// The minimum allowed OS version. If not set, any version of this OS satisfies the constraint. Format: "major.minor.patch". Examples: "10.5.301", "9.2.1".
     #[serde(default, rename = "minimumVersion")]
@@ -746,7 +747,7 @@ pub struct OsConstraint {
 }
 
 /// Sub-segment ranges inside of a VPC Network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpcSubNetwork {
     /// Required. Network name. If the network is not part of the organization, the compute.network.get permission must be granted to the caller. Format: //compute.googleapis.com/projects/{PROJECT_ID}/global/networks/{NETWORK_NAME} Example: //compute.googleapis.com/projects/my-project/global/networks/network-1
     #[serde(default)]
@@ -757,7 +758,7 @@ pub struct VpcSubNetwork {
 }
 
 /// The source that EgressPolicy authorizes access from inside the ServicePerimeter to somewhere outside the ServicePerimeter boundaries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EgressSource {
     /// An AccessLevel resource name that allows protected resources inside the ServicePerimeters to access outside the ServicePerimeter boundaries. AccessLevels listed must be in the same policy as this ServicePerimeter. Referencing a nonexistent AccessLevel will cause an error. If an AccessLevel name is not specified, only resources within the perimeter can be accessed through Google Cloud calls with request origins within the perimeter. Example: accessPolicies/MY_POLICY/accessLevels/MY_LEVEL. If a single * is specified for access_level, then all EgressSources will be allowed.
     #[serde(default, rename = "accessLevel")]
@@ -768,7 +769,7 @@ pub struct EgressSource {
 }
 
 /// The source that IngressPolicy authorizes access from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngressSource {
     /// An AccessLevel resource name that allow resources within the ServicePerimeters to be accessed from the internet. AccessLevels listed must be in the same policy as this ServicePerimeter. Referencing a nonexistent AccessLevel will cause an error. If no AccessLevel names are listed, resources within the perimeter can only be accessed via Google Cloud calls with request origins within the perimeter. Example: accessPolicies/MY_POLICY/accessLevels/MY_LEVEL. If a single * is specified for access_level, then all IngressSources will be allowed.
     #[serde(default, rename = "accessLevel")]
@@ -779,7 +780,7 @@ pub struct IngressSource {
 }
 
 /// Identification for an API Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiOperation {
     /// API methods or permissions to allow. Method or permission must belong to the service specified by service_name field. A single MethodSelector entry with * specified for the method field will allow all methods AND permissions for the service specified in service_name.
     #[serde(default, rename = "methodSelectors")]
@@ -790,7 +791,7 @@ pub struct ApiOperation {
 }
 
 /// An allowed method or permission of a service specified in ApiOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MethodSelector {
     /// A valid method name for the corresponding service_name in ApiOperation. If * is used as the value for the method, then ALL methods and permissions are allowed.
     #[serde(default)]

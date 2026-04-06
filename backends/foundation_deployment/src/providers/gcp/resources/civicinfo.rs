@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// CivicinfoApiprotosV2DivisionByAddressResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoApiprotosV2DivisionByAddressResponse {
     #[serde(default)]
     pub divisions: ::core::option::Option<serde_json::Value>,
@@ -21,7 +22,7 @@ pub struct CivicinfoApiprotosV2DivisionByAddressResponse {
 }
 
 /// The result of a division search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoApiprotosV2DivisionSearchResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "civicinfo#divisionSearchResponse".
     #[serde(default)]
@@ -31,7 +32,7 @@ pub struct CivicinfoApiprotosV2DivisionSearchResponse {
 }
 
 /// The list of elections available for this version of the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoApiprotosV2ElectionsQueryResponse {
     /// A list of available elections
     #[serde(default)]
@@ -42,7 +43,7 @@ pub struct CivicinfoApiprotosV2ElectionsQueryResponse {
 }
 
 /// The result of a voter info lookup query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoApiprotosV2VoterInfoResponse {
     /// Contests that will appear on the voter''s ballot.
     #[serde(default)]
@@ -84,7 +85,7 @@ pub struct CivicinfoApiprotosV2VoterInfoResponse {
 }
 
 /// Describes a political geography.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2GeographicDivision {
     /// Any other valid OCD IDs that refer to the same division.\n\nBecause OCD IDs are meant to be human-readable and at least somewhat predictable, there are occasionally several identifiers for a single division. These identifiers are defined to be equivalent to one another, and one is always indicated as the primary identifier. The primary identifier will be returned in ocd_id above, and any other equivalent valid identifiers will be returned in this list.\n\nFor example, if this division''s OCD ID is ocd-division/country:us/district:dc, this will contain ocd-division/country:us/state:dc.
     #[serde(default, rename = "alsoKnownAs")]
@@ -98,7 +99,7 @@ pub struct CivicinfoSchemaV2GeographicDivision {
 }
 
 /// Represents a political geographic division that matches the requested query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoApiprotosV2DivisionSearchResult {
     /// Other Open Civic Data identifiers that refer to the same division -- for example, those that refer to other political divisions whose boundaries are defined to be coterminous with this one. For example, ocd-division/country:us/state:wy will include an alias of ocd-division/country:us/state:wy/cd:1, since Wyoming has only one Congressional district.
     #[serde(default)]
@@ -112,7 +113,7 @@ pub struct CivicinfoApiprotosV2DivisionSearchResult {
 }
 
 /// Information about a contest that appears on a voter''s ballot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2Contest {
     /// A number specifying the position of this contest on the voter''s ballot.
     #[serde(default, rename = "ballotPlacement")]
@@ -189,7 +190,7 @@ pub struct CivicinfoSchemaV2Contest {
 }
 
 /// A location where a voter can vote. This may be an early vote site, an election day voting location, or a drop off location for a completed ballot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2PollingLocation {
     /// The address of the location.
     #[serde(default)]
@@ -224,7 +225,7 @@ pub struct CivicinfoSchemaV2PollingLocation {
 }
 
 /// Information about the election that was queried.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2Election {
     /// Day of the election in YYYY-MM-DD format.
     #[serde(default, rename = "electionDay")]
@@ -244,7 +245,7 @@ pub struct CivicinfoSchemaV2Election {
 }
 
 /// CivicinfoSchemaV2Precinct resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2Precinct {
     /// ID of the AdministrationRegion message for this precinct. Corresponds to LocalityId xml tag.
     #[serde(default, rename = "administrationRegionId")]
@@ -291,7 +292,7 @@ pub struct CivicinfoSchemaV2Precinct {
 }
 
 /// Describes information about a regional election administrative area.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2AdministrationRegion {
     /// The election administration body for this area.
     #[serde(default, rename = "electionAdministrationBody")]
@@ -309,7 +310,7 @@ pub struct CivicinfoSchemaV2AdministrationRegion {
 }
 
 /// Information about a candidate running for elected office.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2Candidate {
     /// The URL for the candidate''s campaign web site.
     #[serde(default, rename = "candidateUrl")]
@@ -338,7 +339,7 @@ pub struct CivicinfoSchemaV2Candidate {
 }
 
 /// Describes the geographic scope of a contest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2ElectoralDistrict {
     /// An identifier for this district, relative to its scope. For example, the 34th State Senate district would have id "34" and a scope of stateUpper.
     #[serde(default)]
@@ -352,7 +353,7 @@ pub struct CivicinfoSchemaV2ElectoralDistrict {
 }
 
 /// Information about an election administrative body (e.g. County Board of Elections).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2AdministrativeBody {
     /// A URL provided by this administrative body for information on absentee voting.
     #[serde(default, rename = "absenteeVotingInfoUrl")]
@@ -403,7 +404,7 @@ pub struct CivicinfoSchemaV2AdministrativeBody {
 }
 
 /// Contains information about the data source for the element containing it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2Source {
     /// The name of the data source.
     #[serde(default)]
@@ -414,7 +415,7 @@ pub struct CivicinfoSchemaV2Source {
 }
 
 /// A social media or web channel for a candidate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2Channel {
     /// The unique public identifier for the candidate''s channel.
     #[serde(default)]
@@ -425,7 +426,7 @@ pub struct CivicinfoSchemaV2Channel {
 }
 
 /// A simple representation of an address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2SimpleAddressType {
     #[serde(default, rename = "addressLine")]
     pub address_line: ::core::option::Option<::std::vec::Vec<String>>,
@@ -453,7 +454,7 @@ pub struct CivicinfoSchemaV2SimpleAddressType {
 }
 
 /// Information about individual election officials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivicinfoSchemaV2ElectionOfficial {
     /// The email address of the election official.
     #[serde(default, rename = "emailAddress")]

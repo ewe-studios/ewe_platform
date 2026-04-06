@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Log entry for BDRBackupPlanJobLog for resources using BackupPlan based protection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BDRBackupPlanJobLog {
     /// Canonical resource name for Backup Plan Plan of the job.
     #[serde(default, rename = "backupPlanName")]
@@ -67,7 +68,7 @@ pub struct BDRBackupPlanJobLog {
 }
 
 /// Log entry for Backup and Restore Job for resources using BackupPlan based protection. Next Id: 24
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BDRBackupRestoreJobLog {
     /// Backup consistency time.
     #[serde(default, rename = "backupConsistencyTime")]
@@ -141,11 +142,11 @@ pub struct BDRBackupRestoreJobLog {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for GetBackupIndexDownloadUrl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetBackupIndexDownloadUrlResponse {
     /// Required. The signed URL for downloading the backup index.
     #[serde(default, rename = "signedUrl")]
@@ -153,7 +154,7 @@ pub struct GetBackupIndexDownloadUrlResponse {
 }
 
 /// Request message for GetTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetTagsRequest {
     /// Required. The full resource name of the service resource.
     #[serde(default)]
@@ -161,7 +162,7 @@ pub struct GetTagsRequest {
 }
 
 /// Response message for GetTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetTagsResponse {
     /// A checksum based on the current bindings. This field is always set in server responses.
     #[serde(default)]
@@ -175,11 +176,11 @@ pub struct GetTagsResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -193,7 +194,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// Response message for ListBackupChannels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupChannelsResponse {
     /// The list of BackupChannels matching the given criteria.
     #[serde(default, rename = "backupChannels")]
@@ -207,7 +208,7 @@ pub struct ListBackupChannelsResponse {
 }
 
 /// Response message for ListBackupPlanBindings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupPlanBindingsResponse {
     /// The list of BackupPlanBindings matching the given criteria.
     #[serde(default, rename = "backupPlanBindings")]
@@ -221,7 +222,7 @@ pub struct ListBackupPlanBindingsResponse {
 }
 
 /// Response message for ListBackupPlans.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupPlansResponse {
     /// The list of BackupPlans matching the given criteria.
     #[serde(default, rename = "backupPlans")]
@@ -235,7 +236,7 @@ pub struct ListBackupPlansResponse {
 }
 
 /// Response message for ListBackups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupsResponse {
     /// The list of Backups matching the given criteria.
     #[serde(default)]
@@ -249,7 +250,7 @@ pub struct ListBackupsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -260,7 +261,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for ListRestoreChannels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRestoreChannelsResponse {
     /// A token which may be sent as page_token in a subsequent ListRestoreChannels call to retrieve the next page of results. If this field is omitted or empty, then there are no more results to return.
     #[serde(default, rename = "nextPageToken")]
@@ -274,7 +275,7 @@ pub struct ListRestoreChannelsResponse {
 }
 
 /// Response message for ListRestorePlanBindings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRestorePlanBindingsResponse {
     /// A token which may be sent as page_token in a subsequent ListRestorePlanBindings call to retrieve the next page of results. If this field is omitted or empty, then there are no more results to return.
     #[serde(default, rename = "nextPageToken")]
@@ -288,7 +289,7 @@ pub struct ListRestorePlanBindingsResponse {
 }
 
 /// Response message for ListRestorePlans.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRestorePlansResponse {
     /// A token which may be sent as page_token in a subsequent ListRestorePlans call to retrieve the next page of results. If this field is omitted or empty, then there are no more results to return.
     #[serde(default, rename = "nextPageToken")]
@@ -302,7 +303,7 @@ pub struct ListRestorePlansResponse {
 }
 
 /// Response message for ListRestores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRestoresResponse {
     /// A token which may be sent as page_token in a subsequent ListRestores call to retrieve the next page of results. If this field is omitted or empty, then there are no more results to return.
     #[serde(default, rename = "nextPageToken")]
@@ -316,7 +317,7 @@ pub struct ListRestoresResponse {
 }
 
 /// Response message for ListVolumeBackups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVolumeBackupsResponse {
     /// A token which may be sent as page_token in a subsequent ListVolumeBackups call to retrieve the next page of results. If this field is omitted or empty, then there are no more results to return.
     #[serde(default, rename = "nextPageToken")]
@@ -327,7 +328,7 @@ pub struct ListVolumeBackupsResponse {
 }
 
 /// Response message for ListVolumeRestores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVolumeRestoresResponse {
     /// A token which may be sent as page_token in a subsequent ListVolumeRestores call to retrieve the next page of results. If this field is omitted or empty, then there are no more results to return.
     #[serde(default, rename = "nextPageToken")]
@@ -338,7 +339,7 @@ pub struct ListVolumeRestoresResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -364,7 +365,7 @@ pub struct OperationMetadata {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -375,7 +376,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for SetTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetTagsRequest {
     /// Optional. A checksum based on the current bindings which can be passed to prevent race conditions. If not passed, etag check would be skipped.
     #[serde(default)]
@@ -392,7 +393,7 @@ pub struct SetTagsRequest {
 }
 
 /// Response message for SetTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetTagsResponse {
     /// A checksum based on the current bindings. This field is always set in server responses.
     #[serde(default)]
@@ -406,7 +407,7 @@ pub struct SetTagsResponse {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -414,7 +415,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -422,7 +423,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// BackupRuleDetail resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupRuleDetail {
     /// Backup Window For Eg. “00:00 to 06:00”
     #[serde(default, rename = "backupWindow")]
@@ -445,7 +446,7 @@ pub struct BackupRuleDetail {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -465,7 +466,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// A BackupChannel imposes constraints on where clusters can be backed up. The BackupChannel should be in the same project and region as the cluster being backed up. The backup can be created only in destination_project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupChannel {
     /// Output only. The timestamp when this BackupChannel resource was created.
     #[serde(default, rename = "createTime")]
@@ -497,7 +498,7 @@ pub struct BackupChannel {
 }
 
 /// A BackupPlanBinding binds a BackupPlan with a BackupChannel. This resource is created automatically when a BackupPlan is created using a BackupChannel. This also serves as a holder for cross-project fields that need to be displayed in the current project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupPlanBinding {
     /// Output only. Immutable. The fully qualified name of the BackupPlan bound with the parent BackupChannel. projects/*/locations/*/backupPlans/{backup_plan}
     #[serde(default, rename = "backupPlan")]
@@ -526,7 +527,7 @@ pub struct BackupPlanBinding {
 }
 
 /// Defines the configuration and scheduling for a "line" of Backups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupPlan {
     /// Output only. The fully qualified name of the BackupChannel to be used to create a backup. This field is set only if the cluster being backed up is in a different project. projects/*/locations/*/backupChannels/*
     #[serde(default, rename = "backupChannel")]
@@ -591,7 +592,7 @@ pub struct BackupPlan {
 }
 
 /// Represents a request to perform a single point-in-time capture of some portion of the state of a GKE cluster, the record of the backup operation itself, and an anchor for the underlying artifacts that comprise the Backup (the config backup and VolumeBackups).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Backup {
     /// Output only. If True, all namespaces were included in the Backup.
     #[serde(default, rename = "allNamespaces")]
@@ -695,7 +696,7 @@ pub struct Backup {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -715,7 +716,7 @@ pub struct Location {
 }
 
 /// A RestoreChannel imposes constraints on where backups can be restored. The RestoreChannel should be in the same project and region as the backups. The backups can only be restored in the destination_project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreChannel {
     /// Output only. The timestamp when this RestoreChannel was created.
     #[serde(default, rename = "createTime")]
@@ -747,7 +748,7 @@ pub struct RestoreChannel {
 }
 
 /// A RestorePlanBinding binds a RestorePlan with a RestoreChannel. This resource is created automatically when a RestorePlan is created using a RestoreChannel. This also serves as a holder for cross-project fields that need to be displayed in the current project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestorePlanBinding {
     /// Output only. The fully qualified name of the BackupPlan bound to the specified RestorePlan. projects/*/locations/*/backukpPlans/{backup_plan}
     #[serde(default, rename = "backupPlan")]
@@ -773,7 +774,7 @@ pub struct RestorePlanBinding {
 }
 
 /// The configuration of a potential series of Restore operations to be performed against Backups belong to a particular BackupPlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestorePlan {
     /// Required. Immutable. A reference to the BackupPlan from which Backups may be used as the source for Restores created via this RestorePlan. Format: projects/*/locations/*/backupPlans/*.
     #[serde(default, rename = "backupPlan")]
@@ -817,7 +818,7 @@ pub struct RestorePlan {
 }
 
 /// Represents both a request to Restore some portion of a Backup into a target GKE cluster and a record of the restore operation itself.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Restore {
     /// Required. Immutable. A reference to the Backup used as the source from which this Restore will restore. Note that this Backup must be a sub-resource of the RestorePlan''s backup_plan. Format: projects/*/locations/*/backupPlans/*/backups/*.
     #[serde(default)]
@@ -883,7 +884,7 @@ pub struct Restore {
 }
 
 /// Represents the backup of a specific persistent volume as a component of a Backup - both the record of the operation and a pointer to the underlying storage-specific artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VolumeBackup {
     /// Output only. The timestamp when the associated underlying volume backup operation completed.
     #[serde(default, rename = "completeTime")]
@@ -933,7 +934,7 @@ pub struct VolumeBackup {
 }
 
 /// Represents the operation of restoring a volume from a VolumeBackup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VolumeRestore {
     /// Output only. The timestamp when the associated underlying volume restoration completed.
     #[serde(default, rename = "completeTime")]
@@ -974,7 +975,7 @@ pub struct VolumeRestore {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -991,7 +992,7 @@ pub struct Policy {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1005,7 +1006,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Contains metadata about the backup plan/backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupPlanDetails {
     /// Output only. Contains details about the BackupConfig of Backups created via this BackupPlan.
     #[serde(default, rename = "backupConfigDetails")]
@@ -1034,7 +1035,7 @@ pub struct BackupPlanDetails {
 }
 
 /// BackupConfig defines the configuration of Backups created via this BackupPlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupConfig {
     /// If True, include all namespaced resources
     #[serde(default, rename = "allNamespaces")]
@@ -1063,7 +1064,7 @@ pub struct BackupConfig {
 }
 
 /// Defines scheduling parameters for automatically creating Backups via this BackupPlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schedule {
     /// Optional. A standard [cron](https://wikipedia.com/wiki/cron) string that defines a repeating schedule for creating Backups via this BackupPlan. This is mutually exclusive with the rpo_config field since at most one schedule can be defined for a BackupPlan. If this is defined, then backup_retain_days must also be defined. Default (empty): no automatic backup creation will occur.
     #[serde(default, rename = "cronSchedule")]
@@ -1080,7 +1081,7 @@ pub struct Schedule {
 }
 
 /// RetentionPolicy defines a Backup retention policy for a BackupPlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetentionPolicy {
     /// Optional. Minimum age for Backups created via this BackupPlan (in days). This field MUST be an integer value between 0-90 (inclusive). A Backup created under this BackupPlan will NOT be deletable until it reaches Backup''s (create_time + backup_delete_lock_days). Updating this field of a BackupPlan does NOT affect existing Backups under it. Backups created AFTER a successful update will inherit the new value. Default: 0 (no delete blocking)
     #[serde(default, rename = "backupDeleteLockDays")]
@@ -1094,7 +1095,7 @@ pub struct RetentionPolicy {
 }
 
 /// Information about the GKE cluster from which this Backup was created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterMetadata {
     /// Output only. Anthos version
     #[serde(default, rename = "anthosVersion")]
@@ -1114,7 +1115,7 @@ pub struct ClusterMetadata {
 }
 
 /// Defines the filter for Restore. This filter can be used to further refine the resource selection of the Restore beyond the coarse-grained scope defined in the RestorePlan. exclusion_filters take precedence over inclusion_filters. If a resource matches both inclusion_filters and exclusion_filters, it will not be restored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Filter {
     /// Optional. Excludes resources from restoration. If specified, a resource will not be restored if it matches any ResourceSelector of the exclusion_filters.
     #[serde(default, rename = "exclusionFilters")]
@@ -1125,7 +1126,7 @@ pub struct Filter {
 }
 
 /// Configuration of a restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreConfig {
     /// Restore all namespaced resources in the Backup if set to "True". Specifying this field to "False" is an error.
     #[serde(default, rename = "allNamespaces")]
@@ -1170,7 +1171,7 @@ pub struct RestoreConfig {
 }
 
 /// Stores information about troubleshooting doc for debugging a particular state of an operation (eg - backup/restore). This will be used by the end user to debug their operation failure scenario easily.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TroubleshootingInfo {
     /// Output only. Unique code for each backup/restore operation failure message which helps user identify the failure.
     #[serde(default, rename = "stateReasonCode")]
@@ -1181,7 +1182,7 @@ pub struct TroubleshootingInfo {
 }
 
 /// Defines an override to apply a VolumeDataRestorePolicy for scoped resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VolumeDataRestorePolicyOverride {
     /// Required. The VolumeDataRestorePolicy to apply when restoring volumes in scope. // TODO: enum values: ["VOLUME_DATA_RESTORE_POLICY_UNSPECIFIED", "RESTORE_VOLUME_DATA_FROM_BACKUP", "REUSE_VOLUME_HANDLE_FROM_BACKUP", "NO_VOLUME_DATA_RESTORATION"]
     #[serde(default)]
@@ -1192,7 +1193,7 @@ pub struct VolumeDataRestorePolicyOverride {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1203,7 +1204,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1217,7 +1218,7 @@ pub struct Binding {
 }
 
 /// BackupConfigDetails defines the configuration of Backups created via this BackupPlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupConfigDetails {
     /// Output only. If True, include all namespaced resources
     #[serde(default, rename = "allNamespaces")]
@@ -1240,7 +1241,7 @@ pub struct BackupConfigDetails {
 }
 
 /// RetentionPolicyDetails defines a Backup retention policy for a BackupPlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetentionPolicyDetails {
     /// Optional. Minimum age for Backups created via this BackupPlan (in days). This field MUST be an integer value between 0-90 (inclusive). A Backup created under this BackupPlan will NOT be deletable until it reaches Backup''s (create_time + backup_delete_lock_days). Updating this field of a BackupPlan does NOT affect existing Backups under it. Backups created AFTER a successful update will inherit the new value. Default: 0 (no delete blocking)
     #[serde(default, rename = "backupDeleteLockDays")]
@@ -1251,7 +1252,7 @@ pub struct RetentionPolicyDetails {
 }
 
 /// A list of Kubernetes labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceLabels {
     /// Optional. A list of Kubernetes label-value pairs.
     #[serde(default, rename = "resourceLabels")]
@@ -1259,7 +1260,7 @@ pub struct ResourceLabels {
 }
 
 /// Defines RPO scheduling configuration for automatically creating Backups via this BackupPlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RpoConfig {
     /// Optional. User specified time windows during which backup can NOT happen for this BackupPlan - backups should start and finish outside of any given exclusion window. Note: backup jobs will be scheduled to start and finish outside the duration of the window as much as possible, but running jobs will not get canceled when it runs into the window. All the time and date values in exclusion_windows entry in the API are in UTC. We only allow &lt;=1 recurrence (daily or weekly) exclusion window for a BackupPlan while no restriction on number of single occurrence windows.
     #[serde(default, rename = "exclusionWindows")]
@@ -1270,7 +1271,7 @@ pub struct RpoConfig {
 }
 
 /// Defines a selector to identify a single or a group of resources. Conditions in the selector are optional, but at least one field should be set to a non-empty value. If a condition is not specified, no restrictions will be applied on that dimension. If more than one condition is specified, a resource will be selected if and only if all conditions are met.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSelector {
     /// Optional. Selects resources using their Kubernetes GroupKinds. If specified, only resources of provided GroupKind will be selected.
     #[serde(default, rename = "groupKind")]
@@ -1287,7 +1288,7 @@ pub struct ResourceSelector {
 }
 
 /// Defines the scope of cluster-scoped resources to restore. Some group kinds are not reasonable choices for a restore, and will cause an error if selected here. Any scope selection that would restore "all valid" resources automatically excludes these group kinds. - Node - ComponentStatus - gkebackup.gke.io/BackupJob - gkebackup.gke.io/RestoreJob - metrics.k8s.io/NodeMetrics - migration.k8s.io/StorageState - migration.k8s.io/StorageVersionMigration - snapshot.storage.k8s.io/VolumeSnapshotContent - storage.k8s.io/CSINode - storage.k8s.io/VolumeAttachment Some group kinds are driven by restore configuration elsewhere, and will cause an error if selected here. - Namespace - PersistentVolume
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterResourceRestoreScope {
     /// Optional. If True, all valid cluster-scoped resources will be restored. Mutually exclusive to any other field in the message.
     #[serde(default, rename = "allGroupKinds")]
@@ -1304,7 +1305,7 @@ pub struct ClusterResourceRestoreScope {
 }
 
 /// Allows customers to specify dependencies between resources that Backup for GKE can use to compute a resasonable restore order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreOrder {
     /// Optional. Contains a list of group kind dependency pairs provided by the customer, that is used by Backup for GKE to generate a group kind restore order.
     #[serde(default, rename = "groupKindDependencies")]
@@ -1312,7 +1313,7 @@ pub struct RestoreOrder {
 }
 
 /// A transformation rule to be applied against Kubernetes resources as they are selected for restoration from a Backup. A rule contains both filtering logic (which resources are subject to substitution) and substitution logic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubstitutionRule {
     /// Optional. This is the new value to set for any fields that pass the filtering and selection criteria. To remove a value from a Kubernetes resource, either leave this field unspecified, or set it to the empty string ("").
     #[serde(default, rename = "newValue")]
@@ -1332,7 +1333,7 @@ pub struct SubstitutionRule {
 }
 
 /// A transformation rule to be applied against Kubernetes resources as they are selected for restoration from a Backup. A rule contains both filtering logic (which resources are subject to transform) and transformation logic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransformationRule {
     /// Optional. The description is a user specified string description of the transformation rule.
     #[serde(default)]
@@ -1346,7 +1347,7 @@ pub struct TransformationRule {
 }
 
 /// Binds resources in the scope to the given VolumeDataRestorePolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VolumeDataRestorePolicyBinding {
     /// Required. The VolumeDataRestorePolicy to apply when restoring volumes in scope. // TODO: enum values: ["VOLUME_DATA_RESTORE_POLICY_UNSPECIFIED", "RESTORE_VOLUME_DATA_FROM_BACKUP", "REUSE_VOLUME_HANDLE_FROM_BACKUP", "NO_VOLUME_DATA_RESTORATION"]
     #[serde(default)]
@@ -1357,7 +1358,7 @@ pub struct VolumeDataRestorePolicyBinding {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1368,7 +1369,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1385,7 +1386,7 @@ pub struct Expr {
 }
 
 /// Defined a customer managed encryption key that will be used to encrypt Backup artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionKey {
     /// Optional. Google Cloud KMS encryption key. Format: projects/*/locations/*/keyRings/*/cryptoKeys/*
     #[serde(default, rename = "gcpKmsEncryptionKey")]
@@ -1393,7 +1394,7 @@ pub struct EncryptionKey {
 }
 
 /// A list of namespaced Kubernetes resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NamespacedNames {
     /// Optional. A list of namespaced Kubernetes resources.
     #[serde(default, rename = "namespacedNames")]
@@ -1401,7 +1402,7 @@ pub struct NamespacedNames {
 }
 
 /// A list of Kubernetes Namespaces.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Namespaces {
     /// Optional. A list of Kubernetes Namespaces.
     #[serde(default)]
@@ -1409,7 +1410,7 @@ pub struct Namespaces {
 }
 
 /// A single Kubernetes label-value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Label {
     /// Optional. The key/name of the label.
     #[serde(default)]
@@ -1420,7 +1421,7 @@ pub struct Label {
 }
 
 /// Defines a time window during which no backup should happen. All time and date are in UTC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExclusionWindow {
     /// The exclusion window occurs every day if set to "True". Specifying this field to "False" is an error.
     #[serde(default)]
@@ -1440,7 +1441,7 @@ pub struct ExclusionWindow {
 }
 
 /// Defines a dependency between two group kinds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupKindDependency {
     /// Required. The requiring group kind requires that the other group kind be restored first.
     #[serde(default)]
@@ -1451,7 +1452,7 @@ pub struct GroupKindDependency {
 }
 
 /// TransformationRuleAction defines a TransformationRule action based on the JSON Patch RFC (https://www.rfc-editor.org/rfc/rfc6902)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransformationRuleAction {
     /// Optional. A string containing a JSON Pointer value that references the location in the target document to move the value from.
     #[serde(default, rename = "fromPath")]
@@ -1468,7 +1469,7 @@ pub struct TransformationRuleAction {
 }
 
 /// ResourceFilter specifies matching criteria to limit the scope of a change to a specific set of kubernetes resources that are selected for restoration from a backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceFilter {
     /// Optional. (Filtering parameter) Any resource subject to transformation must belong to one of the listed "types". If this field is not provided, no type filtering will be performed (all resources of all types matching previous filtering parameters will be candidates for transformation).
     #[serde(default, rename = "groupKinds")]
@@ -1482,7 +1483,7 @@ pub struct ResourceFilter {
 }
 
 /// A reference to a namespaced resource in Kubernetes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NamespacedName {
     /// Optional. The name of the Kubernetes resource.
     #[serde(default)]
@@ -1493,7 +1494,7 @@ pub struct NamespacedName {
 }
 
 /// Holds repeated DaysOfWeek values as a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DayOfWeekList {
     /// Optional. A list of days of week.
     #[serde(default, rename = "daysOfWeek")]
@@ -1501,7 +1502,7 @@ pub struct DayOfWeekList {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -1515,7 +1516,7 @@ pub struct Date {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -1532,7 +1533,7 @@ pub struct TimeOfDay {
 }
 
 /// This is a direct map to the Kubernetes GroupKind type [GroupKind](https://godoc.org/k8s.io/apimachinery/pkg/runtime/schema#GroupKind) and is used for identifying specific "types" of resources to restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupKind {
     /// Optional. API group string of a Kubernetes resource, e.g. "apiextensions.k8s.io", "storage.k8s.io", etc. Note: use empty string for core API group.
     #[serde(default, rename = "resourceGroup")]

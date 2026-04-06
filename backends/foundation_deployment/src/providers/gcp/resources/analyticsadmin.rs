@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The filter for strings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessStringFilter {
     /// If true, the string value is case sensitive.
     #[serde(default, rename = "caseSensitive")]
@@ -25,7 +26,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessStringFilter {
 }
 
 /// Request message for AcknowledgeUserDataCollection RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionRequest {
     /// Required. An acknowledgement that the caller of this method understands the terms of user data collection. This field must contain the exact value: "I acknowledge that I have the necessary privacy disclosures and rights from my end users for the collection and processing of their data, including the association of such data with the visitation information Google Analytics collects from my site and/or app property."
     #[serde(default)]
@@ -33,19 +34,19 @@ pub struct GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionRequest {
 }
 
 /// Response message for AcknowledgeUserDataCollection RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse {}
 
 /// Request message for ArchiveCustomDimension RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaArchiveCustomDimensionRequest {}
 
 /// Request message for ArchiveCustomMetric RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaArchiveCustomMetricRequest {}
 
 /// A resource message representing data sharing settings of a Google Analytics account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaDataSharingSettings {
     /// Identifier. Resource name. Format: accounts/{account}/dataSharingSettings Example: "accounts/1000/dataSharingSettings"
     #[serde(default)]
@@ -68,7 +69,7 @@ pub struct GoogleAnalyticsAdminV1betaDataSharingSettings {
 }
 
 /// Response message for ListAccountSummaries RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaListAccountSummariesResponse {
     /// Account summaries of all accounts the caller has access to.
     #[serde(default, rename = "accountSummaries")]
@@ -80,7 +81,7 @@ pub struct GoogleAnalyticsAdminV1betaListAccountSummariesResponse {
 }
 
 /// Request message for ListAccounts RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaListAccountsResponse {
     /// Results that were accessible to the caller.
     #[serde(default)]
@@ -91,7 +92,7 @@ pub struct GoogleAnalyticsAdminV1betaListAccountsResponse {
 }
 
 /// Response message for ListConversionEvents RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaListConversionEventsResponse {
     /// The requested conversion events
     #[serde(default, rename = "conversionEvents")]
@@ -103,7 +104,7 @@ pub struct GoogleAnalyticsAdminV1betaListConversionEventsResponse {
 }
 
 /// Response message for ListCustomDimensions RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaListCustomDimensionsResponse {
     /// List of CustomDimensions.
     #[serde(default, rename = "customDimensions")]
@@ -115,7 +116,7 @@ pub struct GoogleAnalyticsAdminV1betaListCustomDimensionsResponse {
 }
 
 /// Response message for ListCustomMetrics RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaListCustomMetricsResponse {
     /// List of CustomMetrics.
     #[serde(default, rename = "customMetrics")]
@@ -127,7 +128,7 @@ pub struct GoogleAnalyticsAdminV1betaListCustomMetricsResponse {
 }
 
 /// Response message for ListDataStreams RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaListDataStreamsResponse {
     /// List of DataStreams.
     #[serde(default, rename = "dataStreams")]
@@ -138,7 +139,7 @@ pub struct GoogleAnalyticsAdminV1betaListDataStreamsResponse {
 }
 
 /// Response message for ListFirebaseLinks RPC
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaListFirebaseLinksResponse {
     /// List of FirebaseLinks. This will have at most one value.
     #[serde(default, rename = "firebaseLinks")]
@@ -150,7 +151,7 @@ pub struct GoogleAnalyticsAdminV1betaListFirebaseLinksResponse {
 }
 
 /// Response message for ListGoogleAdsLinks RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse {
     /// List of GoogleAdsLinks.
     #[serde(default, rename = "googleAdsLinks")]
@@ -162,7 +163,7 @@ pub struct GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse {
 }
 
 /// Response message for ListKeyEvents RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaListKeyEventsResponse {
     /// The requested Key Events
     #[serde(default, rename = "keyEvents")]
@@ -173,7 +174,7 @@ pub struct GoogleAnalyticsAdminV1betaListKeyEventsResponse {
 }
 
 /// Response message for ListMeasurementProtocolSecret RPC
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse {
     /// A list of secrets for the parent stream specified in the request.
     #[serde(default, rename = "measurementProtocolSecrets")]
@@ -186,7 +187,7 @@ pub struct GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse {
 }
 
 /// Response message for ListProperties RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaListPropertiesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -197,7 +198,7 @@ pub struct GoogleAnalyticsAdminV1betaListPropertiesResponse {
 }
 
 /// Request message for ProvisionAccountTicket RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaProvisionAccountTicketRequest {
     /// The account to create.
     #[serde(default)]
@@ -208,7 +209,7 @@ pub struct GoogleAnalyticsAdminV1betaProvisionAccountTicketRequest {
 }
 
 /// Response message for ProvisionAccountTicket RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse {
     /// The param to be passed in the ToS link.
     #[serde(default, rename = "accountTicketId")]
@@ -216,7 +217,7 @@ pub struct GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse {
 }
 
 /// The request for a Data Access Record Report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaRunAccessReportRequest {
     /// Date ranges of access records to read. If multiple date ranges are requested, each response row will contain a zero based date range index. If two date ranges overlap, the access records for the overlapping days is included in the response rows for both date ranges. Requests are allowed up to 2 date ranges.
     #[serde(default, rename = "dateRanges")]
@@ -261,7 +262,7 @@ pub struct GoogleAnalyticsAdminV1betaRunAccessReportRequest {
 }
 
 /// The customized Data Access Record Report response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaRunAccessReportResponse {
     /// The header for a column in the report that corresponds to a specific dimension. The number of DimensionHeaders and ordering of DimensionHeaders matches the dimensions present in rows.
     #[serde(default, rename = "dimensionHeaders")]
@@ -283,7 +284,7 @@ pub struct GoogleAnalyticsAdminV1betaRunAccessReportResponse {
 }
 
 /// Request message for SearchChangeHistoryEvents RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsRequest {
     /// Optional. If set, only return changes that match one or more of these types of actions.
     #[serde(default)]
@@ -312,7 +313,7 @@ pub struct GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsRequest {
 }
 
 /// Response message for SearchAccounts RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse {
     /// Results that were accessible to the caller.
     #[serde(default, rename = "changeHistoryEvents")]
@@ -324,11 +325,11 @@ pub struct GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// A virtual resource representing an overview of an account and all its child Google Analytics properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccountSummary {
     /// Resource name of account referred to by this account summary Format: accounts/{account_id} Example: "accounts/1000"
     #[serde(default)]
@@ -346,7 +347,7 @@ pub struct GoogleAnalyticsAdminV1betaAccountSummary {
 }
 
 /// A definition for a CustomDimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaCustomDimension {
     /// Optional. Description for this custom dimension. Max length of 150 characters.
     #[serde(default)]
@@ -369,7 +370,7 @@ pub struct GoogleAnalyticsAdminV1betaCustomDimension {
 }
 
 /// A definition for a custom metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaCustomMetric {
     /// Optional. Description for this custom dimension. Max length of 150 characters.
     #[serde(default)]
@@ -395,7 +396,7 @@ pub struct GoogleAnalyticsAdminV1betaCustomMetric {
 }
 
 /// A key event in a Google Analytics property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaKeyEvent {
     /// Required. The method by which Key Events will be counted across multiple events within a session. // TODO: enum values: ["COUNTING_METHOD_UNSPECIFIED", "ONCE_PER_EVENT", "ONCE_PER_SESSION"]
     #[serde(default, rename = "countingMethod")]
@@ -421,7 +422,7 @@ pub struct GoogleAnalyticsAdminV1betaKeyEvent {
 }
 
 /// A contiguous range of days: startDate, startDate + 1, ..., endDate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessDateRange {
     /// The inclusive end date for the query in the format YYYY-MM-DD. Cannot be before startDate. The format NdaysAgo, yesterday, or today is also accepted, and in that case, the date is inferred based on the current time in the request''s time zone.
     #[serde(default, rename = "endDate")]
@@ -432,7 +433,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessDateRange {
 }
 
 /// Dimensions are attributes of your data. For example, the dimension userEmail indicates the email of the user that accessed reporting data. Dimension values in report responses are strings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessDimension {
     /// The API name of the dimension. See [Data Access Schema](https://developers.google.com/analytics/devguides/config/admin/v1/access-api-schema) for the list of dimensions supported in this API. Dimensions are referenced by name in dimensionFilter and orderBys.
     #[serde(default, rename = "dimensionName")]
@@ -440,7 +441,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessDimension {
 }
 
 /// The quantitative measurements of a report. For example, the metric accessCount is the total number of data access records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessMetric {
     /// The API name of the metric. See [Data Access Schema](https://developers.google.com/analytics/devguides/config/admin/v1/access-api-schema) for the list of metrics supported in this API. Metrics are referenced by name in metricFilter & orderBys.
     #[serde(default, rename = "metricName")]
@@ -448,7 +449,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessMetric {
 }
 
 /// Order bys define how rows will be sorted in the response. For example, ordering rows by descending access count is one ordering, and ordering rows by the country string is a different ordering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessOrderBy {
     /// If true, sorts by descending order. If false or unspecified, sorts in ascending order.
     #[serde(default)]
@@ -462,7 +463,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessOrderBy {
 }
 
 /// Describes a dimension column in the report. Dimensions requested in a report produce column entries within rows and DimensionHeaders. However, dimensions used exclusively within filters or expressions do not produce columns in a report; correspondingly, those dimensions do not produce headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessDimensionHeader {
     /// The dimension''s name; for example ''userEmail''.
     #[serde(default, rename = "dimensionName")]
@@ -470,7 +471,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessDimensionHeader {
 }
 
 /// Describes a metric column in the report. Visible metrics requested in a report produce column entries within rows and MetricHeaders. However, metrics used exclusively within filters or expressions do not produce columns in a report; correspondingly, those metrics do not produce headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessMetricHeader {
     /// The metric''s name; for example ''accessCount''.
     #[serde(default, rename = "metricName")]
@@ -478,7 +479,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessMetricHeader {
 }
 
 /// Current state of all quotas for this Analytics property. If any quota for a property is exhausted, all requests to that property will return Resource Exhausted errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessQuota {
     /// Properties can use up to 50 concurrent requests.
     #[serde(default, rename = "concurrentRequests")]
@@ -500,7 +501,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessQuota {
 }
 
 /// Access report data for each row.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessRow {
     /// List of dimension values. These values are in the same order as specified in the request.
     #[serde(default, rename = "dimensionValues")]
@@ -513,7 +514,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessRow {
 }
 
 /// A set of changes within a Google Analytics account or its child properties that resulted from the same cause. Common causes would be updates made in the Google Analytics UI, changes from customer support, or automatic Google Analytics system changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaChangeHistoryEvent {
     /// The type of actor that made this change. // TODO: enum values: ["ACTOR_TYPE_UNSPECIFIED", "USER", "SYSTEM", "SUPPORT"]
     #[serde(default, rename = "actorType")]
@@ -537,7 +538,7 @@ pub struct GoogleAnalyticsAdminV1betaChangeHistoryEvent {
 }
 
 /// A virtual resource representing metadata for a Google Analytics property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaPropertySummary {
     /// Display name for the property referred to in this property summary.
     #[serde(default, rename = "displayName")]
@@ -554,7 +555,7 @@ pub struct GoogleAnalyticsAdminV1betaPropertySummary {
 }
 
 /// Defines a default value/currency for a key event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaKeyEventDefaultValue {
     /// Required. When an occurrence of this Key Event (specified by event_name) has no set currency this currency will be applied as the default. Must be in ISO 4217 currency code format. See https://en.wikipedia.org/wiki/ISO_4217 for more information.
     #[serde(default, rename = "currencyCode")]
@@ -565,7 +566,7 @@ pub struct GoogleAnalyticsAdminV1betaKeyEventDefaultValue {
 }
 
 /// Sorts by dimension values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessOrderByDimensionOrderBy {
     /// A dimension name in the request to order by.
     #[serde(default, rename = "dimensionName")]
@@ -576,7 +577,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessOrderByDimensionOrderBy {
 }
 
 /// Sorts by metric values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessOrderByMetricOrderBy {
     /// A metric name in the request to order by.
     #[serde(default, rename = "metricName")]
@@ -584,7 +585,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessOrderByMetricOrderBy {
 }
 
 /// Current state for a particular quota group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessQuotaStatus {
     /// Quota consumed by this request.
     #[serde(default)]
@@ -595,7 +596,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessQuotaStatus {
 }
 
 /// The value of a dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessDimensionValue {
     /// The dimension value. For example, this value may be ''France'' for the ''country'' dimension.
     #[serde(default)]
@@ -603,7 +604,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessDimensionValue {
 }
 
 /// The value of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessMetricValue {
     /// The measurement value. For example, this value may be ''13''.
     #[serde(default)]
@@ -611,7 +612,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessMetricValue {
 }
 
 /// A description of a change to a single Google Analytics resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaChangeHistoryChange {
     /// The type of action that changed this resource. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "CREATED", "UPDATED", "DELETED"]
     #[serde(default)]
@@ -630,7 +631,7 @@ pub struct GoogleAnalyticsAdminV1betaChangeHistoryChange {
 }
 
 /// A snapshot of a resource as before or after the result of a change in change history.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource {
     /// A snapshot of an Account resource in change history.
     #[serde(default)]
@@ -661,7 +662,7 @@ pub struct GoogleAnalyticsAdminV1betaChangeHistoryChangeChangeHistoryResource {
 }
 
 /// A resource message representing a Google Analytics account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccount {
     /// Output only. Time when this account was originally created.
     #[serde(default, rename = "createTime")]
@@ -687,7 +688,7 @@ pub struct GoogleAnalyticsAdminV1betaAccount {
 }
 
 /// A conversion event in a Google Analytics property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaConversionEvent {
     /// Optional. The method by which conversions will be counted across multiple events within a session. If this value is not provided, it will be set to ONCE_PER_EVENT. // TODO: enum values: ["CONVERSION_COUNTING_METHOD_UNSPECIFIED", "ONCE_PER_EVENT", "ONCE_PER_SESSION"]
     #[serde(default, rename = "countingMethod")]
@@ -714,7 +715,7 @@ pub struct GoogleAnalyticsAdminV1betaConversionEvent {
 }
 
 /// Settings values for data retention. This is a singleton resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaDataRetentionSettings {
     /// Required. The length of time that event-level data is retained. // TODO: enum values: ["RETENTION_DURATION_UNSPECIFIED", "TWO_MONTHS", "FOURTEEN_MONTHS", "TWENTY_SIX_MONTHS", "THIRTY_EIGHT_MONTHS", "FIFTY_MONTHS"]
     #[serde(default, rename = "eventDataRetention")]
@@ -731,7 +732,7 @@ pub struct GoogleAnalyticsAdminV1betaDataRetentionSettings {
 }
 
 /// A resource message representing a data stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaDataStream {
     /// Data specific to Android app streams. Must be populated if type is ANDROID_APP_DATA_STREAM.
     #[serde(default, rename = "androidAppStreamData")]
@@ -762,7 +763,7 @@ pub struct GoogleAnalyticsAdminV1betaDataStream {
 }
 
 /// A link between a Google Analytics property and a Firebase project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaFirebaseLink {
     /// Output only. Time when this FirebaseLink was originally created.
     #[serde(default, rename = "createTime")]
@@ -776,7 +777,7 @@ pub struct GoogleAnalyticsAdminV1betaFirebaseLink {
 }
 
 /// A link between a Google Analytics property and a Google Ads account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaGoogleAdsLink {
     /// Enable personalized advertising features with this integration. Automatically publish my Google Analytics audience lists and Google Analytics remarketing events/parameters to the linked Google Ads account. If this field is not set on create/update, it will be defaulted to true.
     #[serde(default, rename = "adsPersonalizationEnabled")]
@@ -802,7 +803,7 @@ pub struct GoogleAnalyticsAdminV1betaGoogleAdsLink {
 }
 
 /// A secret value used for sending hits to Measurement Protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaMeasurementProtocolSecret {
     /// Required. Human-readable display name for this secret.
     #[serde(default, rename = "displayName")]
@@ -816,7 +817,7 @@ pub struct GoogleAnalyticsAdminV1betaMeasurementProtocolSecret {
 }
 
 /// A resource message representing a Google Analytics property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaProperty {
     /// Immutable. The resource name of the parent account Format: accounts/{account_id} Example: "accounts/123"
     #[serde(default)]
@@ -860,7 +861,7 @@ pub struct GoogleAnalyticsAdminV1betaProperty {
 }
 
 /// Defines a default value/currency for a conversion event. Both value and currency must be provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaConversionEventDefaultConversionValue {
     /// When a conversion event for this event_name has no set currency, this currency will be applied as the default. Must be in ISO 4217 currency code format. See https://en.wikipedia.org/wiki/ISO_4217 for more information.
     #[serde(default, rename = "currencyCode")]
@@ -871,7 +872,7 @@ pub struct GoogleAnalyticsAdminV1betaConversionEventDefaultConversionValue {
 }
 
 /// Data specific to Android app streams.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaDataStreamAndroidAppStreamData {
     /// Output only. ID of the corresponding Android app in Firebase, if any. This ID can change if the Android app is deleted and recreated.
     #[serde(default, rename = "firebaseAppId")]
@@ -882,7 +883,7 @@ pub struct GoogleAnalyticsAdminV1betaDataStreamAndroidAppStreamData {
 }
 
 /// Data specific to iOS app streams.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaDataStreamIosAppStreamData {
     /// Required. Immutable. The Apple App Store Bundle ID for the app Example: "com.example.myiosapp"
     #[serde(default, rename = "bundleId")]
@@ -893,7 +894,7 @@ pub struct GoogleAnalyticsAdminV1betaDataStreamIosAppStreamData {
 }
 
 /// Data specific to web streams.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaDataStreamWebStreamData {
     /// Domain name of the web app being measured, or empty. Example: "http://www.google.com", "https://www.google.com"
     #[serde(default, rename = "defaultUri")]
@@ -907,7 +908,7 @@ pub struct GoogleAnalyticsAdminV1betaDataStreamWebStreamData {
 }
 
 /// To express that the result needs to be between two numbers (inclusive).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessBetweenFilter {
     /// Begins with this number.
     #[serde(default, rename = "fromValue")]
@@ -919,7 +920,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessBetweenFilter {
 }
 
 /// An expression to filter dimension or metric values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessFilter {
     /// A filter for two values.
     #[serde(default, rename = "betweenFilter")]
@@ -942,7 +943,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessFilter {
 }
 
 /// Expresses dimension or metric filters. The fields in the same expression need to be either all dimensions or all metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessFilterExpression {
     /// A primitive filter. In the same FilterExpression, all of the filter''s field names need to be either all dimensions or all metrics.
     #[serde(default, rename = "accessFilter")]
@@ -965,7 +966,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessFilterExpression {
 }
 
 /// A list of filter expressions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessFilterExpressionList {
     /// A list of filter expressions.
     #[serde(default)]
@@ -974,7 +975,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessFilterExpressionList {
 }
 
 /// The result needs to be in a list of string values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessInListFilter {
     /// If true, the string value is case sensitive.
     #[serde(default, rename = "caseSensitive")]
@@ -985,7 +986,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessInListFilter {
 }
 
 /// Filters for numeric or date values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaAccessNumericFilter {
     /// The operation type for this filter. // TODO: enum values: ["OPERATION_UNSPECIFIED", "EQUAL", "LESS_THAN", "LESS_THAN_OR_EQUAL", "GREATER_THAN", "GREATER_THAN_OR_EQUAL"]
     #[serde(default)]
@@ -996,7 +997,7 @@ pub struct GoogleAnalyticsAdminV1betaAccessNumericFilter {
 }
 
 /// To represent a number.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsAdminV1betaNumericValue {
     /// Double value
     #[serde(default, rename = "doubleValue")]

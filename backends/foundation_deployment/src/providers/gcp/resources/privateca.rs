@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for CertificateAuthorityService.ActivateCertificateAuthority.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivateCertificateAuthorityRequest {
     /// Required. The signed CA certificate issued from FetchCertificateAuthorityCsrResponse.pem_csr.
     #[serde(default, rename = "pemCaCertificate")]
@@ -25,11 +26,11 @@ pub struct ActivateCertificateAuthorityRequest {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Request message for CertificateAuthorityService.DisableCertificateAuthority.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisableCertificateAuthorityRequest {
     /// Optional. This field allows this CA to be disabled even if it''s being depended on by another resource. However, doing so may result in unintended and unrecoverable effects on any dependent resources since the CA will no longer be able to issue certificates.
     #[serde(default, rename = "ignoreDependentResources")]
@@ -40,11 +41,11 @@ pub struct DisableCertificateAuthorityRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for CertificateAuthorityService.EnableCertificateAuthority.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnableCertificateAuthorityRequest {
     /// Optional. An ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -52,7 +53,7 @@ pub struct EnableCertificateAuthorityRequest {
 }
 
 /// Request message for CertificateAuthorityService.FetchCaCerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchCaCertsRequest {
     /// Optional. An ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -60,7 +61,7 @@ pub struct FetchCaCertsRequest {
 }
 
 /// Response message for CertificateAuthorityService.FetchCaCerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchCaCertsResponse {
     /// The PEM encoded CA certificate chains of all certificate authorities in this CaPool in the ENABLED, DISABLED, or STAGED states.
     #[serde(default, rename = "caCerts")]
@@ -68,7 +69,7 @@ pub struct FetchCaCertsResponse {
 }
 
 /// Response message for CertificateAuthorityService.FetchCertificateAuthorityCsr.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchCertificateAuthorityCsrResponse {
     /// Output only. The PEM-encoded signed certificate signing request (CSR).
     #[serde(default, rename = "pemCsr")]
@@ -76,7 +77,7 @@ pub struct FetchCertificateAuthorityCsrResponse {
 }
 
 /// Response message for CertificateAuthorityService.ListCaPools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCaPoolsResponse {
     /// The list of CaPools.
     #[serde(default, rename = "caPools")]
@@ -90,7 +91,7 @@ pub struct ListCaPoolsResponse {
 }
 
 /// Response message for CertificateAuthorityService.ListCertificateAuthorities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCertificateAuthoritiesResponse {
     /// The list of CertificateAuthorities.
     #[serde(default, rename = "certificateAuthorities")]
@@ -104,7 +105,7 @@ pub struct ListCertificateAuthoritiesResponse {
 }
 
 /// Response message for CertificateAuthorityService.ListCertificateRevocationLists.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCertificateRevocationListsResponse {
     /// The list of CertificateRevocationLists.
     #[serde(default, rename = "certificateRevocationLists")]
@@ -119,7 +120,7 @@ pub struct ListCertificateRevocationListsResponse {
 }
 
 /// Response message for CertificateAuthorityService.ListCertificateTemplates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCertificateTemplatesResponse {
     /// The list of CertificateTemplates.
     #[serde(default, rename = "certificateTemplates")]
@@ -133,7 +134,7 @@ pub struct ListCertificateTemplatesResponse {
 }
 
 /// Response message for CertificateAuthorityService.ListCertificates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCertificatesResponse {
     /// The list of Certificates.
     #[serde(default)]
@@ -147,7 +148,7 @@ pub struct ListCertificatesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -158,7 +159,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -172,7 +173,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -198,7 +199,7 @@ pub struct OperationMetadata {
 }
 
 /// Request message for CertificateAuthorityService.RevokeCertificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevokeCertificateRequest {
     /// Required. The RevocationReason for revoking this certificate. // TODO: enum values: ["REVOCATION_REASON_UNSPECIFIED", "KEY_COMPROMISE", "CERTIFICATE_AUTHORITY_COMPROMISE", "AFFILIATION_CHANGED", "SUPERSEDED", "CESSATION_OF_OPERATION", "CERTIFICATE_HOLD", "PRIVILEGE_WITHDRAWN", "ATTRIBUTE_AUTHORITY_COMPROMISE"]
     #[serde(default)]
@@ -209,7 +210,7 @@ pub struct RevokeCertificateRequest {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -220,7 +221,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -228,7 +229,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -236,7 +237,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Request message for CertificateAuthorityService.UndeleteCertificateAuthority.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteCertificateAuthorityRequest {
     /// Optional. An ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -244,7 +245,7 @@ pub struct UndeleteCertificateAuthorityRequest {
 }
 
 /// CertChain resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertChain {
     /// The certificates that form the CA chain, from leaf to root order.
     #[serde(default)]
@@ -252,7 +253,7 @@ pub struct CertChain {
 }
 
 /// A CaPool represents a group of CertificateAuthorities that form a trust anchor. A CaPool can be used to manage issuance policies for one or more CertificateAuthority resources and to rotate CA certificates in and out of the trust anchor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CaPool {
     /// Optional. When EncryptionSpec is provided, the Subject, SubjectAltNames, and the PEM-encoded certificate fields will be encrypted at rest.
     #[serde(default, rename = "encryptionSpec")]
@@ -275,7 +276,7 @@ pub struct CaPool {
 }
 
 /// A CertificateAuthority represents an individual Certificate Authority. A CertificateAuthority can be used to create Certificates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateAuthority {
     /// Output only. URLs for accessing content published by this CA, such as the CA certificate and CRLs.
     #[serde(default, rename = "accessUrls")]
@@ -341,7 +342,7 @@ pub struct CertificateAuthority {
 }
 
 /// A CertificateRevocationList corresponds to a signed X.509 certificate Revocation List (CRL). A CRL contains the serial numbers of certificates that should no longer be trusted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateRevocationList {
     /// Output only. The location where ''pem_crl'' can be accessed.
     #[serde(default, rename = "accessUrl")]
@@ -376,7 +377,7 @@ pub struct CertificateRevocationList {
 }
 
 /// A CertificateTemplate refers to a managed template for certificate issuance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateTemplate {
     /// Output only. The time at which this CertificateTemplate was created.
     #[serde(default, rename = "createTime")]
@@ -408,7 +409,7 @@ pub struct CertificateTemplate {
 }
 
 /// A Certificate corresponds to a signed X.509 certificate issued by a CertificateAuthority.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Certificate {
     /// Output only. A structured description of the issued X.509 certificate.
     #[serde(default, rename = "certificateDescription")]
@@ -455,7 +456,7 @@ pub struct Certificate {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -475,7 +476,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -495,7 +496,7 @@ pub struct Operation {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -512,7 +513,7 @@ pub struct Policy {
 }
 
 /// The configuration used for encrypting data at rest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionSpec {
     /// The resource name for a Cloud KMS key in the format projects/*/locations/*/keyRings/*/cryptoKeys/*.
     #[serde(default, rename = "cloudKmsKey")]
@@ -520,7 +521,7 @@ pub struct EncryptionSpec {
 }
 
 /// Defines controls over all certificate issuance within a CaPool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuancePolicy {
     /// Optional. If specified, then only methods allowed in the IssuanceModes may be used to issue Certificates.
     #[serde(default, rename = "allowedIssuanceModes")]
@@ -546,7 +547,7 @@ pub struct IssuancePolicy {
 }
 
 /// Options relating to the publication of each CertificateAuthority''s CA certificate and CRLs and their inclusion as extensions in issued Certificates. The options set here apply to certificates issued by any CertificateAuthority in the CaPool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublishingOptions {
     /// Optional. Specifies the encoding format of each CertificateAuthority resource''s CA certificate and CRLs. If this is omitted, CA certificates and CRLs will be published in PEM. // TODO: enum values: ["ENCODING_FORMAT_UNSPECIFIED", "PEM", "DER"]
     #[serde(default, rename = "encodingFormat")]
@@ -560,7 +561,7 @@ pub struct PublishingOptions {
 }
 
 /// URLs where a CertificateAuthority will publish content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessUrls {
     /// The URL where this CertificateAuthority''s CA certificate is published. This will only be set for CAs that have been activated.
     #[serde(default, rename = "caCertificateAccessUrl")]
@@ -571,7 +572,7 @@ pub struct AccessUrls {
 }
 
 /// A Cloud KMS key configuration that a CertificateAuthority will use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyVersionSpec {
     /// The algorithm to use for creating a managed Cloud KMS key for a for a simplified experience. All managed keys will be have their ProtectionLevel as HSM. // TODO: enum values: ["SIGN_HASH_ALGORITHM_UNSPECIFIED", "RSA_PSS_2048_SHA256", "RSA_PSS_3072_SHA256", "RSA_PSS_4096_SHA256", "RSA_PKCS1_2048_SHA256", "RSA_PKCS1_3072_SHA256", "RSA_PKCS1_4096_SHA256", "EC_P256_SHA256", "EC_P384_SHA384"]
     #[serde(default)]
@@ -582,7 +583,7 @@ pub struct KeyVersionSpec {
 }
 
 /// Describes a subordinate CA''s issuers. This is either a resource name to a known issuing CertificateAuthority, or a PEM issuer certificate chain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubordinateConfig {
     /// Required. This can refer to a CertificateAuthority that was used to create a subordinate CertificateAuthority. This field is used for information and usability purposes only. The resource name is in the format projects/*/locations/*/caPools/*/certificateAuthorities/*.
     #[serde(default, rename = "certificateAuthority")]
@@ -593,7 +594,7 @@ pub struct SubordinateConfig {
 }
 
 /// User-defined URLs for accessing content published by this CertificateAuthority.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserDefinedAccessUrls {
     /// Optional. A list of URLs where the issuer CA certificate may be downloaded, which appears in the "Authority Information Access" extension in the certificate. If specified, the default Cloud Storage URLs will be omitted.
     #[serde(default, rename = "aiaIssuingCertificateUrls")]
@@ -604,7 +605,7 @@ pub struct UserDefinedAccessUrls {
 }
 
 /// Describes a revoked Certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevokedCertificate {
     /// The resource name for the Certificate in the format projects/*/locations/*/caPools/*/certificates/*.
     #[serde(default)]
@@ -618,7 +619,7 @@ pub struct RevokedCertificate {
 }
 
 /// A CertificateDescription describes an X.509 certificate or CSR that has been issued, as an alternative to using ASN.1 / X.509.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateDescription {
     /// Describes lists of issuer CA certificate URLs that appear in the "Authority Information Access" extension in the certificate.
     #[serde(default, rename = "aiaIssuingCertificateUrls")]
@@ -650,7 +651,7 @@ pub struct CertificateDescription {
 }
 
 /// A CertificateConfig describes an X.509 certificate or CSR that is to be created, as an alternative to using ASN.1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateConfig {
     /// Optional. The public key that corresponds to this config. This is, for example, used when issuing Certificates, but not when creating a self-signed CertificateAuthority or CertificateAuthority CSR.
     #[serde(default, rename = "publicKey")]
@@ -667,7 +668,7 @@ pub struct CertificateConfig {
 }
 
 /// Describes fields that are relavent to the revocation of a Certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevocationDetails {
     /// Indicates why a Certificate was revoked. // TODO: enum values: ["REVOCATION_REASON_UNSPECIFIED", "KEY_COMPROMISE", "CERTIFICATE_AUTHORITY_COMPROMISE", "AFFILIATION_CHANGED", "SUPERSEDED", "CESSATION_OF_OPERATION", "CERTIFICATE_HOLD", "PRIVILEGE_WITHDRAWN", "ATTRIBUTE_AUTHORITY_COMPROMISE"]
     #[serde(default, rename = "revocationState")]
@@ -678,7 +679,7 @@ pub struct RevocationDetails {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -692,7 +693,7 @@ pub struct Status {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -703,7 +704,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -717,7 +718,7 @@ pub struct Binding {
 }
 
 /// IssuanceModes specifies the allowed ways in which Certificates may be requested from this CaPool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuanceModes {
     /// Optional. When true, allows callers to create Certificates by specifying a CertificateConfig.
     #[serde(default, rename = "allowConfigBasedIssuance")]
@@ -728,7 +729,7 @@ pub struct IssuanceModes {
 }
 
 /// Describes a "type" of key that may be used in a Certificate issued from a CaPool. Note that a single AllowedKeyType may refer to either a fully-qualified key algorithm, such as RSA 4096, or a family of key algorithms, such as any RSA key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllowedKeyType {
     /// Represents an allowed Elliptic Curve key type.
     #[serde(default, rename = "ellipticCurve")]
@@ -739,7 +740,7 @@ pub struct AllowedKeyType {
 }
 
 /// Describes constraints on a Certificate''s Subject and SubjectAltNames.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateIdentityConstraints {
     /// Required. If this is true, the SubjectAltNames extension may be copied from a certificate request into the signed certificate. Otherwise, the requested SubjectAltNames will be discarded.
     #[serde(default, rename = "allowSubjectAltNamesPassthrough")]
@@ -753,7 +754,7 @@ pub struct CertificateIdentityConstraints {
 }
 
 /// Describes a set of X.509 extensions that may be part of some certificate issuance controls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateExtensionConstraints {
     /// Optional. A set of ObjectIds identifying custom X.509 extensions. Will be combined with known_extensions to determine the full set of X.509 extensions.
     #[serde(default, rename = "additionalExtensions")]
@@ -764,7 +765,7 @@ pub struct CertificateExtensionConstraints {
 }
 
 /// This message describes a subordinate CA''s issuer certificate chain. This wrapper exists for compatibility reasons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubordinateConfigChain {
     /// Required. Expected to be in leaf-to-root order according to RFC 5246.
     #[serde(default, rename = "pemCertificates")]
@@ -772,7 +773,7 @@ pub struct SubordinateConfigChain {
 }
 
 /// A KeyId identifies a specific public key, usually by hashing the public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyId {
     /// Optional. The value of this KeyId encoded in lowercase hexadecimal. This is most likely the 160 bit SHA-1 hash of the public key.
     #[serde(default, rename = "keyId")]
@@ -780,7 +781,7 @@ pub struct KeyId {
 }
 
 /// A group of fingerprints for the x509 certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateFingerprint {
     /// The SHA 256 hash, encoded in hexadecimal, of the DER x509 certificate.
     #[serde(default, rename = "sha256Hash")]
@@ -788,7 +789,7 @@ pub struct CertificateFingerprint {
 }
 
 /// These values describe fields in an issued X.509 certificate such as the distinguished name, subject alternative names, serial number, and lifetime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubjectDescription {
     /// The serial number encoded in lowercase hexadecimal.
     #[serde(default, rename = "hexSerialNumber")]
@@ -811,7 +812,7 @@ pub struct SubjectDescription {
 }
 
 /// A PublicKey describes a public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublicKey {
     /// Required. The format of the public key. // TODO: enum values: ["KEY_FORMAT_UNSPECIFIED", "PEM"]
     #[serde(default)]
@@ -822,7 +823,7 @@ pub struct PublicKey {
 }
 
 /// These values are used to create the distinguished name and subject alternative name fields in an X.509 certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubjectConfig {
     /// Optional. Contains distinguished name fields such as the common name, location and organization.
     #[serde(default)]
@@ -833,7 +834,7 @@ pub struct SubjectConfig {
 }
 
 /// A KeyId identifies a specific public key, usually by hashing the public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateConfigKeyId {
     /// Required. The value of this KeyId encoded in lowercase hexadecimal. This is most likely the 160 bit SHA-1 hash of the public key.
     #[serde(default, rename = "keyId")]
@@ -841,7 +842,7 @@ pub struct CertificateConfigKeyId {
 }
 
 /// An X509Parameters is used to describe certain fields of an X.509 certificate, such as the key usage fields, fields specific to CA certificates, certificate policy extensions and custom extensions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct X509Parameters {
     /// Optional. Describes custom X.509 extensions.
     #[serde(default, rename = "additionalExtensions")]
@@ -864,7 +865,7 @@ pub struct X509Parameters {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -875,7 +876,7 @@ pub struct AuditLogConfig {
 }
 
 /// Describes an Elliptic Curve key that may be used in a Certificate issued from a CaPool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EcKeyType {
     /// Optional. A signature algorithm that must be used. If this is omitted, any EC-based signature algorithm will be allowed. // TODO: enum values: ["EC_SIGNATURE_ALGORITHM_UNSPECIFIED", "ECDSA_P256", "ECDSA_P384", "EDDSA_25519"]
     #[serde(default, rename = "signatureAlgorithm")]
@@ -883,7 +884,7 @@ pub struct EcKeyType {
 }
 
 /// Describes an RSA key that may be used in a Certificate issued from a CaPool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RsaKeyType {
     /// Optional. The maximum allowed RSA modulus size (inclusive), in bits. If this is not set, or if set to zero, the service will not enforce an explicit upper bound on RSA modulus sizes.
     #[serde(default, rename = "maxModulusSize")]
@@ -894,7 +895,7 @@ pub struct RsaKeyType {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -911,7 +912,7 @@ pub struct Expr {
 }
 
 /// Subject describes parts of a distinguished name that, in turn, describes the subject of the certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subject {
     /// The "common name" of the subject.
     #[serde(default, rename = "commonName")]
@@ -943,7 +944,7 @@ pub struct Subject {
 }
 
 /// SubjectAltNames corresponds to a more modern way of listing what the asserted identity is in a certificate (i.e., compared to the "common name" in the distinguished name).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubjectAltNames {
     /// Contains additional subject alternative name values. For each custom_san, the value field must contain an ASN.1 encoded UTF8String.
     #[serde(default, rename = "customSans")]
@@ -963,7 +964,7 @@ pub struct SubjectAltNames {
 }
 
 /// Describes the X.509 basic constraints extension, per [RFC 5280 section 4.2.1.9](https://tools.ietf.org/html/rfc5280#section-4.2.1.9)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CaOptions {
     /// Optional. Refers to the "CA" boolean field in the X.509 extension. When this value is missing, the basic constraints extension will be omitted from the certificate.
     #[serde(default, rename = "isCa")]
@@ -974,7 +975,7 @@ pub struct CaOptions {
 }
 
 /// A KeyUsage describes key usage values that may appear in an X.509 certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyUsage {
     /// Describes high-level ways in which a key may be used.
     #[serde(default, rename = "baseKeyUsage")]
@@ -988,7 +989,7 @@ pub struct KeyUsage {
 }
 
 /// Describes the X.509 name constraints extension, per https://tools.ietf.org/html/rfc5280#section-4.2.1.10
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NameConstraints {
     /// Indicates whether or not the name constraints are marked critical.
     #[serde(default)]
@@ -1020,7 +1021,7 @@ pub struct NameConstraints {
 }
 
 /// RelativeDistinguishedName specifies a relative distinguished name which will be used to build a distinguished name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelativeDistinguishedName {
     /// Attributes describes the attribute value assertions in the RDN.
     #[serde(default)]
@@ -1028,7 +1029,7 @@ pub struct RelativeDistinguishedName {
 }
 
 /// An X509Extension specifies an X.509 extension, which may be used in different parts of X.509 objects like certificates, CSRs, and CRLs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct X509Extension {
     /// Optional. Indicates whether or not this extension is critical (i.e., if the client does not know how to handle this extension, the client should consider this to be an error).
     #[serde(default)]
@@ -1042,7 +1043,7 @@ pub struct X509Extension {
 }
 
 /// KeyUsage.KeyUsageOptions corresponds to the key usage values described in https://tools.ietf.org/html/rfc5280#section-4.2.1.3.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyUsageOptions {
     /// The key may be used to sign certificates.
     #[serde(default, rename = "certSign")]
@@ -1074,7 +1075,7 @@ pub struct KeyUsageOptions {
 }
 
 /// KeyUsage.ExtendedKeyUsageOptions has fields that correspond to certain common OIDs that could be specified as an extended key usage value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtendedKeyUsageOptions {
     /// Corresponds to OID 1.3.6.1.5.5.7.3.2. Officially described as "TLS WWW client authentication", though regularly used for non-WWW TLS.
     #[serde(default, rename = "clientAuth")]
@@ -1097,7 +1098,7 @@ pub struct ExtendedKeyUsageOptions {
 }
 
 /// AttributeTypeAndValue specifies an attribute type and value. It can use either a OID or enum value to specify the attribute type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttributeTypeAndValue {
     /// Object ID for an attribute type of an attribute and value pair.
     #[serde(default, rename = "objectId")]
@@ -1111,7 +1112,7 @@ pub struct AttributeTypeAndValue {
 }
 
 /// An ObjectId specifies an object identifier (OID). These provide context and describe types in ASN.1 messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectId {
     /// Required. The parts of an OID path. The most significant parts of the path come first.
     #[serde(default, rename = "objectIdPath")]

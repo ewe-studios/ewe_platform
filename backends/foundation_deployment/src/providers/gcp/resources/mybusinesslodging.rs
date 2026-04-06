@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for LodgingService.GetGoogleUpdatedLodging
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetGoogleUpdatedLodgingResponse {
     /// Required. The fields in the Lodging that have been updated by Google. Repeated field items are not individually specified.
     #[serde(default, rename = "diffMask")]
@@ -22,7 +23,7 @@ pub struct GetGoogleUpdatedLodgingResponse {
 }
 
 /// Lodging of a location that provides accomodations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Lodging {
     /// Physical adaptations made to the property in consideration of varying levels of human physical ability.
     #[serde(default)]
@@ -96,7 +97,7 @@ pub struct Lodging {
 }
 
 /// Physical adaptations made to the property in consideration of varying levels of human physical ability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Accessibility {
     /// Mobility accessible. Throughout the property there are physical adaptations to ease the stay of a person in a wheelchair, such as auto-opening doors, wide elevators, wide bathrooms or ramps.
     #[serde(default, rename = "mobilityAccessible")]
@@ -125,7 +126,7 @@ pub struct Accessibility {
 }
 
 /// Amenities and features related to leisure and play.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Activities {
     /// Beach access. The hotel property is in close proximity to a beach and offers a way to get to that beach. This can include a route to the beach such as stairs down if hotel is on a bluff, or a short trail. Not the same as beachfront (with beach access, the hotel''s proximity is close to but not right on the beach).
     #[serde(default, rename = "beachAccess")]
@@ -232,7 +233,7 @@ pub struct Activities {
 }
 
 /// Features of the property of specific interest to the business traveler.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Business {
     /// Business center. A designated room at the hotel with one or more desks and equipped with guest-use computers, printers, fax machines and/or photocopiers. May or may not be open 24/7. May or may not require a key to access. Not a meeting room or conference room.
     #[serde(default, rename = "businessCenter")]
@@ -255,7 +256,7 @@ pub struct Business {
 }
 
 /// The ways in which the property provides guests with the ability to access the internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Connectivity {
     /// Free wifi. The hotel offers guests wifi for free.
     #[serde(default, rename = "freeWifi")]
@@ -284,7 +285,7 @@ pub struct Connectivity {
 }
 
 /// Services and amenities for families and young guests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Families {
     /// Babysitting. Child care that is offered by hotel staffers or coordinated by hotel staffers with local child care professionals. Can be free or for a fee.
     #[serde(default)]
@@ -313,7 +314,7 @@ pub struct Families {
 }
 
 /// Meals, snacks, and beverages available at the property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FoodAndDrink {
     /// Bar. A designated room, lounge or area of an on-site restaurant with seating at a counter behind which a hotel staffer takes the guest''s order and provides the requested alcoholic drink. Can be indoors or outdoors. Also known as Pub.
     #[serde(default)]
@@ -390,7 +391,7 @@ pub struct FoodAndDrink {
 }
 
 /// A specific type of unit primarily defined by its features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestUnitType {
     /// Required. Unit or room code identifiers for a single GuestUnitType. Each code must be unique within a Lodging instance.
     #[serde(default)]
@@ -404,7 +405,7 @@ pub struct GuestUnitType {
 }
 
 /// Health and safety measures implemented by the hotel during COVID-19.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthAndSafety {
     /// Enhanced cleaning measures implemented by the hotel during COVID-19.
     #[serde(default, rename = "enhancedCleaning")]
@@ -424,7 +425,7 @@ pub struct HealthAndSafety {
 }
 
 /// Conveniences provided in guest units to facilitate an easier, more comfortable stay.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Housekeeping {
     /// Daily housekeeping. Guest units are cleaned by hotel staff daily during guest''s stay.
     #[serde(default, rename = "dailyHousekeeping")]
@@ -447,7 +448,7 @@ pub struct Housekeeping {
 }
 
 /// Metadata for the Lodging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LodgingMetadata {
     /// Required. The latest time at which the Lodging data is asserted to be true in the real world. This is not necessarily the time at which the request is made.
     #[serde(default, rename = "updateTime")]
@@ -455,7 +456,7 @@ pub struct LodgingMetadata {
 }
 
 /// Parking options at the property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Parking {
     /// Electric car charging stations. Electric power stations, usually located outdoors, into which guests plug their electric cars to receive a charge.
     #[serde(default, rename = "electricCarChargingStations")]
@@ -502,7 +503,7 @@ pub struct Parking {
 }
 
 /// Policies regarding guest-owned animals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pets {
     /// Cats allowed. Domesticated felines are permitted at the property and allowed to stay in the guest room of their owner. May or may not require a fee.
     #[serde(default, rename = "catsAllowed")]
@@ -531,7 +532,7 @@ pub struct Pets {
 }
 
 /// Property rules that impact guests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policies {
     /// All inclusive available. The hotel offers a rate option that includes the cost of the room, meals, activities, and other amenities that might otherwise be charged separately.
     #[serde(default, rename = "allInclusiveAvailable")]
@@ -587,7 +588,7 @@ pub struct Policies {
 }
 
 /// Swimming pool or recreational water facilities available at the hotel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pools {
     /// Adult pool. A pool restricted for use by adults only. Can be indoors or outdoors.
     #[serde(default, rename = "adultPool")]
@@ -676,7 +677,7 @@ pub struct Pools {
 }
 
 /// General factual information about the property''s physical structure and important dates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Property {
     /// Built year. The year that construction of the property was completed.
     #[serde(default, rename = "builtYear")]
@@ -705,7 +706,7 @@ pub struct Property {
 }
 
 /// Conveniences or help provided by the property to facilitate an easier, more comfortable stay.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Services {
     /// Baggage storage. A provision for guests to leave their bags at the hotel when they arrive for their stay before the official check-in time. May or may not apply for guests who wish to leave their bags after check-out and before departing the locale. Also known as bag dropoff.
     #[serde(default, rename = "baggageStorage")]
@@ -785,7 +786,7 @@ pub struct Services {
 }
 
 /// Sustainability practices implemented at the hotel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Sustainability {
     /// Energy efficiency practices implemented at the hotel.
     #[serde(default, rename = "energyEfficiency")]
@@ -805,7 +806,7 @@ pub struct Sustainability {
 }
 
 /// Vehicles or vehicular services facilitated or owned by the property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Transportation {
     /// Airport shuttle. The hotel provides guests with a chauffeured van or bus to and from the airport. Can be free or for a fee. Guests may share the vehicle with other guests unknown to them. Applies if the hotel has a third-party shuttle service (office/desk etc.) within the hotel. As long as hotel provides this service, it doesn''t matter if it''s directly with them or a third party they work with. Does not apply if guest has to coordinate with an entity outside/other than the hotel.
     #[serde(default, rename = "airportShuttle")]
@@ -852,7 +853,7 @@ pub struct Transportation {
 }
 
 /// Guest facilities at the property to promote or maintain health, beauty, and fitness.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Wellness {
     /// Doctor on call. The hotel has a contract with a medical professional who provides services to hotel guests should they fall ill during their stay. The doctor may or may not have an on-site office or be at the hotel at all times.
     #[serde(default, rename = "doctorOnCall")]
@@ -923,7 +924,7 @@ pub struct Wellness {
 }
 
 /// Features and available amenities in the guest unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestUnitFeatures {
     /// Bungalow or villa. An independent structure that is part of a hotel or resort that is rented to one party for a vacation stay. The hotel or resort may be completely comprised of bungalows or villas, or they may be one of several guestroom options. Guests in the bungalows or villas most often have the same, if not more, amenities and services offered to guests in other guestroom types.
     #[serde(default, rename = "bungalowOrVilla")]
@@ -988,7 +989,7 @@ pub struct GuestUnitFeatures {
 }
 
 /// Enhanced cleaning measures implemented by the hotel during COVID-19.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnhancedCleaning {
     /// Commercial-grade disinfectant used to clean the property.
     #[serde(default, rename = "commercialGradeDisinfectantCleaning")]
@@ -1029,7 +1030,7 @@ pub struct EnhancedCleaning {
 }
 
 /// Increased food safety measures implemented by the hotel during COVID-19.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IncreasedFoodSafety {
     /// Additional sanitation in dining areas.
     #[serde(default, rename = "diningAreasAdditionalSanitation")]
@@ -1064,7 +1065,7 @@ pub struct IncreasedFoodSafety {
 }
 
 /// Minimized contact measures implemented by the hotel during COVID-19.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MinimizedContact {
     /// No-contact check-in and check-out.
     #[serde(default, rename = "contactlessCheckinCheckout")]
@@ -1111,7 +1112,7 @@ pub struct MinimizedContact {
 }
 
 /// Personal protection measures implemented by the hotel during COVID-19.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonalProtection {
     /// Hand-sanitizer and/or sanitizing wipes are offered in common areas.
     #[serde(default, rename = "commonAreasOfferSanitizingItems")]
@@ -1140,7 +1141,7 @@ pub struct PersonalProtection {
 }
 
 /// Physical distancing measures implemented by the hotel during COVID-19.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhysicalDistancing {
     /// Common areas arranged to maintain physical distancing.
     #[serde(default, rename = "commonAreasPhysicalDistancingArranged")]
@@ -1175,7 +1176,7 @@ pub struct PhysicalDistancing {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -1192,7 +1193,7 @@ pub struct TimeOfDay {
 }
 
 /// Forms of payment accepted at the property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentOptions {
     /// Cash. The hotel accepts payment by paper/coin currency.
     #[serde(default)]
@@ -1227,7 +1228,7 @@ pub struct PaymentOptions {
 }
 
 /// Language spoken by at least one staff member.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageSpoken {
     /// Required. The BCP-47 language code for the spoken language. Currently accepted codes: ar, de, en, es, fil, fr, hi, id, it, ja, ko, nl, pt, ru, vi, yue, zh.
     #[serde(default, rename = "languageCode")]
@@ -1241,7 +1242,7 @@ pub struct LanguageSpoken {
 }
 
 /// Energy efficiency practices implemented at the hotel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnergyEfficiency {
     /// Carbon free energy sources. Property sources carbon-free electricity via at least one of the following methods: on-site clean energy generation, power purchase agreement(s) with clean energy generators, green power provided by electricity supplier, or purchases of Energy Attribute Certificates (such as Renewable Energy Certificates or Guarantees of Origin).
     #[serde(default, rename = "carbonFreeEnergySources")]
@@ -1288,7 +1289,7 @@ pub struct EnergyEfficiency {
 }
 
 /// Sustainability certifications the hotel has been awarded. Deprecated: this message is no longer populated. All certification data is now provided by BeCause.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SustainabilityCertifications {
     /// BREEAM certification. // TODO: enum values: ["BREEAM_CERTIFICATION_UNSPECIFIED", "NO_BREEAM_CERTIFICATION", "BREEAM_PASS", "BREEAM_GOOD", "BREEAM_VERY_GOOD", "BREEAM_EXCELLENT", "BREEAM_OUTSTANDING"]
     #[serde(default, rename = "breeamCertification")]
@@ -1308,7 +1309,7 @@ pub struct SustainabilityCertifications {
 }
 
 /// Sustainable sourcing practices implemented at the hotel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SustainableSourcing {
     /// Eco friendly toiletries. Soap, shampoo, lotion, and other toiletries provided for guests have a nationally or internationally recognized sustainability certification, such as USDA Organic, EU Organic, or cruelty-free.
     #[serde(default, rename = "ecoFriendlyToiletries")]
@@ -1361,7 +1362,7 @@ pub struct SustainableSourcing {
 }
 
 /// Waste reduction practices implemented at the hotel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WasteReduction {
     /// Compostable food containers and cutlery. 100% of food service containers and to-go cutlery are compostable, and reusable utensils are offered wherever possible. Compostable materials are capable of undergoing biological decomposition in a compost site, such that material is not visually distinguishable and breaks down into carbon dioxide, water, inorganic compounds, and biomass.
     #[serde(default, rename = "compostableFoodContainersAndCutlery")]
@@ -1462,7 +1463,7 @@ pub struct WasteReduction {
 }
 
 /// Water conservation practices implemented at the hotel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaterConservation {
     /// Independent organization audits water use. The property conducts a water conservation audit every 5 years, the results of which are either verified by a third-party and/or published in external communications. A water conservation audit is a detailed assessment of the facility, providing recommendations to existing operations and procedures to improve water efficiency, available incentives or rebates, and opportunities for improvements through renovations or upgrades. Examples of organizations who conduct credible third party audits include: Engie Impact, and local utility providers (they often provide energy and water audits).
     #[serde(default, rename = "independentOrganizationAuditsWaterUse")]
@@ -1503,7 +1504,7 @@ pub struct WaterConservation {
 }
 
 /// An individual room, such as kitchen, bathroom, bedroom, within a bookable guest unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LivingArea {
     /// Accessibility features of the living area.
     #[serde(default)]
@@ -1523,7 +1524,7 @@ pub struct LivingArea {
 }
 
 /// Views available from the guest unit itself.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ViewsFromUnit {
     /// Beach view. A guestroom that features a window through which guests can see the beach.
     #[serde(default, rename = "beachView")]
@@ -1576,7 +1577,7 @@ pub struct ViewsFromUnit {
 }
 
 /// An eco certificate awarded to the hotel. Deprecated: this message is no longer populated. All certification data is now provided by BeCause.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EcoCertification {
     /// Whether the eco certificate was awarded or not.
     #[serde(default)]
@@ -1590,7 +1591,7 @@ pub struct EcoCertification {
 }
 
 /// Accessibility features of the living area.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LivingAreaAccessibility {
     /// ADA compliant unit. A guestroom designed to accommodate the physical challenges of a guest with mobility and/or auditory and/or visual issues, as determined by legislative policy. Usually features enlarged doorways, roll-in showers with seats, bathroom grab bars, and communication equipment for the hearing and sight challenged.
     #[serde(default, rename = "adaCompliantUnit")]
@@ -1643,7 +1644,7 @@ pub struct LivingAreaAccessibility {
 }
 
 /// Information about eating features in the living area.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LivingAreaEating {
     /// Coffee maker. An electric appliance that brews coffee by heating and forcing water through ground coffee.
     #[serde(default, rename = "coffeeMaker")]
@@ -1744,7 +1745,7 @@ pub struct LivingAreaEating {
 }
 
 /// Features in the living area.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LivingAreaFeatures {
     /// Air conditioning. An electrical machine used to cool the temperature of the guestroom.
     #[serde(default, rename = "airConditioning")]
@@ -1869,7 +1870,7 @@ pub struct LivingAreaFeatures {
 }
 
 /// Information about the layout of the living area.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LivingAreaLayout {
     /// Balcony. An outdoor platform attached to a building and surrounded by a short wall, fence or other safety railing. The balcony is accessed through a door in a guestroom or suite and is for use by the guest staying in that room. May or may not include seating or outdoor furniture. Is not located on the ground floor. Also lanai.
     #[serde(default)]
@@ -1910,7 +1911,7 @@ pub struct LivingAreaLayout {
 }
 
 /// Information about sleeping features in the living area.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LivingAreaSleeping {
     /// Beds count. The number of permanent beds present in a guestroom. Does not include rollaway beds, cribs or sofabeds.
     #[serde(default, rename = "bedsCount")]

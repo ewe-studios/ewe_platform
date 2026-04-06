@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for the BatchGetAppAttestConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse {
     /// AppAttestConfigs retrieved.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct GoogleFirebaseAppcheckV1BatchGetAppAttestConfigsResponse {
 }
 
 /// Response message for the BatchGetDeviceCheckConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1BatchGetDeviceCheckConfigsResponse {
     /// DeviceCheckConfigs retrieved.
     #[serde(default)]
@@ -27,7 +28,7 @@ pub struct GoogleFirebaseAppcheckV1BatchGetDeviceCheckConfigsResponse {
 }
 
 /// Response message for the BatchGetPlayIntegrityConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse {
     /// PlayIntegrityConfigs retrieved.
     #[serde(default)]
@@ -36,7 +37,7 @@ pub struct GoogleFirebaseAppcheckV1BatchGetPlayIntegrityConfigsResponse {
 }
 
 /// Response message for the BatchGetRecaptchaEnterpriseConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1BatchGetRecaptchaEnterpriseConfigsResponse {
     /// RecaptchaEnterpriseConfigs retrieved.
     #[serde(default)]
@@ -45,7 +46,7 @@ pub struct GoogleFirebaseAppcheckV1BatchGetRecaptchaEnterpriseConfigsResponse {
 }
 
 /// Response message for the BatchGetRecaptchaV3Configs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1BatchGetRecaptchaV3ConfigsResponse {
     /// RecaptchaV3Configs retrieved.
     #[serde(default)]
@@ -53,7 +54,7 @@ pub struct GoogleFirebaseAppcheckV1BatchGetRecaptchaV3ConfigsResponse {
 }
 
 /// Response message for the BatchGetSafetyNetConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1BatchGetSafetyNetConfigsResponse {
     /// SafetyNetConfigs retrieved.
     #[serde(default)]
@@ -61,7 +62,7 @@ pub struct GoogleFirebaseAppcheckV1BatchGetSafetyNetConfigsResponse {
 }
 
 /// Request message for the BatchUpdateResourcePolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesRequest {
     /// Required. The request messages specifying the ResourcePolicy objects to update. A maximum of 100 objects can be updated in a batch.
     #[serde(default)]
@@ -74,7 +75,7 @@ pub struct GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesRequest {
 }
 
 /// Response message for the BatchUpdateResourcePolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesResponse {
     /// ResourcePolicy objects after the updates have been applied.
     #[serde(default, rename = "resourcePolicies")]
@@ -83,7 +84,7 @@ pub struct GoogleFirebaseAppcheckV1BatchUpdateResourcePoliciesResponse {
 }
 
 /// Request message for the BatchUpdateServices method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1BatchUpdateServicesRequest {
     /// Required. The request messages specifying the Services to update. A maximum of 100 objects can be updated in a batch.
     #[serde(default)]
@@ -95,7 +96,7 @@ pub struct GoogleFirebaseAppcheckV1BatchUpdateServicesRequest {
 }
 
 /// Response message for the BatchUpdateServices method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1BatchUpdateServicesResponse {
     /// Service objects after the updates have been applied.
     #[serde(default)]
@@ -103,7 +104,7 @@ pub struct GoogleFirebaseAppcheckV1BatchUpdateServicesResponse {
 }
 
 /// Request message for the ExchangeAppAttestAssertion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAssertionRequest {
     /// Required. The artifact returned by a previous call to ExchangeAppAttestAttestation.
     #[serde(default)]
@@ -120,7 +121,7 @@ pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAssertionRequest {
 }
 
 /// Request message for the ExchangeAppAttestAttestation method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationRequest {
     /// Required. The App Attest statement returned by the client-side App Attest API. This is a base64url encoded CBOR object in the JSON response.
     #[serde(default, rename = "attestationStatement")]
@@ -137,7 +138,7 @@ pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationRequest {
 }
 
 /// Response message for the ExchangeAppAttestAttestation method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationResponse {
     /// Encapsulates an App Check token.
     #[serde(default, rename = "appCheckToken")]
@@ -148,7 +149,7 @@ pub struct GoogleFirebaseAppcheckV1ExchangeAppAttestAttestationResponse {
 }
 
 /// Request message for the ExchangeCustomToken method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ExchangeCustomTokenRequest {
     /// Required. A custom token signed using your project''s Admin SDK service account credentials.
     #[serde(default, rename = "customToken")]
@@ -159,7 +160,7 @@ pub struct GoogleFirebaseAppcheckV1ExchangeCustomTokenRequest {
 }
 
 /// Request message for the ExchangeDebugToken method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ExchangeDebugTokenRequest {
     /// Required. A debug token secret. This string must match a debug token secret previously created using CreateDebugToken.
     #[serde(default, rename = "debugToken")]
@@ -170,7 +171,7 @@ pub struct GoogleFirebaseAppcheckV1ExchangeDebugTokenRequest {
 }
 
 /// Request message for the ExchangeDeviceCheckToken method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ExchangeDeviceCheckTokenRequest {
     /// Required. The device_token as returned by Apple''s client-side [DeviceCheck API](https://developer.apple.com/documentation/devicecheck/dcdevice). This is the base64 encoded Data (Swift) or NSData (ObjC) object.
     #[serde(default, rename = "deviceToken")]
@@ -181,7 +182,7 @@ pub struct GoogleFirebaseAppcheckV1ExchangeDeviceCheckTokenRequest {
 }
 
 /// Request message for the ExchangePlayIntegrityToken method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ExchangePlayIntegrityTokenRequest {
     /// Specifies whether this attestation is for use in a *limited use* (true) or *session based* (false) context. To enable this attestation to be used with the *replay protection* feature, set this to true. The default value is false.
     #[serde(default, rename = "limitedUse")]
@@ -192,7 +193,7 @@ pub struct GoogleFirebaseAppcheckV1ExchangePlayIntegrityTokenRequest {
 }
 
 /// Request message for the ExchangeRecaptchaEnterpriseToken method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ExchangeRecaptchaEnterpriseTokenRequest {
     /// Specifies whether this attestation is for use in a *limited use* (true) or *session based* (false) context. To enable this attestation to be used with the *replay protection* feature, set this to true. The default value is false.
     #[serde(default, rename = "limitedUse")]
@@ -203,7 +204,7 @@ pub struct GoogleFirebaseAppcheckV1ExchangeRecaptchaEnterpriseTokenRequest {
 }
 
 /// Request message for the ExchangeRecaptchaV3Token method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ExchangeRecaptchaV3TokenRequest {
     /// Specifies whether this attestation is for use in a *limited use* (true) or *session based* (false) context. To enable this attestation to be used with the *replay protection* feature, set this to true. The default value is false.
     #[serde(default, rename = "limitedUse")]
@@ -214,7 +215,7 @@ pub struct GoogleFirebaseAppcheckV1ExchangeRecaptchaV3TokenRequest {
 }
 
 /// Request message for the ExchangeSafetyNetToken method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ExchangeSafetyNetTokenRequest {
     /// Required. The [SafetyNet attestation response](https://developer.android.com/training/safetynet/attestation#request-attestation-step) issued to your app.
     #[serde(default, rename = "safetyNetToken")]
@@ -222,11 +223,11 @@ pub struct GoogleFirebaseAppcheckV1ExchangeSafetyNetTokenRequest {
 }
 
 /// Request message for the GenerateAppAttestChallenge method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1GenerateAppAttestChallengeRequest {}
 
 /// Response message for the GenerateAppAttestChallenge method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse {
     /// A one-time use challenge for the client to pass to the App Attest API.
     #[serde(default)]
@@ -237,11 +238,11 @@ pub struct GoogleFirebaseAppcheckV1GenerateAppAttestChallengeResponse {
 }
 
 /// Request message for the GeneratePlayIntegrityChallenge method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeRequest {}
 
 /// Response message for the GeneratePlayIntegrityChallenge method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeResponse {
     /// A one-time use [challenge](https://developer.android.com/google/play/integrity/verdict#protect-against-replay-attacks) for the client to pass to the Play Integrity API.
     #[serde(default)]
@@ -252,7 +253,7 @@ pub struct GoogleFirebaseAppcheckV1GeneratePlayIntegrityChallengeResponse {
 }
 
 /// Response message for the ListDebugTokens method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ListDebugTokensResponse {
     /// The DebugTokens retrieved.
     #[serde(default, rename = "debugTokens")]
@@ -263,7 +264,7 @@ pub struct GoogleFirebaseAppcheckV1ListDebugTokensResponse {
 }
 
 /// Response message for the ListResourcePolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ListResourcePoliciesResponse {
     /// If the result list is too large to fit in a single response, then a token is returned. If the string is empty or omitted, then this response is the last page of results. This token can be used in a subsequent call to ListResourcePolicies to find the next group of ResourcePolicy objects. Page tokens are short-lived and should not be persisted.
     #[serde(default, rename = "nextPageToken")]
@@ -275,7 +276,7 @@ pub struct GoogleFirebaseAppcheckV1ListResourcePoliciesResponse {
 }
 
 /// Response message for the ListServices method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ListServicesResponse {
     /// If the result list is too large to fit in a single response, then a token is returned. If the string is empty or omitted, then this response is the last page of results. This token can be used in a subsequent call to ListServices to find the next group of Services. Page tokens are short-lived and should not be persisted.
     #[serde(default, rename = "nextPageToken")]
@@ -286,7 +287,7 @@ pub struct GoogleFirebaseAppcheckV1ListServicesResponse {
 }
 
 /// The currently active set of public keys that can be used to verify App Check tokens. This object is a JWK set as specified by [section 5 of RFC 7517](https://tools.ietf.org/html/rfc7517#section-5). For security, the response **must not** be cached for longer than six hours.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1PublicJwkSet {
     /// The set of public keys. See [section 5.1 of RFC 7517](https://tools.ietf.org/html/rfc7517#section-5).
     #[serde(default)]
@@ -294,11 +295,11 @@ pub struct GoogleFirebaseAppcheckV1PublicJwkSet {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// An app''s App Attest configuration object. This configuration controls certain properties of the AppCheckToken returned by ExchangeAppAttestAttestation and ExchangeAppAttestAssertion, such as its ttl. Note that the Team ID registered with your app is used as part of the validation process. Please register it via the Firebase Console or programmatically via the [Firebase Management Service](https://firebase.google.com/docs/projects/api/reference/rest/v11/projects.iosApps/patch).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1AppAttestConfig {
     /// Required. The relative resource name of the App Attest configuration object, in the format:  projects/{project_number}/apps/{app_id}/appAttestConfig
     #[serde(default)]
@@ -309,7 +310,7 @@ pub struct GoogleFirebaseAppcheckV1AppAttestConfig {
 }
 
 /// An app''s DeviceCheck configuration object. This configuration is used by ExchangeDeviceCheckToken to validate device tokens issued to apps by DeviceCheck. It also controls certain properties of the returned AppCheckToken, such as its ttl. Note that the Team ID registered with your app is used as part of the validation process. Please register it via the Firebase Console or programmatically via the [Firebase Management Service](https://firebase.google.com/docs/projects/api/reference/rest/v11/projects.iosApps/patch).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1DeviceCheckConfig {
     /// Required. The key identifier of a private key enabled with DeviceCheck, created in your Apple Developer account.
     #[serde(default, rename = "keyId")]
@@ -329,7 +330,7 @@ pub struct GoogleFirebaseAppcheckV1DeviceCheckConfig {
 }
 
 /// An app''s Play Integrity configuration object. This configuration controls certain properties of the AppCheckToken returned by ExchangePlayIntegrityToken, such as its ttl. Note that your registered SHA-256 certificate fingerprints are used to validate tokens issued by the Play Integrity API; please register them via the Firebase Console or programmatically via the [Firebase Management Service](https://firebase.google.com/docs/projects/api/reference/rest/v1beta1/projects.androidApps.sha/create).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfig {
     /// Specifies account requirements for Android devices running your app. These settings correspond to requirements on the [**account details** field](https://developer.android.com/google/play/integrity/verdicts#account-details-field) obtained from the Play Integrity API. See the [default responses table](https://developer.android.com/google/play/integrity/setup#default) for a quick summary. The default values for these settings work for most apps, and are recommended.
     #[serde(default, rename = "accountDetails")]
@@ -352,7 +353,7 @@ pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfig {
 }
 
 /// An app''s reCAPTCHA Enterprise configuration object. This configuration is used by ExchangeRecaptchaEnterpriseToken to validate reCAPTCHA tokens issued to apps by reCAPTCHA Enterprise. It also controls certain properties of the returned AppCheckToken, such as its ttl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig {
     /// Required. The relative resource name of the reCAPTCHA Enterprise configuration object, in the format:  projects/{project_number}/apps/{app_id}/recaptchaEnterpriseConfig
     #[serde(default)]
@@ -370,7 +371,7 @@ pub struct GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfig {
 }
 
 /// An app''s reCAPTCHA v3 configuration object. This configuration is used by ExchangeRecaptchaV3Token to validate reCAPTCHA tokens issued to apps by reCAPTCHA v3. It also controls certain properties of the returned AppCheckToken, such as its ttl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1RecaptchaV3Config {
     /// Specifies a minimum score required for a reCAPTCHA token to be considered valid. If its score is greater than or equal to this value, it will be accepted; otherwise, it will be rejected. The value must be between 0.0 and 1.0. The default value is 0.5.
     #[serde(default, rename = "minValidScore")]
@@ -390,7 +391,7 @@ pub struct GoogleFirebaseAppcheckV1RecaptchaV3Config {
 }
 
 /// An app''s SafetyNet configuration object. This configuration controls certain properties of the AppCheckToken returned by ExchangeSafetyNetToken, such as its ttl. Note that your registered SHA-256 certificate fingerprints are used to validate tokens issued by SafetyNet; please register them via the Firebase Console or programmatically via the [Firebase Management Service](https://firebase.google.com/docs/projects/api/reference/rest/v11/projects.androidApps.sha/create).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1SafetyNetConfig {
     /// Required. The relative resource name of the SafetyNet configuration object, in the format:  projects/{project_number}/apps/{app_id}/safetyNetConfig
     #[serde(default)]
@@ -401,7 +402,7 @@ pub struct GoogleFirebaseAppcheckV1SafetyNetConfig {
 }
 
 /// Request message for the UpdateResourcePolicy method as well as an individual update message for the BatchUpdateResourcePolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1UpdateResourcePolicyRequest {
     /// Required. The ResourcePolicy to update. The ResourcePolicy''s name field is used to identify the ResourcePolicy to be updated, in the format:  projects/{project_number}/services/{service_id}/resourcePolicies/{resource_policy_id}  Note that the service_id element must be a supported service ID. Currently, the following service IDs are supported: * oauth2.googleapis.com (Google Identity for iOS)
     #[serde(default, rename = "resourcePolicy")]
@@ -412,7 +413,7 @@ pub struct GoogleFirebaseAppcheckV1UpdateResourcePolicyRequest {
 }
 
 /// Request message for the UpdateService method as well as an individual update message for the BatchUpdateServices method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1UpdateServiceRequest {
     /// Required. The Service to update. The Service''s name field is used to identify the Service to be updated, in the format:  projects/{project_number}/services/{service_id}  Note that the service_id element must be a supported service ID. Currently, the following service IDs are supported: * firebasestorage.googleapis.com (Cloud Storage for Firebase) * firebasedatabase.googleapis.com (Firebase Realtime Database) * firestore.googleapis.com (Cloud Firestore) * oauth2.googleapis.com (Google Identity for iOS)
     #[serde(default)]
@@ -423,7 +424,7 @@ pub struct GoogleFirebaseAppcheckV1UpdateServiceRequest {
 }
 
 /// Encapsulates an *App Check token*, which are used to access backend services protected by App Check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1AppCheckToken {
     /// The App Check token. App Check tokens are signed [JWTs](https://tools.ietf.org/html/rfc7519) containing claims that identify the attested app and GCP project. This token is used to access Google services protected by App Check. These tokens can also be [verified by your own custom backends](https://firebase.google.com/docs/app-check/custom-resource-backend) using the Firebase Admin SDK or third-party libraries.
     #[serde(default)]
@@ -434,7 +435,7 @@ pub struct GoogleFirebaseAppcheckV1AppCheckToken {
 }
 
 /// A *debug token* is a secret used during the development or integration testing of an app. It essentially allows the development or integration testing to bypass app attestation while still allowing App Check to enforce protection on supported production Firebase services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1DebugToken {
     /// Required. A human readable display name used to identify this debug token.
     #[serde(default, rename = "displayName")]
@@ -451,7 +452,7 @@ pub struct GoogleFirebaseAppcheckV1DebugToken {
 }
 
 /// A JWK as specified by [section 4 of RFC 7517](https://tools.ietf.org/html/rfc7517#section-4) and [section 6.3.1 of RFC 7518](https://tools.ietf.org/html/rfc7518#section-6.3.1).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1PublicJwk {
     /// See [section 4.4 of RFC 7517](https://tools.ietf.org/html/rfc7517#section-4.4).
     #[serde(default)]
@@ -474,7 +475,7 @@ pub struct GoogleFirebaseAppcheckV1PublicJwk {
 }
 
 /// A settings object specifying account requirements for Android devices running your app. These settings correspond to requirements on the [**account details** field](https://developer.android.com/google/play/integrity/verdicts#account-details-field) obtained from the Play Integrity API. See the [default responses table](https://developer.android.com/google/play/integrity/setup#default) for a quick summary. The default values for these settings work for most apps, and are recommended.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigAccountDetails {
     /// Specifies whether the caller must have received the [LICENSED verdict](https://developer.android.com/google/play/integrity/verdicts#account-details-field). For additional details about scenarios where your users will receive this LICENSED label, see [the default responses table](https://developer.android.com/google/play/integrity/setup#default). If set to true, apps without the LICENSED app licensing verdict will be rejected. If set to false, any app licensing verdict is allowed. The default value is false.
     #[serde(default, rename = "requireLicensed")]
@@ -482,7 +483,7 @@ pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigAccountDetails {
 }
 
 /// A settings object specifying application integrity requirements for Android devices running your app. These settings correspond to requirements on the [**application integrity** field](https://developer.android.com/google/play/integrity/verdicts#application-integrity-field) obtained from the Play Integrity API. See the [default responses table](https://developer.android.com/google/play/integrity/setup#default) for a quick summary. The default values for these settings work for most apps, and are recommended.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigAppIntegrity {
     /// Specifies whether your running app is allowed to have the UNRECOGNIZED_VERSION [app recognition verdict](https://developer.android.com/google/play/integrity/verdicts#application-integrity-field). Note that the app recognition verdict PLAY_RECOGNIZED is a strong, comprehensive integrity signal that takes into account various other signals, including conditional and optional device integrity responses that you have opted into. If your app is published off-Play, this field should be set to true to allow instances of your app installed from off-Play sources to function. If set to false, only PLAY_RECOGNIZED verdicts are allowed, and both UNRECOGNIZED_VERSION and UNEVALUATED will be rejected. If set to true, any app recognition verdict is allowed. The default value is false.
     #[serde(default, rename = "allowUnrecognizedVersion")]
@@ -490,7 +491,7 @@ pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigAppIntegrity {
 }
 
 /// A settings object specifying device integrity requirements for Android devices running your app. These settings correspond to requirements on the [**device integrity** field](https://developer.android.com/google/play/integrity/verdicts#device-integrity-field) obtained from the Play Integrity API. See the [default responses table](https://developer.android.com/google/play/integrity/setup#default) for a quick summary. Warning: There are also [conditional](https://developer.android.com/google/play/integrity/setup#conditional) as well as [optional](https://developer.android.com/google/play/integrity/setup#optional_device_information) responses that you can receive, but requires additional explicit opt-in from you. The App Check API is **not** responsible for any such opt-ins. The default values for these settings work for most apps, and are recommended.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigDeviceIntegrity {
     /// Specifies the minimum device integrity level in order for the device to be considered valid. Any device with a device recognition verdict lower than this level will be rejected. If this is unspecified, the default level is NO_INTEGRITY. // TODO: enum values: ["DEVICE_RECOGNITION_LEVEL_UNSPECIFIED", "NO_INTEGRITY", "MEETS_BASIC_INTEGRITY", "MEETS_DEVICE_INTEGRITY", "MEETS_STRONG_INTEGRITY"]
     #[serde(default, rename = "minDeviceRecognitionLevel")]
@@ -498,7 +499,7 @@ pub struct GoogleFirebaseAppcheckV1PlayIntegrityConfigDeviceIntegrity {
 }
 
 /// A settings object specifying risk tolerance and requirements for your application. These settings correspond to requirements on the [**riskAnalysis**](https://cloud.google.com/recaptcha/docs/interpret-assessment-website#interpret_assessment) tuple in the assessment obtained from reCAPTCHA Enterprise. The default values for these settings work for most apps, and are recommended.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfigRiskAnalysis {
     /// Specifies a minimum score required for a reCAPTCHA token to be considered valid. If its score is greater than or equal to this value, it will be accepted; otherwise, it will be rejected. The value must be between 0.0 and 1.0. The default value is 0.5.
     #[serde(default, rename = "minValidScore")]
@@ -506,7 +507,7 @@ pub struct GoogleFirebaseAppcheckV1RecaptchaEnterpriseConfigRiskAnalysis {
 }
 
 /// App Check enforcement policy for a specific resource of a Google service supported by App Check. Note that this policy will override the service-level configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1ResourcePolicy {
     /// Required. The App Check enforcement mode for this resource. This will override the App Check overall EnforcementMode setting on the service. // TODO: enum values: ["OFF", "UNENFORCED", "ENFORCED"]
     #[serde(default, rename = "enforcementMode")]
@@ -526,7 +527,7 @@ pub struct GoogleFirebaseAppcheckV1ResourcePolicy {
 }
 
 /// The enforcement configuration for a Firebase service supported by App Check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppcheckV1Service {
     /// Required. The App Check enforcement mode for this service. // TODO: enum values: ["OFF", "UNENFORCED", "ENFORCED"]
     #[serde(default, rename = "enforcementMode")]

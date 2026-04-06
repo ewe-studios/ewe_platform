@@ -8,17 +8,18 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response containing status of the connector for readiness prober.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckReadinessResponse {
     #[serde(default)]
     pub status: ::core::option::Option<String>,
 }
 
 /// The status of the connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckStatusResponse {
     /// When the connector is not in ACTIVE state, the description must be populated to specify the reason why it''s not in ACTIVE state.
     #[serde(default)]
@@ -32,11 +33,11 @@ pub struct CheckStatusResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// ExchangeAuthCodeRequest currently includes the auth code data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangeAuthCodeRequest {
     /// Optional. AuthCodeData contains the data the runtime requires to exchange for access and refresh tokens. If the data is not provided, the runtime will read the data from the secret manager.
     #[serde(default, rename = "authCodeData")]
@@ -50,7 +51,7 @@ pub struct ExchangeAuthCodeRequest {
 }
 
 /// ExchangeAuthCodeResponse includes the returned access token and its associated credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangeAuthCodeResponse {
     #[serde(default, rename = "accessCredentials")]
     pub access_credentials: ::core::option::Option<AccessCredentials>,
@@ -60,7 +61,7 @@ pub struct ExchangeAuthCodeResponse {
 }
 
 /// Request message for ActionService.ExecuteAction
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteActionRequest {
     /// Execution config for the request.
     #[serde(default, rename = "executionConfig")]
@@ -71,7 +72,7 @@ pub struct ExecuteActionRequest {
 }
 
 /// Response message for ActionService.ExecuteAction
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteActionResponse {
     /// Metadata like service latency, etc.
     #[serde(default)]
@@ -82,7 +83,7 @@ pub struct ExecuteActionResponse {
 }
 
 /// An execute sql query request containing the query and the connection to execute it on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteSqlQueryRequest {
     /// Required. SQL statement passed by clients like Integration Platform, the query is passed as-is to the driver used for interfacing with external systems.
     #[serde(default)]
@@ -90,7 +91,7 @@ pub struct ExecuteSqlQueryRequest {
 }
 
 /// A response returned by the connection after executing the sql query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteSqlQueryResponse {
     /// In the case of successful execution of the query the response contains results returned by the external system. For example, the result rows of the query are contained in the ''results'' Struct list - "results": [ { "field1": "val1", "field2": "val2",.. },.. ] Each Struct row can contain fields any type of like nested Structs or lists.
     #[serde(default)]
@@ -98,7 +99,7 @@ pub struct ExecuteSqlQueryResponse {
 }
 
 /// Request message for ConnectorAgentService.ExecuteTool
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteToolRequest {
     /// execution config for the request.
     #[serde(default, rename = "executionConfig")]
@@ -112,7 +113,7 @@ pub struct ExecuteToolRequest {
 }
 
 /// Response message for ConnectorAgentService.ExecuteTool
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteToolResponse {
     /// Metadata for the tool execution result.
     #[serde(default, rename = "_meta")]
@@ -126,7 +127,7 @@ pub struct ExecuteToolResponse {
 }
 
 /// GenerateCustomToolspecRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateCustomToolspecRequest {
     /// list of tools to be generated.
     #[serde(default, rename = "toolNames")]
@@ -134,7 +135,7 @@ pub struct GenerateCustomToolspecRequest {
 }
 
 /// GenerateCustomToolspecResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateCustomToolspecResponse {
     /// tool spec that has tool_defitions array containing the tools for all sted tool_names.
     #[serde(default, rename = "toolSpec")]
@@ -142,7 +143,7 @@ pub struct GenerateCustomToolspecResponse {
 }
 
 /// Request message for ConnectorAgentService.GetResourcePost
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetResourcePostRequest {
     /// execution config for the request.
     #[serde(default, rename = "executionConfig")]
@@ -153,7 +154,7 @@ pub struct GetResourcePostRequest {
 }
 
 /// GetResourceResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetResourceResponse {
     /// Metadata for the resource.
     #[serde(default, rename = "_meta")]
@@ -170,7 +171,7 @@ pub struct GetResourceResponse {
 }
 
 /// Instance represents the interface for SLM services to actuate the state of control plane resources. Example Instance in JSON, where consumer-project-number=123456, producer-project-id=cloud-sql: json Instance: { "name": "projects/123456/locations/us-east1/instances/prod-instance", "create_time": { "seconds": 1526406431, }, "labels": { "env": "prod", "foo": "bar" }, "state": READY, "software_versions": { "software_update": "cloud-sql-09-28-2018", }, "maintenance_policy_names": { "UpdatePolicy": "projects/123456/locations/us-east1/maintenancePolicies/prod-update-policy", } "tenant_project_id": "cloud-sql-test-tenant", "producer_metadata": { "cloud-sql-tier": "basic", "cloud-sql-instance-size": "1G", }, "provisioned_resources": [ { "resource-type": "compute-instance", "resource-url": "https://www.googleapis.com/compute/v1/projects/cloud-sql/zones/us-east1-b/instances/vm-1", } ], "maintenance_schedules": { "csa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, }, "ncsa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, } }, "consumer_defined_name": "my-sql-instance1", }  LINT.IfChange
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// consumer_defined_name is the name of the instance set by the service consumers. Generally this is different from the name field which reperesents the system-assigned id of the instance which the service consumers do not recognize. This is a required field for tenants onboarding to Maintenance Window notifications (go/slm-rollout-maintenance-policies#prerequisites).
     #[serde(default, rename = "consumerDefinedName")]
@@ -229,7 +230,7 @@ pub struct Instance {
 }
 
 /// Response message for ActionService.ListActions
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListActionsResponse {
     /// List of action metadata.
     #[serde(default)]
@@ -246,7 +247,7 @@ pub struct ListActionsResponse {
 }
 
 /// ListCustomToolNamesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCustomToolNamesResponse {
     /// List of custom tools.
     #[serde(default, rename = "toolNames")]
@@ -254,7 +255,7 @@ pub struct ListCustomToolNamesResponse {
 }
 
 /// Response message for EntityService.ListEntities
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEntitiesResponse {
     /// List containing entity rows.
     #[serde(default)]
@@ -268,7 +269,7 @@ pub struct ListEntitiesResponse {
 }
 
 /// Response message for EntityService.ListEntityTypes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEntityTypesResponse {
     /// Metadata like service latency, etc.
     #[serde(default)]
@@ -285,7 +286,7 @@ pub struct ListEntityTypesResponse {
 }
 
 /// ListResourcesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListResourcesResponse {
     /// Metadata like service latency, etc.
     #[serde(default)]
@@ -299,7 +300,7 @@ pub struct ListResourcesResponse {
 }
 
 /// Request message for ConnectorAgentService.ListToolsPost
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListToolsPostRequest {
     /// execution config for the request.
     #[serde(default, rename = "executionConfig")]
@@ -316,7 +317,7 @@ pub struct ListToolsPostRequest {
 }
 
 /// Response message for ConnectorAgentService.ListTools
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListToolsResponse {
     /// Metadata like service latency, etc.
     #[serde(default)]
@@ -330,7 +331,7 @@ pub struct ListToolsResponse {
 }
 
 /// Defines policies to service maintenance events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenancePolicy {
     /// Output only. The time when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -356,7 +357,7 @@ pub struct MaintenancePolicy {
 }
 
 /// Maintenance schedule which is exposed to customer and potentially end user, indicating published upcoming future maintenance schedule
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceSchedule {
     /// This field is deprecated, and will be always set to true since reschedule can happen multiple times now. This field should not be removed until all service producers remove this for their customers.
     #[serde(default, rename = "canReschedule")]
@@ -376,7 +377,7 @@ pub struct MaintenanceSchedule {
 }
 
 /// Contains notification related data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationParameter {
     /// Optional. Array of string values. e.g. instance''s replica information.
     #[serde(default)]
@@ -384,7 +385,7 @@ pub struct NotificationParameter {
 }
 
 /// RefreshAccessTokenRequest includes the refresh token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefreshAccessTokenRequest {
     /// ExecutionConfig contains the configuration for the execution of the request.
     #[serde(default, rename = "executionConfig")]
@@ -398,7 +399,7 @@ pub struct RefreshAccessTokenRequest {
 }
 
 /// RefreshAccessTokenResponse includes the returned access token and its associated credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefreshAccessTokenResponse {
     #[serde(default, rename = "accessCredentials")]
     pub access_credentials: ::core::option::Option<AccessCredentials>,
@@ -408,7 +409,7 @@ pub struct RefreshAccessTokenResponse {
 }
 
 /// SloEligibility is a tuple containing eligibility value: true if an instance is eligible for SLO calculation or false if it should be excluded from all SLO-related calculations along with a user-defined reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SloEligibility {
     /// Whether an instance is eligible or ineligible.
     #[serde(default)]
@@ -419,7 +420,7 @@ pub struct SloEligibility {
 }
 
 /// Response message for EntityService.UpdateEntitiesWithConditions
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateEntitiesWithConditionsResponse {
     /// Metadata like service latency, etc.
     #[serde(default)]
@@ -430,7 +431,7 @@ pub struct UpdateEntitiesWithConditionsResponse {
 }
 
 /// AuthCodeData contains the data the runtime plane will give the connector backend in exchange for access and refresh tokens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthCodeData {
     /// OAuth authorization code.
     #[serde(default, rename = "authCode")]
@@ -447,7 +448,7 @@ pub struct AuthCodeData {
 }
 
 /// A wrapper around the SQL query statement. This is needed so that the JSON representation of ExecuteSqlQueryRequest has the following format: {"query":"select *"}.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Query {
     /// Sets the limit for the maximum number of rows returned after the query execution.
     #[serde(default, rename = "maxRows")]
@@ -464,7 +465,7 @@ pub struct Query {
 }
 
 /// Maintenance settings associated with instance. Allows service producers and end users to assign settings that controls maintenance on this instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceSettings {
     /// Optional. Exclude instance from maintenance. When true, rollout service will not attempt maintenance on the instance. Rollout service will include the instance in reported rollout progress as not attempted.
     #[serde(default)]
@@ -478,7 +479,7 @@ pub struct MaintenanceSettings {
 }
 
 /// Describes provisioned dataplane resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisionedResource {
     /// Type of the resource. This can be either a GCP resource or a custom one (e.g. another cloud provider''s VM). For GCP compute resources use singular form of the names listed in GCP compute API documentation (https://cloud.google.com/compute/docs/reference/rest/v1/), prefixed with ''compute-'', for example: ''compute-instance'', ''compute-disk'', ''compute-autoscaler''.
     #[serde(default, rename = "resourceType")]
@@ -489,7 +490,7 @@ pub struct ProvisionedResource {
 }
 
 /// SloMetadata contains resources required for proper SLO classification of the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SloMetadata {
     /// Optional. List of nodes. Some producers need to use per-node metadata to calculate SLO. This field allows such producers to publish per-node SLO meta data, which will be consumed by SSA Eligibility Exporter and published in the form of per node metric to Monarch.
     #[serde(default)]
@@ -503,7 +504,7 @@ pub struct SloMetadata {
 }
 
 /// Action message contains metadata information about a single action present in the external system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Action {
     /// Brief Description of action
     #[serde(default)]
@@ -532,7 +533,7 @@ pub struct Action {
 }
 
 /// ToolName resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolName {
     /// Entity name for which the tool was generated.
     #[serde(default, rename = "entityName")]
@@ -546,7 +547,7 @@ pub struct ToolName {
 }
 
 /// ''Entity row''/ ''Entity'' refers to a single row of an entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entity {
     /// Fields of the entity. The key is name of the field and the value contains the applicable google.protobuf.Value entry for this field.
     #[serde(default)]
@@ -560,7 +561,7 @@ pub struct Entity {
 }
 
 /// EntityType message contains metadata information about a single entity type present in the external system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityType {
     #[serde(default, rename = "defaultSortBy")]
     pub default_sort_by: ::core::option::Option<String>,
@@ -581,7 +582,7 @@ pub struct EntityType {
 }
 
 /// Resource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Resource {
     /// Metadata for the resource.
     #[serde(default, rename = "_meta")]
@@ -604,7 +605,7 @@ pub struct Resource {
 }
 
 /// ToolSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolSpec {
     /// List of tool definitions.
     #[serde(default, rename = "toolDefinitions")]
@@ -615,7 +616,7 @@ pub struct ToolSpec {
 }
 
 /// Message representing a single tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tool {
     /// Metadata for the tool.
     #[serde(default, rename = "_meta")]
@@ -641,7 +642,7 @@ pub struct Tool {
 }
 
 /// Maintenance policy applicable to instance updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdatePolicy {
     /// Optional. Relative scheduling channel applied to resource. // TODO: enum values: ["UPDATE_CHANNEL_UNSPECIFIED", "EARLIER", "LATER", "WEEK1", "WEEK2", "WEEK5"]
     #[serde(default)]
@@ -655,7 +656,7 @@ pub struct UpdatePolicy {
 }
 
 /// ExecutionConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionConfig {
     /// headers to be used for the request. For example: headers:''{"x-integration-connectors-managed-connection-id":"conn-id","x-integration-connectors-runtime-config":"runtime-cfg"}''
     #[serde(default)]
@@ -663,7 +664,7 @@ pub struct ExecutionConfig {
 }
 
 /// OAuth2Config resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OAuth2Config {
     /// Authorization Server URL/Token Endpoint for Authorization Code Flow
     #[serde(default, rename = "authUri")]
@@ -677,7 +678,7 @@ pub struct OAuth2Config {
 }
 
 /// AccessCredentials includes the OAuth access token, and the other fields returned along with it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessCredentials {
     /// OAuth access token.
     #[serde(default, rename = "accessToken")]
@@ -691,7 +692,7 @@ pub struct AccessCredentials {
 }
 
 /// Query parameter definition
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryParameter {
     /// TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
     #[serde(default, rename = "dataType")]
@@ -701,7 +702,7 @@ pub struct QueryParameter {
 }
 
 /// Node information for custom per-node SLO implementations. SSA does not support per-node SLO, but producers can populate per-node information in SloMetadata for custom precomputations. SSA Eligibility Exporter will emit per-node metric based on this information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeSloMetadata {
     /// The location of the node, if different from instance location.
     #[serde(default)]
@@ -715,7 +716,7 @@ pub struct NodeSloMetadata {
 }
 
 /// Input Parameter message contains metadata about the parameters required for executing an Action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputParameter {
     /// The following map contains fields that are not explicitly mentioned above,this give connectors the flexibility to add new metadata fields.
     #[serde(default, rename = "additionalDetails")]
@@ -741,7 +742,7 @@ pub struct InputParameter {
 }
 
 /// Result Metadata message contains metadata about the result returned after executing an Action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultMetadata {
     /// The data type of the metadata field // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "INT", "SMALLINT", "DOUBLE", "DATE", "DATETIME", "TIME", "STRING", "LONG", "BOOLEAN", "DECIMAL", "UUID", "BLOB", "BIT", "TINYINT", "INTEGER", "BIGINT", "FLOAT", "REAL", "NUMERIC", "CHAR", "VARCHAR", "LONGVARCHAR", "TIMESTAMP", "NCHAR", "NVARCHAR", "LONGNVARCHAR", "NULL", "OTHER", "JAVA_OBJECT", "DISTINCT", "STRUCT", "ARRAY", "CLOB", "REF", "DATALINK", "ROWID", "BINARY", "VARBINARY", "LONGVARBINARY", "NCLOB", "SQLXML", "REF_CURSOR", "TIME_WITH_TIMEZONE", "TIMESTAMP_WITH_TIMEZONE"]
     #[serde(default, rename = "dataType")]
@@ -764,7 +765,7 @@ pub struct ResultMetadata {
 }
 
 /// Message contains EntityType''s Field metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Field {
     /// The following map contains fields that are not explicitly mentioned above,this give connectors the flexibility to add new metadata fields.
     #[serde(default, rename = "additionalDetails")]
@@ -796,7 +797,7 @@ pub struct Field {
 }
 
 /// ToolAnnotations holds annotations for a tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolAnnotations {
     /// If true, the tool may perform destructive updates to its environment. If false, the tool performs only additive updates. (This property is meaningful only when read_only_hint == false)
     #[serde(default, rename = "destructiveHint")]
@@ -816,7 +817,7 @@ pub struct ToolAnnotations {
 }
 
 /// DenyMaintenancePeriod definition. Maintenance is forbidden within the deny period. The start_date must be less than the end_date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DenyMaintenancePeriod {
     /// Deny period end date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be before the end.
     #[serde(default, rename = "endDate")]
@@ -830,7 +831,7 @@ pub struct DenyMaintenancePeriod {
 }
 
 /// MaintenanceWindow definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
     /// Daily cycle.
     #[serde(default, rename = "dailyCycle")]
@@ -841,7 +842,7 @@ pub struct MaintenanceWindow {
 }
 
 /// PerSliSloEligibility is a mapping from an SLI name to eligibility.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerSliSloEligibility {
     /// An entry in the eligibilities map specifies an eligibility for a particular SLI for the given instance. The SLI key in the name must be a valid SLI name specified in the Eligibility Exporter binary flags otherwise an error will be emitted by Eligibility Exporter and the oncaller will be alerted. If an SLI has been defined in the binary flags but the eligibilities map does not contain it, the corresponding SLI time series will not be emitted by the Eligibility Exporter. This ensures a smooth rollout and compatibility between the data produced by different versions of the Eligibility Exporters. If eligibilities map contains a key for an SLI which has not been declared in the binary flags, there will be an error message emitted in the Eligibility Exporter log and the metric for the SLI in question will not be emitted.
     #[serde(default)]
@@ -849,7 +850,7 @@ pub struct PerSliSloEligibility {
 }
 
 /// JsonSchema representation of schema metadata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JsonSchema {
     /// Additional details apart from standard json schema fields, this gives flexibility to store metadata about the schema
     #[serde(default, rename = "additionalDetails")]
@@ -914,7 +915,7 @@ pub struct JsonSchema {
 }
 
 /// Reference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reference {
     /// Name of the reference field.
     #[serde(default)]
@@ -925,7 +926,7 @@ pub struct Reference {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -939,7 +940,7 @@ pub struct Date {
 }
 
 /// Time window specified for daily operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyCycle {
     /// Output only. Duration of the time window, set by service producer.
     #[serde(default)]
@@ -950,7 +951,7 @@ pub struct DailyCycle {
 }
 
 /// Time window specified for weekly operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeeklyCycle {
     /// User can specify multiple windows in a week. Minimum of 1 window.
     #[serde(default)]
@@ -958,7 +959,7 @@ pub struct WeeklyCycle {
 }
 
 /// Configure the schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schedule {
     /// Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default)]
@@ -972,7 +973,7 @@ pub struct Schedule {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]

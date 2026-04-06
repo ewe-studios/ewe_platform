@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request for Firestore.BatchGetDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetDocumentsRequest {
     /// The names of the documents to retrieve. In the format: projects/{project_id}/databases/{database_id}/documents/{document_path}. The request will fail if any of the document is not a child resource of the given database. Duplicate names will be elided.
     #[serde(default)]
@@ -31,7 +32,7 @@ pub struct BatchGetDocumentsRequest {
 }
 
 /// The streamed response for Firestore.BatchGetDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetDocumentsResponse {
     /// A document that was requested.
     #[serde(default)]
@@ -48,7 +49,7 @@ pub struct BatchGetDocumentsResponse {
 }
 
 /// The request for Firestore.BatchWrite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchWriteRequest {
     /// Labels associated with this batch write.
     #[serde(default)]
@@ -59,7 +60,7 @@ pub struct BatchWriteRequest {
 }
 
 /// The response from Firestore.BatchWrite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchWriteResponse {
     /// The status of applying the writes. This i-th write status corresponds to the i-th write in the request.
     #[serde(default)]
@@ -70,7 +71,7 @@ pub struct BatchWriteResponse {
 }
 
 /// The request for Firestore.BeginTransaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BeginTransactionRequest {
     /// The options for the transaction. Defaults to a read-write transaction.
     #[serde(default)]
@@ -78,7 +79,7 @@ pub struct BeginTransactionRequest {
 }
 
 /// The response for Firestore.BeginTransaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BeginTransactionResponse {
     /// The transaction that was started.
     #[serde(default)]
@@ -86,7 +87,7 @@ pub struct BeginTransactionResponse {
 }
 
 /// The request for Firestore.Commit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitRequest {
     /// If set, applies all writes in this transaction, and commits it.
     #[serde(default)]
@@ -97,7 +98,7 @@ pub struct CommitRequest {
 }
 
 /// The response for Firestore.Commit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitResponse {
     /// The time at which the commit occurred. Any read with an equal or greater read_time is guaranteed to see the effects of the commit.
     #[serde(default, rename = "commitTime")]
@@ -108,11 +109,11 @@ pub struct CommitResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The request for Firestore.ExecutePipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutePipelineRequest {
     /// Execute the pipeline in a new transaction. The identifier of the newly created transaction will be returned in the first response on the stream. This defaults to a read-only transaction.
     #[serde(default, rename = "newTransaction")]
@@ -129,7 +130,7 @@ pub struct ExecutePipelineRequest {
 }
 
 /// The response for Firestore.Execute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutePipelineResponse {
     /// The time at which the results are valid. This is a (not strictly) monotonically increasing value across multiple responses in the same stream. The API guarantees that all previously returned results are still valid at the latest execution_time. This allows the API consumer to treat the query if it ran at the latest execution_time returned. If the query returns no results, a response with execution_time and no results will be sent, and this represents the time at which the operation was run.
     #[serde(default, rename = "executionTime")]
@@ -146,7 +147,7 @@ pub struct ExecutePipelineResponse {
 }
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.BulkDeleteDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1BulkDeleteDocumentsMetadata {
     /// The IDs of the collection groups that are being deleted.
     #[serde(default, rename = "collectionIds")]
@@ -175,7 +176,7 @@ pub struct GoogleFirestoreAdminV1BulkDeleteDocumentsMetadata {
 }
 
 /// The request for FirestoreAdmin.BulkDeleteDocuments. When both collection_ids and namespace_ids are set, only documents satisfying both conditions will be deleted. Requests with namespace_ids and collection_ids both empty will be rejected. Please use FirestoreAdmin.DeleteDatabase instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1BulkDeleteDocumentsRequest {
     /// Optional. IDs of the collection groups to delete. Unspecified means all collection groups. Each collection group in this list must be unique.
     #[serde(default, rename = "collectionIds")]
@@ -186,7 +187,7 @@ pub struct GoogleFirestoreAdminV1BulkDeleteDocumentsRequest {
 }
 
 /// Metadata for the long-running operation from the CloneDatabase request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1CloneDatabaseMetadata {
     /// The name of the database being cloned to.
     #[serde(default)]
@@ -209,7 +210,7 @@ pub struct GoogleFirestoreAdminV1CloneDatabaseMetadata {
 }
 
 /// The request message for FirestoreAdmin.CloneDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1CloneDatabaseRequest {
     /// Required. The ID to use for the database, which will become the final component of the database''s resource name. This database ID must not be associated with an existing database. This value should be 4-63 characters. Valid characters are /a-z-/ with first character a letter and the last a letter or a number. Must not be UUID-like /[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/. "(default)" database ID is also valid if the database is Standard edition.
     #[serde(default, rename = "databaseId")]
@@ -226,27 +227,27 @@ pub struct GoogleFirestoreAdminV1CloneDatabaseRequest {
 }
 
 /// Metadata related to the create database operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1CreateDatabaseMetadata {}
 
 /// Represents a recurring schedule that runs every day. The time zone is UTC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1DailyRecurrence {}
 
 /// Metadata related to the delete database operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1DeleteDatabaseMetadata {}
 
 /// The request for FirestoreAdmin.DisableUserCreds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1DisableUserCredsRequest {}
 
 /// The request for FirestoreAdmin.EnableUserCreds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1EnableUserCredsRequest {}
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.ExportDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ExportDocumentsMetadata {
     /// Which collection IDs are being exported.
     #[serde(default, rename = "collectionIds")]
@@ -278,7 +279,7 @@ pub struct GoogleFirestoreAdminV1ExportDocumentsMetadata {
 }
 
 /// The request for FirestoreAdmin.ExportDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ExportDocumentsRequest {
     /// IDs of the collection groups to export. Unspecified means all collection groups. Each collection group in this list must be unique.
     #[serde(default, rename = "collectionIds")]
@@ -295,7 +296,7 @@ pub struct GoogleFirestoreAdminV1ExportDocumentsRequest {
 }
 
 /// Returned in the google.longrunning.Operation response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ExportDocumentsResponse {
     /// Location of the output files. This can be used to begin an import into Cloud Firestore (this project or another project) after the operation completes successfully.
     #[serde(default, rename = "outputUriPrefix")]
@@ -303,7 +304,7 @@ pub struct GoogleFirestoreAdminV1ExportDocumentsResponse {
 }
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.UpdateField.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1FieldOperationMetadata {
     /// The time this operation completed. Will be unset if operation still in progress.
     #[serde(default, rename = "endTime")]
@@ -333,15 +334,15 @@ pub struct GoogleFirestoreAdminV1FieldOperationMetadata {
 }
 
 /// An index that stores vectors in a flat data structure, and supports exhaustive search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1FlatIndex {}
 
 /// The configuration options for using Google default encryption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1GoogleDefaultEncryptionOptions {}
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.ImportDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ImportDocumentsMetadata {
     /// Which collection IDs are being imported.
     #[serde(default, rename = "collectionIds")]
@@ -370,7 +371,7 @@ pub struct GoogleFirestoreAdminV1ImportDocumentsMetadata {
 }
 
 /// The request for FirestoreAdmin.ImportDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ImportDocumentsRequest {
     /// IDs of the collection groups to import. Unspecified means all collection groups that were included in the export. Each collection group in this list must be unique.
     #[serde(default, rename = "collectionIds")]
@@ -384,7 +385,7 @@ pub struct GoogleFirestoreAdminV1ImportDocumentsRequest {
 }
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.CreateIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1IndexOperationMetadata {
     /// The time this operation completed. Will be unset if operation still in progress.
     #[serde(default, rename = "endTime")]
@@ -407,7 +408,7 @@ pub struct GoogleFirestoreAdminV1IndexOperationMetadata {
 }
 
 /// The response for FirestoreAdmin.ListBackupSchedules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ListBackupSchedulesResponse {
     /// List of all backup schedules.
     #[serde(default, rename = "backupSchedules")]
@@ -416,7 +417,7 @@ pub struct GoogleFirestoreAdminV1ListBackupSchedulesResponse {
 }
 
 /// The response for FirestoreAdmin.ListBackups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ListBackupsResponse {
     /// List of all backups for the project.
     #[serde(default)]
@@ -427,7 +428,7 @@ pub struct GoogleFirestoreAdminV1ListBackupsResponse {
 }
 
 /// The list of databases for a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ListDatabasesResponse {
     /// The databases in the project.
     #[serde(default)]
@@ -438,7 +439,7 @@ pub struct GoogleFirestoreAdminV1ListDatabasesResponse {
 }
 
 /// The response for FirestoreAdmin.ListFields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ListFieldsResponse {
     /// The requested fields.
     #[serde(default)]
@@ -449,7 +450,7 @@ pub struct GoogleFirestoreAdminV1ListFieldsResponse {
 }
 
 /// The response for FirestoreAdmin.ListIndexes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ListIndexesResponse {
     /// The requested indexes.
     #[serde(default)]
@@ -460,7 +461,7 @@ pub struct GoogleFirestoreAdminV1ListIndexesResponse {
 }
 
 /// The response for FirestoreAdmin.ListUserCreds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ListUserCredsResponse {
     /// The user creds for the database.
     #[serde(default, rename = "userCreds")]
@@ -468,15 +469,15 @@ pub struct GoogleFirestoreAdminV1ListUserCredsResponse {
 }
 
 /// The metadata message for google.cloud.location.Location.metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1LocationMetadata {}
 
 /// The request for FirestoreAdmin.ResetUserPassword.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ResetUserPasswordRequest {}
 
 /// Metadata for the long-running operation from the RestoreDatabase request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1RestoreDatabaseMetadata {
     /// The name of the backup restoring from.
     #[serde(default)]
@@ -499,7 +500,7 @@ pub struct GoogleFirestoreAdminV1RestoreDatabaseMetadata {
 }
 
 /// The request message for FirestoreAdmin.RestoreDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1RestoreDatabaseRequest {
     /// Required. Backup to restore from. Must be from the same project as the parent. The restored database will be created in the same location as the source backup. Format is: projects/{project_id}/locations/{location}/backups/{backup}
     #[serde(default)]
@@ -516,19 +517,19 @@ pub struct GoogleFirestoreAdminV1RestoreDatabaseRequest {
 }
 
 /// The configuration options for using the same encryption method as the source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SourceEncryptionOptions {}
 
 /// Metadata related to the update database operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1UpdateDatabaseMetadata {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -542,7 +543,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// The request for Firestore.ListCollectionIds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCollectionIdsRequest {
     /// The maximum number of results to return.
     #[serde(default, rename = "pageSize")]
@@ -556,7 +557,7 @@ pub struct ListCollectionIdsRequest {
 }
 
 /// The response from Firestore.ListCollectionIds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCollectionIdsResponse {
     /// The collection ids.
     #[serde(default, rename = "collectionIds")]
@@ -567,7 +568,7 @@ pub struct ListCollectionIdsResponse {
 }
 
 /// The response for Firestore.ListDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDocumentsResponse {
     /// The Documents found.
     #[serde(default)]
@@ -578,7 +579,7 @@ pub struct ListDocumentsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -589,7 +590,7 @@ pub struct ListLocationsResponse {
 }
 
 /// A request for Firestore.Listen
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListenRequest {
     /// A target to add to this stream.
     #[serde(default, rename = "addTarget")]
@@ -603,7 +604,7 @@ pub struct ListenRequest {
 }
 
 /// The response for Firestore.Listen.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListenResponse {
     /// A Document has changed.
     #[serde(default, rename = "documentChange")]
@@ -623,7 +624,7 @@ pub struct ListenResponse {
 }
 
 /// The request for Firestore.PartitionQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionQueryRequest {
     /// The maximum number of partitions to return in this call, subject to partition_count. For example, if partition_count = 10 and page_size = 8, the first call to PartitionQuery will return up to 8 partitions and a next_page_token if more results exist. A second call to PartitionQuery will return up to 2 partitions, to complete the total of 10 specified in partition_count.
     #[serde(default, rename = "pageSize")]
@@ -643,7 +644,7 @@ pub struct PartitionQueryRequest {
 }
 
 /// The response for Firestore.PartitionQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionQueryResponse {
     /// A page token that may be used to request an additional set of results, up to the number specified by partition_count in the PartitionQuery request. If blank, there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -654,7 +655,7 @@ pub struct PartitionQueryResponse {
 }
 
 /// The request for Firestore.Rollback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackRequest {
     /// Required. The transaction to roll back.
     #[serde(default)]
@@ -662,7 +663,7 @@ pub struct RollbackRequest {
 }
 
 /// The request for Firestore.RunAggregationQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunAggregationQueryRequest {
     /// Optional. Explain options for the query. If set, additional query statistics will be returned. If not, only query results will be returned.
     #[serde(default, rename = "explainOptions")]
@@ -682,7 +683,7 @@ pub struct RunAggregationQueryRequest {
 }
 
 /// The response for Firestore.RunAggregationQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunAggregationQueryResponse {
     /// Query explain metrics. This is only present when the RunAggregationQueryRequest.explain_options is provided, and it is sent only once with the last response in the stream.
     #[serde(default, rename = "explainMetrics")]
@@ -699,7 +700,7 @@ pub struct RunAggregationQueryResponse {
 }
 
 /// The request for Firestore.RunQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunQueryRequest {
     /// Optional. Explain options for the query. If set, additional query statistics will be returned. If not, only query results will be returned.
     #[serde(default, rename = "explainOptions")]
@@ -719,7 +720,7 @@ pub struct RunQueryRequest {
 }
 
 /// The response for Firestore.RunQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunQueryResponse {
     /// A query result, not set when reporting partial progress.
     #[serde(default)]
@@ -742,7 +743,7 @@ pub struct RunQueryResponse {
 }
 
 /// The request for Firestore.Write. The first request creates a stream, or resumes an existing one from a token. When creating a new stream, the server replies with a response containing only an ID and a token, to use in the next request. When resuming a stream, the server first streams any responses later than the given token, then a response containing only an up-to-date token, to use in the next request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteRequest {
     /// Labels associated with this write request.
     #[serde(default)]
@@ -759,7 +760,7 @@ pub struct WriteRequest {
 }
 
 /// The response for Firestore.Write.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteResponse {
     /// The time at which the commit occurred. Any read with an equal or greater read_time is guaranteed to see the effects of the write.
     #[serde(default, rename = "commitTime")]
@@ -776,7 +777,7 @@ pub struct WriteResponse {
 }
 
 /// A Firestore query represented as an ordered list of operations / stages. This is considered the top-level function which plans and executes a query. It is logically equivalent to query(stages, options), but prevents the client from having to build a function wrapper.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StructuredPipeline {
     /// Optional. Optional query-level arguments.
     #[serde(default)]
@@ -787,7 +788,7 @@ pub struct StructuredPipeline {
 }
 
 /// Pipeline explain stats. Depending on the explain options in the original request, this can contain the optimized plan and / or execution stats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExplainStats {
     /// The format depends on the output_format options in the request. Currently there are two supported options: TEXT and JSON. Both supply a google.protobuf.StringValue.
     #[serde(default)]
@@ -795,7 +796,7 @@ pub struct ExplainStats {
 }
 
 /// A consistent snapshot of a database at a specific point in time. A PITR (Point-in-time recovery) snapshot with previous versions of a database''s data is available for every minute up to the associated database''s data retention period. If the PITR feature is enabled, the retention period is 7 days; otherwise, it is one hour.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1PitrSnapshot {
     /// Required. The name of the database that this was a snapshot of. Format: projects/{project}/databases/{database}.
     #[serde(default)]
@@ -809,7 +810,7 @@ pub struct GoogleFirestoreAdminV1PitrSnapshot {
 }
 
 /// Information about an index configuration change.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1IndexConfigDelta {
     /// Specifies how the index is changing. // TODO: enum values: ["CHANGE_TYPE_UNSPECIFIED", "ADD", "REMOVE"]
     #[serde(default, rename = "changeType")]
@@ -820,7 +821,7 @@ pub struct GoogleFirestoreAdminV1IndexConfigDelta {
 }
 
 /// Information about a TTL configuration change.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1TtlConfigDelta {
     /// Specifies how the TTL configuration is changing. // TODO: enum values: ["CHANGE_TYPE_UNSPECIFIED", "ADD", "REMOVE"]
     #[serde(default, rename = "changeType")]
@@ -831,7 +832,7 @@ pub struct GoogleFirestoreAdminV1TtlConfigDelta {
 }
 
 /// A backup schedule for a Cloud Firestore Database. This resource is owned by the database it is backing up, and is deleted along with the database. The actual backups are not though.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1BackupSchedule {
     /// Output only. The timestamp at which this backup schedule was created and effective since. No backups will be created for this schedule before this time.
     #[serde(default, rename = "createTime")]
@@ -854,7 +855,7 @@ pub struct GoogleFirestoreAdminV1BackupSchedule {
 }
 
 /// A Backup of a Cloud Firestore Database. The backup contains all documents and index configurations for the given database at a specific point in time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1Backup {
     /// Output only. Name of the Firestore database that the backup is from. Format is projects/{project}/databases/{database}.
     #[serde(default)]
@@ -880,7 +881,7 @@ pub struct GoogleFirestoreAdminV1Backup {
 }
 
 /// A Cloud Firestore Database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1Database {
     /// The App Engine integration mode to use for this database. // TODO: enum values: ["APP_ENGINE_INTEGRATION_MODE_UNSPECIFIED", "ENABLED", "DISABLED"]
     #[serde(default, rename = "appEngineIntegrationMode")]
@@ -957,7 +958,7 @@ pub struct GoogleFirestoreAdminV1Database {
 }
 
 /// Represents a single field in the database. Fields are grouped by their "Collection Group", which represent all collections in the database with the same ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1Field {
     /// The index configuration for this field. If unset, field indexing will revert to the configuration defined by the ancestor_field. To explicitly remove all indexes for this field, specify an index config with an empty list of indexes.
     #[serde(default, rename = "indexConfig")]
@@ -971,7 +972,7 @@ pub struct GoogleFirestoreAdminV1Field {
 }
 
 /// A Cloud Firestore User Creds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1UserCreds {
     /// Output only. The time the user creds were created.
     #[serde(default, rename = "createTime")]
@@ -994,7 +995,7 @@ pub struct GoogleFirestoreAdminV1UserCreds {
 }
 
 /// Describes the progress of the operation. Unit of work is generic and must be interpreted based on where Progress is used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1Progress {
     /// The amount of work completed.
     #[serde(default, rename = "completedWork")]
@@ -1005,7 +1006,7 @@ pub struct GoogleFirestoreAdminV1Progress {
 }
 
 /// Encryption configuration for a new database being created from another source. The source could be a Backup or a PitrSnapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1EncryptionConfig {
     /// Use Customer Managed Encryption Keys (CMEK) for encryption.
     #[serde(default, rename = "customerManagedEncryption")]
@@ -1020,7 +1021,7 @@ pub struct GoogleFirestoreAdminV1EncryptionConfig {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1040,7 +1041,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -1060,7 +1061,7 @@ pub struct Location {
 }
 
 /// A specification of a set of documents to listen to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Target {
     /// A target specified by a set of document names.
     #[serde(default)]
@@ -1086,7 +1087,7 @@ pub struct Target {
 }
 
 /// A Document has changed. May be the result of multiple writes, including deletes, that ultimately resulted in a new value for the Document. Multiple DocumentChange messages may be returned for the same logical change, if multiple targets are affected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentChange {
     /// The new state of the Document. If mask is set, contains only fields that were updated or added.
     #[serde(default)]
@@ -1100,7 +1101,7 @@ pub struct DocumentChange {
 }
 
 /// A Document has been deleted. May be the result of multiple writes, including updates, the last of which deleted the Document. Multiple DocumentDelete messages may be returned for the same logical delete, if multiple targets are affected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentDelete {
     /// The resource name of the Document that was deleted.
     #[serde(default)]
@@ -1114,7 +1115,7 @@ pub struct DocumentDelete {
 }
 
 /// A Document has been removed from the view of the targets. Sent if the document is no longer relevant to a target and is out of view. Can be sent instead of a DocumentDelete or a DocumentChange if the server can not send the new value of the document. Multiple DocumentRemove messages may be returned for the same logical write or delete, if multiple targets are affected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentRemove {
     /// The resource name of the Document that has gone out of view.
     #[serde(default)]
@@ -1128,7 +1129,7 @@ pub struct DocumentRemove {
 }
 
 /// A digest of all the documents that match a given target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExistenceFilter {
     /// The total count of documents that match target_id. If different from the count of documents in the client that match, the client must manually determine which documents no longer match the target. The client can use the unchanged_names bloom filter to assist with this determination by testing ALL the document names against the filter; if the document name is NOT in the filter, it means the document no longer matches the target.
     #[serde(default)]
@@ -1142,7 +1143,7 @@ pub struct ExistenceFilter {
 }
 
 /// Targets being watched have changed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetChange {
     /// The error that resulted in this change, if applicable.
     #[serde(default)]
@@ -1162,7 +1163,7 @@ pub struct TargetChange {
 }
 
 /// Firestore query for running an aggregation over a StructuredQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StructuredAggregationQuery {
     /// Optional. Series of aggregations to apply over the results of the structured_query. Requires: * A minimum of one and maximum of five aggregations per query.
     #[serde(default)]
@@ -1173,7 +1174,7 @@ pub struct StructuredAggregationQuery {
 }
 
 /// The result of a single bucket from a Firestore aggregation query. The keys of aggregate_fields are the same for all results in an aggregation query, unlike document queries which can have different fields present for each result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationResult {
     /// The result of the aggregation functions, ex: COUNT(*) AS total_docs. The key is the alias assigned to the aggregation function on input and the size of this map equals the number of aggregation functions in the query.
     #[serde(default, rename = "aggregateFields")]
@@ -1181,7 +1182,7 @@ pub struct AggregationResult {
 }
 
 /// Explain options for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExplainOptions {
     /// Optional. Whether to execute this query. When false (the default), the query will be planned, returning only metrics from the planning stages. When true, the query will be planned and executed, returning the full query results along with both planning and execution stage metrics.
     #[serde(default)]
@@ -1189,7 +1190,7 @@ pub struct ExplainOptions {
 }
 
 /// Options for creating a new transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransactionOptions {
     /// The transaction can only be used for read operations.
     #[serde(default, rename = "readOnly")]
@@ -1200,7 +1201,7 @@ pub struct TransactionOptions {
 }
 
 /// Explain metrics for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExplainMetrics {
     /// Aggregated stats from the execution of the query. Only present when ExplainOptions.analyze is set to true.
     #[serde(default, rename = "executionStats")]
@@ -1211,7 +1212,7 @@ pub struct ExplainMetrics {
 }
 
 /// A write on a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Write {
     /// An optional precondition on the document. The write will fail if this is set and not met by the target document.
     #[serde(default, rename = "currentDocument")]
@@ -1234,7 +1235,7 @@ pub struct Write {
 }
 
 /// The result of applying a write.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteResult {
     /// The results of applying each DocumentTransform.FieldTransform, in the same order.
     #[serde(default, rename = "transformResults")]
@@ -1245,7 +1246,7 @@ pub struct WriteResult {
 }
 
 /// Represents a recurring schedule that runs on a specified day of the week. The time zone is UTC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1WeeklyRecurrence {
     /// The day of week to run. DAY_OF_WEEK_UNSPECIFIED is not allowed. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default)]
@@ -1253,7 +1254,7 @@ pub struct GoogleFirestoreAdminV1WeeklyRecurrence {
 }
 
 /// Backup specific statistics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1Stats {
     /// Output only. The total number of documents contained in the backup.
     #[serde(default, rename = "documentCount")]
@@ -1267,7 +1268,7 @@ pub struct GoogleFirestoreAdminV1Stats {
 }
 
 /// The CMEK (Customer Managed Encryption Key) configuration for a Firestore database. If not present, the database is secured by the default Google encryption key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1CmekConfig {
     /// Output only. Currently in-use [KMS key versions](https://cloud.google.com/kms/docs/resource-hierarchy#key_versions). During [key rotation](https://cloud.google.com/kms/docs/key-rotation), there can be multiple in-use key versions. The expected format is projects/{project_id}/locations/{kms_location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}/cryptoKeyVersions/{key_version}.
     #[serde(default, rename = "activeKeyVersion")]
@@ -1278,7 +1279,7 @@ pub struct GoogleFirestoreAdminV1CmekConfig {
 }
 
 /// Information about the provenance of this database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SourceInfo {
     /// If set, this database was restored from the specified backup (or a snapshot thereof).
     #[serde(default)]
@@ -1289,7 +1290,7 @@ pub struct GoogleFirestoreAdminV1SourceInfo {
 }
 
 /// The index configuration for this field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1IndexConfig {
     /// Output only. Specifies the resource name of the Field from which this field''s index configuration is set (when uses_ancestor_config is true), or from which it *would* be set if this field had no index configuration (when uses_ancestor_config is false).
     #[serde(default, rename = "ancestorField")]
@@ -1306,7 +1307,7 @@ pub struct GoogleFirestoreAdminV1IndexConfig {
 }
 
 /// The TTL (time-to-live) configuration for documents that have this Field set. A timestamp stored in a TTL-enabled field will be used to determine the expiration time of the document. The expiration time is the sum of the timestamp value and the expiration_offset. For Enterprise edition databases, the timestamp value may alternatively be stored in an array value in the TTL-enabled field. An expiration time in the past indicates that the document is eligible for immediate expiration. Using any other data type or leaving the field absent will disable expiration for the individual document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1TtlConfig {
     /// Optional. The offset, relative to the timestamp value from the TTL-enabled field, used to determine the document''s expiration time. expiration_offset.seconds must be between 0 and 2,147,483,647 inclusive. Values more precise than seconds are rejected. If unset, defaults to 0, in which case the expiration time is the same as the timestamp value from the TTL-enabled field.
     #[serde(default, rename = "expirationOffset")]
@@ -1317,7 +1318,7 @@ pub struct GoogleFirestoreAdminV1TtlConfig {
 }
 
 /// Describes a Resource Identity principal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1ResourceIdentity {
     /// Output only. Principal identifier string. See: https://cloud.google.com/iam/docs/principal-identifiers
     #[serde(default)]
@@ -1325,7 +1326,7 @@ pub struct GoogleFirestoreAdminV1ResourceIdentity {
 }
 
 /// The configuration options for using CMEK (Customer Managed Encryption Key) encryption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1CustomerManagedEncryptionOptions {
     /// Required. Only keys in the same location as the database are allowed to be used for encryption. For Firestore''s nam5 multi-region, this corresponds to Cloud KMS multi-region us. For Firestore''s eur3 multi-region, this corresponds to Cloud KMS multi-region europe. See https://cloud.google.com/kms/docs/locations. The expected format is projects/{project_id}/locations/{kms_location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
     #[serde(default, rename = "kmsKeyName")]
@@ -1333,7 +1334,7 @@ pub struct GoogleFirestoreAdminV1CustomerManagedEncryptionOptions {
 }
 
 /// A target specified by a set of documents names.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentsTarget {
     /// The names of the documents to retrieve. In the format: projects/{project_id}/databases/{database_id}/documents/{document_path}. The request will fail if any of the document is not a child resource of the given database. Duplicate names will be elided.
     #[serde(default)]
@@ -1341,7 +1342,7 @@ pub struct DocumentsTarget {
 }
 
 /// A target specified by a query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryTarget {
     /// The parent resource name. In the format: projects/{project_id}/databases/{database_id}/documents or projects/{project_id}/databases/{database_id}/documents/{document_path}. For example: projects/my-project/databases/my-database/documents or projects/my-project/databases/my-database/documents/chatrooms/my-chatroom
     #[serde(default)]
@@ -1352,7 +1353,7 @@ pub struct QueryTarget {
 }
 
 /// A bloom filter (https://en.wikipedia.org/wiki/Bloom_filter). The bloom filter hashes the entries with MD5 and treats the resulting 128-bit hash as 2 distinct 64-bit hash values, interpreted as unsigned integers using 2''s complement encoding. These two hash values, named h1 and h2, are then used to compute the hash_count hash values using the formula, starting at i=0: h(i) = h1 + (i * h2) These resulting values are then taken modulo the number of bits in the bloom filter to get the bits of the bloom filter to test for the given entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BloomFilter {
     /// The bloom filter data.
     #[serde(default)]
@@ -1363,7 +1364,7 @@ pub struct BloomFilter {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1377,7 +1378,7 @@ pub struct Status {
 }
 
 /// Defines an aggregation that produces a single result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Aggregation {
     /// Optional. Optional name of the field to store the result of the aggregation into. If not provided, Firestore will pick a default name following the format field_. For example:  AGGREGATE COUNT_UP_TO(1) AS count_up_to_1, COUNT_UP_TO(2), COUNT_UP_TO(3) AS count_up_to_3, COUNT(*) OVER ( ... );  becomes:  AGGREGATE COUNT_UP_TO(1) AS count_up_to_1, COUNT_UP_TO(2) AS field_1, COUNT_UP_TO(3) AS count_up_to_3, COUNT(*) AS field_2 OVER ( ... );  Requires: * Must be unique across all aggregation aliases. * Conform to document field name limitations.
     #[serde(default)]
@@ -1394,7 +1395,7 @@ pub struct Aggregation {
 }
 
 /// Options for a transaction that can only be used to read documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadOnly {
     /// Reads documents at the given time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
     #[serde(default, rename = "readTime")]
@@ -1402,7 +1403,7 @@ pub struct ReadOnly {
 }
 
 /// Options for a transaction that can be used to read and write documents. Firestore does not allow 3rd party auth requests to create read-write. transactions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadWrite {
     /// An optional transaction to retry.
     #[serde(default, rename = "retryTransaction")]
@@ -1410,7 +1411,7 @@ pub struct ReadWrite {
 }
 
 /// Execution statistics for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionStats {
     /// Debugging statistics from the execution of the query. Note that the debugging stats are subject to change as Firestore evolves. It could include: { "indexes_entries_scanned": "1000", "documents_scanned": "20", "billing_details" : { "documents_billable": "20", "index_entries_billable": "1000", "min_query_cost": "0" } }
     #[serde(default, rename = "debugStats")]
@@ -1427,7 +1428,7 @@ pub struct ExecutionStats {
 }
 
 /// Planning phase information for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlanSummary {
     /// The indexes selected for the query. For example: [ {"query_scope": "Collection", "properties": "(foo ASC, __name__ ASC)"}, {"query_scope": "Collection", "properties": "(bar ASC, __name__ ASC)"} ]
     #[serde(default, rename = "indexesUsed")]
@@ -1435,7 +1436,7 @@ pub struct PlanSummary {
 }
 
 /// A precondition on a document, used for conditional operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Precondition {
     /// When set to true, the target document must exist. When set to false, the target document must not exist.
     #[serde(default)]
@@ -1446,7 +1447,7 @@ pub struct Precondition {
 }
 
 /// A transformation of a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentTransform {
     /// The name of the document to transform.
     #[serde(default)]
@@ -1457,7 +1458,7 @@ pub struct DocumentTransform {
 }
 
 /// A Firestore document. Must not exceed 1 MiB - 4 bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Document {
     /// Output only. The time at which the document was created. This value increases monotonically when a document is deleted then recreated. It can also be compared to values from other documents and the read_time of a query.
     #[serde(default, rename = "createTime")]
@@ -1474,7 +1475,7 @@ pub struct Document {
 }
 
 /// A set of field paths on a document. Used to restrict a get or update operation on a document to a subset of its fields. This is different from standard field masks, as this is always scoped to a Document, and takes in account the dynamic nature of Value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentMask {
     /// The list of field paths in the mask. See Document.fields for a field path syntax reference.
     #[serde(default, rename = "fieldPaths")]
@@ -1482,7 +1483,7 @@ pub struct DocumentMask {
 }
 
 /// Information about a backup that was used to restore a database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1BackupSource {
     /// The resource name of the backup that was used to restore this database. Format: projects/{project}/locations/{location}/backups/{backup}.
     #[serde(default)]
@@ -1490,7 +1491,7 @@ pub struct GoogleFirestoreAdminV1BackupSource {
 }
 
 /// Cloud Firestore indexes enable simple and complex queries against documents in a database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1Index {
     /// The API scope supported by this index. // TODO: enum values: ["ANY_API", "DATASTORE_MODE_API", "MONGODB_COMPATIBLE_API"]
     #[serde(default, rename = "apiScope")]
@@ -1525,7 +1526,7 @@ pub struct GoogleFirestoreAdminV1Index {
 }
 
 /// A Firestore query. The query stages are executed in the following order: 1. from 2. where 3. select 4. order_by + start_at + end_at 5. offset 6. limit 7. find_nearest
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StructuredQuery {
     /// A potential prefix of a position in the result set to end the query at. This is similar to START_AT but with it controlling the end position rather than the start position. Requires: * The number of values cannot be greater than the number of fields specified in the ORDER BY clause.
     #[serde(default, rename = "endAt")]
@@ -1557,7 +1558,7 @@ pub struct StructuredQuery {
 }
 
 /// A sequence of bits, encoded in a byte array. Each byte in the bitmap byte array stores 8 bits of the sequence. The only exception is the last byte, which may store 8 _or fewer_ bits. The padding defines the number of bits of the last byte to be ignored as "padding". The values of these "padding" bits are unspecified and must be ignored. To retrieve the first bit, bit 0, calculate: (bitmap[0] & 0x01) != 0. To retrieve the second bit, bit 1, calculate: (bitmap[0] & 0x02) != 0. To retrieve the third bit, bit 2, calculate: (bitmap[0] & 0x04) != 0. To retrieve the fourth bit, bit 3, calculate: (bitmap[0] & 0x08) != 0. To retrieve bit n, calculate: (bitmap[n / 8] & (0x01 &lt;&lt; (n % 8))) != 0. The "size" of a BitSequence (the number of bits it contains) is calculated by this formula: (bitmap.length * 8) - padding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BitSequence {
     /// The bytes that encode the bit sequence. May have a length of zero.
     #[serde(default)]
@@ -1568,7 +1569,7 @@ pub struct BitSequence {
 }
 
 /// Average of the values of the requested field. * Only numeric values will be aggregated. All non-numeric values including NULL are skipped. * If the aggregated values contain NaN, returns NaN. Infinity math follows IEEE-754 standards. * If the aggregated value set is empty, returns NULL. * Always returns the result as a double.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Avg {
     /// The field to aggregate on.
     #[serde(default)]
@@ -1576,7 +1577,7 @@ pub struct Avg {
 }
 
 /// Count of documents that match the query. The COUNT(*) aggregation function operates on the entire document so it does not require a field reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Count {
     /// Optional. Optional constraint on the maximum number of documents to count. This provides a way to set an upper bound on the number of documents to scan, limiting latency, and cost. Unspecified is interpreted as no bound. High-Level Example:  AGGREGATE COUNT_UP_TO(1000) OVER ( SELECT * FROM k );  Requires: * Must be greater than zero when present.
     #[serde(default, rename = "upTo")]
@@ -1584,7 +1585,7 @@ pub struct Count {
 }
 
 /// Sum of the values of the requested field. * Only numeric values will be aggregated. All non-numeric values including NULL are skipped. * If the aggregated values contain NaN, returns NaN. Infinity math follows IEEE-754 standards. * If the aggregated value set is empty, returns 0. * Returns a 64-bit integer if all aggregated numbers are integers and the sum result does not overflow. Otherwise, the result is returned as a double. Note that even if all the aggregated values are integers, the result is returned as a double if it cannot fit within a 64-bit signed integer. When this occurs, the returned value will lose precision. * When underflow occurs, floating-point aggregation is non-deterministic. This means that running the same query repeatedly without any changes to the underlying values could produce slightly different results each time. In those cases, values should be stored as integers over floating-point numbers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Sum {
     /// The field to aggregate on.
     #[serde(default)]
@@ -1592,7 +1593,7 @@ pub struct Sum {
 }
 
 /// A transformation of a field of the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldTransform {
     /// Append the given elements in order if they are not already present in the current field value. If the field is not an array, or if the field does not yet exist, it is first set to the empty array. Equivalent numbers of different types (e.g. 3L and 3.0) are considered equal when checking if a value is missing. NaN is equal to NaN, and Null is equal to Null. If the input contains multiple equivalent values, only the first will be considered. The corresponding transform_result will be the null value.
     #[serde(default, rename = "appendMissingElements")]
@@ -1618,7 +1619,7 @@ pub struct FieldTransform {
 }
 
 /// A field in an index. The field_path describes which field is indexed, the value_mode describes how the field value is indexed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1IndexField {
     /// Indicates that this field supports operations on array_values. // TODO: enum values: ["ARRAY_CONFIG_UNSPECIFIED", "CONTAINS"]
     #[serde(default, rename = "arrayConfig")]
@@ -1638,7 +1639,7 @@ pub struct GoogleFirestoreAdminV1IndexField {
 }
 
 /// Options for search indexes at the definition level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchIndexOptions {
     /// Optional. Custom partition fields to use for the search index. If unspecified, all indexed fields will be in the same default partition. If a search index is created specifying custom partition fields, all search queries using that index will be required to filter on the partition. For indexes with MONGODB_COMPATIBLE_API ApiScope: This must refer to a top level field name.
     #[serde(default, rename = "customPartitionFieldPaths")]
@@ -1652,7 +1653,7 @@ pub struct GoogleFirestoreAdminV1SearchIndexOptions {
 }
 
 /// A position in a query result set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cursor {
     /// If the position is just before or just after the given values, relative to the sort order defined by the query.
     #[serde(default)]
@@ -1663,7 +1664,7 @@ pub struct Cursor {
 }
 
 /// Nearest Neighbors search config. The ordering provided by FindNearest supersedes the order_by stage. If multiple documents have the same vector distance, the returned document order is not guaranteed to be stable between queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindNearest {
     /// Required. The distance measure to use, required. // TODO: enum values: ["DISTANCE_MEASURE_UNSPECIFIED", "EUCLIDEAN", "COSINE", "DOT_PRODUCT"]
     #[serde(default, rename = "distanceMeasure")]
@@ -1686,7 +1687,7 @@ pub struct FindNearest {
 }
 
 /// A selection of a collection, such as messages as m1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CollectionSelector {
     /// When false, selects only collections that are immediate children of the parent specified in the containing RunQueryRequest. When true, selects all descendant collections.
     #[serde(default, rename = "allDescendants")]
@@ -1697,7 +1698,7 @@ pub struct CollectionSelector {
 }
 
 /// An order on a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Order {
     /// The direction to order by. Defaults to ASCENDING. // TODO: enum values: ["DIRECTION_UNSPECIFIED", "ASCENDING", "DESCENDING"]
     #[serde(default)]
@@ -1708,7 +1709,7 @@ pub struct Order {
 }
 
 /// The projection of document''s fields to return.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Projection {
     /// The fields to return. If empty, all fields are returned. To only return the name of the document, use [''__name__''].
     #[serde(default)]
@@ -1716,7 +1717,7 @@ pub struct Projection {
 }
 
 /// The configuration for how to index a field for search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchConfig {
     /// Optional. The specification for building a geo search index for a field.
     #[serde(default, rename = "geoSpec")]
@@ -1730,7 +1731,7 @@ pub struct GoogleFirestoreAdminV1SearchConfig {
 }
 
 /// The index configuration to support vector search operations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1VectorConfig {
     /// Required. The vector dimension this configuration applies to. The resulting index will only include vectors of this dimension, and can be used for vector search with the same dimension.
     #[serde(default)]
@@ -1741,7 +1742,7 @@ pub struct GoogleFirestoreAdminV1VectorConfig {
 }
 
 /// The specification for how to build a geo search index for a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchGeoSpec {
     /// Optional. Disables geoJSON indexing for the field. By default, geoJSON points are indexed.
     #[serde(default, rename = "geoJsonIndexingDisabled")]
@@ -1749,7 +1750,7 @@ pub struct GoogleFirestoreAdminV1SearchGeoSpec {
 }
 
 /// The specification for how to build a number search index for a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchNumberSpec {
     /// Required. How to index the number field value. // TODO: enum values: ["NUMBER_INDEX_TYPE_UNSPECIFIED", "FLOAT64", "INT32_LOG_TREE", "INT64_LOG_TREE", "INT32_PREFIX_TREE", "INT64_PREFIX_TREE"]
     #[serde(default, rename = "indexType")]
@@ -1757,7 +1758,7 @@ pub struct GoogleFirestoreAdminV1SearchNumberSpec {
 }
 
 /// The specification for how to build a text search index for a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchTextSpec {
     /// Required. Specifications for how the field should be indexed. Repeated so that the field can be indexed in multiple ways.
     #[serde(default, rename = "indexSpecs")]
@@ -1766,7 +1767,7 @@ pub struct GoogleFirestoreAdminV1SearchTextSpec {
 }
 
 /// Specification of how the field should be indexed for search text indexes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1SearchTextIndexSpec {
     /// Required. How to index the text field value. // TODO: enum values: ["TEXT_INDEX_TYPE_UNSPECIFIED", "TOKENIZED", "NGRAMS", "EXACT_MATCH"]
     #[serde(default, rename = "indexType")]
@@ -1777,7 +1778,7 @@ pub struct GoogleFirestoreAdminV1SearchTextIndexSpec {
 }
 
 /// An array value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArrayValue {
     /// Values in the array.
     #[serde(default)]
@@ -1785,7 +1786,7 @@ pub struct ArrayValue {
 }
 
 /// A filter that merges multiple other filters using the given operator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompositeFilter {
     /// The list of filters to combine. Requires: * At least one filter is present.
     #[serde(default)]
@@ -1796,7 +1797,7 @@ pub struct CompositeFilter {
 }
 
 /// A filter on a specific field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldFilter {
     /// The field to filter by.
     #[serde(default)]
@@ -1810,7 +1811,7 @@ pub struct FieldFilter {
 }
 
 /// A reference to a field in a document, ex: stats.operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldReference {
     /// A reference to a field in a document. Requires: * MUST be a dot-delimited (.) string of segments, where each segment conforms to document field name limitations.
     #[serde(default, rename = "fieldPath")]
@@ -1818,7 +1819,7 @@ pub struct FieldReference {
 }
 
 /// A filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Filter {
     /// A composite filter.
     #[serde(default, rename = "compositeFilter")]
@@ -1832,7 +1833,7 @@ pub struct Filter {
 }
 
 /// Represents an unevaluated scalar expression. For example, the expression like(user_name, "%alice%") is represented as:  name: "like" args { field_reference: "user_name" } args { string_value: "%alice%" }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Function {
     /// Optional. Ordered list of arguments the given function expects.
     #[serde(default)]
@@ -1846,7 +1847,7 @@ pub struct Function {
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
@@ -1857,7 +1858,7 @@ pub struct LatLng {
 }
 
 /// A map value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MapValue {
     /// The map''s fields. The map keys represent field names. Field names matching the regular expression __.*__ are reserved. Reserved field names are forbidden except in certain documented contexts. The map keys, represented as UTF-8, must not exceed 1,500 bytes and cannot be empty.
     #[serde(default)]
@@ -1865,7 +1866,7 @@ pub struct MapValue {
 }
 
 /// A Firestore query represented as an ordered list of operations / stages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pipeline {
     /// Required. Ordered list of stages to evaluate.
     #[serde(default)]
@@ -1873,7 +1874,7 @@ pub struct Pipeline {
 }
 
 /// A single operation within a pipeline. A stage is made up of a unique name, and a list of arguments. The exact number of arguments & types is dependent on the stage type. To give an example, the stage filter(state = "MD") would be encoded as:  name: "filter" args { function_value { name: "eq" args { field_reference_value: "state" } args { string_value: "MD" } } }  See public documentation for the full list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Stage {
     /// Optional. Ordered list of arguments the given stage expects.
     #[serde(default)]
@@ -1887,7 +1888,7 @@ pub struct Stage {
 }
 
 /// A filter with a single operand.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnaryFilter {
     /// The field to which to apply the operator.
     #[serde(default)]
@@ -1898,7 +1899,7 @@ pub struct UnaryFilter {
 }
 
 /// A message that can hold any of the supported value types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiValue {
     /// An array value. Cannot directly contain another array value, though can contain a map which contains another array.
     #[serde(default, rename = "arrayValue")]

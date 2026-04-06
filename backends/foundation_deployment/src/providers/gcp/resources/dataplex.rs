@@ -8,30 +8,31 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Action details for invalid data arrangement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ActionInvalidDataOrganization {}
 
 /// Action details for absence of data detected by discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ActionMissingData {}
 
 /// Action details for resource references in assets that cannot be located.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ActionMissingResource {}
 
 /// Action details for unauthorized resource issues raised to indicate that the service account associated with the lake instance is not authorized to access or manage the resource associated with an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ActionUnauthorizedResource {}
 
 /// An aspect is a single piece of metadata describing an entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Aspect {
     /// Optional. Information related to the source system of the aspect.
     #[serde(default, rename = "aspectSource")]
@@ -54,7 +55,7 @@ pub struct GoogleCloudDataplexV1Aspect {
 }
 
 /// Payload associated with Business Glossary related log events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1BusinessGlossaryEvent {
     /// The type of the event. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "GLOSSARY_CREATE", "GLOSSARY_UPDATE", "GLOSSARY_DELETE", "GLOSSARY_CATEGORY_CREATE", "GLOSSARY_CATEGORY_UPDATE", "GLOSSARY_CATEGORY_DELETE", "GLOSSARY_TERM_CREATE", "GLOSSARY_TERM_UPDATE", "GLOSSARY_TERM_DELETE"]
     #[serde(default, rename = "eventType")]
@@ -68,15 +69,15 @@ pub struct GoogleCloudDataplexV1BusinessGlossaryEvent {
 }
 
 /// Cancel task jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1CancelJobRequest {}
 
 /// Cancel metadata job request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1CancelMetadataJobRequest {}
 
 /// Configuration for access group inherited from the parent data product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataAssetAccessGroupConfig {
     /// Optional. IAM roles granted on the resource to this access group. Role name follows https://cloud.google.com/iam/docs/reference/rest/v1/roles.Example: [ "roles/bigquery.dataViewer" ]
     #[serde(default, rename = "iamRoles")]
@@ -84,7 +85,7 @@ pub struct GoogleCloudDataplexV1DataAssetAccessGroupConfig {
 }
 
 /// Custom user defined access groups at the data product level. These are used for granting different levels of access (IAM roles) on the individual data product''s data assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProductAccessGroup {
     /// Optional. Description of the access group.
     #[serde(default)]
@@ -101,7 +102,7 @@ pub struct GoogleCloudDataplexV1DataProductAccessGroup {
 }
 
 /// The profile information for a string type field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFieldInfo {
     /// Output only. Average length of non-null values in the scanned data.
     #[serde(default, rename = "averageLength")]
@@ -115,15 +116,15 @@ pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoStringFi
 }
 
 /// Evaluates whether each column value is null.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleNonNullExpectation {}
 
 /// Evaluates whether the column has duplicates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleUniquenessExpectation {}
 
 /// Information about the result of a data quality rule for data quality scan. The monitored resource is ''DataScan''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityScanRuleResult {
     /// The number of rows returned by the SQL statement in a SQL assertion rule. This field is only valid for SQL assertion rules.
     #[serde(default, rename = "assertionRowCount")]
@@ -167,15 +168,15 @@ pub struct GoogleCloudDataplexV1DataQualityScanRuleResult {
 }
 
 /// This trigger is triggered whenever a scan job run ends, regardless of the result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobEndTrigger {}
 
 /// This trigger is triggered when the scan job itself fails, regardless of the result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsJobFailureTrigger {}
 
 /// These messages contain information about the execution of a datascan. The monitored resource is ''DataScan''
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScanEvent {
     /// The status of publishing the data scan as Dataplex Universal Catalog metadata.
     #[serde(default, rename = "catalogPublishingStatus")]
@@ -235,7 +236,7 @@ pub struct GoogleCloudDataplexV1DataScanEvent {
 }
 
 /// The payload associated with Discovery data processing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DiscoveryEvent {
     /// Details about the action associated with the event.
     #[serde(default)]
@@ -276,7 +277,7 @@ pub struct GoogleCloudDataplexV1DiscoveryEvent {
 }
 
 /// Payload associated with Entry related log events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EntryLinkEvent {
     /// The type of the event. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "ENTRY_LINK_CREATE", "ENTRY_LINK_DELETE"]
     #[serde(default, rename = "eventType")]
@@ -290,11 +291,11 @@ pub struct GoogleCloudDataplexV1EntryLinkEvent {
 }
 
 /// Request details for generating data quality rule recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1GenerateDataQualityRulesRequest {}
 
 /// Response details for data quality rule recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1GenerateDataQualityRulesResponse {
     /// The data quality rules that Dataplex Universal Catalog generates based on the results of a data profiling scan.
     #[serde(default)]
@@ -302,7 +303,7 @@ pub struct GoogleCloudDataplexV1GenerateDataQualityRulesResponse {
 }
 
 /// Payload associated with Governance related log events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1GovernanceEvent {
     /// Entity resource information if the log event is associated with a specific entity.
     #[serde(default)]
@@ -316,7 +317,7 @@ pub struct GoogleCloudDataplexV1GovernanceEvent {
 }
 
 /// An object that describes the values that you want to set for an entry and its attached aspects when you import metadata. Used when you run a metadata import job. See CreateMetadataJob.You provide a collection of import items in a metadata import file. For more information about how to create a metadata import file, see Metadata import file (https://cloud.google.com/dataplex/docs/import-metadata#metadata-import-file).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ImportItem {
     /// The aspects to modify. Supports the following syntaxes: {aspect_type_reference}: matches aspects that belong to the specified aspect type and are attached directly to the entry. {aspect_type_reference}@{path}: matches aspects that belong to the specified aspect type and path. {aspect_type_reference}@* : matches aspects of the given type for all paths. *@path : matches aspects of all types on the given path.Replace {aspect_type_reference} with a reference to the aspect type, in the format {project_id_or_number}.{location_id}.{aspect_type_id}.In FULL entry sync mode, if you leave this field empty, it is treated as specifying exactly those aspects that are present within the specified entry. Dataplex Universal Catalog implicitly adds the keys for all of the required aspects of an entry.
     #[serde(default, rename = "aspectKeys")]
@@ -333,7 +334,7 @@ pub struct GoogleCloudDataplexV1ImportItem {
 }
 
 /// The payload associated with Job logs that contains events describing jobs that have run within a Lake.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1JobEvent {
     /// The time when the job ended running.
     #[serde(default, rename = "endTime")]
@@ -368,7 +369,7 @@ pub struct GoogleCloudDataplexV1JobEvent {
 }
 
 /// List actions response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListActionsResponse {
     /// Actions under the given parent lake/zone/asset.
     #[serde(default)]
@@ -379,7 +380,7 @@ pub struct GoogleCloudDataplexV1ListActionsResponse {
 }
 
 /// List AspectTypes response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListAspectTypesResponse {
     /// AspectTypes under the given parent location.
     #[serde(default, rename = "aspectTypes")]
@@ -393,7 +394,7 @@ pub struct GoogleCloudDataplexV1ListAspectTypesResponse {
 }
 
 /// List assets response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListAssetsResponse {
     /// Asset under the given parent zone.
     #[serde(default)]
@@ -404,7 +405,7 @@ pub struct GoogleCloudDataplexV1ListAssetsResponse {
 }
 
 /// Response message for listing data assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListDataAssetsResponse {
     /// The data assets for the requested filter criteria.
     #[serde(default, rename = "dataAssets")]
@@ -415,7 +416,7 @@ pub struct GoogleCloudDataplexV1ListDataAssetsResponse {
 }
 
 /// List DataAttributeBindings response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListDataAttributeBindingsResponse {
     /// DataAttributeBindings under the given parent Location.
     #[serde(default, rename = "dataAttributeBindings")]
@@ -430,7 +431,7 @@ pub struct GoogleCloudDataplexV1ListDataAttributeBindingsResponse {
 }
 
 /// List DataAttributes response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListDataAttributesResponse {
     /// DataAttributes under the given parent DataTaxonomy.
     #[serde(default, rename = "dataAttributes")]
@@ -445,7 +446,7 @@ pub struct GoogleCloudDataplexV1ListDataAttributesResponse {
 }
 
 /// Response message for listing data products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListDataProductsResponse {
     /// The data products for the requested filter criteria.
     #[serde(default, rename = "dataProducts")]
@@ -459,7 +460,7 @@ pub struct GoogleCloudDataplexV1ListDataProductsResponse {
 }
 
 /// List DataScanJobs response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListDataScanJobsResponse {
     /// DataScanJobs (BASIC view only) under a given dataScan.
     #[serde(default, rename = "dataScanJobs")]
@@ -470,7 +471,7 @@ pub struct GoogleCloudDataplexV1ListDataScanJobsResponse {
 }
 
 /// List dataScans response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListDataScansResponse {
     /// DataScans (BASIC view only) under the given parent location.
     #[serde(default, rename = "dataScans")]
@@ -484,7 +485,7 @@ pub struct GoogleCloudDataplexV1ListDataScansResponse {
 }
 
 /// List DataTaxonomies response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListDataTaxonomiesResponse {
     /// DataTaxonomies under the given parent location.
     #[serde(default, rename = "dataTaxonomies")]
@@ -498,7 +499,7 @@ pub struct GoogleCloudDataplexV1ListDataTaxonomiesResponse {
 }
 
 /// List EncryptionConfigs Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListEncryptionConfigsResponse {
     /// The list of EncryptionConfigs under the given parent location.
     #[serde(default, rename = "encryptionConfigs")]
@@ -513,7 +514,7 @@ pub struct GoogleCloudDataplexV1ListEncryptionConfigsResponse {
 }
 
 /// List metadata entities response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListEntitiesResponse {
     /// Entities in the specified parent zone.
     #[serde(default)]
@@ -524,7 +525,7 @@ pub struct GoogleCloudDataplexV1ListEntitiesResponse {
 }
 
 /// List Entries response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListEntriesResponse {
     /// The list of entries under the given parent location.
     #[serde(default)]
@@ -535,7 +536,7 @@ pub struct GoogleCloudDataplexV1ListEntriesResponse {
 }
 
 /// List entry groups response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListEntryGroupsResponse {
     /// Entry groups under the given parent location.
     #[serde(default, rename = "entryGroups")]
@@ -549,7 +550,7 @@ pub struct GoogleCloudDataplexV1ListEntryGroupsResponse {
 }
 
 /// List EntryTypes response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListEntryTypesResponse {
     /// EntryTypes under the given parent location.
     #[serde(default, rename = "entryTypes")]
@@ -563,7 +564,7 @@ pub struct GoogleCloudDataplexV1ListEntryTypesResponse {
 }
 
 /// List Glossaries Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListGlossariesResponse {
     /// Lists the Glossaries in the specified parent.
     #[serde(default)]
@@ -577,7 +578,7 @@ pub struct GoogleCloudDataplexV1ListGlossariesResponse {
 }
 
 /// List GlossaryCategories Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListGlossaryCategoriesResponse {
     /// Lists the GlossaryCategories in the specified parent.
     #[serde(default)]
@@ -591,7 +592,7 @@ pub struct GoogleCloudDataplexV1ListGlossaryCategoriesResponse {
 }
 
 /// List GlossaryTerms Response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListGlossaryTermsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -605,7 +606,7 @@ pub struct GoogleCloudDataplexV1ListGlossaryTermsResponse {
 }
 
 /// List jobs response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListJobsResponse {
     /// Jobs under a given task.
     #[serde(default)]
@@ -616,7 +617,7 @@ pub struct GoogleCloudDataplexV1ListJobsResponse {
 }
 
 /// List lakes response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListLakesResponse {
     /// Lakes under the given parent location.
     #[serde(default)]
@@ -630,7 +631,7 @@ pub struct GoogleCloudDataplexV1ListLakesResponse {
 }
 
 /// Response message for ListMetadataFeeds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListMetadataFeedsResponse {
     /// List of metadata feeds under the specified parent location.
     #[serde(default, rename = "metadataFeeds")]
@@ -644,7 +645,7 @@ pub struct GoogleCloudDataplexV1ListMetadataFeedsResponse {
 }
 
 /// List metadata jobs response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListMetadataJobsResponse {
     /// Metadata jobs under the specified parent location.
     #[serde(default, rename = "metadataJobs")]
@@ -658,7 +659,7 @@ pub struct GoogleCloudDataplexV1ListMetadataJobsResponse {
 }
 
 /// List metadata partitions response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListPartitionsResponse {
     /// Token to retrieve the next page of results, or empty if there are no remaining results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -669,7 +670,7 @@ pub struct GoogleCloudDataplexV1ListPartitionsResponse {
 }
 
 /// List tasks response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListTasksResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -683,7 +684,7 @@ pub struct GoogleCloudDataplexV1ListTasksResponse {
 }
 
 /// List zones response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ListZonesResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -694,7 +695,7 @@ pub struct GoogleCloudDataplexV1ListZonesResponse {
 }
 
 /// Lookup Context using permissions in the source system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1LookupContextRequest {
     /// Optional. Allows to configure the context.
     #[serde(default)]
@@ -705,7 +706,7 @@ pub struct GoogleCloudDataplexV1LookupContextRequest {
 }
 
 /// Lookup Context response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1LookupContextResponse {
     /// LLM generated context for the resources.
     #[serde(default)]
@@ -713,7 +714,7 @@ pub struct GoogleCloudDataplexV1LookupContextResponse {
 }
 
 /// Response message for LookupEntryLinks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1LookupEntryLinksResponse {
     /// List of entry links that reference the specified entry.
     #[serde(default, rename = "entryLinks")]
@@ -724,7 +725,7 @@ pub struct GoogleCloudDataplexV1LookupEntryLinksResponse {
 }
 
 /// Represents the metadata of a long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -750,11 +751,11 @@ pub struct GoogleCloudDataplexV1OperationMetadata {
 }
 
 /// Run DataScan Request
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1RunDataScanRequest {}
 
 /// Run DataScan Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1RunDataScanResponse {
     /// DataScanJob created by RunDataScan request.
     #[serde(default)]
@@ -762,7 +763,7 @@ pub struct GoogleCloudDataplexV1RunDataScanResponse {
 }
 
 /// GoogleCloudDataplexV1RunTaskRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1RunTaskRequest {
     /// Optional. Execution spec arguments. If the map is left empty, the task will run with existing execution spec args from task definition. If the map contains an entry with a new key, the same will be added to existing set of args. If the map contains an entry with an existing arg key in task definition, the task will run with new arg value for that entry. Clearing an existing arg will require arg value to be explicitly set to a hyphen "-". The arg value cannot be empty.
     #[serde(default)]
@@ -773,7 +774,7 @@ pub struct GoogleCloudDataplexV1RunTaskRequest {
 }
 
 /// GoogleCloudDataplexV1RunTaskResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1RunTaskResponse {
     /// Jobs created by RunTask API.
     #[serde(default)]
@@ -781,7 +782,7 @@ pub struct GoogleCloudDataplexV1RunTaskResponse {
 }
 
 /// GoogleCloudDataplexV1SearchEntriesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1SearchEntriesResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -798,7 +799,7 @@ pub struct GoogleCloudDataplexV1SearchEntriesResponse {
 }
 
 /// These messages contain information about sessions within an environment. The monitored resource is ''Environment''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1SessionEvent {
     /// The status of the event.
     #[serde(default, rename = "eventSucceeded")]
@@ -827,11 +828,11 @@ pub struct GoogleCloudDataplexV1SessionEvent {
 }
 
 /// The scan runs once via RunDataScan API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TriggerOnDemand {}
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -842,7 +843,7 @@ pub struct GoogleCloudLocationListLocationsResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -853,7 +854,7 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see IAM Overview (https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -861,7 +862,7 @@ pub struct GoogleIamV1TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -869,11 +870,11 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -887,7 +888,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// Information related to the source system of the aspect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AspectSource {
     /// The time the aspect was created in the source system.
     #[serde(default, rename = "createTime")]
@@ -901,7 +902,7 @@ pub struct GoogleCloudDataplexV1AspectSource {
 }
 
 /// Represents the principal entity associated with an access group, as per https://cloud.google.com/iam/docs/principals-overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProductPrincipal {
     /// Optional. Email of the Google Group, as per https://cloud.google.com/iam/docs/principals-overview#google-group.
     #[serde(default, rename = "googleGroup")]
@@ -909,7 +910,7 @@ pub struct GoogleCloudDataplexV1DataProductPrincipal {
 }
 
 /// Data profile result for data scan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScanEventDataProfileResult {
     /// The count of rows processed in the data scan job.
     #[serde(default, rename = "rowCount")]
@@ -917,7 +918,7 @@ pub struct GoogleCloudDataplexV1DataScanEventDataProfileResult {
 }
 
 /// Applied configs for data profile type data scan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScanEventDataProfileAppliedConfigs {
     /// Boolean indicating whether a column filter was applied in the DataScan job.
     #[serde(default, rename = "columnFilterApplied")]
@@ -931,7 +932,7 @@ pub struct GoogleCloudDataplexV1DataScanEventDataProfileAppliedConfigs {
 }
 
 /// Data quality result for data scan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScanEventDataQualityResult {
     /// The score of each column scanned in the data scan job. The key of the map is the name of the column. The value is the data quality score for the column.The score ranges between 0, 100 (up to two decimal points).
     #[serde(default, rename = "columnScore")]
@@ -954,7 +955,7 @@ pub struct GoogleCloudDataplexV1DataScanEventDataQualityResult {
 }
 
 /// Applied configs for data quality type data scan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScanEventDataQualityAppliedConfigs {
     /// Boolean indicating whether a row filter was applied in the DataScan job.
     #[serde(default, rename = "rowFilterApplied")]
@@ -965,7 +966,7 @@ pub struct GoogleCloudDataplexV1DataScanEventDataQualityAppliedConfigs {
 }
 
 /// Post scan actions result for data scan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScanEventPostScanActionsResult {
     /// The result of BigQuery export post scan action.
     #[serde(default, rename = "bigqueryExportResult")]
@@ -975,7 +976,7 @@ pub struct GoogleCloudDataplexV1DataScanEventPostScanActionsResult {
 }
 
 /// Details about the action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DiscoveryEventActionDetails {
     /// The human readable issue associated with the action.
     #[serde(default)]
@@ -986,7 +987,7 @@ pub struct GoogleCloudDataplexV1DiscoveryEventActionDetails {
 }
 
 /// Details about configuration events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DiscoveryEventConfigDetails {
     /// A list of discovery configuration parameters in effect. The keys are the field paths within DiscoverySpec. Eg. includePatterns, excludePatterns, csvOptions.disableTypeInference, etc.
     #[serde(default)]
@@ -994,7 +995,7 @@ pub struct GoogleCloudDataplexV1DiscoveryEventConfigDetails {
 }
 
 /// Details about the entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DiscoveryEventEntityDetails {
     /// The name of the entity resource. The name is the fully-qualified resource name.
     #[serde(default)]
@@ -1005,7 +1006,7 @@ pub struct GoogleCloudDataplexV1DiscoveryEventEntityDetails {
 }
 
 /// Details about the partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DiscoveryEventPartitionDetails {
     /// The name to the containing entity resource. The name is the fully-qualified resource name.
     #[serde(default)]
@@ -1022,7 +1023,7 @@ pub struct GoogleCloudDataplexV1DiscoveryEventPartitionDetails {
 }
 
 /// Details about the published table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DiscoveryEventTableDetails {
     /// The fully-qualified resource name of the table resource.
     #[serde(default)]
@@ -1033,7 +1034,7 @@ pub struct GoogleCloudDataplexV1DiscoveryEventTableDetails {
 }
 
 /// Information about Entity resource that the log event is associated with.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1GovernanceEventEntity {
     /// The Entity resource the log event is associated with. Format: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/entities/{entity_id}
     #[serde(default)]
@@ -1044,7 +1045,7 @@ pub struct GoogleCloudDataplexV1GovernanceEventEntity {
 }
 
 /// Action represents an issue requiring administrator action for resolution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Action {
     /// Output only. The relative resource name of the asset, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/assets/{asset_id}.
     #[serde(default)]
@@ -1100,7 +1101,7 @@ pub struct GoogleCloudDataplexV1Action {
 }
 
 /// AspectType is a template for creating Aspects, and represents the JSON-schema for a given Entry, for example, BigQuery Table Schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AspectType {
     /// Immutable. Defines the Authorization for this type.
     #[serde(default)]
@@ -1142,7 +1143,7 @@ pub struct GoogleCloudDataplexV1AspectType {
 }
 
 /// An asset represents a cloud resource that is being managed within a lake as a member of a zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Asset {
     /// Output only. The time when the asset was created.
     #[serde(default, rename = "createTime")]
@@ -1186,7 +1187,7 @@ pub struct GoogleCloudDataplexV1Asset {
 }
 
 /// Represents a data asset resource that can be packaged and shared via a data product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataAsset {
     /// Optional. Access groups configurations for this data asset.The key is DataProduct.AccessGroup.id and the value is AccessGroupConfig.Example: { "analyst": { "iamRoles": ["roles/bigquery.dataViewer"] } } Currently, at most one IAM role is allowed per access group. For providing multiple predefined IAM roles, wrap them in a custom IAM role as per https://cloud.google.com/iam/docs/creating-custom-roles.
     #[serde(default, rename = "accessGroupConfigs")]
@@ -1215,7 +1216,7 @@ pub struct GoogleCloudDataplexV1DataAsset {
 }
 
 /// DataAttributeBinding represents binding of attributes to resources. Eg: Bind ''CustomerInfo'' entity with ''PII'' attribute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataAttributeBinding {
     /// Optional. List of attributes to be associated with the resource, provided in the form: projects/{project}/locations/{location}/dataTaxonomies/{dataTaxonomy}/attributes/{data_attribute_id}
     #[serde(default)]
@@ -1254,7 +1255,7 @@ pub struct GoogleCloudDataplexV1DataAttributeBinding {
 }
 
 /// Denotes one dataAttribute in a dataTaxonomy, for example, PII. DataAttribute resources can be defined in a hierarchy. A single dataAttribute resource can contain specs of multiple types PII - ResourceAccessSpec : - readers :foo@bar.com - DataAccessSpec : - readers :bar@foo.com
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataAttribute {
     /// Output only. The number of child attributes present for this attribute.
     #[serde(default, rename = "attributeCount")]
@@ -1295,7 +1296,7 @@ pub struct GoogleCloudDataplexV1DataAttribute {
 }
 
 /// A data product is a curated collection of data assets, packaged to address specific use cases. It''s a way to manage and share data in a more organized, product-like manner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProduct {
     /// Optional. Data product access groups by access group id as key. If data product is used only for packaging data assets, then access groups may be empty. However, if a data product is used for sharing data assets, then at least one access group must be specified.Example: { "analyst": { "id": "analyst", "displayName": "Analyst", "description": "Access group for analysts", "principal": { "googleGroup": "analysts@example.com" } } }
     #[serde(default, rename = "accessGroups")]
@@ -1336,7 +1337,7 @@ pub struct GoogleCloudDataplexV1DataProduct {
 }
 
 /// Represents a user-visible job which provides the insights for the related data source.For example: Data quality: generates queries based on the rules and runs against the data to get data quality check results. For more information, see Auto data quality overview (https://cloud.google.com/dataplex/docs/auto-data-quality-overview). Data profile: analyzes the data in tables and generates insights about the structure, content and relationships (such as null percent, cardinality, min/max/mean, etc). For more information, see About data profiling (https://cloud.google.com/dataplex/docs/data-profiling-overview). Data discovery: scans data in Cloud Storage buckets to extract and then catalog metadata. For more information, see Discover and catalog Cloud Storage data (https://cloud.google.com/bigquery/docs/automatic-discovery). Data documentation: analyzes the table or dataset metadata and generates insights. For tables, insights include descriptions and sample SQL queries. For datasets, insights include descriptions, schema relationships and sample SQL queries. For more information, see Generate data insights in BigQuery (https://cloud.google.com/bigquery/docs/data-insights).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScan {
     /// Output only. The time when the scan was created.
     #[serde(default, rename = "createTime")]
@@ -1402,7 +1403,7 @@ pub struct GoogleCloudDataplexV1DataScan {
 }
 
 /// DataTaxonomy represents a set of hierarchical DataAttributes resources, grouped with a common theme Eg: ''SensitiveDataTaxonomy'' can have attributes to manage PII data. It is defined at project level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataTaxonomy {
     /// Output only. The number of attributes in the DataTaxonomy.
     #[serde(default, rename = "attributeCount")]
@@ -1437,7 +1438,7 @@ pub struct GoogleCloudDataplexV1DataTaxonomy {
 }
 
 /// A Resource designed to manage encryption configurations for customers to support Customer Managed Encryption Keys (CMEK).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EncryptionConfig {
     /// Output only. The time when the Encryption configuration was created.
     #[serde(default, rename = "createTime")]
@@ -1467,7 +1468,7 @@ pub struct GoogleCloudDataplexV1EncryptionConfig {
 }
 
 /// Represents tables and fileset metadata contained within a zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Entity {
     /// Output only. Identifies the access mechanism to the entity. Not user settable.
     #[serde(default)]
@@ -1526,7 +1527,7 @@ pub struct GoogleCloudDataplexV1Entity {
 }
 
 /// An Entry Group represents a logical grouping of one or more Entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EntryGroup {
     /// Output only. The time when the EntryGroup was created.
     #[serde(default, rename = "createTime")]
@@ -1558,7 +1559,7 @@ pub struct GoogleCloudDataplexV1EntryGroup {
 }
 
 /// Entry Type is a template for creating Entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EntryType {
     /// Immutable. Authorization defined for this type.
     #[serde(default)]
@@ -1603,7 +1604,7 @@ pub struct GoogleCloudDataplexV1EntryType {
 }
 
 /// A Glossary represents a collection of GlossaryCategories and GlossaryTerms defined by the user. Glossary is a top level resource and is the Google Cloud parent resource of all the GlossaryCategories and GlossaryTerms within it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Glossary {
     /// Output only. The number of GlossaryCategories in the Glossary.
     #[serde(default, rename = "categoryCount")]
@@ -1638,7 +1639,7 @@ pub struct GoogleCloudDataplexV1Glossary {
 }
 
 /// A GlossaryCategory represents a collection of GlossaryCategories and GlossaryTerms within a Glossary that are related to each other.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1GlossaryCategory {
     /// Output only. The time at which the GlossaryCategory was created.
     #[serde(default, rename = "createTime")]
@@ -1667,7 +1668,7 @@ pub struct GoogleCloudDataplexV1GlossaryCategory {
 }
 
 /// GlossaryTerms are the core of Glossary. A GlossaryTerm holds a rich text description that can be attached to Entries or specific columns to enrich them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1GlossaryTerm {
     /// Output only. The time at which the GlossaryTerm was created.
     #[serde(default, rename = "createTime")]
@@ -1696,7 +1697,7 @@ pub struct GoogleCloudDataplexV1GlossaryTerm {
 }
 
 /// A lake is a centralized repository for managing enterprise data across the organization distributed across many cloud projects, and stored in a variety of storage services such as Google Cloud Storage and BigQuery. The resources attached to a lake are referred to as managed resources. Data within these managed resources can be structured or unstructured. A lake provides data admins with tools to organize, secure and manage their data at scale, and provides data scientists and data engineers an integrated experience to easily search, discover, analyze and transform data and associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Lake {
     /// Output only. Aggregated status of the underlying assets of the lake.
     #[serde(default, rename = "assetStatus")]
@@ -1737,7 +1738,7 @@ pub struct GoogleCloudDataplexV1Lake {
 }
 
 /// MetadataFeed contains information related to the metadata feed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataFeed {
     /// Output only. The time when the feed was created.
     #[serde(default, rename = "createTime")]
@@ -1766,7 +1767,7 @@ pub struct GoogleCloudDataplexV1MetadataFeed {
 }
 
 /// A metadata job resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataJob {
     /// Output only. The time when the metadata job was created.
     #[serde(default, rename = "createTime")]
@@ -1804,7 +1805,7 @@ pub struct GoogleCloudDataplexV1MetadataJob {
 }
 
 /// Represents partition metadata contained within entity instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Partition {
     /// Optional. The etag for this partition.
     #[serde(default)]
@@ -1821,7 +1822,7 @@ pub struct GoogleCloudDataplexV1Partition {
 }
 
 /// A task represents a user-visible job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Task {
     /// Output only. The time when the task was created.
     #[serde(default, rename = "createTime")]
@@ -1865,7 +1866,7 @@ pub struct GoogleCloudDataplexV1Task {
 }
 
 /// A zone represents a logical group of related assets within a lake. A zone can be used to map to organizational structure or represent stages of data readiness from raw to curated. It provides managing behavior that is shared or inherited by all contained assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Zone {
     /// Output only. Aggregated status of the underlying assets of the zone.
     #[serde(default, rename = "assetStatus")]
@@ -1906,7 +1907,7 @@ pub struct GoogleCloudDataplexV1Zone {
 }
 
 /// EntryLink represents a link between two Entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EntryLink {
     /// Optional. The aspects that are attached to the entry link. The format of the aspect key has to be the following: {project_id_or_number}.{location_id}.{aspect_type_id} Currently, only a single aspect of a Dataplex-owned Aspect Type is allowed.
     #[serde(default)]
@@ -1930,7 +1931,7 @@ pub struct GoogleCloudDataplexV1EntryLink {
 }
 
 /// A DataScanJob represents an instance of DataScan execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScanJob {
     /// Output only. The time when the DataScanJob was created.
     #[serde(default, rename = "createTime")]
@@ -1984,7 +1985,7 @@ pub struct GoogleCloudDataplexV1DataScanJob {
 }
 
 /// A single result of a SearchEntries request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1SearchEntriesResult {
     #[serde(default, rename = "dataplexEntry")]
     pub dataplex_entry: ::core::option::Option<GoogleCloudDataplexV1Entry>,
@@ -1997,7 +1998,7 @@ pub struct GoogleCloudDataplexV1SearchEntriesResult {
 }
 
 /// Execution details of the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1SessionEventQueryDetail {
     /// The data processed by the query.
     #[serde(default, rename = "dataProcessedBytes")]
@@ -2020,7 +2021,7 @@ pub struct GoogleCloudDataplexV1SessionEventQueryDetail {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationLocation {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -2040,7 +2041,7 @@ pub struct GoogleCloudLocationLocation {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources.A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role.For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).JSON example: { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 } YAML example: bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3 For a description of IAM and its features, see the IAM documentation (https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -2057,7 +2058,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -2077,7 +2078,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// The result of BigQuery export post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScanEventPostScanActionsResultBigQueryExportResult {
     /// Additional information about the BigQuery exporting.
     #[serde(default)]
@@ -2088,7 +2089,7 @@ pub struct GoogleCloudDataplexV1DataScanEventPostScanActionsResultBigQueryExport
 }
 
 /// Failed to apply security policy to the managed resource(s) under a lake, zone or an asset. For a lake or zone resource, one or more underlying assets has a failure applying security policy to the associated managed resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ActionFailedSecurityPolicyApply {
     /// Resource name of one of the assets with failing security policy application. Populated for a lake or zone resource only.
     #[serde(default)]
@@ -2096,7 +2097,7 @@ pub struct GoogleCloudDataplexV1ActionFailedSecurityPolicyApply {
 }
 
 /// Action details for incompatible schemas detected by discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ActionIncompatibleDataSchema {
     /// The existing and expected schema of the table. The schema is provided as a JSON formatted structure listing columns and data types.
     #[serde(default, rename = "existingSchema")]
@@ -2116,7 +2117,7 @@ pub struct GoogleCloudDataplexV1ActionIncompatibleDataSchema {
 }
 
 /// Action details for invalid or unsupported data files detected by discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ActionInvalidDataFormat {
     /// The expected data format of the entity.
     #[serde(default, rename = "expectedFormat")]
@@ -2130,7 +2131,7 @@ pub struct GoogleCloudDataplexV1ActionInvalidDataFormat {
 }
 
 /// Action details for invalid or unsupported partitions detected by discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ActionInvalidDataPartition {
     /// The issue type of InvalidDataPartition. // TODO: enum values: ["PARTITION_STRUCTURE_UNSPECIFIED", "CONSISTENT_KEYS", "HIVE_STYLE_KEYS"]
     #[serde(default, rename = "expectedStructure")]
@@ -2138,7 +2139,7 @@ pub struct GoogleCloudDataplexV1ActionInvalidDataPartition {
 }
 
 /// Authorization for an AspectType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AspectTypeAuthorization {
     /// Immutable. The IAM permission grantable on the EntryGroup to allow access to instantiate Aspects of Dataplex Universal Catalog owned AspectTypes, only settable for Dataplex Universal Catalog owned Types.
     #[serde(default, rename = "alternateUsePermission")]
@@ -2146,7 +2147,7 @@ pub struct GoogleCloudDataplexV1AspectTypeAuthorization {
 }
 
 /// MetadataTemplate definition for an AspectType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplate {
     /// Optional. Specifies annotations on this field.
     #[serde(default)]
@@ -2191,7 +2192,7 @@ pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplate {
 }
 
 /// Settings to manage the metadata discovery and publishing for an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AssetDiscoverySpec {
     /// Optional. Configuration for CSV data.
     #[serde(default, rename = "csvOptions")]
@@ -2214,7 +2215,7 @@ pub struct GoogleCloudDataplexV1AssetDiscoverySpec {
 }
 
 /// Status of discovery for an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AssetDiscoveryStatus {
     /// The duration of the last discovery run.
     #[serde(default, rename = "lastRunDuration")]
@@ -2237,7 +2238,7 @@ pub struct GoogleCloudDataplexV1AssetDiscoveryStatus {
 }
 
 /// Identifies the cloud resource that is referenced by this asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AssetResourceSpec {
     /// Immutable. Relative name of the cloud resource that contains the data that is being managed within a lake. For example: projects/{project_number}/buckets/{bucket_id} projects/{project_number}/datasets/{dataset_id}
     #[serde(default)]
@@ -2251,7 +2252,7 @@ pub struct GoogleCloudDataplexV1AssetResourceSpec {
 }
 
 /// Status of the resource referenced by an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AssetResourceStatus {
     /// Output only. Service account associated with the BigQuery Connection.
     #[serde(default, rename = "managedAccessIdentity")]
@@ -2268,7 +2269,7 @@ pub struct GoogleCloudDataplexV1AssetResourceStatus {
 }
 
 /// Security policy status of the asset. Data security policy, i.e., readers, writers & owners, should be specified in the lake/zone/asset IAM policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AssetSecurityStatus {
     /// Additional information about the current state.
     #[serde(default)]
@@ -2282,7 +2283,7 @@ pub struct GoogleCloudDataplexV1AssetSecurityStatus {
 }
 
 /// Represents a subresource of the given resource, and associated bindings with it. Currently supported subresources are column and partition schema fields within a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataAttributeBindingPath {
     /// Optional. List of attributes to be associated with the path of the resource, provided in the form: projects/{project}/locations/{location}/dataTaxonomies/{dataTaxonomy}/attributes/{data_attribute_id}
     #[serde(default)]
@@ -2293,7 +2294,7 @@ pub struct GoogleCloudDataplexV1DataAttributeBindingPath {
 }
 
 /// DataAccessSpec holds the access control configuration to be enforced on data stored within resources (eg: rows, columns in BigQuery Tables). When associated with data, the data is only accessible to principals explicitly granted access through the DataAccessSpec. Principals with access to the containing resource are not implicitly granted access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataAccessSpec {
     /// Optional. The format of strings follows the pattern followed by IAM in the bindings. user:{email}, serviceAccount:{email} group:{email}. The set of principals to be granted reader role on data stored within resources.
     #[serde(default)]
@@ -2301,7 +2302,7 @@ pub struct GoogleCloudDataplexV1DataAccessSpec {
 }
 
 /// ResourceAccessSpec holds the access control configuration to be enforced on the resources, for example, Cloud Storage bucket, BigQuery dataset, BigQuery table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ResourceAccessSpec {
     /// Optional. The set of principals to be granted owner role on the resource.
     #[serde(default)]
@@ -2315,7 +2316,7 @@ pub struct GoogleCloudDataplexV1ResourceAccessSpec {
 }
 
 /// The data source for DataScan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataSource {
     /// Immutable. The Dataplex Universal Catalog entity that represents the data source (e.g. BigQuery table) for DataScan, of the form: projects/{project_number}/locations/{location_id}/lakes/{lake_id}/zones/{zone_id}/entities/{entity_id}.
     #[serde(default)]
@@ -2326,7 +2327,7 @@ pub struct GoogleCloudDataplexV1DataSource {
 }
 
 /// DataScan execution settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScanExecutionSpec {
     /// Immutable. The unnested field (of type Date or Timestamp) that contains values which monotonically increase over time.If not specified, a data scan will run for all data in the table.
     #[serde(default)]
@@ -2337,7 +2338,7 @@ pub struct GoogleCloudDataplexV1DataScanExecutionSpec {
 }
 
 /// Status of the data scan execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScanExecutionStatus {
     /// Optional. The time when the DataScanJob execution was created.
     #[serde(default, rename = "latestJobCreateTime")]
@@ -2351,7 +2352,7 @@ pub struct GoogleCloudDataplexV1DataScanExecutionStatus {
 }
 
 /// Details of the failure if anything related to Cmek db fails.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EncryptionConfigFailureDetails {
     /// Output only. The error code for the failure. // TODO: enum values: ["UNKNOWN", "INTERNAL_ERROR", "REQUIRE_USER_ACTION"]
     #[serde(default, rename = "errorCode")]
@@ -2362,7 +2363,7 @@ pub struct GoogleCloudDataplexV1EncryptionConfigFailureDetails {
 }
 
 /// Describes the access mechanism of the data within its storage location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1StorageAccess {
     /// Output only. Describes the read access mechanism of the data. Not user settable. // TODO: enum values: ["ACCESS_MODE_UNSPECIFIED", "DIRECT", "MANAGED"]
     #[serde(default)]
@@ -2370,7 +2371,7 @@ pub struct GoogleCloudDataplexV1StorageAccess {
 }
 
 /// Provides compatibility information for various metadata stores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EntityCompatibilityStatus {
     /// Output only. Whether this entity is compatible with BigQuery.
     #[serde(default)]
@@ -2383,7 +2384,7 @@ pub struct GoogleCloudDataplexV1EntityCompatibilityStatus {
 }
 
 /// Describes the format of the data within its storage location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1StorageFormat {
     /// Optional. The compression type associated with the stored data. If unspecified, the data is uncompressed. // TODO: enum values: ["COMPRESSION_FORMAT_UNSPECIFIED", "GZIP", "BZIP2"]
     #[serde(default, rename = "compressionFormat")]
@@ -2406,7 +2407,7 @@ pub struct GoogleCloudDataplexV1StorageFormat {
 }
 
 /// Schema information describing the structure and layout of the data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Schema {
     /// Optional. The sequence of fields describing data in table entities. Note: BigQuery SchemaFields are immutable.
     #[serde(default)]
@@ -2424,7 +2425,7 @@ pub struct GoogleCloudDataplexV1Schema {
 }
 
 /// Authorization for an Entry Type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EntryTypeAuthorization {
     /// Immutable. The IAM permission grantable on the Entry Group to allow access to instantiate Entries of Dataplex Universal Catalog owned Entry Types, only settable for Dataplex Universal Catalog owned Types.
     #[serde(default, rename = "alternateUsePermission")]
@@ -2432,7 +2433,7 @@ pub struct GoogleCloudDataplexV1EntryTypeAuthorization {
 }
 
 /// GoogleCloudDataplexV1EntryTypeAspectInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EntryTypeAspectInfo {
     /// Required aspect type for the entry type.
     #[serde(default, rename = "type")]
@@ -2440,7 +2441,7 @@ pub struct GoogleCloudDataplexV1EntryTypeAspectInfo {
 }
 
 /// Settings to manage association of Dataproc Metastore with a lake.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1LakeMetastore {
     /// Optional. A relative reference to the Dataproc Metastore (https://cloud.google.com/dataproc-metastore/docs) service associated with the lake: projects/{project_id}/locations/{location_id}/services/{service_id}
     #[serde(default)]
@@ -2448,7 +2449,7 @@ pub struct GoogleCloudDataplexV1LakeMetastore {
 }
 
 /// Status of Lake and Dataproc Metastore service instance association.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1LakeMetastoreStatus {
     /// The URI of the endpoint used to access the Metastore service.
     #[serde(default)]
@@ -2465,7 +2466,7 @@ pub struct GoogleCloudDataplexV1LakeMetastoreStatus {
 }
 
 /// Filters defines the type of changes that you want to listen to. You can have multiple entry type filters and multiple aspect type filters. All of the entry type filters are OR''ed together. All of the aspect type filters are OR''ed together. All of the entry type filters and aspect type filters are AND''ed together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataFeedFilters {
     /// Optional. The aspect types that you want to listen to. Depending on how the aspect is attached to the entry, in the format: projects/{project_id_or_number}/locations/{location}/aspectTypes/{aspect_type_id}.
     #[serde(default, rename = "aspectTypes")]
@@ -2479,7 +2480,7 @@ pub struct GoogleCloudDataplexV1MetadataFeedFilters {
 }
 
 /// Scope defines the scope of the metadata feed. Scopes are exclusive. Only one of the scopes can be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataFeedScope {
     /// Optional. The entry groups whose entries you want to listen to. Must be in the format: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}.
     #[serde(default, rename = "entryGroups")]
@@ -2493,7 +2494,7 @@ pub struct GoogleCloudDataplexV1MetadataFeedScope {
 }
 
 /// Summary results from a metadata export job. The results are a snapshot of the metadata at the time when the job was created. The exported entries are saved to a Cloud Storage bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataJobExportJobResult {
     /// Output only. The error message if the metadata export job failed.
     #[serde(default, rename = "errorMessage")]
@@ -2504,7 +2505,7 @@ pub struct GoogleCloudDataplexV1MetadataJobExportJobResult {
 }
 
 /// Job specification for a metadata export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataJobExportJobSpec {
     /// Required. The root path of the Cloud Storage bucket to export the metadata to, in the format gs://{bucket}/. You can optionally specify a custom prefix after the bucket name, in the format gs://{bucket}/{prefix}/. The maximum length of the custom prefix is 128 characters. Dataplex Universal Catalog constructs the object path for the exported files by using the bucket name and prefix that you provide, followed by a system-generated path.The bucket must be in the same VPC Service Controls perimeter as the job.
     #[serde(default, rename = "outputPath")]
@@ -2515,7 +2516,7 @@ pub struct GoogleCloudDataplexV1MetadataJobExportJobSpec {
 }
 
 /// Results from a metadata import job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataJobImportJobResult {
     /// Output only. The total number of entries that were created.
     #[serde(default, rename = "createdEntries")]
@@ -2547,7 +2548,7 @@ pub struct GoogleCloudDataplexV1MetadataJobImportJobResult {
 }
 
 /// Job specification for a metadata import job.You can run the following kinds of metadata import jobs: Full sync of entries with incremental import of their aspects. Supported for custom entries. Incremental import of aspects only. Supported for aspects that belong to custom entries and system entries. For custom entries, you can modify both optional aspects and required aspects. For system entries, you can modify optional aspects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataJobImportJobSpec {
     /// Required. The sync mode for aspects. // TODO: enum values: ["SYNC_MODE_UNSPECIFIED", "FULL", "INCREMENTAL", "NONE"]
     #[serde(default, rename = "aspectSyncMode")]
@@ -2570,7 +2571,7 @@ pub struct GoogleCloudDataplexV1MetadataJobImportJobSpec {
 }
 
 /// Metadata job status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataJobStatus {
     /// Output only. Progress tracking.
     #[serde(default, rename = "completionPercent")]
@@ -2587,7 +2588,7 @@ pub struct GoogleCloudDataplexV1MetadataJobStatus {
 }
 
 /// Status of the task execution (e.g. Jobs).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TaskExecutionStatus {
     /// Output only. latest job execution
     #[serde(default, rename = "latestJob")]
@@ -2598,7 +2599,7 @@ pub struct GoogleCloudDataplexV1TaskExecutionStatus {
 }
 
 /// Config for running scheduled notebooks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TaskNotebookTaskConfig {
     /// Optional. Cloud Storage URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
@@ -2615,7 +2616,7 @@ pub struct GoogleCloudDataplexV1TaskNotebookTaskConfig {
 }
 
 /// User-specified config for running a Spark task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TaskSparkTaskConfig {
     /// Optional. Cloud Storage URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
@@ -2644,7 +2645,7 @@ pub struct GoogleCloudDataplexV1TaskSparkTaskConfig {
 }
 
 /// Task scheduling and trigger settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TaskTriggerSpec {
     /// Optional. Prevent the task from executing. This does not cancel already running tasks. It is intended to temporarily disable RECURRING tasks.
     #[serde(default)]
@@ -2664,7 +2665,7 @@ pub struct GoogleCloudDataplexV1TaskTriggerSpec {
 }
 
 /// Aggregated status of the underlying assets of a lake or zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AssetStatus {
     /// Number of active assets.
     #[serde(default, rename = "activeAssets")]
@@ -2678,7 +2679,7 @@ pub struct GoogleCloudDataplexV1AssetStatus {
 }
 
 /// Settings to manage the metadata discovery and publishing in a zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ZoneDiscoverySpec {
     /// Optional. Configuration for CSV data.
     #[serde(default, rename = "csvOptions")]
@@ -2701,7 +2702,7 @@ pub struct GoogleCloudDataplexV1ZoneDiscoverySpec {
 }
 
 /// Settings for resources attached as assets within a zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ZoneResourceSpec {
     /// Required. Immutable. The location type of the resources that are allowed to be attached to the assets within this zone. // TODO: enum values: ["LOCATION_TYPE_UNSPECIFIED", "SINGLE_REGION", "MULTI_REGION"]
     #[serde(default, rename = "locationType")]
@@ -2709,7 +2710,7 @@ pub struct GoogleCloudDataplexV1ZoneResourceSpec {
 }
 
 /// Reference to the Entry that is linked through the Entry Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EntryLinkEntryReference {
     /// Required. Immutable. The relative resource name of the referenced Entry, of the form: projects/{project_id_or_number}/locations/{location_id}/entryGroups/{entry_group_id}/entries/{entry_id}
     #[serde(default)]
@@ -2723,7 +2724,7 @@ pub struct GoogleCloudDataplexV1EntryLinkEntryReference {
 }
 
 /// The output of a data discovery scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDiscoveryResult {
     /// Output only. Configuration for metadata publishing.
     #[serde(default, rename = "bigqueryPublishing")]
@@ -2736,7 +2737,7 @@ pub struct GoogleCloudDataplexV1DataDiscoveryResult {
 }
 
 /// Spec for a data discovery scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDiscoverySpec {
     /// Optional. Configuration for metadata publishing.
     #[serde(default, rename = "bigqueryPublishingConfig")]
@@ -2748,7 +2749,7 @@ pub struct GoogleCloudDataplexV1DataDiscoverySpec {
 }
 
 /// The output of a DataDocumentation scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDocumentationResult {
     /// Output only. Insights for a Dataset resource.
     #[serde(default, rename = "datasetResult")]
@@ -2761,7 +2762,7 @@ pub struct GoogleCloudDataplexV1DataDocumentationResult {
 }
 
 /// DataDocumentation scan related spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDocumentationSpec {
     /// Optional. Whether to publish result to Dataplex Catalog.
     #[serde(default, rename = "catalogPublishingEnabled")]
@@ -2772,7 +2773,7 @@ pub struct GoogleCloudDataplexV1DataDocumentationSpec {
 }
 
 /// DataProfileResult defines the output of DataProfileScan. Each field of the table will have field type specific profile result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileResult {
     /// Output only. The status of publishing the data scan as Dataplex Universal Catalog metadata.
     #[serde(default, rename = "catalogPublishingStatus")]
@@ -2794,7 +2795,7 @@ pub struct GoogleCloudDataplexV1DataProfileResult {
 }
 
 /// DataProfileScan related setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileSpec {
     /// Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.
     #[serde(default, rename = "catalogPublishingEnabled")]
@@ -2818,7 +2819,7 @@ pub struct GoogleCloudDataplexV1DataProfileSpec {
 }
 
 /// The output of a DataQualityScan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityResult {
     /// Output only. The generated assets for anomaly detection.
     #[serde(default, rename = "anomalyDetectionGeneratedAssets")]
@@ -2859,7 +2860,7 @@ pub struct GoogleCloudDataplexV1DataQualityResult {
 }
 
 /// DataQualityScan related setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualitySpec {
     /// Optional. If set, the latest DataScan job result will be published as Dataplex Universal Catalog metadata.
     #[serde(default, rename = "catalogPublishingEnabled")]
@@ -2880,7 +2881,7 @@ pub struct GoogleCloudDataplexV1DataQualitySpec {
 }
 
 /// Snippets for the entry, contains HTML-style highlighting for matched tokens, will be used in UI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1SearchEntriesResultSnippets {
     /// Entry
     #[serde(default, rename = "dataplexEntry")]
@@ -2888,7 +2889,7 @@ pub struct GoogleCloudDataplexV1SearchEntriesResultSnippets {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs.If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted.Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -2899,7 +2900,7 @@ pub struct GoogleIamV1AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding.If the condition evaluates to true, then this binding applies to the current request.If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -2913,7 +2914,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2927,7 +2928,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Definition of the annotations of a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateAnnotations {
     /// Optional. Marks a field as deprecated. You can include a deprecation message.
     #[serde(default)]
@@ -2950,7 +2951,7 @@ pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateAnnotations {
 }
 
 /// Definition of the constraints of a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints {
     /// Optional. Marks this field as optional or required.
     #[serde(default)]
@@ -2958,7 +2959,7 @@ pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateConstraints {
 }
 
 /// Definition of Enumvalue, to be used for enum fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateEnumValue {
     /// Optional. You can set this message if you need to deprecate an enum value.
     #[serde(default)]
@@ -2972,7 +2973,7 @@ pub struct GoogleCloudDataplexV1AspectTypeMetadataTemplateEnumValue {
 }
 
 /// Describe CSV and similar semi-structured data formats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions {
     /// Optional. The delimiter being used to separate values. This defaults to '',''.
     #[serde(default)]
@@ -2989,7 +2990,7 @@ pub struct GoogleCloudDataplexV1AssetDiscoverySpecCsvOptions {
 }
 
 /// Describe JSON data format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions {
     /// Optional. Whether to disable the inference of data type for Json data. If true, all columns will be registered as their primitive types (strings, number or boolean).
     #[serde(default, rename = "disableTypeInference")]
@@ -3000,7 +3001,7 @@ pub struct GoogleCloudDataplexV1AssetDiscoverySpecJsonOptions {
 }
 
 /// The aggregated data statistics for the asset reported by discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1AssetDiscoveryStatusStats {
     /// The count of data items within the referenced resource.
     #[serde(default, rename = "dataItems")]
@@ -3017,7 +3018,7 @@ pub struct GoogleCloudDataplexV1AssetDiscoveryStatusStats {
 }
 
 /// DataScan scheduling and trigger settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Trigger {
     /// The scan runs once via RunDataScan API.
     #[serde(default, rename = "onDemand")]
@@ -3031,7 +3032,7 @@ pub struct GoogleCloudDataplexV1Trigger {
 }
 
 /// Provides compatibility information for a specific metadata store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility {
     /// Output only. Whether the entity is compatible and can be represented in the metadata store.
     #[serde(default)]
@@ -3042,7 +3043,7 @@ pub struct GoogleCloudDataplexV1EntityCompatibilityStatusCompatibility {
 }
 
 /// Describes CSV and similar semi-structured data formats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1StorageFormatCsvOptions {
     /// Optional. The delimiter used to separate values. Defaults to '',''.
     #[serde(default)]
@@ -3059,7 +3060,7 @@ pub struct GoogleCloudDataplexV1StorageFormatCsvOptions {
 }
 
 /// Describes Iceberg data format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1StorageFormatIcebergOptions {
     /// Optional. The location of where the iceberg metadata is present, must be within the table path
     #[serde(default, rename = "metadataLocation")]
@@ -3067,7 +3068,7 @@ pub struct GoogleCloudDataplexV1StorageFormatIcebergOptions {
 }
 
 /// Describes JSON data format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1StorageFormatJsonOptions {
     /// Optional. The character encoding of the data. Accepts "US-ASCII", "UTF-8" and "ISO-8859-1". Defaults to UTF-8 if not specified.
     #[serde(default)]
@@ -3075,7 +3076,7 @@ pub struct GoogleCloudDataplexV1StorageFormatJsonOptions {
 }
 
 /// Represents a column field within a table schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1SchemaSchemaField {
     /// Optional. User friendly field description. Must be less than or equal to 1024 characters.
     #[serde(default)]
@@ -3095,7 +3096,7 @@ pub struct GoogleCloudDataplexV1SchemaSchemaField {
 }
 
 /// Represents a key field within the entity''s partition structure. You could have up to 20 partition fields, but only the first 10 partitions have the filtering ability due to performance consideration. Note: Partition fields are immutable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1SchemaPartitionField {
     /// Required. Partition field name must consist of letters, numbers, and underscores only, with a maximum of length of 256 characters, and must begin with a letter or underscore..
     #[serde(default)]
@@ -3106,7 +3107,7 @@ pub struct GoogleCloudDataplexV1SchemaPartitionField {
 }
 
 /// The scope of the export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataJobExportJobSpecExportJobScope {
     /// The aspect types that are in scope for the export job, specified as relative resource names in the format projects/{project_id_or_number}/locations/{location}/aspectTypes/{aspect_type_id}. Only aspects that belong to the specified aspect types are affected by the job.
     #[serde(default, rename = "aspectTypes")]
@@ -3126,7 +3127,7 @@ pub struct GoogleCloudDataplexV1MetadataJobExportJobSpecExportJobScope {
 }
 
 /// A boundary on the scope of impact that the metadata import job can have.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1MetadataJobImportJobSpecImportJobScope {
     /// Optional. The aspect types that are in scope for the import job, specified as relative resource names in the format projects/{project_number_or_id}/locations/{location_id}/aspectTypes/{aspect_type_id}. The job modifies only the aspects that belong to these aspect types.This field is required when creating an aspect-only import job.If the metadata import file attempts to modify an aspect whose type isn''t included in this list, the import job is halted before modifying any entries or aspects.The location of an aspect type must either match the location of the job, or the aspect type must be global.
     #[serde(default, rename = "aspectTypes")]
@@ -3149,7 +3150,7 @@ pub struct GoogleCloudDataplexV1MetadataJobImportJobSpecImportJobScope {
 }
 
 /// A job represents an instance of a task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Job {
     /// Output only. The time when the job ended.
     #[serde(default, rename = "endTime")]
@@ -3190,7 +3191,7 @@ pub struct GoogleCloudDataplexV1Job {
 }
 
 /// Configuration for the underlying infrastructure used to run workloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TaskInfrastructureSpec {
     /// Compute resources needed for a Task when using Dataproc Serverless.
     #[serde(default)]
@@ -3206,7 +3207,7 @@ pub struct GoogleCloudDataplexV1TaskInfrastructureSpec {
 }
 
 /// Describe CSV and similar semi-structured data formats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ZoneDiscoverySpecCsvOptions {
     /// Optional. The delimiter being used to separate values. This defaults to '',''.
     #[serde(default)]
@@ -3223,7 +3224,7 @@ pub struct GoogleCloudDataplexV1ZoneDiscoverySpecCsvOptions {
 }
 
 /// Describe JSON data format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ZoneDiscoverySpecJsonOptions {
     /// Optional. Whether to disable the inference of data type for Json data. If true, all columns will be registered as their primitive types (strings, number or boolean).
     #[serde(default, rename = "disableTypeInference")]
@@ -3234,7 +3235,7 @@ pub struct GoogleCloudDataplexV1ZoneDiscoverySpecJsonOptions {
 }
 
 /// Describes BigQuery publishing configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing {
     /// Output only. The BigQuery dataset the discovered tables are published to.
     #[serde(default)]
@@ -3245,7 +3246,7 @@ pub struct GoogleCloudDataplexV1DataDiscoveryResultBigQueryPublishing {
 }
 
 /// Describes result statistics of a data scan discovery job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDiscoveryResultScanStatistics {
     /// The data processed in bytes.
     #[serde(default, rename = "dataProcessedBytes")]
@@ -3277,7 +3278,7 @@ pub struct GoogleCloudDataplexV1DataDiscoveryResultScanStatistics {
 }
 
 /// Describes BigQuery publishing configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig {
     /// Optional. The BigQuery connection used to create BigLake tables. Must be in the form projects/{project_id}/locations/{location_id}/connections/{connection_id}
     #[serde(default)]
@@ -3294,7 +3295,7 @@ pub struct GoogleCloudDataplexV1DataDiscoverySpecBigQueryPublishingConfig {
 }
 
 /// Configurations related to Cloud Storage as the data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfig {
     /// Optional. Configuration for CSV data.
     #[serde(default, rename = "csvOptions")]
@@ -3313,7 +3314,7 @@ pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfig {
 }
 
 /// Insights for a dataset resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDocumentationResultDatasetResult {
     /// Output only. Generated Dataset description.
     #[serde(default)]
@@ -3335,7 +3336,7 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultDatasetResult {
 }
 
 /// The result of post scan actions of DataProfileScan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileResultPostScanActionsResult {
     /// Output only. The result of BigQuery export post scan action.
     #[serde(default, rename = "bigqueryExportResult")]
@@ -3345,7 +3346,7 @@ pub struct GoogleCloudDataplexV1DataProfileResultPostScanActionsResult {
 }
 
 /// Contains name, type, mode and field type specific profile information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileResultProfile {
     /// Output only. List of fields with structural and profile information for each field.
     #[serde(default)]
@@ -3354,7 +3355,7 @@ pub struct GoogleCloudDataplexV1DataProfileResultProfile {
 }
 
 /// The specification for fields to include or exclude in data profile scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileSpecSelectedFields {
     /// Optional. Expected input is a list of fully qualified names of fields as in the schema.Only top-level field names for nested fields are supported. For instance, if ''x'' is of nested field type, listing ''x'' is supported but ''x.y.z'' is not supported. Here ''y'' and ''y.z'' are nested fields of ''x''.
     #[serde(default, rename = "fieldNames")]
@@ -3362,7 +3363,7 @@ pub struct GoogleCloudDataplexV1DataProfileSpecSelectedFields {
 }
 
 /// The configuration of post scan actions of DataProfileScan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActions {
     /// Optional. If set, results will be exported to the provided BigQuery table.
     #[serde(default, rename = "bigqueryExport")]
@@ -3371,7 +3372,7 @@ pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActions {
 }
 
 /// The assets generated by Anomaly Detection Data Scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets {
     /// Output only. The intermediate table for data anomaly detection. Format: PROJECT_ID.DATASET_ID.TABLE_ID
     #[serde(default, rename = "dataIntermediateTable")]
@@ -3388,7 +3389,7 @@ pub struct GoogleCloudDataplexV1DataQualityResultAnomalyDetectionGeneratedAssets
 }
 
 /// The status of publishing the data scan result as Dataplex Universal Catalog metadata. Multiple DataScan log events may exist, each with different publishing information depending on the type of publishing triggered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataScanCatalogPublishingStatus {
     /// Output only. Execution state for publishing. // TODO: enum values: ["STATE_UNSPECIFIED", "SUCCEEDED", "FAILED", "SKIPPED"]
     #[serde(default)]
@@ -3396,7 +3397,7 @@ pub struct GoogleCloudDataplexV1DataScanCatalogPublishingStatus {
 }
 
 /// DataQualityColumnResult provides a more detailed, per-column view of the results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityColumnResult {
     /// Output only. The column specified in the DataQualityRule.
     #[serde(default)]
@@ -3414,7 +3415,7 @@ pub struct GoogleCloudDataplexV1DataQualityColumnResult {
 }
 
 /// The result of post scan actions of DataQualityScan job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResult {
     /// Output only. The result of BigQuery export post scan action.
     #[serde(default, rename = "bigqueryExportResult")]
@@ -3424,7 +3425,7 @@ pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResult {
 }
 
 /// DataQualityRuleResult provides a more detailed, per-rule view of the results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleResult {
     /// Output only. The number of rows returned by the SQL statement in a SQL assertion rule.This field is only valid for SQL assertion rules.
     #[serde(default, rename = "assertionRowCount")]
@@ -3458,7 +3459,7 @@ pub struct GoogleCloudDataplexV1DataQualityRuleResult {
 }
 
 /// The data scanned during processing (e.g. in incremental DataScan)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ScannedData {
     /// The range denoted by values of an incremental field
     #[serde(default, rename = "incrementalField")]
@@ -3466,7 +3467,7 @@ pub struct GoogleCloudDataplexV1ScannedData {
 }
 
 /// The configuration of post scan actions of DataQualityScan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActions {
     /// Optional. If set, results will be exported to the provided BigQuery table.
     #[serde(default, rename = "bigqueryExport")]
@@ -3480,7 +3481,7 @@ pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActions {
 }
 
 /// An entry is a representation of a data resource that can be described by various metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Entry {
     /// Optional. The aspects that are attached to the entry. Depending on how the aspect is attached to the entry, the format of the aspect key can be one of the following: If the aspect is attached directly to the entry: {project_id_or_number}.{location_id}.{aspect_type_id} If the aspect is attached to an entry''s path: {project_id_or_number}.{location_id}.{aspect_type_id}@{path}
     #[serde(default)]
@@ -3509,7 +3510,7 @@ pub struct GoogleCloudDataplexV1Entry {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -3520,7 +3521,7 @@ pub struct GoogleIamV1AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec.Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -3537,7 +3538,7 @@ pub struct GoogleTypeExpr {
 }
 
 /// The scan runs once using create API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TriggerOneTime {
     /// Optional. Time to live for OneTime scans. default value is 24 hours, minimum value is 0 seconds, and maximum value is 365 days. The time is calculated from the data scan job completion time. If value is set as 0 seconds, the scan will be immediately deleted upon job completion, regardless of whether the job succeeded or failed.
     #[serde(default, rename = "ttlAfterScanCompletion")]
@@ -3545,7 +3546,7 @@ pub struct GoogleCloudDataplexV1TriggerOneTime {
 }
 
 /// The scan is scheduled to run periodically.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TriggerSchedule {
     /// Required. Cron (https://en.wikipedia.org/wiki/Cron) schedule for running scans periodically.To explicitly set a timezone in the cron tab, apply a prefix in the cron tab: "CRON_TZ=${IANA_TIME_ZONE}" or "TZ=${IANA_TIME_ZONE}". The ${IANA_TIME_ZONE} may only be a valid string from IANA time zone database (wikipedia (https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List)). For example, CRON_TZ=America/New_York 1 * * * *, or TZ=America/New_York 1 * * * *.This field is required for Schedule scans.
     #[serde(default)]
@@ -3553,7 +3554,7 @@ pub struct GoogleCloudDataplexV1TriggerSchedule {
 }
 
 /// Execution related settings, like retry and service_account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TaskExecutionSpec {
     /// Optional. The arguments to pass to the task. The args can use placeholders of the format ${placeholder} as part of key/value string. These will be interpolated before passing the args to the driver. Currently supported placeholders: - ${task_id} - ${job_time} To pass positional args, set the key as TASK_ARGS. The value should be a comma-separated string of all the positional arguments. To use a delimiter other than comma, refer to https://cloud.google.com/sdk/gcloud/reference/topic/escaping. In case of other keys being present in the args, then TASK_ARGS will be passed as the last argument.
     #[serde(default)]
@@ -3573,7 +3574,7 @@ pub struct GoogleCloudDataplexV1TaskExecutionSpec {
 }
 
 /// Batch compute resources associated with the task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TaskInfrastructureSpecBatchComputeResources {
     /// Optional. Total number of job executors. Executor Count should be between 2 and 100. Default=2
     #[serde(default, rename = "executorsCount")]
@@ -3584,7 +3585,7 @@ pub struct GoogleCloudDataplexV1TaskInfrastructureSpecBatchComputeResources {
 }
 
 /// Container Image Runtime Configuration used with Batch execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TaskInfrastructureSpecContainerImageRuntime {
     /// Optional. Container image to use.
     #[serde(default)]
@@ -3601,7 +3602,7 @@ pub struct GoogleCloudDataplexV1TaskInfrastructureSpecContainerImageRuntime {
 }
 
 /// Cloud VPC Network used to run the infrastructure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork {
     /// Optional. The Cloud VPC network in which the job is run. By default, the Cloud VPC network named Default within the project is used.
     #[serde(default)]
@@ -3615,7 +3616,7 @@ pub struct GoogleCloudDataplexV1TaskInfrastructureSpecVpcNetwork {
 }
 
 /// Describes CSV and similar semi-structured data formats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions {
     /// Optional. The delimiter that is used to separate values. The default is , (comma).
     #[serde(default)]
@@ -3635,7 +3636,7 @@ pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigCsvOptions {
 }
 
 /// Describes JSON data format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions {
     /// Optional. The character encoding of the data. The default is UTF-8.
     #[serde(default)]
@@ -3646,7 +3647,7 @@ pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions {
 }
 
 /// Details of the relationship between the schema of two resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship {
     /// Output only. An ordered list of fields for the join from the first table. The size of this list must be the same as right_schema_paths. Each field at index i in this list must correspond to a field at the same index in the right_schema_paths list.
     #[serde(default, rename = "leftSchemaPaths")]
@@ -3667,7 +3668,7 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship {
 }
 
 /// Insights for a table resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDocumentationResultTableResult {
     /// Output only. The service-qualified full resource name of the cloud resource. Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
     #[serde(default)]
@@ -3685,7 +3686,7 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultTableResult {
 }
 
 /// The result of BigQuery export post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileResultPostScanActionsResultBigQueryExportResult {
     /// Output only. Additional information about the BigQuery exporting.
     #[serde(default)]
@@ -3696,7 +3697,7 @@ pub struct GoogleCloudDataplexV1DataProfileResultPostScanActionsResultBigQueryEx
 }
 
 /// A field within a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileResultProfileField {
     /// Output only. The mode of the field. Possible values include: REQUIRED, if it is a required field. NULLABLE, if it is an optional field. REPEATED, if it is a repeated field.
     #[serde(default)]
@@ -3714,7 +3715,7 @@ pub struct GoogleCloudDataplexV1DataProfileResultProfileField {
 }
 
 /// The configuration of BigQuery export post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport {
     /// Optional. The BigQuery table to export DataProfileScan results to. Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
     #[serde(default, rename = "resultsTable")]
@@ -3722,7 +3723,7 @@ pub struct GoogleCloudDataplexV1DataProfileSpecPostScanActionsBigQueryExport {
 }
 
 /// DataQualityDimensionResult provides a more detailed, per-dimension view of the results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityDimensionResult {
     /// Output only. The dimension config specified in the DataQualitySpec, as is.
     #[serde(default)]
@@ -3736,7 +3737,7 @@ pub struct GoogleCloudDataplexV1DataQualityDimensionResult {
 }
 
 /// The result of BigQuery export post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryExportResult {
     /// Output only. Additional information about the BigQuery exporting.
     #[serde(default)]
@@ -3747,7 +3748,7 @@ pub struct GoogleCloudDataplexV1DataQualityResultPostScanActionsResultBigQueryEx
 }
 
 /// Contains all results from a debug query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResultSet {
     /// Output only. Contains all results. Up to 10 results can be returned.
     #[serde(default)]
@@ -3757,7 +3758,7 @@ pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResultSet {
 }
 
 /// A rule captures data quality intent about a data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRule {
     /// Optional. The unnested column which this rule is evaluated against.
     #[serde(default)]
@@ -3819,7 +3820,7 @@ pub struct GoogleCloudDataplexV1DataQualityRule {
 }
 
 /// A data range denoted by a pair of start/end values of a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1ScannedDataIncrementalField {
     /// Output only. Value that marks the end of the range.
     #[serde(default)]
@@ -3833,7 +3834,7 @@ pub struct GoogleCloudDataplexV1ScannedDataIncrementalField {
 }
 
 /// The configuration of BigQuery export post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport {
     /// Optional. The BigQuery table to export DataQualityScan results to. Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID or projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
     #[serde(default, rename = "resultsTable")]
@@ -3841,7 +3842,7 @@ pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsBigQueryExport {
 }
 
 /// The configuration of notification report post scan action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport {
     /// Optional. If set, report will be sent when a scan job ends.
     #[serde(default, rename = "jobEndTrigger")]
@@ -3861,7 +3862,7 @@ pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsNotificationReport
 }
 
 /// Information related to the source system of the data resource that is represented by the entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EntrySource {
     /// Immutable. The entries representing the ancestors of the data resource in the source system.
     #[serde(default)]
@@ -3897,7 +3898,7 @@ pub struct GoogleCloudDataplexV1EntrySource {
 }
 
 /// Represents an ordered set of paths within a table''s schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaPaths {
     /// Output only. An ordered set of Paths to fields within the schema of the table. For fields nested within a top level field of type record, use ''.'' to separate field names. Examples: Top level field - top_level Nested field - top_level.child.sub_field
     #[serde(default)]
@@ -3908,7 +3909,7 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaP
 }
 
 /// A sample SQL query in data documentation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDocumentationResultQuery {
     /// Output only. The description for the query.
     #[serde(default)]
@@ -3919,7 +3920,7 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultQuery {
 }
 
 /// Schema of the table with generated metadata of columns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDocumentationResultSchema {
     /// Output only. The list of columns.
     #[serde(default)]
@@ -3928,7 +3929,7 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultSchema {
 }
 
 /// The profile information for each field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo {
     /// Output only. Ratio of rows with distinct values against total scanned rows. Not available for complex non-groupable field type, including RECORD, ARRAY, GEOGRAPHY, and JSON, as well as fields with REPEATABLE mode.
     #[serde(default, rename = "distinctRatio")]
@@ -3959,7 +3960,7 @@ pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfo {
 }
 
 /// A dimension captures data quality intent about a defined subset of the rules specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityDimension {
     /// Output only. The dimension name a rule belongs to. Custom dimension name is supported with all uppercase letters and maximum length of 30 characters.
     #[serde(default)]
@@ -3967,7 +3968,7 @@ pub struct GoogleCloudDataplexV1DataQualityDimension {
 }
 
 /// Contains a single result from the debug query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult {
     /// Specifies the name of the result. Available if provided with an explicit alias using [AS] alias.
     #[serde(default)]
@@ -3981,7 +3982,7 @@ pub struct GoogleCloudDataplexV1DataQualityRuleResultDebugQueryResult {
 }
 
 /// Specifies a SQL statement that is evaluated to return up to 10 scalar values that are used to debug rules. If the rule fails, the values can help diagnose the cause of the failure.The SQL statement must use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax), and must not contain any semicolons.You can use the data reference parameter ${data()} to reference the source table with all of its precondition filters applied. Examples of precondition filters include row filters, incremental data filters, and sampling. For more information, see Data reference parameter (https://cloud.google.com/dataplex/docs/auto-data-quality-overview#data-reference-parameter).You can also name results with an explicit alias using [AS] alias. For more information, see BigQuery explicit aliases (https://docs.cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#explicit_alias_syntax).Example: SELECT MIN(col1) AS min_col1, MAX(col1) AS max_col1 FROM ${data()}
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleDebugQuery {
     /// Optional. Specifies the description of the debug query. The maximum length is 1,024 characters.
     #[serde(default)]
@@ -3992,7 +3993,7 @@ pub struct GoogleCloudDataplexV1DataQualityRuleDebugQuery {
 }
 
 /// Evaluates whether each column value lies between a specified range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleRangeExpectation {
     /// Optional. The maximum column value allowed for a row to pass this validation. At least one of min_value and max_value need to be provided.
     #[serde(default, rename = "maxValue")]
@@ -4009,7 +4010,7 @@ pub struct GoogleCloudDataplexV1DataQualityRuleRangeExpectation {
 }
 
 /// Evaluates whether each column value matches a specified regex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleRegexExpectation {
     /// Optional. A regular expression the column value is expected to match.
     #[serde(default)]
@@ -4017,7 +4018,7 @@ pub struct GoogleCloudDataplexV1DataQualityRuleRegexExpectation {
 }
 
 /// Evaluates whether each row passes the specified condition.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a boolean value per row as the result.Example: col1 &gt;= 0 AND col2 &lt; 10
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleRowConditionExpectation {
     /// Optional. The SQL expression.
     #[serde(default, rename = "sqlExpression")]
@@ -4025,7 +4026,7 @@ pub struct GoogleCloudDataplexV1DataQualityRuleRowConditionExpectation {
 }
 
 /// Evaluates whether each column value is contained by a specified set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleSetExpectation {
     /// Optional. Expected values for the column value.
     #[serde(default)]
@@ -4033,7 +4034,7 @@ pub struct GoogleCloudDataplexV1DataQualityRuleSetExpectation {
 }
 
 /// A SQL statement that is evaluated to return rows that match an invalid state. If any rows are are returned, this rule fails.The SQL statement must use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax), and must not contain any semicolons.You can use the data reference parameter ${data()} to reference the source table with all of its precondition filters applied. Examples of precondition filters include row filters, incremental data filters, and sampling. For more information, see Data reference parameter (https://cloud.google.com/dataplex/docs/auto-data-quality-overview#data-reference-parameter).Example: SELECT * FROM ${data()} WHERE price &lt; 0
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleSqlAssertion {
     /// Optional. The SQL statement.
     #[serde(default, rename = "sqlStatement")]
@@ -4041,7 +4042,7 @@ pub struct GoogleCloudDataplexV1DataQualityRuleSqlAssertion {
 }
 
 /// Evaluates whether the column aggregate statistic lies between a specified range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleStatisticRangeExpectation {
     /// Optional. The maximum column statistic value allowed for a row to pass this validation.At least one of min_value and max_value need to be provided.
     #[serde(default, rename = "maxValue")]
@@ -4061,7 +4062,7 @@ pub struct GoogleCloudDataplexV1DataQualityRuleStatisticRangeExpectation {
 }
 
 /// Evaluates whether the provided expression is true.The SQL expression needs to use GoogleSQL syntax (https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax) and should produce a scalar boolean result.Example: MIN(col1) &gt;= 0
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualityRuleTableConditionExpectation {
     /// Optional. The SQL expression.
     #[serde(default, rename = "sqlExpression")]
@@ -4069,7 +4070,7 @@ pub struct GoogleCloudDataplexV1DataQualityRuleTableConditionExpectation {
 }
 
 /// The individuals or groups who are designated to receive notifications upon triggers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients {
     /// Optional. The email recipients who will receive the DataQualityScan results report.
     #[serde(default)]
@@ -4077,7 +4078,7 @@ pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsRecipients {
 }
 
 /// This trigger is triggered when the DQ score in the job result is less than a specified input score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrigger {
     /// Optional. The score range is in 0,100.
     #[serde(default, rename = "scoreThreshold")]
@@ -4085,7 +4086,7 @@ pub struct GoogleCloudDataplexV1DataQualitySpecPostScanActionsScoreThresholdTrig
 }
 
 /// Information about individual items in the hierarchy that is associated with the data resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1EntrySourceAncestor {
     /// Optional. The name of the ancestor resource.
     #[serde(default)]
@@ -4096,7 +4097,7 @@ pub struct GoogleCloudDataplexV1EntrySourceAncestor {
 }
 
 /// Column of a table with generated metadata and nested fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDocumentationResultField {
     /// Output only. Generated description for columns and fields.
     #[serde(default)]
@@ -4111,7 +4112,7 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultField {
 }
 
 /// The profile information for a double type field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo {
     /// Output only. Average of non-null values in the scanned data. NaN, if the field has a NaN.
     #[serde(default)]
@@ -4131,7 +4132,7 @@ pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFi
 }
 
 /// The profile information for an integer type field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerFieldInfo {
     /// Output only. Average of non-null values in the scanned data. NaN, if the field has a NaN.
     #[serde(default)]
@@ -4151,7 +4152,7 @@ pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoIntegerF
 }
 
 /// Top N non-null values in the scanned data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValue {
     /// Output only. Count of the corresponding value in the scanned data.
     #[serde(default)]

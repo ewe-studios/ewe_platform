@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request for client status of clients identified by a list of NodeMatchers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientStatusRequest {
     /// If true, the server will not include the resource contents in the response (i.e., the generic_xds_configs.xds_config field will not be populated). [#not-implemented-hide:]
     #[serde(default, rename = "excludeResourceContents")]
@@ -25,7 +26,7 @@ pub struct ClientStatusRequest {
 }
 
 /// ClientStatusResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientStatusResponse {
     /// Client configs for the clients specified in the ClientStatusRequest.
     #[serde(default)]
@@ -33,18 +34,18 @@ pub struct ClientStatusResponse {
 }
 
 /// Additional parameters that can be used to select resource variants. These include any global context parameters, per-resource type client feature capabilities and per-resource type functional attributes. All per-resource type attributes will be xds.resource. prefixed and some of these are documented below: xds.resource.listening_address: The value is "IP:port" (e.g. "10.1.1.3:8080") which is the listening address of a Listener. Used in a Listener resource query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContextParams {
     #[serde(default)]
     pub params: ::core::option::Option<serde_json::Value>,
 }
 
 /// NullMatch is an empty message to specify a null value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NullMatch {}
 
 /// Specifies the way to match a string. [#next-free-field: 9]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StringMatcher {
     /// The input string must have the substring specified here. .. note:: Empty contains match is not allowed, please use safe_regex instead. Examples: * abc matches the value xyz.abc.def
     #[serde(default)]
@@ -70,7 +71,7 @@ pub struct StringMatcher {
 }
 
 /// Specifies the way to match a Node. The match follows AND semantics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeMatcher {
     /// Specifies match criteria on the node id.
     #[serde(default, rename = "nodeId")]
@@ -81,7 +82,7 @@ pub struct NodeMatcher {
 }
 
 /// All xds configs for a particular client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientConfig {
     /// For xDS clients, the scope in which the data is used. For example, gRPC indicates the data plane target or that the data is associated with gRPC server(s).
     #[serde(default, rename = "clientScope")]
@@ -98,7 +99,7 @@ pub struct ClientConfig {
 }
 
 /// Message type for extension configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TypedExtensionConfig {
     /// The name of an extension. This is not used to select the extension, instead it serves the role of an opaque identifier.
     #[serde(default)]
@@ -109,7 +110,7 @@ pub struct TypedExtensionConfig {
 }
 
 /// A regex matcher designed for safety when used with untrusted input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegexMatcher {
     /// Google''s RE2 regex engine.
     #[serde(default, rename = "googleRe2")]
@@ -120,7 +121,7 @@ pub struct RegexMatcher {
 }
 
 /// StructMatcher provides a general interface to check if a given value is matched in google.protobuf.Struct. It uses path to retrieve the value from the struct and then check if it''s matched to the specified value. For example, for the following Struct: .. code-block:: yaml fields: a: struct_value: fields: b: struct_value: fields: c: string_value: pro t: list_value: values: - string_value: m - string_value: n The following MetadataMatcher is matched as the path [a, b, c] will retrieve a string value "pro" from the Metadata which is matched to the specified prefix match. .. code-block:: yaml path: - key: a - key: b - key: c value: string_match: prefix: pr The following StructMatcher is matched as the code will match one of the string values in the list at the path [a, t]. .. code-block:: yaml path: - key: a - key: t value: list_match: one_of: string_match: exact: m An example use of StructMatcher is to match metadata in envoy.v*.core.Node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StructMatcher {
     /// The path to retrieve the Value from the Struct.
     #[serde(default)]
@@ -131,7 +132,7 @@ pub struct StructMatcher {
 }
 
 /// GenericXdsConfig is used to specify the config status and the dump of any xDS resource identified by their type URL. It is the generalized version of the now deprecated ListenersConfigDump, ClustersConfigDump etc [#next-free-field: 10]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenericXdsConfig {
     /// Per xDS resource status from the view of a xDS client // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
     #[serde(default, rename = "clientStatus")]
@@ -163,7 +164,7 @@ pub struct GenericXdsConfig {
 }
 
 /// Identifies a specific Envoy instance. The node identifier is presented to the management server, which may use this identifier to distinguish per Envoy configuration for serving. [#next-free-field: 13]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Node {
     /// Client feature support list. These are well known features described in the Envoy API repository for a given major version of an API. Client features use reverse DNS naming scheme, for example com.acme.feature. See :ref:the list of features  that xDS client may support.
     #[serde(default, rename = "clientFeatures")]
@@ -201,7 +202,7 @@ pub struct Node {
 }
 
 /// Detailed config (per xDS) with status. [#next-free-field: 8]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerXdsConfig {
     /// Client config status is populated by xDS clients. Will not be present if the CSDS server is an xDS server. No matter what the client config status is, xDS clients should always dump the most recent accepted xDS config. .. attention:: This field is deprecated. Use :ref:ClientResourceStatus  for per-resource config status instead. // TODO: enum values: ["CLIENT_UNKNOWN", "CLIENT_REQUESTED", "CLIENT_ACKED", "CLIENT_NACKED", "CLIENT_RECEIVED_ERROR"]
     #[serde(default, rename = "clientStatus")]
@@ -222,7 +223,7 @@ pub struct PerXdsConfig {
 }
 
 /// Google''s RE2 _ regex engine. The regex string must adhere to the documented syntax _. The engine is designed to complete execution in linear time as well as limit the amount of memory used. Envoy supports program size checking via runtime. The runtime keys re2.max_program_size.error_level and re2.max_program_size.warn_level can be set to integers as the maximum program size or complexity that a compiled regex can have before an exception is thrown or a warning is logged, respectively. re2.max_program_size.error_level defaults to 100, and re2.max_program_size.warn_level has no default if unset (will not check/log a warning). Envoy emits two stats for tracking the program size of regexes: the histogram re2.program_size, which records the program size, and the counter re2.exceeded_warn_level, which is incremented each time the program size exceeds the warn level threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRE2 {
     /// This field controls the RE2 "program size" which is a rough estimate of how complex a compiled regex is to evaluate. A regex that has a program size greater than the configured value will fail to compile. In this case, the configured max program size can be increased or the regex can be simplified. If not specified, the default is 100. This field is deprecated; regexp validation should be performed on the management server instead of being done by each individual client. .. note:: Although this field is deprecated, the program size will still be checked against the global re2.max_program_size.error_level runtime value.
     #[serde(default, rename = "maxProgramSize")]
@@ -230,7 +231,7 @@ pub struct GoogleRE2 {
 }
 
 /// Specifies the segment in a path to retrieve value from Struct.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PathSegment {
     /// If specified, use the key to retrieve the value in a Struct.
     #[serde(default)]
@@ -238,7 +239,7 @@ pub struct PathSegment {
 }
 
 /// Version and identification for an Envoy extension. [#next-free-field: 7]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Extension {
     /// Category of the extension. Extension category names use reverse DNS notation. For instance "envoy.filters.listener" for Envoy''s built-in listener filters or "com.acme.filters.http" for HTTP filters from acme.com vendor. [#comment:
     #[serde(default)]
@@ -261,7 +262,7 @@ pub struct Extension {
 }
 
 /// Addresses specify either a logical or physical address and port, which are used to tell Envoy where to bind/listen, connect to upstream and find management servers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Address {
     /// Specifies a user-space address handled by :ref:internal listeners .
     #[serde(default, rename = "envoyInternalAddress")]
@@ -273,7 +274,7 @@ pub struct Address {
 }
 
 /// Identifies location of where either Envoy runs or where upstream hosts run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Locality {
     /// Region this :ref:zone  belongs to.
     #[serde(default)]
@@ -287,7 +288,7 @@ pub struct Locality {
 }
 
 /// Envoy''s cluster manager fills this message with all currently known clusters. Cluster configuration information can be used to recreate an Envoy configuration by populating all clusters as static clusters or by returning them in a CDS response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClustersConfigDump {
     /// The dynamically loaded active clusters. These are clusters that are available to service data plane traffic.
     #[serde(default, rename = "dynamicActiveClusters")]
@@ -304,7 +305,7 @@ pub struct ClustersConfigDump {
 }
 
 /// Envoy''s admin fill this message with all currently known endpoints. Endpoint configuration information can be used to recreate an Envoy configuration by populating all endpoints as static endpoints or by returning them in an EDS response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointsConfigDump {
     /// The dynamically loaded endpoint configs.
     #[serde(default, rename = "dynamicEndpointConfigs")]
@@ -315,7 +316,7 @@ pub struct EndpointsConfigDump {
 }
 
 /// Envoy''s listener manager fills this message with all currently known listeners. Listener configuration information can be used to recreate an Envoy configuration by populating all listeners as static listeners or by returning them in a LDS response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListenersConfigDump {
     /// State for any warming, active, or draining listeners.
     #[serde(default, rename = "dynamicListeners")]
@@ -329,7 +330,7 @@ pub struct ListenersConfigDump {
 }
 
 /// Envoy''s RDS implementation fills this message with all currently loaded routes, as described by their RouteConfiguration objects. Static routes that are either defined in the bootstrap configuration or defined inline while configuring listeners are separated from those configured dynamically via RDS. Route configuration information can be used to recreate an Envoy configuration by populating all routes as static routes or by returning them in RDS responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoutesConfigDump {
     /// The dynamically loaded route configs.
     #[serde(default, rename = "dynamicRouteConfigs")]
@@ -340,7 +341,7 @@ pub struct RoutesConfigDump {
 }
 
 /// Envoy''s scoped RDS implementation fills this message with all currently loaded route configuration scopes (defined via ScopedRouteConfigurationsSet protos). This message lists both the scopes defined inline with the higher order object (i.e., the HttpConnectionManager) and the dynamically obtained scopes via the SRDS API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScopedRoutesConfigDump {
     /// The dynamically loaded scoped route configs.
     #[serde(default, rename = "dynamicScopedRouteConfigs")]
@@ -353,7 +354,7 @@ pub struct ScopedRoutesConfigDump {
 }
 
 /// BuildVersion combines SemVer version of extension with free-form build information (i.e. ''alpha'', ''private-build'') as a set of strings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildVersion {
     /// Free-form build information. Envoy defines several well known keys in the source/common/version/version.h file
     #[serde(default)]
@@ -364,7 +365,7 @@ pub struct BuildVersion {
 }
 
 /// The address represents an envoy internal listener. [#comment:
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvoyInternalAddress {
     /// Specifies an endpoint identifier to distinguish between multiple endpoints for the same internal listener in a single upstream pool. Only used in the upstream addresses for tracking changes to individual endpoints. This, for example, may be set to the final destination IP for the target internal listener.
     #[serde(default, rename = "endpointId")]
@@ -375,7 +376,7 @@ pub struct EnvoyInternalAddress {
 }
 
 /// Pipe resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pipe {
     /// The mode for the Pipe. Not applicable for abstract sockets.
     #[serde(default)]
@@ -386,7 +387,7 @@ pub struct Pipe {
 }
 
 /// [#next-free-field: 8]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SocketAddress {
     /// The address for this socket. :ref:Listeners  will bind to the address. An empty address is not allowed. Specify 0.0.0.0 or :: to bind to any address. [#comment:TODO(zuercher) reinstate when implemented: It is possible to distinguish a Listener address via the prefix/suffix matching in :ref:FilterChainMatch .] When used within an upstream :ref:BindConfig , the address controls the source address of outbound connections. For :ref:clusters , the cluster type determines whether the address must be an IP (STATIC or EDS clusters) or a hostname resolved by DNS (STRICT_DNS or LOGICAL_DNS clusters). Address resolution can be customized via :ref:resolver_name .
     #[serde(default)]
@@ -411,7 +412,7 @@ pub struct SocketAddress {
 }
 
 /// Describes a dynamically loaded cluster via the CDS API. [#next-free-field: 6]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicCluster {
     /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
     #[serde(default, rename = "clientStatus")]
@@ -431,7 +432,7 @@ pub struct DynamicCluster {
 }
 
 /// Describes a statically loaded cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StaticCluster {
     /// The cluster config.
     #[serde(default)]
@@ -442,7 +443,7 @@ pub struct StaticCluster {
 }
 
 /// [#next-free-field: 6]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicEndpointConfig {
     /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
     #[serde(default, rename = "clientStatus")]
@@ -462,7 +463,7 @@ pub struct DynamicEndpointConfig {
 }
 
 /// StaticEndpointConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StaticEndpointConfig {
     /// The endpoint config.
     #[serde(default, rename = "endpointConfig")]
@@ -473,7 +474,7 @@ pub struct StaticEndpointConfig {
 }
 
 /// Describes a dynamically loaded listener via the LDS API. [#next-free-field: 7]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicListener {
     /// The listener state for any active listener by this name. These are listeners that are available to service data plane traffic.
     #[serde(default, rename = "activeState")]
@@ -496,7 +497,7 @@ pub struct DynamicListener {
 }
 
 /// Describes a statically loaded listener.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StaticListener {
     /// The timestamp when the Listener was last successfully updated.
     #[serde(default, rename = "lastUpdated")]
@@ -507,7 +508,7 @@ pub struct StaticListener {
 }
 
 /// [#next-free-field: 6]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicRouteConfig {
     /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
     #[serde(default, rename = "clientStatus")]
@@ -527,7 +528,7 @@ pub struct DynamicRouteConfig {
 }
 
 /// StaticRouteConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StaticRouteConfig {
     /// The timestamp when the Route was last updated.
     #[serde(default, rename = "lastUpdated")]
@@ -538,7 +539,7 @@ pub struct StaticRouteConfig {
 }
 
 /// [#next-free-field: 7]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicScopedRouteConfigs {
     /// The client status of this resource. [#not-implemented-hide:] // TODO: enum values: ["UNKNOWN", "REQUESTED", "DOES_NOT_EXIST", "ACKED", "NACKED", "RECEIVED_ERROR", "TIMEOUT"]
     #[serde(default, rename = "clientStatus")]
@@ -561,7 +562,7 @@ pub struct DynamicScopedRouteConfigs {
 }
 
 /// InlineScopedRouteConfigs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InlineScopedRouteConfigs {
     /// The timestamp when the scoped route config set was last updated.
     #[serde(default, rename = "lastUpdated")]
@@ -575,7 +576,7 @@ pub struct InlineScopedRouteConfigs {
 }
 
 /// Envoy uses SemVer (https://semver.org/). Major/minor versions indicate expected behaviors and APIs, the patch version field is used only for security fixes and can be generally ignored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SemanticVersion {
     #[serde(default, rename = "majorNumber")]
     pub major_number: ::core::option::Option<i64>,
@@ -586,7 +587,7 @@ pub struct SemanticVersion {
 }
 
 /// DynamicListenerState resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicListenerState {
     /// The timestamp when the Listener was last successfully updated.
     #[serde(default, rename = "lastUpdated")]
@@ -600,7 +601,7 @@ pub struct DynamicListenerState {
 }
 
 /// UpdateFailureState resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateFailureState {
     /// Details about the last failed update attempt.
     #[serde(default)]
@@ -617,7 +618,7 @@ pub struct UpdateFailureState {
 }
 
 /// Specifies the way to match a double value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleMatcher {
     /// If specified, the input double value must be equal to the value specified here.
     #[serde(default)]
@@ -628,7 +629,7 @@ pub struct DoubleMatcher {
 }
 
 /// Specifies the double start and end of the range using half-open interval semantics [start, end).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleRange {
     /// end of the range (exclusive)
     #[serde(default)]
@@ -639,7 +640,7 @@ pub struct DoubleRange {
 }
 
 /// Specifies the way to match a list value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMatcher {
     /// If specified, at least one of the values in the list must match the value specified.
     #[serde(default, rename = "oneOf")]
@@ -647,14 +648,14 @@ pub struct ListMatcher {
 }
 
 /// Specifies a list of alternatives for the match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrMatcher {
     #[serde(default, rename = "valueMatchers")]
     pub value_matchers: ::std::vec::Vec<::std::boxed::Box<ValueMatcher>>,
 }
 
 /// Specifies the way to match a Protobuf::Value. Primitive values and ListValue are supported. StructValue is not supported and is always not matched. [#next-free-field: 8]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValueMatcher {
     /// If specified, a match occurs if and only if the target value is a bool value and is equal to this field.
     #[serde(default, rename = "boolMatch")]

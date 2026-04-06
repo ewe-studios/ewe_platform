@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request used by the AddAddressGroupItems method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddAddressGroupItemsRequest {
     /// Required. List of items to add.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct AddAddressGroupItemsRequest {
 }
 
 /// Determines how a string value should be matched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleStringMatch {
     /// The input string must have the substring specified here. Note: empty contains match is not allowed, please use regex instead. Examples: * abc matches the value xyz.abc.def
     #[serde(default)]
@@ -42,15 +43,15 @@ pub struct AuthzPolicyAuthzRuleStringMatch {
 }
 
 /// Optional. Delegates authorization decisions to Cloud IAP. Applicable only for managed load balancers. Enabling Cloud IAP at the AuthzPolicy level is not compatible with Cloud IAP settings in the BackendService. Enabling IAP in both places will result in request failure. Ensure that IAP is enabled in either the AuthzPolicy or the BackendService but not in both places.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyCustomProviderCloudIap {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Request used by the CloneAddressGroupItems method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloneAddressGroupItemsRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -61,11 +62,11 @@ pub struct CloneAddressGroupItemsRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -76,7 +77,7 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -84,7 +85,7 @@ pub struct GoogleIamV1TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -92,7 +93,7 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 }
 
 /// Response of the ListAddressGroupReferences method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAddressGroupReferencesResponse {
     /// A list of references that matches the specified filter in the request.
     #[serde(default, rename = "addressGroupReferences")]
@@ -105,7 +106,7 @@ pub struct ListAddressGroupReferencesResponse {
 }
 
 /// Response returned by the ListAddressGroups method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAddressGroupsResponse {
     /// List of AddressGroups resources.
     #[serde(default, rename = "addressGroups")]
@@ -119,7 +120,7 @@ pub struct ListAddressGroupsResponse {
 }
 
 /// Response returned by the ListAuthorizationPolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAuthorizationPoliciesResponse {
     /// List of AuthorizationPolicies resources.
     #[serde(default, rename = "authorizationPolicies")]
@@ -130,7 +131,7 @@ pub struct ListAuthorizationPoliciesResponse {
 }
 
 /// Message for response to listing AuthzPolicy resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAuthzPoliciesResponse {
     /// The list of AuthzPolicy resources.
     #[serde(default, rename = "authzPolicies")]
@@ -144,7 +145,7 @@ pub struct ListAuthzPoliciesResponse {
 }
 
 /// Response returned by the ListBackendAuthenticationConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackendAuthenticationConfigsResponse {
     /// List of BackendAuthenticationConfig resources.
     #[serde(default, rename = "backendAuthenticationConfigs")]
@@ -159,7 +160,7 @@ pub struct ListBackendAuthenticationConfigsResponse {
 }
 
 /// Response returned by the ListClientTlsPolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListClientTlsPoliciesResponse {
     /// List of ClientTlsPolicy resources.
     #[serde(default, rename = "clientTlsPolicies")]
@@ -170,7 +171,7 @@ pub struct ListClientTlsPoliciesResponse {
 }
 
 /// The response message to requesting a list of DnsThreatDetectors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDnsThreatDetectorsResponse {
     /// The list of DnsThreatDetector resources.
     #[serde(default, rename = "dnsThreatDetectors")]
@@ -184,7 +185,7 @@ pub struct ListDnsThreatDetectorsResponse {
 }
 
 /// Message for response to listing Associations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFirewallEndpointAssociationsResponse {
     /// The list of Association
     #[serde(default, rename = "firewallEndpointAssociations")]
@@ -199,7 +200,7 @@ pub struct ListFirewallEndpointAssociationsResponse {
 }
 
 /// Message for response to listing Endpoints
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFirewallEndpointsResponse {
     /// The list of Endpoint
     #[serde(default, rename = "firewallEndpoints")]
@@ -213,7 +214,7 @@ pub struct ListFirewallEndpointsResponse {
 }
 
 /// Response returned by the ListGatewaySecurityPolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGatewaySecurityPoliciesResponse {
     /// List of GatewaySecurityPolicies resources.
     #[serde(default, rename = "gatewaySecurityPolicies")]
@@ -227,7 +228,7 @@ pub struct ListGatewaySecurityPoliciesResponse {
 }
 
 /// Response returned by the ListGatewaySecurityPolicyRules method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGatewaySecurityPolicyRulesResponse {
     /// List of GatewaySecurityPolicyRule resources.
     #[serde(default, rename = "gatewaySecurityPolicyRules")]
@@ -242,7 +243,7 @@ pub struct ListGatewaySecurityPolicyRulesResponse {
 }
 
 /// Response message for ListInterceptDeploymentGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInterceptDeploymentGroupsResponse {
     /// The deployment groups from the specified parent.
     #[serde(default, rename = "interceptDeploymentGroups")]
@@ -254,7 +255,7 @@ pub struct ListInterceptDeploymentGroupsResponse {
 }
 
 /// Response message for ListInterceptDeployments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInterceptDeploymentsResponse {
     /// The deployments from the specified parent.
     #[serde(default, rename = "interceptDeployments")]
@@ -268,7 +269,7 @@ pub struct ListInterceptDeploymentsResponse {
 }
 
 /// Response message for ListInterceptEndpointGroupAssociations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInterceptEndpointGroupAssociationsResponse {
     /// The associations from the specified parent.
     #[serde(default, rename = "interceptEndpointGroupAssociations")]
@@ -280,7 +281,7 @@ pub struct ListInterceptEndpointGroupAssociationsResponse {
 }
 
 /// Response message for ListInterceptEndpointGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInterceptEndpointGroupsResponse {
     /// The endpoint groups from the specified parent.
     #[serde(default, rename = "interceptEndpointGroups")]
@@ -291,7 +292,7 @@ pub struct ListInterceptEndpointGroupsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -302,7 +303,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for ListMirroringDeploymentGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMirroringDeploymentGroupsResponse {
     /// The deployment groups from the specified parent.
     #[serde(default, rename = "mirroringDeploymentGroups")]
@@ -314,7 +315,7 @@ pub struct ListMirroringDeploymentGroupsResponse {
 }
 
 /// Response message for ListMirroringDeployments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMirroringDeploymentsResponse {
     /// The deployments from the specified parent.
     #[serde(default, rename = "mirroringDeployments")]
@@ -328,7 +329,7 @@ pub struct ListMirroringDeploymentsResponse {
 }
 
 /// Response message for ListMirroringEndpointGroupAssociations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMirroringEndpointGroupAssociationsResponse {
     /// The associations from the specified parent.
     #[serde(default, rename = "mirroringEndpointGroupAssociations")]
@@ -340,7 +341,7 @@ pub struct ListMirroringEndpointGroupAssociationsResponse {
 }
 
 /// Response message for ListMirroringEndpointGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMirroringEndpointGroupsResponse {
     /// The endpoint groups from the specified parent.
     #[serde(default, rename = "mirroringEndpointGroups")]
@@ -351,7 +352,7 @@ pub struct ListMirroringEndpointGroupsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -365,7 +366,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response returned by the ListSecurityProfileGroups method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSecurityProfileGroupsResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -376,7 +377,7 @@ pub struct ListSecurityProfileGroupsResponse {
 }
 
 /// Response returned by the ListSecurityProfiles method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSecurityProfilesResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -387,7 +388,7 @@ pub struct ListSecurityProfilesResponse {
 }
 
 /// Response returned by the ListServerTlsPolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServerTlsPoliciesResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -401,7 +402,7 @@ pub struct ListServerTlsPoliciesResponse {
 }
 
 /// Response returned by the ListTlsInspectionPolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTlsInspectionPoliciesResponse {
     /// If there might be more results than those appearing in this response, then ''next_page_token'' is included. To get the next set of results, call this method again using the value of ''next_page_token'' as ''page_token''.
     #[serde(default, rename = "nextPageToken")]
@@ -415,7 +416,7 @@ pub struct ListTlsInspectionPoliciesResponse {
 }
 
 /// Response returned by the ListUrlLists method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUrlListsResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -429,7 +430,7 @@ pub struct ListUrlListsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -455,7 +456,7 @@ pub struct OperationMetadata {
 }
 
 /// Request used by the RemoveAddressGroupItems method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveAddressGroupItemsRequest {
     /// Required. List of items to remove.
     #[serde(default)]
@@ -466,7 +467,7 @@ pub struct RemoveAddressGroupItemsRequest {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -483,7 +484,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// The Reference of AddressGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAddressGroupReferencesResponseAddressGroupReference {
     /// FirewallPolicy that is using the Address Group.
     #[serde(default, rename = "firewallPolicy")]
@@ -497,7 +498,7 @@ pub struct ListAddressGroupReferencesResponseAddressGroupReference {
 }
 
 /// AddressGroup is a resource that specifies how a collection of IP/DNS used in Firewall Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressGroup {
     /// Required. Capacity of the Address Group
     #[serde(default)]
@@ -532,7 +533,7 @@ pub struct AddressGroup {
 }
 
 /// AuthorizationPolicy is a resource that specifies how a server should authorize incoming connections. This resource in itself does not change the configuration unless it''s attached to a target https proxy or endpoint config selector resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizationPolicy {
     /// Required. The action to take when a rule match is found. Possible values are "ALLOW" or "DENY". // TODO: enum values: ["ACTION_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default)]
@@ -558,7 +559,7 @@ pub struct AuthorizationPolicy {
 }
 
 /// AuthzPolicy is a resource that allows to forward traffic to a callout backend designed to scan the traffic for security purposes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicy {
     /// Required. Can be one of ALLOW, DENY, CUSTOM. When the action is CUSTOM, customProvider must be specified. When the action is ALLOW, only requests matching the policy will be allowed. When the action is DENY, only requests matching the policy will be denied. When a request arrives, the policies are evaluated in the following order: 1. If there is a CUSTOM policy that matches the request, the CUSTOM policy is evaluated using the custom authorization providers and the request is denied if the provider rejects the request. 2. If there are any DENY policies that match the request, the request is denied. 3. If there are no ALLOW policies for the resource or if any of the ALLOW policies match the request, the request is allowed. 4. Else the request is denied by default if none of the configured AuthzPolicies with ALLOW action match the request. // TODO: enum values: ["AUTHZ_ACTION_UNSPECIFIED", "ALLOW", "DENY", "CUSTOM"]
     #[serde(default)]
@@ -593,7 +594,7 @@ pub struct AuthzPolicy {
 }
 
 /// BackendAuthenticationConfig message groups the TrustConfig together with other settings that control how the load balancer authenticates, and expresses its identity to, the backend: * trustConfig is the attached TrustConfig. * wellKnownRoots indicates whether the load balance should trust backend server certificates that are issued by public certificate authorities, in addition to certificates trusted by the TrustConfig. * clientCertificate is a client certificate that the load balancer uses to express its identity to the backend, if the connection to the backend uses mTLS. You can attach the BackendAuthenticationConfig to the load balancer''s BackendService directly determining how that BackendService negotiates TLS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendAuthenticationConfig {
     /// Optional. A reference to a certificatemanager.googleapis.com.Certificate resource. This is a relative resource path following the form "projects/{project}/locations/{location}/certificates/{certificate}". Used by a BackendService to negotiate mTLS when the backend connection uses TLS and the backend requests a client certificate. Must have a CLIENT_AUTH scope.
     #[serde(default, rename = "clientCertificate")]
@@ -625,7 +626,7 @@ pub struct BackendAuthenticationConfig {
 }
 
 /// ClientTlsPolicy is a resource that specifies how a client should authenticate connections to backends of a service. This resource itself does not affect configuration unless it is attached to a backend service resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientTlsPolicy {
     /// Optional. Defines a mechanism to provision client identity (public and private keys) for peer to peer authentication. The presence of this dictates mTLS.
     #[serde(default, rename = "clientCertificate")]
@@ -654,7 +655,7 @@ pub struct ClientTlsPolicy {
 }
 
 /// A DNS threat detector sends DNS query logs to a _provider_ that then analyzes the logs to identify threat events in the DNS queries. By default, all VPC networks in your projects are included. You can exclude specific networks by supplying excluded_networks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsThreatDetector {
     /// Output only. Create time stamp.
     #[serde(default, rename = "createTime")]
@@ -677,7 +678,7 @@ pub struct DnsThreatDetector {
 }
 
 /// Message describing Association object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallEndpointAssociation {
     /// Output only. Create time stamp
     #[serde(default, rename = "createTime")]
@@ -712,7 +713,7 @@ pub struct FirewallEndpointAssociation {
 }
 
 /// Message describing Endpoint object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallEndpoint {
     /// Output only. List of networks that are associated with this endpoint in the local zone. This is a projection of the FirewallEndpointAssociations pointing at this endpoint. A network will only appear in this list after traffic routing is fully configured. Format: projects/{project}/global/networks/{name}.
     #[serde(default, rename = "associatedNetworks")]
@@ -756,7 +757,7 @@ pub struct FirewallEndpoint {
 }
 
 /// The GatewaySecurityPolicy resource contains a collection of GatewaySecurityPolicyRules and associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GatewaySecurityPolicy {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -776,7 +777,7 @@ pub struct GatewaySecurityPolicy {
 }
 
 /// The GatewaySecurityPolicyRule resource is in a nested collection within a GatewaySecurityPolicy and represents a traffic matching condition and associated action to perform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GatewaySecurityPolicyRule {
     /// Optional. CEL expression for matching on L7/application level criteria.
     #[serde(default, rename = "applicationMatcher")]
@@ -811,7 +812,7 @@ pub struct GatewaySecurityPolicyRule {
 }
 
 /// A deployment group aggregates many zonal intercept backends (deployments) into a single global intercept service. Consumers can connect this service using an endpoint group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterceptDeploymentGroup {
     /// Output only. The list of endpoint groups that are connected to this resource.
     #[serde(default, rename = "connectedEndpointGroups")]
@@ -851,7 +852,7 @@ pub struct InterceptDeploymentGroup {
 }
 
 /// A deployment represents a zonal intercept backend ready to accept GENEVE-encapsulated traffic, e.g. a zonal instance group fronted by an internal passthrough load balancer. Deployments are always part of a global deployment group which represents a global intercept service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterceptDeployment {
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
@@ -883,7 +884,7 @@ pub struct InterceptDeployment {
 }
 
 /// An endpoint group association represents a link between a network and an endpoint group in the organization. Creating an association creates the networking infrastructure linking the network to the endpoint group, but does not enable intercept by itself. To enable intercept, the user must also create a network firewall policy containing intercept rules and associate it with the network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterceptEndpointGroupAssociation {
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
@@ -922,7 +923,7 @@ pub struct InterceptEndpointGroupAssociation {
 }
 
 /// An endpoint group is a consumer frontend for a deployment group (backend). In order to configure intercept for a network, consumers must create: - An association between their network and the endpoint group. - A security profile that points to the endpoint group. - A firewall rule that references the security profile (group).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterceptEndpointGroup {
     /// Output only. List of associations to this endpoint group.
     #[serde(default)]
@@ -959,7 +960,7 @@ pub struct InterceptEndpointGroup {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -979,7 +980,7 @@ pub struct Location {
 }
 
 /// A deployment group aggregates many zonal mirroring backends (deployments) into a single global mirroring service. Consumers can connect this service using an endpoint group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MirroringDeploymentGroup {
     /// Output only. The list of endpoint groups that are connected to this resource.
     #[serde(default, rename = "connectedEndpointGroups")]
@@ -1019,7 +1020,7 @@ pub struct MirroringDeploymentGroup {
 }
 
 /// A deployment represents a zonal mirroring backend ready to accept GENEVE-encapsulated replica traffic, e.g. a zonal instance group fronted by an internal passthrough load balancer. Deployments are always part of a global deployment group which represents a global mirroring service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MirroringDeployment {
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
@@ -1051,7 +1052,7 @@ pub struct MirroringDeployment {
 }
 
 /// An endpoint group association represents a link between a network and an endpoint group in the organization. Creating an association creates the networking infrastructure linking the network to the endpoint group, but does not enable mirroring by itself. To enable mirroring, the user must also create a network firewall policy containing mirroring rules and associate it with the network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MirroringEndpointGroupAssociation {
     /// Output only. The timestamp when the resource was created. See https://google.aip.dev/148#timestamps.
     #[serde(default, rename = "createTime")]
@@ -1087,7 +1088,7 @@ pub struct MirroringEndpointGroupAssociation {
 }
 
 /// An endpoint group is a consumer frontend for a deployment group (backend). In order to configure mirroring for a network, consumers must create: - An association between their network and the endpoint group. - A security profile that points to the endpoint group. - A mirroring rule that references the security profile (group).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MirroringEndpointGroup {
     /// Output only. List of associations to this endpoint group.
     #[serde(default)]
@@ -1127,7 +1128,7 @@ pub struct MirroringEndpointGroup {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1147,7 +1148,7 @@ pub struct Operation {
 }
 
 /// SecurityProfileGroup is a resource that defines the behavior for various ProfileTypes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityProfileGroup {
     /// Output only. Resource creation timestamp.
     #[serde(default, rename = "createTime")]
@@ -1185,7 +1186,7 @@ pub struct SecurityProfileGroup {
 }
 
 /// SecurityProfile is a resource that defines the behavior for one of many ProfileTypes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityProfile {
     /// Output only. Resource creation timestamp.
     #[serde(default, rename = "createTime")]
@@ -1223,7 +1224,7 @@ pub struct SecurityProfile {
 }
 
 /// ServerTlsPolicy is a resource that specifies how a server should authenticate incoming requests. This resource itself does not affect configuration unless it is attached to a target HTTPS proxy or endpoint config selector resource. ServerTlsPolicy in the form accepted by Application Load Balancers can be attached only to TargetHttpsProxy with an EXTERNAL, EXTERNAL_MANAGED or INTERNAL_MANAGED load balancing scheme. Traffic Director compatible ServerTlsPolicies can be attached to EndpointPolicy and TargetHttpsProxy with Traffic Director INTERNAL_SELF_MANAGED load balancing scheme.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServerTlsPolicy {
     /// This field applies only for Traffic Director policies. It is must be set to false for Application Load Balancer policies. Determines if server allows plaintext connections. If set to true, server allows plain text connections. By default, it is set to false. This setting is not exclusive of other encryption modes. For example, if allow_open and mtls_policy are set, server allows both plain text and mTLS connections. See documentation of other encryption modes to confirm compatibility. Consider using it if you wish to upgrade in place your deployment to TLS while having mixed TLS and non-TLS traffic reaching port :80.
     #[serde(default, rename = "allowOpen")]
@@ -1252,7 +1253,7 @@ pub struct ServerTlsPolicy {
 }
 
 /// The TlsInspectionPolicy resource contains references to CA pools in Certificate Authority Service and associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsInspectionPolicy {
     /// Required. A CA pool resource used to issue interception certificates. The CA pool string has a relative resource path following the form "projects/{project}/locations/{location}/caPools/{ca_pool}".
     #[serde(default, rename = "caPool")]
@@ -1287,7 +1288,7 @@ pub struct TlsInspectionPolicy {
 }
 
 /// UrlList proto helps users to set reusable, independently manageable lists of hosts, host patterns, URLs, URL patterns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlList {
     /// Output only. Time when the security policy was created.
     #[serde(default, rename = "createTime")]
@@ -1307,7 +1308,7 @@ pub struct UrlList {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1318,7 +1319,7 @@ pub struct GoogleIamV1AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1332,7 +1333,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// Specification of rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Rule {
     /// Optional. List of attributes for the traffic destination. All of the destinations must match. A destination is a match if a request matches all the specified hosts, ports, methods and headers. If not set, the action specified in the ''action'' field will be applied without any rule checks for the destination.
     #[serde(default)]
@@ -1343,7 +1344,7 @@ pub struct Rule {
 }
 
 /// Allows delegating authorization decisions to Cloud IAP or to Service Extensions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyCustomProvider {
     /// Optional. Delegate authorization decision to user authored Service Extension. Only one of cloudIap or authzExtension can be specified.
     #[serde(default, rename = "authzExtension")]
@@ -1354,7 +1355,7 @@ pub struct AuthzPolicyCustomProvider {
 }
 
 /// Conditions to match against the incoming request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRule {
     /// Optional. Describes properties of a source of a request.
     #[serde(default)]
@@ -1368,7 +1369,7 @@ pub struct AuthzPolicyAuthzRule {
 }
 
 /// Specifies the set of targets to which this policy should be applied to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyTarget {
     /// Optional. All gateways and forwarding rules referenced by this policy and extensions must share the same load balancing scheme. Supported values: INTERNAL_MANAGED and EXTERNAL_MANAGED. For more information, refer to [Backend services overview](https://cloud.google.com/load-balancing/docs/backend-service). // TODO: enum values: ["LOAD_BALANCING_SCHEME_UNSPECIFIED", "INTERNAL_MANAGED", "EXTERNAL_MANAGED", "INTERNAL_SELF_MANAGED"]
     #[serde(default, rename = "loadBalancingScheme")]
@@ -1379,7 +1380,7 @@ pub struct AuthzPolicyTarget {
 }
 
 /// This is a subset of the FirewallEndpointAssociation message, containing fields to be used by the consumer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallEndpointAssociationReference {
     /// Output only. The resource name of the FirewallEndpointAssociation. Format: projects/{project}/locations/{location}/firewallEndpointAssociations/{id}
     #[serde(default)]
@@ -1390,7 +1391,7 @@ pub struct FirewallEndpointAssociationReference {
 }
 
 /// Settings for the endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallEndpointEndpointSettings {
     /// Optional. Immutable. Indicates whether Jumbo Frames are enabled. Default value is false.
     #[serde(default, rename = "jumboFramesEnabled")]
@@ -1398,7 +1399,7 @@ pub struct FirewallEndpointEndpointSettings {
 }
 
 /// An endpoint group connected to this deployment group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterceptDeploymentGroupConnectedEndpointGroup {
     /// Output only. The connected endpoint group''s resource name, for example: projects/123456789/locations/global/interceptEndpointGroups/my-eg. See https://google.aip.dev/124.
     #[serde(default)]
@@ -1406,7 +1407,7 @@ pub struct InterceptDeploymentGroupConnectedEndpointGroup {
 }
 
 /// A deployment belonging to this deployment group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterceptDeploymentGroupDeployment {
     /// Output only. The name of the Intercept Deployment, in the format: projects/{project}/locations/{location}/interceptDeployments/{intercept_deployment}.
     #[serde(default)]
@@ -1417,7 +1418,7 @@ pub struct InterceptDeploymentGroupDeployment {
 }
 
 /// Contains details about the state of an association in a specific cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterceptEndpointGroupAssociationLocationDetails {
     /// Output only. The cloud location, e.g. "us-central1-a" or "asia-south1".
     #[serde(default)]
@@ -1428,7 +1429,7 @@ pub struct InterceptEndpointGroupAssociationLocationDetails {
 }
 
 /// The endpoint group''s view of a connected association.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterceptEndpointGroupAssociationDetails {
     /// Output only. The connected association''s resource name, for example: projects/123456789/locations/global/interceptEndpointGroupAssociations/my-ega. See https://google.aip.dev/124.
     #[serde(default)]
@@ -1442,7 +1443,7 @@ pub struct InterceptEndpointGroupAssociationDetails {
 }
 
 /// The endpoint group''s view of a connected deployment group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterceptEndpointGroupConnectedDeploymentGroup {
     /// Output only. The list of locations where the deployment group is present.
     #[serde(default)]
@@ -1453,7 +1454,7 @@ pub struct InterceptEndpointGroupConnectedDeploymentGroup {
 }
 
 /// An endpoint group connected to this deployment group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MirroringDeploymentGroupConnectedEndpointGroup {
     /// Output only. The connected endpoint group''s resource name, for example: projects/123456789/locations/global/mirroringEndpointGroups/my-eg. See https://google.aip.dev/124.
     #[serde(default)]
@@ -1461,7 +1462,7 @@ pub struct MirroringDeploymentGroupConnectedEndpointGroup {
 }
 
 /// A deployment belonging to this deployment group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MirroringDeploymentGroupDeployment {
     /// Output only. The name of the Mirroring Deployment, in the format: projects/{project}/locations/{location}/mirroringDeployments/{mirroring_deployment}.
     #[serde(default)]
@@ -1472,7 +1473,7 @@ pub struct MirroringDeploymentGroupDeployment {
 }
 
 /// Contains details about the state of an association in a specific cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MirroringEndpointGroupAssociationLocationDetails {
     /// Output only. The cloud location, e.g. "us-central1-a" or "asia-south1".
     #[serde(default)]
@@ -1483,7 +1484,7 @@ pub struct MirroringEndpointGroupAssociationLocationDetails {
 }
 
 /// The endpoint group''s view of a connected association.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MirroringEndpointGroupAssociationDetails {
     /// Output only. The connected association''s resource name, for example: projects/123456789/locations/global/mirroringEndpointGroupAssociations/my-ega. See https://google.aip.dev/124.
     #[serde(default)]
@@ -1497,7 +1498,7 @@ pub struct MirroringEndpointGroupAssociationDetails {
 }
 
 /// The endpoint group''s view of a connected deployment group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MirroringEndpointGroupConnectedDeploymentGroup {
     /// Output only. The list of locations where the deployment group is present.
     #[serde(default)]
@@ -1508,7 +1509,7 @@ pub struct MirroringEndpointGroupConnectedDeploymentGroup {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1522,7 +1523,7 @@ pub struct Status {
 }
 
 /// CustomInterceptProfile defines in-band integration behavior (intercept). It is used by firewall rules with an APPLY_SECURITY_PROFILE_GROUP action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomInterceptProfile {
     /// Required. The target InterceptEndpointGroup. When a firewall rule with this security profile attached matches a packet, the packet will be intercepted to the location-local target in this group.
     #[serde(default, rename = "interceptEndpointGroup")]
@@ -1530,7 +1531,7 @@ pub struct CustomInterceptProfile {
 }
 
 /// CustomMirroringProfile defines out-of-band integration behavior (mirroring). It is used by mirroring rules with a MIRROR action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomMirroringProfile {
     /// Required. Immutable. The target MirroringEndpointGroup. When a mirroring rule with this security profile attached matches a packet, a replica will be mirrored to the location-local target in this group.
     #[serde(default, rename = "mirroringEndpointGroup")]
@@ -1538,7 +1539,7 @@ pub struct CustomMirroringProfile {
 }
 
 /// ThreatPreventionProfile defines an action for specific threat signatures or severity levels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThreatPreventionProfile {
     /// Optional. Configuration for overriding antivirus actions per protocol.
     #[serde(default, rename = "antivirusOverrides")]
@@ -1552,7 +1553,7 @@ pub struct ThreatPreventionProfile {
 }
 
 /// UrlFilteringProfile defines filters based on URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlFilteringProfile {
     /// Optional. The list of filtering configs in which each config defines an action to take for some URL match.
     #[serde(default, rename = "urlFilters")]
@@ -1560,7 +1561,7 @@ pub struct UrlFilteringProfile {
 }
 
 /// Specification of the MTLSPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MTLSPolicy {
     /// Required if the policy is to be used with Traffic Director. For Application Load Balancers it must be empty. Defines the mechanism to obtain the Certificate Authority certificate to validate the client certificate.
     #[serde(default, rename = "clientValidationCa")]
@@ -1574,7 +1575,7 @@ pub struct MTLSPolicy {
 }
 
 /// Specification of certificate provider. Defines the mechanism to obtain the certificate and private key for peer to peer authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudNetworksecurityV1CertificateProvider {
     /// The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.
     #[serde(default, rename = "certificateProviderInstance")]
@@ -1585,7 +1586,7 @@ pub struct GoogleCloudNetworksecurityV1CertificateProvider {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1596,7 +1597,7 @@ pub struct GoogleIamV1AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1613,7 +1614,7 @@ pub struct Expr {
 }
 
 /// Specification of traffic destination attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Destination {
     /// Required. List of host names to match. Matched against the ":authority" header in http requests. At least one host should match. Each host can be an exact match, or a prefix match (example "mydomain.*") or a suffix match (example "*.myorg.com") or a presence (any) match "*".
     #[serde(default)]
@@ -1630,7 +1631,7 @@ pub struct Destination {
 }
 
 /// Specification of traffic source attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// Optional. List of CIDR ranges to match based on source IP address. At least one IP block should match. Single IP (e.g., "1.2.3.4") and CIDR (e.g., "1.2.3.0/24") are supported. Authorization based on source IP alone should be avoided. The IP addresses of any load balancers or proxies should be considered untrusted.
     #[serde(default, rename = "ipBlocks")]
@@ -1641,7 +1642,7 @@ pub struct Source {
 }
 
 /// Optional. Delegate authorization decision to user authored extension. Only one of cloudIap or authzExtension can be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyCustomProviderAuthzExtension {
     /// Required. A list of references to authorization extensions that will be invoked for requests matching this policy. Limited to 1 custom provider.
     #[serde(default)]
@@ -1649,7 +1650,7 @@ pub struct AuthzPolicyCustomProviderAuthzExtension {
 }
 
 /// Describes properties of one or more sources of a request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleFrom {
     /// Optional. Describes the negated properties of request sources. Matches requests from sources that do not match the criteria specified in this field. At least one of sources or notSources must be specified.
     #[serde(default, rename = "notSources")]
@@ -1660,7 +1661,7 @@ pub struct AuthzPolicyAuthzRuleFrom {
 }
 
 /// Describes properties of one or more targets of a request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleTo {
     /// Optional. Describes the negated properties of the targets of a request. Matches requests for operations that do not match the criteria specified in this field. At least one of operations or notOperations must be specified.
     #[serde(default, rename = "notOperations")]
@@ -1672,7 +1673,7 @@ pub struct AuthzPolicyAuthzRuleTo {
 }
 
 /// Details about intercept in a specific cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterceptLocation {
     /// Output only. The cloud location, e.g. "us-central1-a" or "asia-south1".
     #[serde(default)]
@@ -1683,7 +1684,7 @@ pub struct InterceptLocation {
 }
 
 /// Details about mirroring in a specific cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MirroringLocation {
     /// Output only. The cloud location, e.g. "us-central1-a" or "asia-south1".
     #[serde(default)]
@@ -1694,7 +1695,7 @@ pub struct MirroringLocation {
 }
 
 /// Defines what action to take for antivirus threats per protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AntivirusOverride {
     /// Required. Threat action override. For some threat types, only a subset of actions applies. // TODO: enum values: ["THREAT_ACTION_UNSPECIFIED", "DEFAULT_ACTION", "ALLOW", "ALERT", "DENY"]
     #[serde(default)]
@@ -1705,7 +1706,7 @@ pub struct AntivirusOverride {
 }
 
 /// Defines what action to take for a specific severity match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SeverityOverride {
     /// Required. Threat action override. // TODO: enum values: ["THREAT_ACTION_UNSPECIFIED", "DEFAULT_ACTION", "ALLOW", "ALERT", "DENY"]
     #[serde(default)]
@@ -1716,7 +1717,7 @@ pub struct SeverityOverride {
 }
 
 /// Defines what action to take for a specific threat_id match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThreatOverride {
     /// Required. Threat action override. For some threat types, only a subset of actions applies. // TODO: enum values: ["THREAT_ACTION_UNSPECIFIED", "DEFAULT_ACTION", "ALLOW", "ALERT", "DENY"]
     #[serde(default)]
@@ -1730,7 +1731,7 @@ pub struct ThreatOverride {
 }
 
 /// A URL filter defines an action to take for some URL match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlFilter {
     /// Required. The action taken when this filter is applied. // TODO: enum values: ["URL_FILTERING_ACTION_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "filteringAction")]
@@ -1744,7 +1745,7 @@ pub struct UrlFilter {
 }
 
 /// Specification of ValidationCA. Defines the mechanism to obtain the Certificate Authority certificate to validate the peer certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidationCA {
     /// The certificate provider instance specification that will be passed to the data plane, which will be used to load necessary credential information.
     #[serde(default, rename = "certificateProviderInstance")]
@@ -1755,7 +1756,7 @@ pub struct ValidationCA {
 }
 
 /// Specification of HTTP header match attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpHeaderMatch {
     /// Required. The name of the HTTP header to match. For matching against the HTTP request''s authority, use a headerMatch with the header name ":authority". For matching a request''s method, use the headerName ":method".
     #[serde(default, rename = "headerName")]
@@ -1766,7 +1767,7 @@ pub struct HttpHeaderMatch {
 }
 
 /// Describes the properties of a single source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleFromRequestSource {
     /// Optional. A list of IP addresses or IP address ranges to match against the source IP address of the request. Limited to 10 ip_blocks per Authorization Policy
     #[serde(default, rename = "ipBlocks")]
@@ -1780,7 +1781,7 @@ pub struct AuthzPolicyAuthzRuleFromRequestSource {
 }
 
 /// Describes properties of one or more targets of a request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleToRequestOperation {
     /// Optional. A list of headers to match against in http header.
     #[serde(default, rename = "headerSet")]
@@ -1800,7 +1801,7 @@ pub struct AuthzPolicyAuthzRuleToRequestOperation {
 }
 
 /// Specification of a TLS certificate provider instance. Workloads may have one or more CertificateProvider instances (plugins) and one of them is enabled and configured by specifying this message. Workloads use the values from this message to locate and load the CertificateProvider instance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateProviderInstance {
     /// Required. Plugin instance name, used to locate and load CertificateProvider instance configuration. Set to "google_cloud_private_spiffe" to use Certificate Authority Service certificate provider instance.
     #[serde(default, rename = "pluginInstance")]
@@ -1808,7 +1809,7 @@ pub struct CertificateProviderInstance {
 }
 
 /// Specification of the GRPC Endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudNetworksecurityV1GrpcEndpoint {
     /// Required. The target URI of the gRPC endpoint. Only UDS path is supported, and should start with "unix:".
     #[serde(default, rename = "targetUri")]
@@ -1816,7 +1817,7 @@ pub struct GoogleCloudNetworksecurityV1GrpcEndpoint {
 }
 
 /// Represents a range of IP Addresses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleIpBlock {
     /// Required. The length of the address range.
     #[serde(default)]
@@ -1827,7 +1828,7 @@ pub struct AuthzPolicyAuthzRuleIpBlock {
 }
 
 /// Describes the properties of a principal to be matched against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRulePrincipal {
     /// Required. A non-empty string whose value is matched against the principal value based on the principal_selector. Only exact match can be applied for CLIENT_CERT_URI_SAN, CLIENT_CERT_DNS_NAME_SAN, CLIENT_CERT_COMMON_NAME selectors.
     #[serde(default)]
@@ -1838,7 +1839,7 @@ pub struct AuthzPolicyAuthzRulePrincipal {
 }
 
 /// Describes the properties of a client VM resource accessing the internal application load balancers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleRequestResource {
     /// Optional. An IAM service account to match against the source service account of the VM sending the request.
     #[serde(default, rename = "iamServiceAccount")]
@@ -1849,7 +1850,7 @@ pub struct AuthzPolicyAuthzRuleRequestResource {
 }
 
 /// Describes a set of HTTP headers to match against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleToRequestOperationHeaderSet {
     /// Required. A list of headers to match against in http header. The match can be one of exact, prefix, suffix, or contains (substring match). The match follows AND semantics which means all the headers must match. Matches are always case sensitive unless the ignoreCase is set. Limited to 10 headers per Authorization Policy.
     #[serde(default)]
@@ -1857,7 +1858,7 @@ pub struct AuthzPolicyAuthzRuleToRequestOperationHeaderSet {
 }
 
 /// Describes a set of MCP protocol attributes to match against for a given MCP request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleToRequestOperationMCP {
     /// Optional. If specified, matches on the MCP protocol’s non-access specific methods namely: * initialize * completion/ * logging/ * notifications/ * ping Defaults to SKIP_BASE_PROTOCOL_METHODS if not specified. // TODO: enum values: ["BASE_PROTOCOL_METHODS_OPTION_UNSPECIFIED", "SKIP_BASE_PROTOCOL_METHODS", "MATCH_BASE_PROTOCOL_METHODS"]
     #[serde(default, rename = "baseProtocolMethodsOption")]
@@ -1869,7 +1870,7 @@ pub struct AuthzPolicyAuthzRuleToRequestOperationMCP {
 }
 
 /// Describes a set of resource tag value permanent IDs to match against the resource manager tags value associated with the source VM of a request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleRequestResourceTagValueIdSet {
     /// Required. A list of resource tag value permanent IDs to match against the resource manager tags value associated with the source VM of a request. The match follows AND semantics which means all the ids must match. Limited to 5 ids in the Tag value id set.
     #[serde(default)]
@@ -1877,7 +1878,7 @@ pub struct AuthzPolicyAuthzRuleRequestResourceTagValueIdSet {
 }
 
 /// Determines how a HTTP header should be matched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleHeaderMatch {
     /// Optional. Specifies the name of the header in the request.
     #[serde(default)]
@@ -1888,7 +1889,7 @@ pub struct AuthzPolicyAuthzRuleHeaderMatch {
 }
 
 /// Describes a set of MCP methods to match against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzPolicyAuthzRuleToRequestOperationMCPMethod {
     /// Required. The MCP method to match against. Allowed values are as follows: 1. tools, prompts, resources - these will match against all sub methods under the respective methods. 2. prompts/list, tools/list, resources/list, resources/templates/list 3. prompts/get, tools/call, resources/subscribe, resources/unsubscribe, resources/read Params cannot be specified for categories 1 and 2.
     #[serde(default)]

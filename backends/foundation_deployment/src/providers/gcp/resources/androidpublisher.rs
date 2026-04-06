@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for AddTargeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddTargetingRequest {
     /// Specifies targeting updates such as regions, android sdk versions etc.
     #[serde(default, rename = "targetingUpdate")]
@@ -19,11 +20,11 @@ pub struct AddTargetingRequest {
 }
 
 /// Response message for AddTargeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddTargetingResponse {}
 
 /// Request to create a new externally hosted APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApksAddExternallyHostedRequest {
     /// The definition of the externally-hosted APK and where it is located.
     #[serde(default, rename = "externallyHostedApk")]
@@ -31,7 +32,7 @@ pub struct ApksAddExternallyHostedRequest {
 }
 
 /// Response for creating a new externally hosted APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApksAddExternallyHostedResponse {
     /// The definition of the externally-hosted APK and where it is located.
     #[serde(default, rename = "externallyHostedApk")]
@@ -39,7 +40,7 @@ pub struct ApksAddExternallyHostedResponse {
 }
 
 /// Response listing all APKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApksListResponse {
     /// All APKs.
     #[serde(default)]
@@ -50,7 +51,7 @@ pub struct ApksListResponse {
 }
 
 /// The app details. The resource for DetailsService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppDetails {
     /// The user-visible support email for this app.
     #[serde(default, rename = "contactEmail")]
@@ -67,7 +68,7 @@ pub struct AppDetails {
 }
 
 /// An app edit. The resource for EditsService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppEdit {
     /// Output only. The time (as seconds since Epoch) at which the edit will expire and will be no longer valid for use.
     #[serde(default, rename = "expiryTimeSeconds")]
@@ -78,19 +79,19 @@ pub struct AppEdit {
 }
 
 /// Deprecated: subscription archiving is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArchiveSubscriptionRequest {}
 
 /// Details of a base price pricing phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BaseDetails {}
 
 /// Details about base price offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasePriceOfferPhase {}
 
 /// Request message for BatchDeleteOneTimeProductOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteOneTimeProductOffersRequest {
     /// Required. A list of update requests of up to 100 elements. All requests must correspond to different offers.
     #[serde(default)]
@@ -98,7 +99,7 @@ pub struct BatchDeleteOneTimeProductOffersRequest {
 }
 
 /// Request message for BatchDeleteOneTimeProduct.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteOneTimeProductsRequest {
     /// Required. A list of delete requests of up to 100 elements. All requests must delete different one-time products.
     #[serde(default)]
@@ -106,7 +107,7 @@ pub struct BatchDeleteOneTimeProductsRequest {
 }
 
 /// Request message for BatchDeletePurchaseOption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeletePurchaseOptionsRequest {
     /// Required. A list of delete requests of up to 100 elements. All requests must delete purchase options from different one-time products.
     #[serde(default)]
@@ -114,7 +115,7 @@ pub struct BatchDeletePurchaseOptionsRequest {
 }
 
 /// Request message for the BatchGetOneTimeProductOffers endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetOneTimeProductOffersRequest {
     /// Required. A list of get requests of up to 100 elements. All requests must retrieve different offers.
     #[serde(default)]
@@ -122,7 +123,7 @@ pub struct BatchGetOneTimeProductOffersRequest {
 }
 
 /// Response message for the BatchGetOneTimeProductOffers endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetOneTimeProductOffersResponse {
     /// The list of updated one-time product offers, in the same order as the request.
     #[serde(default, rename = "oneTimeProductOffers")]
@@ -130,7 +131,7 @@ pub struct BatchGetOneTimeProductOffersResponse {
 }
 
 /// Response message for the BatchGetOneTimeProducts endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetOneTimeProductsResponse {
     /// The list of requested one-time products, in the same order as the request.
     #[serde(default, rename = "oneTimeProducts")]
@@ -138,7 +139,7 @@ pub struct BatchGetOneTimeProductsResponse {
 }
 
 /// Response for the orders.batchGet API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetOrdersResponse {
     /// Details for the requested order IDs.
     #[serde(default)]
@@ -146,7 +147,7 @@ pub struct BatchGetOrdersResponse {
 }
 
 /// Request message for BatchGetSubscriptionOffers endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetSubscriptionOffersRequest {
     /// Required. A list of update requests of up to 100 elements. All requests must update different subscriptions.
     #[serde(default)]
@@ -154,14 +155,14 @@ pub struct BatchGetSubscriptionOffersRequest {
 }
 
 /// Response message for BatchGetSubscriptionOffers endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetSubscriptionOffersResponse {
     #[serde(default, rename = "subscriptionOffers")]
     pub subscription_offers: ::core::option::Option<::std::vec::Vec<SubscriptionOffer>>,
 }
 
 /// Response message for BatchGetSubscriptions endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetSubscriptionsResponse {
     /// The list of requested subscriptions, in the same order as the request.
     #[serde(default)]
@@ -169,7 +170,7 @@ pub struct BatchGetSubscriptionsResponse {
 }
 
 /// Request message for BatchMigrateBasePlanPrices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchMigrateBasePlanPricesRequest {
     /// Required. Up to 100 price migration requests. All requests must update different base plans.
     #[serde(default)]
@@ -177,7 +178,7 @@ pub struct BatchMigrateBasePlanPricesRequest {
 }
 
 /// Response message for BatchMigrateBasePlanPrices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchMigrateBasePlanPricesResponse {
     /// Contains one response per requested price migration, in the same order as the request.
     #[serde(default)]
@@ -185,7 +186,7 @@ pub struct BatchMigrateBasePlanPricesResponse {
 }
 
 /// Request message for BatchUpdateBasePlanStates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateBasePlanStatesRequest {
     /// Required. The update request list of up to 100 elements. All requests must update different base plans.
     #[serde(default)]
@@ -193,7 +194,7 @@ pub struct BatchUpdateBasePlanStatesRequest {
 }
 
 /// Response message for BatchUpdateBasePlanStates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateBasePlanStatesResponse {
     /// The list of updated subscriptions. This list will match the requests one to one, in the same order.
     #[serde(default)]
@@ -201,7 +202,7 @@ pub struct BatchUpdateBasePlanStatesResponse {
 }
 
 /// Request message for BatchUpdateOneTimeProductOfferStates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateOneTimeProductOfferStatesRequest {
     /// Required. The update request list of up to 100 elements. All requests must update different offers.
     #[serde(default)]
@@ -209,7 +210,7 @@ pub struct BatchUpdateOneTimeProductOfferStatesRequest {
 }
 
 /// Response message for BatchUpdateOneTimeProductOfferStates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateOneTimeProductOfferStatesResponse {
     /// The updated one-time product offers list, in the same order as the request.
     #[serde(default, rename = "oneTimeProductOffers")]
@@ -217,7 +218,7 @@ pub struct BatchUpdateOneTimeProductOfferStatesResponse {
 }
 
 /// Request message for BatchUpdateOneTimeProductOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateOneTimeProductOffersRequest {
     /// Required. A list of update requests of up to 100 elements. All requests must update different offers.
     #[serde(default)]
@@ -225,7 +226,7 @@ pub struct BatchUpdateOneTimeProductOffersRequest {
 }
 
 /// Response message for BatchUpdateOneTimeProductOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateOneTimeProductOffersResponse {
     /// The list of updated one-time product offers, in the same order as the request.
     #[serde(default, rename = "oneTimeProductOffers")]
@@ -233,7 +234,7 @@ pub struct BatchUpdateOneTimeProductOffersResponse {
 }
 
 /// Request message for BatchUpdateOneTimeProduct.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateOneTimeProductsRequest {
     /// Required. A list of update requests of up to 100 elements. All requests must update different one-time products.
     #[serde(default)]
@@ -241,7 +242,7 @@ pub struct BatchUpdateOneTimeProductsRequest {
 }
 
 /// Response message for BatchUpdateOneTimeProduct.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateOneTimeProductsResponse {
     /// The list of updated one-time products list, in the same order as the request.
     #[serde(default, rename = "oneTimeProducts")]
@@ -249,7 +250,7 @@ pub struct BatchUpdateOneTimeProductsResponse {
 }
 
 /// Request message for BatchUpdatePurchaseOptionStates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdatePurchaseOptionStatesRequest {
     /// Required. The update request list of up to 100 elements. All requests must update different purchase options.
     #[serde(default)]
@@ -257,7 +258,7 @@ pub struct BatchUpdatePurchaseOptionStatesRequest {
 }
 
 /// Response message for BatchUpdatePurchaseOptionStates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdatePurchaseOptionStatesResponse {
     /// The list of updated one-time products. This list will match the requests one to one, in the same order.
     #[serde(default, rename = "oneTimeProducts")]
@@ -265,7 +266,7 @@ pub struct BatchUpdatePurchaseOptionStatesResponse {
 }
 
 /// Request message for BatchUpdateSubscriptionOfferStates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateSubscriptionOfferStatesRequest {
     /// Required. The update request list of up to 100 elements. All requests must update different offers.
     #[serde(default)]
@@ -273,7 +274,7 @@ pub struct BatchUpdateSubscriptionOfferStatesRequest {
 }
 
 /// Response message for BatchUpdateSubscriptionOfferStates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateSubscriptionOfferStatesResponse {
     /// The updated subscription offers list.
     #[serde(default, rename = "subscriptionOffers")]
@@ -281,7 +282,7 @@ pub struct BatchUpdateSubscriptionOfferStatesResponse {
 }
 
 /// Request message for BatchUpdateSubscriptionOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateSubscriptionOffersRequest {
     /// Required. A list of update requests of up to 100 elements. All requests must update different subscription offers.
     #[serde(default)]
@@ -289,7 +290,7 @@ pub struct BatchUpdateSubscriptionOffersRequest {
 }
 
 /// Response message for BatchUpdateSubscriptionOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateSubscriptionOffersResponse {
     /// The updated subscription offers list.
     #[serde(default, rename = "subscriptionOffers")]
@@ -297,7 +298,7 @@ pub struct BatchUpdateSubscriptionOffersResponse {
 }
 
 /// Request message for BatchUpdateSubscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateSubscriptionsRequest {
     /// Required. A list of update requests of up to 100 elements. All requests must update different subscriptions.
     #[serde(default)]
@@ -305,7 +306,7 @@ pub struct BatchUpdateSubscriptionsRequest {
 }
 
 /// Response message for BatchUpdateSubscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateSubscriptionsResponse {
     /// The updated subscriptions list.
     #[serde(default)]
@@ -313,7 +314,7 @@ pub struct BatchUpdateSubscriptionsResponse {
 }
 
 /// Response listing all app bundles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BundlesListResponse {
     /// All app bundles.
     #[serde(default)]
@@ -324,15 +325,15 @@ pub struct BundlesListResponse {
 }
 
 /// Request message for CancelAppRecovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelAppRecoveryRequest {}
 
 /// Response message for CancelAppRecovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelAppRecoveryResponse {}
 
 /// Request for the purchases.subscriptionsv2.cancel API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelSubscriptionPurchaseRequest {
     /// Required. Additional details around the subscription revocation.
     #[serde(default, rename = "cancellationContext")]
@@ -340,11 +341,11 @@ pub struct CancelSubscriptionPurchaseRequest {
 }
 
 /// Response for the purchases.subscriptionsv2.cancel API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelSubscriptionPurchaseResponse {}
 
 /// Request message for ConvertRegionPrices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConvertRegionPricesRequest {
     /// The intital price to convert other regions from. Tax exclusive.
     #[serde(default)]
@@ -355,7 +356,7 @@ pub struct ConvertRegionPricesRequest {
 }
 
 /// Response message for ConvertRegionPrices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConvertRegionPricesResponse {
     /// Converted other regions prices in USD and EUR, to use for countries where Play doesn''t support a country''s local currency.
     #[serde(default, rename = "convertedOtherRegionsPrice")]
@@ -369,7 +370,7 @@ pub struct ConvertRegionPricesResponse {
 }
 
 /// A converted region price.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConvertedRegionPrice {
     /// The converted price tax inclusive.
     #[serde(default)]
@@ -383,7 +384,7 @@ pub struct ConvertedRegionPrice {
 }
 
 /// Request message for CreateDraftAppRecovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateDraftAppRecoveryRequest {
     /// Action type is remote in-app update. As a consequence of this action, a downloadable recovery module is also created for testing purposes.
     #[serde(default, rename = "remoteInAppUpdate")]
@@ -394,7 +395,7 @@ pub struct CreateDraftAppRecoveryRequest {
 }
 
 /// Request for the v2 purchases.subscriptions.defer API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeferSubscriptionPurchaseRequest {
     /// Required. Details about the subscription deferral.
     #[serde(default, rename = "deferralContext")]
@@ -402,7 +403,7 @@ pub struct DeferSubscriptionPurchaseRequest {
 }
 
 /// Response for the v2 purchases.subscriptions.defer API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeferSubscriptionPurchaseResponse {
     /// The new expiry time for each subscription items.
     #[serde(default, rename = "itemExpiryTimeDetails")]
@@ -410,11 +411,11 @@ pub struct DeferSubscriptionPurchaseResponse {
 }
 
 /// Information related to deferred item replacement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeferredItemRemoval {}
 
 /// Responses for the upload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeobfuscationFilesUploadResponse {
     /// The uploaded Deobfuscation File configuration.
     #[serde(default, rename = "deobfuscationFile")]
@@ -422,19 +423,19 @@ pub struct DeobfuscationFilesUploadResponse {
 }
 
 /// Request message for DeployAppRecovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployAppRecoveryRequest {}
 
 /// Response message for DeployAppRecovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployAppRecoveryResponse {}
 
 /// Information specific to cancellations initiated by developers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeveloperInitiatedCancellation {}
 
 /// Response for uploading an expansion file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExpansionFilesUploadResponse {
     /// The uploaded expansion file configuration.
     #[serde(default, rename = "expansionFile")]
@@ -442,7 +443,7 @@ pub struct ExpansionFilesUploadResponse {
 }
 
 /// The details of an external transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalTransaction {
     /// Output only. The time when this transaction was created. This is the time when Google was notified of the transaction.
     #[serde(default, rename = "createTime")]
@@ -492,23 +493,23 @@ pub struct ExternalTransaction {
 }
 
 /// Represents a transaction performed using a test account. These transactions will not be charged by Google.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalTransactionTestPurchase {}
 
 /// Details of a free trial pricing phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeTrialDetails {}
 
 /// Details about free trial offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeTrialOfferPhase {}
 
 /// A full refund of the remaining amount of a transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FullRefund {}
 
 /// Response to list generated APKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedApksListResponse {
     /// All generated APKs, grouped by the APK signing key.
     #[serde(default, rename = "generatedApks")]
@@ -516,7 +517,7 @@ pub struct GeneratedApksListResponse {
 }
 
 /// Response for deleting all images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesDeleteAllResponse {
     /// The deleted images.
     #[serde(default)]
@@ -524,7 +525,7 @@ pub struct ImagesDeleteAllResponse {
 }
 
 /// Response listing all images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesListResponse {
     /// All listed Images.
     #[serde(default)]
@@ -532,7 +533,7 @@ pub struct ImagesListResponse {
 }
 
 /// Response for uploading an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagesUploadResponse {
     /// The uploaded image.
     #[serde(default)]
@@ -540,7 +541,7 @@ pub struct ImagesUploadResponse {
 }
 
 /// Store listing of a single in-app product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InAppProductListing {
     /// Localized entitlement benefits for a subscription.
     #[serde(default)]
@@ -554,7 +555,7 @@ pub struct InAppProductListing {
 }
 
 /// Request to delete multiple in-app products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InappproductsBatchDeleteRequest {
     /// Individual delete requests. At least one request is required. Can contain up to 100 requests. All requests must correspond to different in-app products.
     #[serde(default)]
@@ -562,7 +563,7 @@ pub struct InappproductsBatchDeleteRequest {
 }
 
 /// Response message for BatchGetSubscriptions endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InappproductsBatchGetResponse {
     /// The list of requested in-app products, in the same order as the request.
     #[serde(default)]
@@ -570,7 +571,7 @@ pub struct InappproductsBatchGetResponse {
 }
 
 /// Request to update or insert one or more in-app products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InappproductsBatchUpdateRequest {
     /// Required. Individual update requests. At least one request is required. Can contain up to 100 requests. All requests must correspond to different in-app products.
     #[serde(default)]
@@ -578,7 +579,7 @@ pub struct InappproductsBatchUpdateRequest {
 }
 
 /// Response for a batch in-app product update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InappproductsBatchUpdateResponse {
     /// The updated or inserted in-app products.
     #[serde(default)]
@@ -586,7 +587,7 @@ pub struct InappproductsBatchUpdateResponse {
 }
 
 /// Response listing all in-app products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InappproductsListResponse {
     /// All in-app products.
     #[serde(default)]
@@ -603,7 +604,7 @@ pub struct InappproductsListResponse {
 }
 
 /// An artifact resource which gets created when uploading an APK or Android App Bundle through internal app sharing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InternalAppSharingArtifact {
     /// The sha256 fingerprint of the certificate used to sign the generated artifact.
     #[serde(default, rename = "certificateFingerprint")]
@@ -617,15 +618,15 @@ pub struct InternalAppSharingArtifact {
 }
 
 /// Details of an introductory price pricing phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntroductoryPriceDetails {}
 
 /// Details about introductory price offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntroductoryPriceOfferPhase {}
 
 /// Response message for ListAppRecoveries. -- api-linter: core::0158::response-next-page-token-field=disabled
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAppRecoveriesResponse {
     /// List of recovery actions associated with the requested package name.
     #[serde(default, rename = "recoveryActions")]
@@ -633,7 +634,7 @@ pub struct ListAppRecoveriesResponse {
 }
 
 /// Response listing existing device tier configs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDeviceTierConfigsResponse {
     /// Device tier configs created by the developer.
     #[serde(default, rename = "deviceTierConfigs")]
@@ -644,7 +645,7 @@ pub struct ListDeviceTierConfigsResponse {
 }
 
 /// Response message for ListOneTimeProductOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOneTimeProductOffersResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -655,7 +656,7 @@ pub struct ListOneTimeProductOffersResponse {
 }
 
 /// Response message for ListOneTimeProducts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOneTimeProductsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -666,7 +667,7 @@ pub struct ListOneTimeProductsResponse {
 }
 
 /// Response listing all releases for a given track that are either ready to be sent for review, in review, approved, not approved or available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReleaseSummariesResponse {
     /// List of releases for this track. A maximum of 20 releases can be returned.
     #[serde(default)]
@@ -674,7 +675,7 @@ pub struct ListReleaseSummariesResponse {
 }
 
 /// Response message for ListSubscriptionOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSubscriptionOffersResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -685,7 +686,7 @@ pub struct ListSubscriptionOffersResponse {
 }
 
 /// Response message for ListSubscriptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSubscriptionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -696,7 +697,7 @@ pub struct ListSubscriptionsResponse {
 }
 
 /// A response containing one or more users with access to an account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUsersResponse {
     /// A token to pass to subsequent calls in order to retrieve subsequent results. This will not be set if there are no more results to return.
     #[serde(default, rename = "nextPageToken")]
@@ -707,7 +708,7 @@ pub struct ListUsersResponse {
 }
 
 /// Response listing all localized listings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListingsListResponse {
     /// The kind of this response ("androidpublisher#listingsListResponse").
     #[serde(default)]
@@ -718,39 +719,39 @@ pub struct ListingsListResponse {
 }
 
 /// Response message for MigrateBasePlanPrices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MigrateBasePlanPricesResponse {}
 
 /// A single use promotion code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeCode {}
 
 /// Options for one-time product offers without a regional price override.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductOfferNoPriceOverrideOptions {}
 
 /// Details of a recurring external transaction product which doesn''t belong to any other more specific category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OtherRecurringProduct {}
 
 /// Represents the free price override configuration for any new locations Play may launch for a single offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OtherRegionsSubscriptionOfferPhaseFreePriceOverride {}
 
 /// Details of a paid app purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaidAppDetails {}
 
 /// This is an indicator of whether there is a pending cancellation on the virtual installment plan. The cancellation will happen only after the user finished all committed payments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PendingCancellation {}
 
 /// Details of a pre-order purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreorderDetails {}
 
 /// A ProductPurchase resource indicates the status of a user''s inapp product purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductPurchase {
     /// The acknowledgement state of the inapp product. Possible values are: 0. Yet to be acknowledged 1. Acknowledged
     #[serde(default, rename = "acknowledgementState")]
@@ -800,7 +801,7 @@ pub struct ProductPurchase {
 }
 
 /// A ProductPurchaseV2 resource indicates the status of a user''s inapp product purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductPurchaseV2 {
     /// Output only. The acknowledgement state of the purchase. // TODO: enum values: ["ACKNOWLEDGEMENT_STATE_UNSPECIFIED", "ACKNOWLEDGEMENT_STATE_PENDING", "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED"]
     #[serde(default, rename = "acknowledgementState")]
@@ -835,7 +836,7 @@ pub struct ProductPurchaseV2 {
 }
 
 /// Request for the product.purchases.acknowledge API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductPurchasesAcknowledgeRequest {
     /// Payload to attach to the purchase.
     #[serde(default, rename = "developerPayload")]
@@ -843,7 +844,7 @@ pub struct ProductPurchasesAcknowledgeRequest {
 }
 
 /// A request to refund an existing external transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundExternalTransactionRequest {
     /// A full-amount refund.
     #[serde(default, rename = "fullRefund")]
@@ -857,11 +858,11 @@ pub struct RefundExternalTransactionRequest {
 }
 
 /// Represents the free price override configuration for a single phase of a subscription offer
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalSubscriptionOfferPhaseFreePriceOverride {}
 
 /// Specified details about taxation in a given geographical region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalTaxRateInfo {
     /// You must tell us if your app contains streaming products to correctly charge US state and local sales tax. Field only supported in the United States.
     #[serde(default, rename = "eligibleForStreamingServiceTaxRate")]
@@ -875,19 +876,19 @@ pub struct RegionalTaxRateInfo {
 }
 
 /// Offer details information related to a rental line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RentOfferDetails {}
 
 /// Details of a rental purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RentalDetails {}
 
 /// Information specific to cancellations caused by subscription replacement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplacementCancellation {}
 
 /// Response listing reviews.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReviewsListResponse {
     /// Information about the current page.
     #[serde(default, rename = "pageInfo")]
@@ -901,7 +902,7 @@ pub struct ReviewsListResponse {
 }
 
 /// Request to reply to review or update existing reply.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReviewsReplyRequest {
     /// The text to set as the reply. Replies of more than approximately 350 characters will be rejected. HTML tags will be stripped.
     #[serde(default, rename = "replyText")]
@@ -909,7 +910,7 @@ pub struct ReviewsReplyRequest {
 }
 
 /// Response on status of replying to a review.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReviewsReplyResponse {
     /// The result of replying/updating a reply to review.
     #[serde(default)]
@@ -917,15 +918,15 @@ pub struct ReviewsReplyResponse {
 }
 
 /// Used to determine if the refund type in the RevocationContext is a full refund.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevocationContextFullRefund {}
 
 /// Used to determine if the refund type in the RevocationContext is a prorated refund.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevocationContextProratedRefund {}
 
 /// Request for the purchases.subscriptionsv2.revoke API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevokeSubscriptionPurchaseRequest {
     /// Required. Additional details around the subscription revocation.
     #[serde(default, rename = "revocationContext")]
@@ -933,11 +934,11 @@ pub struct RevokeSubscriptionPurchaseRequest {
 }
 
 /// Response for the purchases.subscriptionsv2.revoke API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevokeSubscriptionPurchaseResponse {}
 
 /// Request to update Safety Labels of an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SafetyLabelsUpdateRequest {
     /// Required. Contents of the CSV file containing Data Safety responses. For the format of this file, see the Help Center documentation at https://support.google.com/googleplay/android-developer/answer/10787469?#zippy=%2Cunderstand-the-csv-format To download an up to date template, follow the steps at https://support.google.com/googleplay/android-developer/answer/10787469?#zippy=%2Cexport-to-a-csv-file
     #[serde(default, rename = "safetyLabels")]
@@ -945,11 +946,11 @@ pub struct SafetyLabelsUpdateRequest {
 }
 
 /// Response for SafetyLabelsUpdate rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SafetyLabelsUpdateResponse {}
 
 /// A SubscriptionPurchase resource indicates the status of a user''s subscription purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionPurchase {
     /// The acknowledgement state of the subscription product. Possible values are: 0. Yet to be acknowledged 1. Acknowledged
     #[serde(default, rename = "acknowledgementState")]
@@ -1041,7 +1042,7 @@ pub struct SubscriptionPurchase {
 }
 
 /// Indicates the status of a user''s subscription purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionPurchaseV2 {
     /// The acknowledgement state of the subscription. // TODO: enum values: ["ACKNOWLEDGEMENT_STATE_UNSPECIFIED", "ACKNOWLEDGEMENT_STATE_PENDING", "ACKNOWLEDGEMENT_STATE_ACKNOWLEDGED"]
     #[serde(default, rename = "acknowledgementState")]
@@ -1091,7 +1092,7 @@ pub struct SubscriptionPurchaseV2 {
 }
 
 /// Request for the purchases.subscriptions.acknowledge API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionPurchasesAcknowledgeRequest {
     /// Payload to attach to the purchase.
     #[serde(default, rename = "developerPayload")]
@@ -1102,7 +1103,7 @@ pub struct SubscriptionPurchasesAcknowledgeRequest {
 }
 
 /// Request for the purchases.subscriptions.defer API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionPurchasesDeferRequest {
     /// The information about the new desired expiry time for the subscription.
     #[serde(default, rename = "deferralInfo")]
@@ -1110,7 +1111,7 @@ pub struct SubscriptionPurchasesDeferRequest {
 }
 
 /// Response for the purchases.subscriptions.defer API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionPurchasesDeferResponse {
     /// The new expiry time for the subscription in milliseconds since the Epoch.
     #[serde(default, rename = "newExpiryTimeMillis")]
@@ -1118,7 +1119,7 @@ pub struct SubscriptionPurchasesDeferResponse {
 }
 
 /// Response to list previously created system APK variants.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SystemApksListResponse {
     /// All system APK variants created.
     #[serde(default)]
@@ -1126,23 +1127,23 @@ pub struct SystemApksListResponse {
 }
 
 /// Information specific to cancellations initiated by Google system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SystemInitiatedCancellation {}
 
 /// Represents the targeting rule scope corresponding to any subscription in the parent app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetingRuleScopeAnySubscriptionInApp {}
 
 /// Represents the targeting rule scope corresponding to the subscriptions in which this offer is defined.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetingRuleScopeThisSubscription {}
 
 /// Whether this subscription purchase is a test purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestPurchase {}
 
 /// The testers of an app. The resource for TestersService. Note: while it is possible in the Play Console UI to add testers via email lists, email lists are not supported by this resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Testers {
     /// All testing Google Groups, as email addresses.
     #[serde(default, rename = "googleGroups")]
@@ -1150,7 +1151,7 @@ pub struct Testers {
 }
 
 /// Configurations of the new track.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrackConfig {
     /// Required. Form factor of the new track. Defaults to the default track. // TODO: enum values: ["FORM_FACTOR_UNSPECIFIED", "DEFAULT", "WEAR", "AUTOMOTIVE"]
     #[serde(default, rename = "formFactor")]
@@ -1164,7 +1165,7 @@ pub struct TrackConfig {
 }
 
 /// Resource for per-track country availability information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrackCountryAvailability {
     /// A list of one or more countries where artifacts in this track are available. This list includes all countries that are targeted by the track, even if only specific carriers are targeted in that country.
     #[serde(default)]
@@ -1178,7 +1179,7 @@ pub struct TrackCountryAvailability {
 }
 
 /// Response listing all tracks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TracksListResponse {
     /// The kind of this response ("androidpublisher#tracksListResponse").
     #[serde(default)]
@@ -1189,7 +1190,7 @@ pub struct TracksListResponse {
 }
 
 /// Response for the voidedpurchases.list API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VoidedPurchasesListResponse {
     /// General pagination information.
     #[serde(default, rename = "pageInfo")]
@@ -1202,7 +1203,7 @@ pub struct VoidedPurchasesListResponse {
 }
 
 /// Update type for targeting. Note it is always a subset Targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetingUpdate {
     /// All users are targeted.
     #[serde(default, rename = "allUsers")]
@@ -1216,7 +1217,7 @@ pub struct TargetingUpdate {
 }
 
 /// Defines an APK available for this application that is hosted externally and not uploaded to Google Play. This function is only available to organizations using Managed Play whose application is configured to restrict distribution to the organizations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternallyHostedApk {
     /// The application label.
     #[serde(default, rename = "applicationLabel")]
@@ -1266,7 +1267,7 @@ pub struct ExternallyHostedApk {
 }
 
 /// Information about an APK. The resource for ApksService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Apk {
     /// Information about the binary payload of this APK.
     #[serde(default)]
@@ -1277,7 +1278,7 @@ pub struct Apk {
 }
 
 /// Request message for deleting an one-time product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteOneTimeProductOfferRequest {
     /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
     #[serde(default, rename = "latencyTolerance")]
@@ -1297,7 +1298,7 @@ pub struct DeleteOneTimeProductOfferRequest {
 }
 
 /// Request message for deleting a one-time product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteOneTimeProductRequest {
     /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
     #[serde(default, rename = "latencyTolerance")]
@@ -1311,7 +1312,7 @@ pub struct DeleteOneTimeProductRequest {
 }
 
 /// Request message for deleting a purchase option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletePurchaseOptionRequest {
     /// Optional. This field has no effect for purchase options with no offers under them. For purchase options with associated offers: * If force is set to false (default), an error will be returned. * If force is set to true, any associated offers under the purchase option will be deleted.
     #[serde(default)]
@@ -1331,7 +1332,7 @@ pub struct DeletePurchaseOptionRequest {
 }
 
 /// Request message for GetOneTimeProductOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetOneTimeProductOfferRequest {
     /// Required. The unique offer ID of the offer to get.
     #[serde(default, rename = "offerId")]
@@ -1348,7 +1349,7 @@ pub struct GetOneTimeProductOfferRequest {
 }
 
 /// The Order resource encapsulates comprehensive information about a transaction made on Google Play. It includes a variety of attributes that provide details about the order itself, the products purchased, and the history of events related to the order. The Orders APIs provide real-time access to your order data within the Google Play ecosystem. You can retrieve detailed information and metadata for both one-time and recurring orders, including transaction details like charges, taxes, and refunds, as well as metadata such as pricing phases for subscriptions. The Orders APIs let you automate tasks related to order management, reducing the need for manual checks via the Play Developer Console. The following are some of the use cases for this API: + Real-time order data retrieval - Get order details and metadata immediately after a purchase using an order ID. + Order update synchronization - Periodically sync order updates to maintain an up-to-date record of order information. Note: + The Orders API calls count towards your Play Developer API quota, which defaults to 200K daily, and may be insufficient to sync extensive order histories. + A maximum of 1000 orders can be retrieved per call. Using larger page sizes is recommended to minimize quota usage. Check your quota in the Cloud Console and request more if required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Order {
     /// Address information for the customer, for use in tax computation. When Google is the Merchant of Record for the order, only country is shown.
     #[serde(default, rename = "buyerAddress")]
@@ -1395,7 +1396,7 @@ pub struct Order {
 }
 
 /// Request message for GetSubscriptionOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetSubscriptionOfferRequest {
     /// Required. The parent base plan (ID) of the offer to get.
     #[serde(default, rename = "basePlanId")]
@@ -1412,7 +1413,7 @@ pub struct GetSubscriptionOfferRequest {
 }
 
 /// Request message for MigrateBasePlanPrices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MigrateBasePlanPricesRequest {
     /// Required. The unique base plan ID of the base plan to update prices on.
     #[serde(default, rename = "basePlanId")]
@@ -1436,7 +1437,7 @@ pub struct MigrateBasePlanPricesRequest {
 }
 
 /// Request message to update the state of a subscription base plan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateBasePlanStateRequest {
     /// Activates a base plan. Once activated, base plans will be available to new subscribers.
     #[serde(default, rename = "activateBasePlanRequest")]
@@ -1447,7 +1448,7 @@ pub struct UpdateBasePlanStateRequest {
 }
 
 /// Request message to update the state of a one-time product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateOneTimeProductOfferStateRequest {
     /// Activates an offer. Once activated, the offer is available to users, as long as its conditions are met.
     #[serde(default, rename = "activateOneTimeProductOfferRequest")]
@@ -1464,7 +1465,7 @@ pub struct UpdateOneTimeProductOfferStateRequest {
 }
 
 /// Request message for UpdateOneTimeProductOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateOneTimeProductOfferRequest {
     /// Optional. If set to true, and the offer with the given package_name, product_id, purchase_option_id and offer_id doesn''t exist, an offer will be created. If a new offer is created, the update_mask is ignored.
     #[serde(default, rename = "allowMissing")]
@@ -1484,7 +1485,7 @@ pub struct UpdateOneTimeProductOfferRequest {
 }
 
 /// Request message for UpdateOneTimeProduct.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateOneTimeProductRequest {
     /// Optional. If set to true, and the one-time product with the given package_name and product_id doesn''t exist, the one-time product will be created. If a new one-time product is created, update_mask is ignored.
     #[serde(default, rename = "allowMissing")]
@@ -1504,7 +1505,7 @@ pub struct UpdateOneTimeProductRequest {
 }
 
 /// Request message to update the state of a one-time product purchase option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdatePurchaseOptionStateRequest {
     /// Activates a purchase option. Once activated, the purchase option will be available.
     #[serde(default, rename = "activatePurchaseOptionRequest")]
@@ -1515,7 +1516,7 @@ pub struct UpdatePurchaseOptionStateRequest {
 }
 
 /// Request message to update the state of a subscription offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSubscriptionOfferStateRequest {
     /// Activates an offer. Once activated, the offer will be available to new subscribers.
     #[serde(default, rename = "activateSubscriptionOfferRequest")]
@@ -1528,7 +1529,7 @@ pub struct UpdateSubscriptionOfferStateRequest {
 }
 
 /// Request message for UpdateSubscriptionOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSubscriptionOfferRequest {
     /// Optional. If set to true, and the subscription offer with the given package_name, product_id, base_plan_id and offer_id doesn''t exist, an offer will be created. If a new offer is created, update_mask is ignored.
     #[serde(default, rename = "allowMissing")]
@@ -1548,7 +1549,7 @@ pub struct UpdateSubscriptionOfferRequest {
 }
 
 /// Request message for UpdateSubscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSubscriptionRequest {
     /// Optional. If set to true, and the subscription with the given package_name and product_id doesn''t exist, the subscription will be created. If a new subscription is created, update_mask is ignored.
     #[serde(default, rename = "allowMissing")]
@@ -1568,7 +1569,7 @@ pub struct UpdateSubscriptionRequest {
 }
 
 /// Information about an app bundle. The resource for BundlesService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Bundle {
     /// A sha1 hash of the upload payload, encoded as a hex string and matching the output of the sha1sum command.
     #[serde(default)]
@@ -1582,7 +1583,7 @@ pub struct Bundle {
 }
 
 /// Cancellation context of the purchases.subscriptionsv2.cancel API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancellationContext {
     /// Required. The type of cancellation for the purchased subscription. // TODO: enum values: ["CANCELLATION_TYPE_UNSPECIFIED", "USER_REQUESTED_STOP_RENEWALS", "DEVELOPER_REQUESTED_STOP_PAYMENTS"]
     #[serde(default, rename = "cancellationType")]
@@ -1590,7 +1591,7 @@ pub struct CancellationContext {
 }
 
 /// Converted other regions prices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConvertedOtherRegionsPrice {
     /// Price in EUR to use for the "Other regions" location exclusive of taxes.
     #[serde(default, rename = "eurPrice")]
@@ -1601,7 +1602,7 @@ pub struct ConvertedOtherRegionsPrice {
 }
 
 /// Object representation for Remote in-app update action type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoteInAppUpdate {
     /// Required. Set to true if Remote In-App Update action type is needed.
     #[serde(default, rename = "isRemoteInAppUpdateRequested")]
@@ -1609,7 +1610,7 @@ pub struct RemoteInAppUpdate {
 }
 
 /// Deferral context of the purchases.subscriptionsv2.defer API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeferralContext {
     /// Required. The duration by which all subscription items should be deferred.
     #[serde(default, rename = "deferDuration")]
@@ -1623,7 +1624,7 @@ pub struct DeferralContext {
 }
 
 /// Expiry time details of a subscription item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ItemExpiryTimeDetails {
     /// The new expiry time for this subscription item.
     #[serde(default, rename = "expiryTime")]
@@ -1634,7 +1635,7 @@ pub struct ItemExpiryTimeDetails {
 }
 
 /// Represents a deobfuscation file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeobfuscationFile {
     /// The type of the deobfuscation file. // TODO: enum values: ["deobfuscationFileTypeUnspecified", "proguard", "nativeCode"]
     #[serde(default, rename = "symbolType")]
@@ -1642,7 +1643,7 @@ pub struct DeobfuscationFile {
 }
 
 /// An expansion file. The resource for ExpansionFilesService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExpansionFile {
     /// If set, this field indicates that this APK has an expansion file uploaded to it: this APK does not reference another APK''s expansion file. The field''s value is the size of the uploaded expansion file in bytes.
     #[serde(default, rename = "fileSize")]
@@ -1653,7 +1654,7 @@ pub struct ExpansionFile {
 }
 
 /// Reporting details unique to the external offers program.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalOfferDetails {
     /// Optional. The external transaction id associated with the app download event through an external link. Required when reporting transactions made in externally installed apps.
     #[serde(default, rename = "appDownloadEventExternalTransactionId")]
@@ -1670,7 +1671,7 @@ pub struct ExternalOfferDetails {
 }
 
 /// Represents a one-time transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeExternalTransaction {
     /// Input only. Provided during the call to Create. Retrieved from the client when the alternative billing flow is launched.
     #[serde(default, rename = "externalTransactionToken")]
@@ -1678,7 +1679,7 @@ pub struct OneTimeExternalTransaction {
 }
 
 /// Represents a transaction that is part of a recurring series of payments. This can be a subscription or a one-time product with multiple payments (such as preorder).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecurringExternalTransaction {
     /// Details of an external subscription.
     #[serde(default, rename = "externalSubscription")]
@@ -1698,7 +1699,7 @@ pub struct RecurringExternalTransaction {
 }
 
 /// User''s address for the external transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalTransactionAddress {
     /// Optional. Top-level administrative subdivision of the country/region. Only required for transactions in India. Valid values are "ANDAMAN AND NICOBAR ISLANDS", "ANDHRA PRADESH", "ARUNACHAL PRADESH", "ASSAM", "BIHAR", "CHANDIGARH", "CHHATTISGARH", "DADRA AND NAGAR HAVELI", "DADRA AND NAGAR HAVELI AND DAMAN AND DIU", "DAMAN AND DIU", "DELHI", "GOA", "GUJARAT", "HARYANA", "HIMACHAL PRADESH", "JAMMU AND KASHMIR", "JHARKHAND", "KARNATAKA", "KERALA", "LADAKH", "LAKSHADWEEP", "MADHYA PRADESH", "MAHARASHTRA", "MANIPUR", "MEGHALAYA", "MIZORAM", "NAGALAND", "ODISHA", "PUDUCHERRY", "PUNJAB", "RAJASTHAN", "SIKKIM", "TAMIL NADU", "TELANGANA", "TRIPURA", "UTTAR PRADESH", "UTTARAKHAND", and "WEST BENGAL".
     #[serde(default, rename = "administrativeArea")]
@@ -1709,7 +1710,7 @@ pub struct ExternalTransactionAddress {
 }
 
 /// Download metadata for split, standalone and universal APKs, as well as asset pack slices, signed with a given key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedApksPerSigningKey {
     /// SHA256 hash of the APK signing public key certificate.
     #[serde(default, rename = "certificateSha256Hash")]
@@ -1736,7 +1737,7 @@ pub struct GeneratedApksPerSigningKey {
 }
 
 /// An uploaded image. The resource for ImagesService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// A unique id representing this image.
     #[serde(default)]
@@ -1753,7 +1754,7 @@ pub struct Image {
 }
 
 /// Request to delete an in-app product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InappproductsDeleteRequest {
     /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
     #[serde(default, rename = "latencyTolerance")]
@@ -1767,7 +1768,7 @@ pub struct InappproductsDeleteRequest {
 }
 
 /// Request to update an in-app product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InappproductsUpdateRequest {
     /// If set to true, and the in-app product with the given package_name and sku doesn''t exist, the in-app product will be created.
     #[serde(default, rename = "allowMissing")]
@@ -1790,7 +1791,7 @@ pub struct InappproductsUpdateRequest {
 }
 
 /// Information about an app recovery action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppRecoveryAction {
     /// ID corresponding to the app recovery action.
     #[serde(default, rename = "appRecoveryId")]
@@ -1819,7 +1820,7 @@ pub struct AppRecoveryAction {
 }
 
 /// Configuration describing device targeting criteria for the content of an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceTierConfig {
     /// Definition of device groups for the app.
     #[serde(default, rename = "deviceGroups")]
@@ -1836,7 +1837,7 @@ pub struct DeviceTierConfig {
 }
 
 /// Summary of a release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReleaseSummary {
     /// List of active artifacts on this release
     #[serde(default, rename = "activeArtifacts")]
@@ -1853,7 +1854,7 @@ pub struct ReleaseSummary {
 }
 
 /// A user resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// Output only. The state of the user''s access to the Play Console. // TODO: enum values: ["ACCESS_STATE_UNSPECIFIED", "INVITED", "INVITATION_EXPIRED", "ACCESS_GRANTED", "ACCESS_EXPIRED"]
     #[serde(default, rename = "accessState")]
@@ -1879,7 +1880,7 @@ pub struct User {
 }
 
 /// A localized store listing. The resource for ListingsService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Listing {
     /// Full description of the app.
     #[serde(default, rename = "fullDescription")]
@@ -1899,7 +1900,7 @@ pub struct Listing {
 }
 
 /// Contains item-level info for a ProductPurchaseV2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductLineItem {
     /// The purchased product ID (for example, ''monthly001'').
     #[serde(default, rename = "productId")]
@@ -1910,7 +1911,7 @@ pub struct ProductLineItem {
 }
 
 /// Context about the purchase state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PurchaseStateContext {
     /// Output only. The purchase state of the purchase. // TODO: enum values: ["PURCHASE_STATE_UNSPECIFIED", "PURCHASED", "CANCELLED", "PENDING"]
     #[serde(default, rename = "purchaseState")]
@@ -1918,7 +1919,7 @@ pub struct PurchaseStateContext {
 }
 
 /// Context about a test purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestPurchaseContext {
     /// The fop type of the test purchase. // TODO: enum values: ["FOP_TYPE_UNSPECIFIED", "TEST"]
     #[serde(default, rename = "fopType")]
@@ -1926,7 +1927,7 @@ pub struct TestPurchaseContext {
 }
 
 /// A partial refund of a transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartialRefund {
     /// Required. A unique id distinguishing this partial refund. If the refund is successful, subsequent refunds with the same id will fail. Must be unique across refunds for one individual transaction.
     #[serde(default, rename = "refundId")]
@@ -1937,7 +1938,7 @@ pub struct PartialRefund {
 }
 
 /// An Android app review.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Review {
     /// The name of the user who wrote the review.
     #[serde(default, rename = "authorName")]
@@ -1951,7 +1952,7 @@ pub struct Review {
 }
 
 /// The result of replying/updating a reply to review.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReviewReplyResult {
     /// The time at which the reply took effect.
     #[serde(default, rename = "lastEdited")]
@@ -1962,7 +1963,7 @@ pub struct ReviewReplyResult {
 }
 
 /// Revocation context of the purchases.subscriptionsv2.revoke API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevocationContext {
     /// Optional. Used when users should be refunded the full amount of latest charge on each item in the subscription.
     #[serde(default, rename = "fullRefund")]
@@ -1976,7 +1977,7 @@ pub struct RevocationContext {
 }
 
 /// Information provided by the user when they complete the subscription cancellation flow (cancellation reason survey).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionCancelSurveyResult {
     /// The cancellation reason the user chose in the survey. Possible values are: 0. Other 1. I don''t use this service enough 2. Technical issues 3. Cost-related reasons 4. I found a better app
     #[serde(default, rename = "cancelSurveyReason")]
@@ -1987,7 +1988,7 @@ pub struct SubscriptionCancelSurveyResult {
 }
 
 /// Contains the introductory price information for a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntroductoryPriceInfo {
     /// Introductory price of the subscription, not including tax. The currency is the same as price_currency_code. Price is expressed in micro-units, where 1,000,000 micro-units represents one unit of the currency. For example, if the subscription price is €1.99, price_amount_micros is 1990000.
     #[serde(default, rename = "introductoryPriceAmountMicros")]
@@ -2004,7 +2005,7 @@ pub struct IntroductoryPriceInfo {
 }
 
 /// Contains the price change information for a subscription that can be used to control the user journey for the price change in the app. This can be in the form of seeking confirmation from the user or tailoring the experience for a successful conversion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionPriceChange {
     /// The new price the subscription will renew with if the price change is accepted by the user.
     #[serde(default, rename = "newPrice")]
@@ -2015,7 +2016,7 @@ pub struct SubscriptionPriceChange {
 }
 
 /// Information specific to a subscription in the SUBSCRIPTION_STATE_CANCELED or SUBSCRIPTION_STATE_EXPIRED state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CanceledStateContext {
     /// Subscription was canceled by the developer.
     #[serde(default, rename = "developerInitiatedCancellation")]
@@ -2032,7 +2033,7 @@ pub struct CanceledStateContext {
 }
 
 /// Item-level info for a subscription purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionPurchaseLineItem {
     /// The item is auto renewing.
     #[serde(default, rename = "autoRenewingPlan")]
@@ -2070,7 +2071,7 @@ pub struct SubscriptionPurchaseLineItem {
 }
 
 /// Information specific to an out of app purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutOfAppPurchaseContext {
     /// User account identifier from the last expired subscription for this SKU.
     #[serde(default, rename = "expiredExternalAccountIdentifiers")]
@@ -2081,7 +2082,7 @@ pub struct OutOfAppPurchaseContext {
 }
 
 /// Information specific to a subscription in paused state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PausedStateContext {
     /// Time at which the subscription will be automatically resumed.
     #[serde(default, rename = "autoResumeTime")]
@@ -2089,7 +2090,7 @@ pub struct PausedStateContext {
 }
 
 /// Information associated with purchases made with ''Subscribe with Google''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscribeWithGoogleInfo {
     /// The email address of the user when the subscription was purchased.
     #[serde(default, rename = "emailAddress")]
@@ -2109,7 +2110,7 @@ pub struct SubscribeWithGoogleInfo {
 }
 
 /// User account identifier in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalAccountIds {
     /// Optional. Specifies an optional obfuscated string that is uniquely associated with the purchaser''s user account in your app. If you pass this value, Google Play can use it to detect irregular activity. Do not use this field to store any Personally Identifiable Information (PII) such as emails in cleartext. Attempting to store PII in this field will result in purchases being blocked. Google Play recommends that you use either encryption or a one-way hash to generate an obfuscated identifier to send to Google Play. This identifier is limited to 64 characters. This field can only be set for resubscription purchases. See https://developer.android.com/reference/com/android/billingclient/api/BillingFlowParams.Builder#setobfuscatedaccountid to set this field for purchases made using the standard in-app billing flow.
     #[serde(default, rename = "obfuscatedAccountId")]
@@ -2120,7 +2121,7 @@ pub struct ExternalAccountIds {
 }
 
 /// A SubscriptionDeferralInfo contains the data needed to defer a subscription purchase to a future expiry time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionDeferralInfo {
     /// The desired next expiry time to assign to the subscription, in milliseconds since the Epoch. The given time must be later/greater than the current expiry time for the subscription.
     #[serde(default, rename = "desiredExpiryTimeMillis")]
@@ -2131,7 +2132,7 @@ pub struct SubscriptionDeferralInfo {
 }
 
 /// APK that is suitable for inclusion in a system image. The resource of SystemApksService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Variant {
     /// The device spec used to generate the APK.
     #[serde(default, rename = "deviceSpec")]
@@ -2145,7 +2146,7 @@ pub struct Variant {
 }
 
 /// Representation of a single country where the contents of a track can be made available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrackTargetedCountry {
     /// The country that can be targeted, as a two-letter CLDR code.
     #[serde(default, rename = "countryCode")]
@@ -2153,7 +2154,7 @@ pub struct TrackTargetedCountry {
 }
 
 /// A track configuration. The resource for TracksService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Track {
     /// In a read request, represents all active releases in the track. In an update request, represents desired changes.
     #[serde(default)]
@@ -2164,7 +2165,7 @@ pub struct Track {
 }
 
 /// Information about the current page. List operations that supports paging return only one "page" of results. This protocol buffer message describes the page that has been returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageInfo {
     /// Maximum number of results returned in one page. ! The number of results included in the API response.
     #[serde(default, rename = "resultPerPage")]
@@ -2178,7 +2179,7 @@ pub struct PageInfo {
 }
 
 /// Pagination information returned by a List operation when token pagination is enabled. List operations that supports paging return only one "page" of results. This protocol buffer message describes the page that has been returned. When using token pagination, clients should use the next/previous token to get another page of the result. The presence or absence of next/previous token indicates whether a next/previous page is available and provides a mean of accessing this page. ListRequest.page_token should be set to either next_page_token or previous_page_token to access another page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TokenPagination {
     /// Tokens to pass to the standard list field ''page_token''. Whenever available, tokens are preferred over manipulating start_index.
     #[serde(default, rename = "nextPageToken")]
@@ -2188,7 +2189,7 @@ pub struct TokenPagination {
 }
 
 /// A VoidedPurchase resource indicates a purchase that was either canceled/refunded/charged-back.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VoidedPurchase {
     /// This kind represents a voided purchase object in the androidpublisher service.
     #[serde(default)]
@@ -2217,7 +2218,7 @@ pub struct VoidedPurchase {
 }
 
 /// A permission used by this APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsesPermission {
     /// Optionally, the maximum SDK version for which the permission is required.
     #[serde(default, rename = "maxSdkVersion")]
@@ -2228,7 +2229,7 @@ pub struct UsesPermission {
 }
 
 /// Represents the binary payload of an APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApkBinary {
     /// A sha1 hash of the APK payload, encoded as a hex string and matching the output of the sha1sum command.
     #[serde(default)]
@@ -2239,7 +2240,7 @@ pub struct ApkBinary {
 }
 
 /// Address information for the customer, for use in tax computation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuyerAddress {
     /// Two letter country code based on ISO-3166-1 Alpha-2 (UN country codes).
     #[serde(default, rename = "buyerCountry")]
@@ -2253,7 +2254,7 @@ pub struct BuyerAddress {
 }
 
 /// Details of a line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineItem {
     /// Item''s listed price on Play Store, this may or may not include tax. Excludes Google-funded discounts only.
     #[serde(default, rename = "listingPrice")]
@@ -2282,7 +2283,7 @@ pub struct LineItem {
 }
 
 /// Detailed information about the order at creation time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrderDetails {
     /// Indicates whether the listed price was tax inclusive or not.
     #[serde(default, rename = "taxInclusive")]
@@ -2290,7 +2291,7 @@ pub struct OrderDetails {
 }
 
 /// Details about events which modified the order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrderHistory {
     /// Details of when the order was canceled.
     #[serde(default, rename = "cancellationEvent")]
@@ -2307,7 +2308,7 @@ pub struct OrderHistory {
 }
 
 /// Details relating to any Play Points applied to an order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PointsDetails {
     /// The monetary value of a Play Points coupon. This is the discount the coupon provides, which may not be the total amount. Only set when Play Points coupons have been used. E.g. for a 100 points for $2 coupon, this is $2.
     #[serde(default, rename = "pointsCouponValue")]
@@ -2324,7 +2325,7 @@ pub struct PointsDetails {
 }
 
 /// Configuration for migration of a legacy price cohort.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalPriceMigrationConfig {
     /// Required. Subscribers in all legacy price cohorts before this time will be migrated to the current price. Subscribers in any newer price cohorts are unaffected. Affected subscribers will receive one or more notifications from Google Play about the price change. Price decreases occur at the subscriber''s next billing date. Price increases occur at the subscriber''s next billing date following a notification period that varies by region and price increase type.
     #[serde(default, rename = "oldestAllowedPriceVersionTime")]
@@ -2338,7 +2339,7 @@ pub struct RegionalPriceMigrationConfig {
 }
 
 /// Request message for ActivateBasePlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivateBasePlanRequest {
     /// Required. The unique base plan ID of the base plan to activate.
     #[serde(default, rename = "basePlanId")]
@@ -2355,7 +2356,7 @@ pub struct ActivateBasePlanRequest {
 }
 
 /// Request message for DeactivateBasePlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeactivateBasePlanRequest {
     /// Required. The unique base plan ID of the base plan to deactivate.
     #[serde(default, rename = "basePlanId")]
@@ -2372,7 +2373,7 @@ pub struct DeactivateBasePlanRequest {
 }
 
 /// Request message for ActivateOneTimeProductOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivateOneTimeProductOfferRequest {
     /// Optional. The latency tolerance for the propagation of this update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
     #[serde(default, rename = "latencyTolerance")]
@@ -2392,7 +2393,7 @@ pub struct ActivateOneTimeProductOfferRequest {
 }
 
 /// Request message for CancelOneTimeProductOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOneTimeProductOfferRequest {
     /// Optional. The latency tolerance for the propagation of this update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
     #[serde(default, rename = "latencyTolerance")]
@@ -2412,7 +2413,7 @@ pub struct CancelOneTimeProductOfferRequest {
 }
 
 /// Request message for DeactivateOneTimeProductOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeactivateOneTimeProductOfferRequest {
     /// Optional. The latency tolerance for the propagation of this update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
     #[serde(default, rename = "latencyTolerance")]
@@ -2432,7 +2433,7 @@ pub struct DeactivateOneTimeProductOfferRequest {
 }
 
 /// A single offer for a one-time product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductOffer {
     /// A discounted offer.
     #[serde(default, rename = "discountedOffer")]
@@ -2469,7 +2470,7 @@ pub struct OneTimeProductOffer {
 }
 
 /// A single one-time product for an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProduct {
     /// Required. Set of localized title and description data. Must not have duplicate entries with the same language_code.
     #[serde(default)]
@@ -2498,7 +2499,7 @@ pub struct OneTimeProduct {
 }
 
 /// Request message for UpdatePurchaseOptionState.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivatePurchaseOptionRequest {
     /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
     #[serde(default, rename = "latencyTolerance")]
@@ -2515,7 +2516,7 @@ pub struct ActivatePurchaseOptionRequest {
 }
 
 /// Request message for UpdatePurchaseOptionState.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeactivatePurchaseOptionRequest {
     /// Optional. The latency tolerance for the propagation of this product update. Defaults to latency-sensitive. // TODO: enum values: ["PRODUCT_UPDATE_LATENCY_TOLERANCE_UNSPECIFIED", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_SENSITIVE", "PRODUCT_UPDATE_LATENCY_TOLERANCE_LATENCY_TOLERANT"]
     #[serde(default, rename = "latencyTolerance")]
@@ -2532,7 +2533,7 @@ pub struct DeactivatePurchaseOptionRequest {
 }
 
 /// Request message for ActivateSubscriptionOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivateSubscriptionOfferRequest {
     /// Required. The parent base plan (ID) of the offer to activate.
     #[serde(default, rename = "basePlanId")]
@@ -2552,7 +2553,7 @@ pub struct ActivateSubscriptionOfferRequest {
 }
 
 /// Request message for DeactivateSubscriptionOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeactivateSubscriptionOfferRequest {
     /// Required. The parent base plan (ID) of the offer to deactivate.
     #[serde(default, rename = "basePlanId")]
@@ -2572,7 +2573,7 @@ pub struct DeactivateSubscriptionOfferRequest {
 }
 
 /// A single, temporary offer
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionOffer {
     /// Required. Immutable. The ID of the base plan to which this offer is an extension.
     #[serde(default, rename = "basePlanId")]
@@ -2607,7 +2608,7 @@ pub struct SubscriptionOffer {
 }
 
 /// A single subscription for an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subscription {
     /// Output only. Deprecated: subscription archiving is not supported.
     #[serde(default)]
@@ -2633,7 +2634,7 @@ pub struct Subscription {
 }
 
 /// Details of an external subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalSubscription {
     /// Required. The type of the external subscription. // TODO: enum values: ["SUBSCRIPTION_TYPE_UNSPECIFIED", "RECURRING", "PREPAID"]
     #[serde(default, rename = "subscriptionType")]
@@ -2641,7 +2642,7 @@ pub struct ExternalSubscription {
 }
 
 /// Download metadata for an asset pack slice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedAssetPackSlice {
     /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
     #[serde(default, rename = "downloadId")]
@@ -2658,7 +2659,7 @@ pub struct GeneratedAssetPackSlice {
 }
 
 /// Download metadata for an app recovery module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedRecoveryApk {
     /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
     #[serde(default, rename = "downloadId")]
@@ -2675,7 +2676,7 @@ pub struct GeneratedRecoveryApk {
 }
 
 /// Download metadata for a split APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedSplitApk {
     /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
     #[serde(default, rename = "downloadId")]
@@ -2692,7 +2693,7 @@ pub struct GeneratedSplitApk {
 }
 
 /// Download metadata for a standalone APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedStandaloneApk {
     /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
     #[serde(default, rename = "downloadId")]
@@ -2703,7 +2704,7 @@ pub struct GeneratedStandaloneApk {
 }
 
 /// Download metadata for a universal APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedUniversalApk {
     /// Download ID, which uniquely identifies the APK to download. Should be supplied to generatedapks.download method.
     #[serde(default, rename = "downloadId")]
@@ -2711,7 +2712,7 @@ pub struct GeneratedUniversalApk {
 }
 
 /// Targeting information about the generated apks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetingInfo {
     /// List of created asset slices.
     #[serde(default, rename = "assetSliceSet")]
@@ -2725,7 +2726,7 @@ pub struct TargetingInfo {
 }
 
 /// An in-app product. The resource for InappproductsService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InAppProduct {
     /// Default language of the localized data, as defined by BCP-47. e.g. "en-US".
     #[serde(default, rename = "defaultLanguage")]
@@ -2771,7 +2772,7 @@ pub struct InAppProduct {
 }
 
 /// Data related to Remote In-App Update action such as recovered user count, affected user count etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoteInAppUpdateData {
     /// Data related to the recovery action at bundle level.
     #[serde(default, rename = "remoteAppUpdateDataPerBundle")]
@@ -2780,7 +2781,7 @@ pub struct RemoteInAppUpdateData {
 }
 
 /// Targeting details for a recovery action such as regions, android sdk levels, app versions etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Targeting {
     /// All users are targeted.
     #[serde(default, rename = "allUsers")]
@@ -2800,7 +2801,7 @@ pub struct Targeting {
 }
 
 /// A group of devices. A group is defined by a set of device selectors. A device belongs to the group if it matches any selector (logical OR).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceGroup {
     /// Device selectors for this group. A device matching any of the selectors is included in this group.
     #[serde(default, rename = "deviceSelectors")]
@@ -2811,7 +2812,7 @@ pub struct DeviceGroup {
 }
 
 /// A set of device tiers. A tier set determines what variation of app content gets served to a specific device, for device-targeted content. You should assign a priority level to each tier, which determines the ordering by which they are evaluated by Play. See the documentation of DeviceTier.level for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceTierSet {
     /// Device tiers belonging to the set.
     #[serde(default, rename = "deviceTiers")]
@@ -2819,7 +2820,7 @@ pub struct DeviceTierSet {
 }
 
 /// A set of user countries. A country set determines what variation of app content gets served to a specific location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserCountrySet {
     /// List of country codes representing countries. A Country code is represented in ISO 3166 alpha-2 format. For Example:- "IT" for Italy, "GE" for Georgia.
     #[serde(default, rename = "countryCodes")]
@@ -2830,7 +2831,7 @@ pub struct UserCountrySet {
 }
 
 /// Summary of an artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArtifactSummary {
     /// Artifact''s version code
     #[serde(default, rename = "versionCode")]
@@ -2838,7 +2839,7 @@ pub struct ArtifactSummary {
 }
 
 /// An access grant resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Grant {
     /// The permissions granted to the user for this app.
     #[serde(default, rename = "appLevelPermissions")]
@@ -2852,7 +2853,7 @@ pub struct Grant {
 }
 
 /// Offer details information related to a purchase line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductOfferDetails {
     /// Output only. The consumption state of the purchase. // TODO: enum values: ["CONSUMPTION_STATE_UNSPECIFIED", "CONSUMPTION_STATE_YET_TO_BE_CONSUMED", "CONSUMPTION_STATE_CONSUMED"]
     #[serde(default, rename = "consumptionState")]
@@ -2884,7 +2885,7 @@ pub struct ProductOfferDetails {
 }
 
 /// An entry of conversation between user and developer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Comment {
     /// A comment from a developer.
     #[serde(default, rename = "developerComment")]
@@ -2895,7 +2896,7 @@ pub struct Comment {
 }
 
 /// Used to determine what specific item to revoke in a subscription with multiple items.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevocationContextItemBasedRefund {
     /// Required. If the subscription is a subscription with add-ons, the product id of the subscription item to revoke.
     #[serde(default, rename = "productId")]
@@ -2903,7 +2904,7 @@ pub struct RevocationContextItemBasedRefund {
 }
 
 /// Information specific to cancellations initiated by users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserInitiatedCancellation {
     /// Information provided by the user when they complete the subscription cancellation flow (cancellation reason survey).
     #[serde(default, rename = "cancelSurveyResult")]
@@ -2914,7 +2915,7 @@ pub struct UserInitiatedCancellation {
 }
 
 /// Information related to an auto renewing plan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoRenewingPlan {
     /// If the subscription is currently set to auto-renew, e.g. the user has not canceled the subscription
     #[serde(default, rename = "autoRenewEnabled")]
@@ -2934,7 +2935,7 @@ pub struct AutoRenewingPlan {
 }
 
 /// Information related to deferred item replacement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeferredItemReplacement {
     /// The product_id going to replace the existing product_id.
     #[serde(default, rename = "productId")]
@@ -2942,7 +2943,7 @@ pub struct DeferredItemReplacement {
 }
 
 /// Details about a subscription line item that is being replaced.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ItemReplacement {
     /// The base plan ID of the subscription line item being replaced.
     #[serde(default, rename = "basePlanId")]
@@ -2959,7 +2960,7 @@ pub struct ItemReplacement {
 }
 
 /// Offer details information related to a purchase line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfferDetails {
     /// The base plan ID. Present for all base plan and offers.
     #[serde(default, rename = "basePlanId")]
@@ -2973,7 +2974,7 @@ pub struct OfferDetails {
 }
 
 /// Offer phase details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfferPhase {
     /// Set when the offer phase is a base plan pricing phase.
     #[serde(default, rename = "basePrice")]
@@ -2990,7 +2991,7 @@ pub struct OfferPhase {
 }
 
 /// Information related to a prepaid plan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrepaidPlan {
     /// If present, this is the time after which top up purchases are allowed for the prepaid plan. Will not be present for expired prepaid plans.
     #[serde(default, rename = "allowExtendAfterTime")]
@@ -2998,7 +2999,7 @@ pub struct PrepaidPlan {
 }
 
 /// The promotion applied on this item when purchased.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignupPromotion {
     /// A one-time code was applied.
     #[serde(default, rename = "oneTimeCode")]
@@ -3009,7 +3010,7 @@ pub struct SignupPromotion {
 }
 
 /// User account identifier in the third-party service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalAccountIdentifiers {
     /// User account identifier in the third-party service. Only present if account linking happened as part of the subscription purchase flow.
     #[serde(default, rename = "externalAccountId")]
@@ -3023,7 +3024,7 @@ pub struct ExternalAccountIdentifiers {
 }
 
 /// The device spec used to generate a system APK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceSpec {
     /// Screen dpi.
     #[serde(default, rename = "screenDensity")]
@@ -3037,7 +3038,7 @@ pub struct DeviceSpec {
 }
 
 /// Options for system APKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SystemApkOptions {
     /// Whether to use the rotated key for signing the system APK.
     #[serde(default)]
@@ -3051,7 +3052,7 @@ pub struct SystemApkOptions {
 }
 
 /// A release within a track.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrackRelease {
     /// Restricts a release to a specific set of countries. Note this is only allowed to be set for inProgress releases in the production track.
     #[serde(default, rename = "countryTargeting")]
@@ -3077,7 +3078,7 @@ pub struct TrackRelease {
 }
 
 /// Details of a one-time purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimePurchaseDetails {
     /// The offer ID of the one-time purchase offer.
     #[serde(default, rename = "offerId")]
@@ -3097,7 +3098,7 @@ pub struct OneTimePurchaseDetails {
 }
 
 /// Details of a subscription purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionDetails {
     /// The base plan ID of the subscription.
     #[serde(default, rename = "basePlanId")]
@@ -3120,7 +3121,7 @@ pub struct SubscriptionDetails {
 }
 
 /// Details of when the order was canceled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancellationEvent {
     /// The time when the order was canceled.
     #[serde(default, rename = "eventTime")]
@@ -3128,7 +3129,7 @@ pub struct CancellationEvent {
 }
 
 /// Details of the partial refund events for this order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartialRefundEvent {
     /// The time when the partial refund was created.
     #[serde(default, rename = "createTime")]
@@ -3145,7 +3146,7 @@ pub struct PartialRefundEvent {
 }
 
 /// Details of when the order was processed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessedEvent {
     /// The time when the order was processed.
     #[serde(default, rename = "eventTime")]
@@ -3153,7 +3154,7 @@ pub struct ProcessedEvent {
 }
 
 /// Details of when the order was fully refunded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundEvent {
     /// The time when the order was fully refunded.
     #[serde(default, rename = "eventTime")]
@@ -3167,7 +3168,7 @@ pub struct RefundEvent {
 }
 
 /// Configuration specific to discounted offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductDiscountedOffer {
     /// Time when the offer will stop being available.
     #[serde(default, rename = "endTime")]
@@ -3181,7 +3182,7 @@ pub struct OneTimeProductDiscountedOffer {
 }
 
 /// Configuration specific to pre-order offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductPreOrderOffer {
     /// Required. Time when the pre-order will stop being available.
     #[serde(default, rename = "endTime")]
@@ -3198,7 +3199,7 @@ pub struct OneTimeProductPreOrderOffer {
 }
 
 /// Regional pricing and availability configuration for a one-time product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductOfferRegionalPricingAndAvailabilityConfig {
     /// The absolute value of the discount that is subtracted from the purchase option price. It should be between 0 and the purchase option price.
     #[serde(default, rename = "absoluteDiscount")]
@@ -3218,7 +3219,7 @@ pub struct OneTimeProductOfferRegionalPricingAndAvailabilityConfig {
 }
 
 /// Regional store listing for a one-time product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductListing {
     /// Required. The description of this product in the language of this listing. The maximum length is 200 characters.
     #[serde(default)]
@@ -3232,7 +3233,7 @@ pub struct OneTimeProductListing {
 }
 
 /// A single purchase option for a one-time product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductPurchaseOption {
     /// A purchase option that can be bought.
     #[serde(default, rename = "buyOption")]
@@ -3263,7 +3264,7 @@ pub struct OneTimeProductPurchaseOption {
 }
 
 /// The version of the available regions being used for the specified resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionsVersion {
     /// Required. A string representing the version of available regions being used for the specified resource. Regional prices and latest supported version for the resource have to be specified according to the information published in [this article](https://support.google.com/googleplay/android-developer/answer/10532353). Each time the supported locations substantially change, the version will be incremented. Using this field will ensure that creating and updating the resource with an older region''s version and set of regional prices and currencies will succeed even though a new version is available.
     #[serde(default)]
@@ -3271,7 +3272,7 @@ pub struct RegionsVersion {
 }
 
 /// Details about taxation, Google Play policy and legal compliance for one-time products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductTaxAndComplianceSettings {
     /// Whether this one-time product is declared as a product representing a tokenized digital asset.
     #[serde(default, rename = "isTokenizedDigitalAsset")]
@@ -3289,7 +3290,7 @@ pub struct OneTimeProductTaxAndComplianceSettings {
 }
 
 /// Configuration for any new locations Play may launch in specified on a subscription offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OtherRegionsSubscriptionOfferConfig {
     /// Whether the subscription offer in any new locations Play may launch in the future. If not specified, this will default to false.
     #[serde(default, rename = "otherRegionsNewSubscriberAvailability")]
@@ -3297,7 +3298,7 @@ pub struct OtherRegionsSubscriptionOfferConfig {
 }
 
 /// A single phase of a subscription offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionOfferPhase {
     /// Required. The duration of a single recurrence of this phase. Specified in ISO 8601 format.
     #[serde(default)]
@@ -3315,7 +3316,7 @@ pub struct SubscriptionOfferPhase {
 }
 
 /// Configuration for a subscription offer in a single region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalSubscriptionOfferConfig {
     /// Whether the subscription offer in the specified region is available for new subscribers. Existing subscribers will not have their subscription cancelled if this value is set to false. If not specified, this will default to false.
     #[serde(default, rename = "newSubscriberAvailability")]
@@ -3326,7 +3327,7 @@ pub struct RegionalSubscriptionOfferConfig {
 }
 
 /// Defines the rule a user needs to satisfy to receive this offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionOfferTargeting {
     /// Offer targeting rule for new user acquisition.
     #[serde(default, rename = "acquisitionRule")]
@@ -3337,7 +3338,7 @@ pub struct SubscriptionOfferTargeting {
 }
 
 /// A single base plan for a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasePlan {
     /// Set when the base plan automatically renews at a regular interval.
     #[serde(default, rename = "autoRenewingBasePlanType")]
@@ -3366,7 +3367,7 @@ pub struct BasePlan {
 }
 
 /// The consumer-visible metadata of a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionListing {
     /// A list of benefits shown to the user on platforms such as the Play Store and in restoration flows in the language of this listing. Plain text. Ordered list of at most four benefits.
     #[serde(default)]
@@ -3383,7 +3384,7 @@ pub struct SubscriptionListing {
 }
 
 /// Countries where the purchase of this product is restricted to payment methods registered in the same country. If empty, no payment location restrictions are imposed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestrictedPaymentCountries {
     /// Required. Region codes to impose payment restrictions on, as defined by ISO 3166-2, e.g. "US".
     #[serde(default, rename = "regionCodes")]
@@ -3391,7 +3392,7 @@ pub struct RestrictedPaymentCountries {
 }
 
 /// Set of asset slices belonging to a single asset module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetSliceSet {
     /// Asset slices.
     #[serde(default, rename = "apkDescription")]
@@ -3402,7 +3403,7 @@ pub struct AssetSliceSet {
 }
 
 /// Variant is a group of APKs that covers a part of the device configuration space. APKs from multiple variants are never combined on one device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SplitApkVariant {
     /// Set of APKs, one set per module.
     #[serde(default, rename = "apkSet")]
@@ -3416,7 +3417,7 @@ pub struct SplitApkVariant {
 }
 
 /// Definition of a price, i.e. currency and units.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Price {
     /// 3 letter Currency code, as defined by ISO 4217. See java/com/google/common/money/CurrencyCode.java
     #[serde(default)]
@@ -3427,7 +3428,7 @@ pub struct Price {
 }
 
 /// Details about taxation and legal compliance for managed products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedProductTaxAndComplianceSettings {
     /// Digital content or service classification for products distributed to users in the European Economic Area (EEA). The withdrawal regime under EEA consumer laws depends on this classification. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/10463498) for more information. // TODO: enum values: ["WITHDRAWAL_RIGHT_TYPE_UNSPECIFIED", "WITHDRAWAL_RIGHT_DIGITAL_CONTENT", "WITHDRAWAL_RIGHT_SERVICE"]
     #[serde(default, rename = "eeaWithdrawalRightType")]
@@ -3448,7 +3449,7 @@ pub struct ManagedProductTaxAndComplianceSettings {
 }
 
 /// Details about taxation, Google Play policy, and legal compliance for subscription products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionTaxAndComplianceSettings {
     /// Digital content or service classification for products distributed to users in the European Economic Area (EEA). The withdrawal regime under EEA consumer laws depends on this classification. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/10463498) for more information. // TODO: enum values: ["WITHDRAWAL_RIGHT_TYPE_UNSPECIFIED", "WITHDRAWAL_RIGHT_DIGITAL_CONTENT", "WITHDRAWAL_RIGHT_SERVICE"]
     #[serde(default, rename = "eeaWithdrawalRightType")]
@@ -3469,7 +3470,7 @@ pub struct SubscriptionTaxAndComplianceSettings {
 }
 
 /// Data related to the recovery action at bundle level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoteInAppUpdateDataPerBundle {
     /// Total number of devices which have been rescued.
     #[serde(default, rename = "recoveredDeviceCount")]
@@ -3483,7 +3484,7 @@ pub struct RemoteInAppUpdateDataPerBundle {
 }
 
 /// Object representation to describe all set of users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllUsers {
     /// Required. Set to true if all set of users are needed.
     #[serde(default, rename = "isAllUsersRequested")]
@@ -3491,7 +3492,7 @@ pub struct AllUsers {
 }
 
 /// Android api level targeting data for app recovery action targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidSdks {
     /// Android api levels of devices targeted by recovery action. See https://developer.android.com/guide/topics/manifest/uses-sdk-element#ApiLevels for different api levels in android.
     #[serde(default, rename = "sdkLevels")]
@@ -3499,7 +3500,7 @@ pub struct AndroidSdks {
 }
 
 /// Region targeting data for app recovery action targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Regions {
     /// Regions targeted by the recovery action. Region codes are ISO 3166 Alpha-2 country codes. For example, US stands for United States of America. See https://www.iso.org/iso-3166-country-codes.html for the complete list of country codes.
     #[serde(default, rename = "regionCode")]
@@ -3507,7 +3508,7 @@ pub struct Regions {
 }
 
 /// Data format for a list of app versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppVersionList {
     /// List of app version codes.
     #[serde(default, rename = "versionCodes")]
@@ -3515,7 +3516,7 @@ pub struct AppVersionList {
 }
 
 /// Data format for a continuous range of app versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppVersionRange {
     /// Highest app version in the range, inclusive.
     #[serde(default, rename = "versionCodeEnd")]
@@ -3526,7 +3527,7 @@ pub struct AppVersionRange {
 }
 
 /// Selector for a device group. A selector consists of a set of conditions on the device that should all match (logical AND) to determine a device group eligibility. For instance, if a selector specifies RAM conditions, device model inclusion and device model exclusion, a device is considered to match if: device matches RAM conditions AND device matches one of the included device models AND device doesn''t match excluded device models
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceSelector {
     /// Conditions on the device''s RAM.
     #[serde(default, rename = "deviceRam")]
@@ -3549,7 +3550,7 @@ pub struct DeviceSelector {
 }
 
 /// A single device tier. Devices matching any of the device groups in device_group_names are considered to match the tier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceTier {
     /// Groups of devices included in this tier. These groups must be defined explicitly under device_groups in this configuration.
     #[serde(default, rename = "deviceGroupNames")]
@@ -3560,7 +3561,7 @@ pub struct DeviceTier {
 }
 
 /// Offer details information related to a preorder line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreorderOfferDetails {
     /// The time when a preordered item is released for a preorder purchase.
     #[serde(default, rename = "preorderReleaseTime")]
@@ -3568,7 +3569,7 @@ pub struct PreorderOfferDetails {
 }
 
 /// Developer entry from conversation between user and developer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeveloperComment {
     /// The last time at which this comment was updated.
     #[serde(default, rename = "lastModified")]
@@ -3579,7 +3580,7 @@ pub struct DeveloperComment {
 }
 
 /// User entry from conversation between user and developer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserComment {
     /// Integer Android SDK version of the user''s device at the time the review was written, e.g. 23 is Marshmallow. May be absent.
     #[serde(default, rename = "androidOsVersion")]
@@ -3620,7 +3621,7 @@ pub struct UserComment {
 }
 
 /// Result of the cancel survey when the subscription was canceled by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelSurveyResult {
     /// The reason the user selected in the cancel survey. // TODO: enum values: ["CANCEL_SURVEY_REASON_UNSPECIFIED", "CANCEL_SURVEY_REASON_NOT_ENOUGH_USAGE", "CANCEL_SURVEY_REASON_TECHNICAL_ISSUES", "CANCEL_SURVEY_REASON_COST_RELATED", "CANCEL_SURVEY_REASON_FOUND_BETTER_APP", "CANCEL_SURVEY_REASON_OTHERS"]
     #[serde(default)]
@@ -3631,7 +3632,7 @@ pub struct CancelSurveyResult {
 }
 
 /// Information to a installment plan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstallmentPlan {
     /// Total number of payments the user is initially committed for.
     #[serde(default, rename = "initialCommittedPaymentsCount")]
@@ -3648,7 +3649,7 @@ pub struct InstallmentPlan {
 }
 
 /// Price change related information of a subscription item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionItemPriceChangeDetails {
     /// The renewal time at which the price change will become effective for the user. This is subject to change(to a future time) due to cases where the renewal time shifts like pause. This field is only populated if the price change has not taken effect.
     #[serde(default, rename = "expectedNewPriceChargeTime")]
@@ -3665,7 +3666,7 @@ pub struct SubscriptionItemPriceChangeDetails {
 }
 
 /// Information related to a price step-up that requires user consent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PriceStepUpConsentDetails {
     /// The deadline by which the user must provide consent. If consent is not provided by this time, the subscription will be canceled.
     #[serde(default, rename = "consentDeadlineTime")]
@@ -3679,7 +3680,7 @@ pub struct PriceStepUpConsentDetails {
 }
 
 /// Details about proration period offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProrationPeriodOfferPhase {
     /// The original offer phase type before the proration period. Only set when the proration period is updated from an existing offer phase. // TODO: enum values: ["ORIGINAL_OFFER_PHASE_TYPE_UNSPECIFIED", "BASE", "INTRODUCTORY", "FREE_TRIAL"]
     #[serde(default, rename = "originalOfferPhaseType")]
@@ -3687,7 +3688,7 @@ pub struct ProrationPeriodOfferPhase {
 }
 
 /// A multiple use, predefined promotion code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VanityCode {
     /// The promotion code.
     #[serde(default, rename = "promotionCode")]
@@ -3695,7 +3696,7 @@ pub struct VanityCode {
 }
 
 /// Country targeting specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CountryTargeting {
     /// Countries to target, specified as two letter [CLDR codes](https://unicode.org/cldr/charts/latest/supplemental/territory_containment_un_m_49.html).
     #[serde(default)]
@@ -3706,7 +3707,7 @@ pub struct CountryTargeting {
 }
 
 /// Localized text in given language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedText {
     /// Language localization code (a BCP-47 language tag; for example, "de-AT" for Austrian German).
     #[serde(default)]
@@ -3717,7 +3718,7 @@ pub struct LocalizedText {
 }
 
 /// Details of a pricing phase for the entitlement period funded by this order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfferPhaseDetails {
     /// The order funds a base price period.
     #[serde(default, rename = "baseDetails")]
@@ -3734,7 +3735,7 @@ pub struct OfferPhaseDetails {
 }
 
 /// Details for a partial or full refund.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDetails {
     /// The amount of tax refunded.
     #[serde(default)]
@@ -3745,7 +3746,7 @@ pub struct RefundDetails {
 }
 
 /// A purchase option that can be bought.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductBuyPurchaseOption {
     /// Optional. Whether this purchase option will be available in legacy PBL flows that do not support one-time products model. Up to one "buy" purchase option can be marked as backwards compatible.
     #[serde(default, rename = "legacyCompatible")]
@@ -3756,7 +3757,7 @@ pub struct OneTimeProductBuyPurchaseOption {
 }
 
 /// Pricing information for any new regions Play may launch in the future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductPurchaseOptionNewRegionsConfig {
     /// Required. The regional availability for the new regions config. When set to AVAILABLE, the pricing information will be used for any new regions Play may launch in the future. // TODO: enum values: ["AVAILABILITY_UNSPECIFIED", "AVAILABLE", "NO_LONGER_AVAILABLE"]
     #[serde(default)]
@@ -3770,7 +3771,7 @@ pub struct OneTimeProductPurchaseOptionNewRegionsConfig {
 }
 
 /// Regional pricing and availability configuration for a purchase option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductPurchaseOptionRegionalPricingAndAvailabilityConfig {
     /// The availability of the purchase option. // TODO: enum values: ["AVAILABILITY_UNSPECIFIED", "AVAILABLE", "NO_LONGER_AVAILABLE", "AVAILABLE_IF_RELEASED", "AVAILABLE_FOR_OFFERS_ONLY"]
     #[serde(default)]
@@ -3784,7 +3785,7 @@ pub struct OneTimeProductPurchaseOptionRegionalPricingAndAvailabilityConfig {
 }
 
 /// A purchase option that can be rented.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneTimeProductRentPurchaseOption {
     /// Optional. The amount of time the user has after starting consuming the entitlement before it is revoked. Specified in ISO 8601 format.
     #[serde(default, rename = "expirationPeriod")]
@@ -3795,7 +3796,7 @@ pub struct OneTimeProductRentPurchaseOption {
 }
 
 /// Details about taxation, Google Play policy and legal compliance for one-time product purchase options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PurchaseOptionTaxAndComplianceSettings {
     /// Optional. Digital content or service classification for products distributed to users in eligible regions. If unset, it defaults to WITHDRAWAL_RIGHT_DIGITAL_CONTENT. Refer to the [Help Center article](https://support.google.com/googleplay/android-developer/answer/10463498) for more information. // TODO: enum values: ["WITHDRAWAL_RIGHT_TYPE_UNSPECIFIED", "WITHDRAWAL_RIGHT_DIGITAL_CONTENT", "WITHDRAWAL_RIGHT_SERVICE"]
     #[serde(default, rename = "withdrawalRightType")]
@@ -3803,7 +3804,7 @@ pub struct PurchaseOptionTaxAndComplianceSettings {
 }
 
 /// Details about taxation in a given geographical region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalTaxConfig {
     /// You must tell us if your app contains streaming products to correctly charge US state and local sales tax. Field only supported in the United States.
     #[serde(default, rename = "eligibleForStreamingServiceTaxRate")]
@@ -3820,7 +3821,7 @@ pub struct RegionalTaxConfig {
 }
 
 /// Configuration for any new locations Play may launch in for a single offer phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OtherRegionsSubscriptionOfferPhaseConfig {
     /// The absolute amount of money subtracted from the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a $1 absolute discount for a phase of a duration of 3 months would correspond to a price of $2. The resulting price may not be smaller than the minimum price allowed for any new locations Play may launch in.
     #[serde(default, rename = "absoluteDiscounts")]
@@ -3837,7 +3838,7 @@ pub struct OtherRegionsSubscriptionOfferPhaseConfig {
 }
 
 /// Configuration for a single phase of a subscription offer in a single region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalSubscriptionOfferPhaseConfig {
     /// The absolute amount of money subtracted from the base plan price prorated over the phase duration that the user pays for this offer phase. For example, if the base plan price for this region is $12 for a period of 1 year, then a $1 absolute discount for a phase of a duration of 3 months would correspond to a price of $2. The resulting price may not be smaller than the minimum price allowed for this region.
     #[serde(default, rename = "absoluteDiscount")]
@@ -3857,7 +3858,7 @@ pub struct RegionalSubscriptionOfferPhaseConfig {
 }
 
 /// Represents a targeting rule of the form: User never had {scope} before.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcquisitionTargetingRule {
     /// Required. The scope of subscriptions this rule considers. Only allows "this subscription" and "any subscription in app".
     #[serde(default)]
@@ -3865,7 +3866,7 @@ pub struct AcquisitionTargetingRule {
 }
 
 /// Represents a targeting rule of the form: User currently has {scope} [with billing period {billing_period}].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeTargetingRule {
     /// The specific billing period duration, specified in ISO 8601 format, that a user must be currently subscribed to to be eligible for this rule. If not specified, users subscribed to any billing period are matched.
     #[serde(default, rename = "billingPeriodDuration")]
@@ -3879,7 +3880,7 @@ pub struct UpgradeTargetingRule {
 }
 
 /// Represents a base plan that automatically renews at the end of its subscription period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoRenewingBasePlanType {
     /// Optional. Custom account hold period of the subscription, specified in ISO 8601 format. Acceptable values must be in days and between P0D and P60D. An empty field represents a recommended account hold, calculated as 60 days minus grace period. The sum of gracePeriodDuration and accountHoldDuration must be between P30D and P60D days, inclusive.
     #[serde(default, rename = "accountHoldDuration")]
@@ -3905,7 +3906,7 @@ pub struct AutoRenewingBasePlanType {
 }
 
 /// Represents an installments base plan where a user commits to a specified number of payments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstallmentsBasePlanType {
     /// Optional. Custom account hold period of the subscription, specified in ISO 8601 format. Acceptable values must be in days and between P0D and P60D. An empty field represents a recommended account hold, calculated as 60 days minus grace period. The sum of gracePeriodDuration and accountHoldDuration must be between P30D and P60D days, inclusive.
     #[serde(default, rename = "accountHoldDuration")]
@@ -3931,7 +3932,7 @@ pub struct InstallmentsBasePlanType {
 }
 
 /// Represents a custom tag specified for a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfferTag {
     /// Must conform with RFC-1034. That is, this string can only contain lower-case letters (a-z), numbers (0-9), and hyphens (-), and be at most 20 characters.
     #[serde(default)]
@@ -3939,7 +3940,7 @@ pub struct OfferTag {
 }
 
 /// Pricing information for any new locations Play may launch in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OtherRegionsBasePlanConfig {
     /// Required. Price in EUR to use for any new locations Play may launch in.
     #[serde(default, rename = "eurPrice")]
@@ -3953,7 +3954,7 @@ pub struct OtherRegionsBasePlanConfig {
 }
 
 /// Represents a base plan that does not automatically renew at the end of the base plan, and must be manually renewed by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrepaidBasePlanType {
     /// Required. Immutable. Subscription period, specified in ISO 8601 format. For a list of acceptable billing periods, refer to the help center. The duration is immutable after the base plan is created.
     #[serde(default, rename = "billingPeriodDuration")]
@@ -3964,7 +3965,7 @@ pub struct PrepaidBasePlanType {
 }
 
 /// Configuration for a base plan specific to a region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalBasePlanConfig {
     /// Whether the base plan in the specified region is available for new subscribers. Existing subscribers will not have their subscription canceled if this value is set to false. If not specified, this will default to false.
     #[serde(default, rename = "newSubscriberAvailability")]
@@ -3978,7 +3979,7 @@ pub struct RegionalBasePlanConfig {
 }
 
 /// Metadata of an asset module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetModuleMetadata {
     /// Indicates the delivery type for persistent install. // TODO: enum values: ["UNKNOWN_DELIVERY_TYPE", "INSTALL_TIME", "ON_DEMAND", "FAST_FOLLOW"]
     #[serde(default, rename = "deliveryType")]
@@ -3989,7 +3990,7 @@ pub struct AssetModuleMetadata {
 }
 
 /// A set of apks representing a module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApkSet {
     /// Description of the generated apks.
     #[serde(default, rename = "apkDescription")]
@@ -4000,7 +4001,7 @@ pub struct ApkSet {
 }
 
 /// Targeting on the level of variants.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VariantTargeting {
     /// The abi that the variant targets
     #[serde(default, rename = "abiTargeting")]
@@ -4021,7 +4022,7 @@ pub struct VariantTargeting {
 }
 
 /// Details about the age rating for a specific geographic region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalProductAgeRatingInfo {
     /// The age rating tier of a product for the given region. // TODO: enum values: ["PRODUCT_AGE_RATING_TIER_UNKNOWN", "PRODUCT_AGE_RATING_TIER_EVERYONE", "PRODUCT_AGE_RATING_TIER_THIRTEEN_AND_ABOVE", "PRODUCT_AGE_RATING_TIER_SIXTEEN_AND_ABOVE", "PRODUCT_AGE_RATING_TIER_EIGHTEEN_AND_ABOVE"]
     #[serde(default, rename = "productAgeRatingTier")]
@@ -4032,7 +4033,7 @@ pub struct RegionalProductAgeRatingInfo {
 }
 
 /// Conditions about a device''s RAM capabilities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceRam {
     /// Maximum RAM in bytes (bound excluded).
     #[serde(default, rename = "maxBytes")]
@@ -4043,7 +4044,7 @@ pub struct DeviceRam {
 }
 
 /// Identifier of a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceId {
     /// Value of Build.BRAND.
     #[serde(default, rename = "buildBrand")]
@@ -4054,7 +4055,7 @@ pub struct DeviceId {
 }
 
 /// Representation of a system feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SystemFeature {
     /// The name of the feature.
     #[serde(default)]
@@ -4062,7 +4063,7 @@ pub struct SystemFeature {
 }
 
 /// Representation of a System-on-Chip (SoC) of an Android device. Can be used to target S+ devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SystemOnChip {
     /// Required. The designer of the SoC, eg. "Google" Value of build property "ro.soc.manufacturer" https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER Required.
     #[serde(default)]
@@ -4073,7 +4074,7 @@ pub struct SystemOnChip {
 }
 
 /// Characteristics of the user''s device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceMetadata {
     /// Device CPU make, e.g. "Qualcomm"
     #[serde(default, rename = "cpuMake")]
@@ -4111,7 +4112,7 @@ pub struct DeviceMetadata {
 }
 
 /// A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Timestamp {
     /// Non-negative fractions of a second at nanosecond resolution. Must be from 0 to 999,999,999 inclusive.
     #[serde(default)]
@@ -4122,7 +4123,7 @@ pub struct Timestamp {
 }
 
 /// Details of a proration period. A proration period can be a period calculated during a plan change to cover existing entitlements (For more information, see [Allow users to upgrade, downgrade, or change their subscription](https://developer.android.com/google/play/billing/subscriptions#allow-users-change), or a prorated period to align add-on renewal dates with the base (For more information, see [Rules applicable for items in the purchase](https://developer.android.com/google/play/billing/subscription-with-addons#rules-base-addons)).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProrationPeriodDetails {
     /// Represent the original offer phase from the purchased the line item if the proration period contains any of them. For example, a proration period from CHARGE_FULL_PRICE plan change may merge the 1st offer phase of the subscription offer of the new product user purchased. In this case, the original offer phase will be set here. // TODO: enum values: ["OFFER_PHASE_UNSPECIFIED", "BASE", "INTRODUCTORY", "FREE_TRIAL"]
     #[serde(default, rename = "originalOfferPhase")]
@@ -4130,7 +4131,7 @@ pub struct ProrationPeriodDetails {
 }
 
 /// Pricing information for any new locations Play may launch in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OtherRegionsSubscriptionOfferPhasePrices {
     /// Required. Price in EUR to use for any new locations Play may launch in.
     #[serde(default, rename = "eurPrice")]
@@ -4141,7 +4142,7 @@ pub struct OtherRegionsSubscriptionOfferPhasePrices {
 }
 
 /// Defines the scope of subscriptions which a targeting rule can match to target offers to users based on past or current entitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetingRuleScope {
     /// The scope of the current targeting rule is any subscription in the parent app.
     #[serde(default, rename = "anySubscriptionInApp")]
@@ -4155,7 +4156,7 @@ pub struct TargetingRuleScope {
 }
 
 /// Description of the created apks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApkDescription {
     /// Set only for asset slices.
     #[serde(default, rename = "assetSliceMetadata")]
@@ -4178,7 +4179,7 @@ pub struct ApkDescription {
 }
 
 /// Metadata of a module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModuleMetadata {
     /// Indicates the delivery type (e.g. on-demand) of the module. // TODO: enum values: ["UNKNOWN_DELIVERY_TYPE", "INSTALL_TIME", "ON_DEMAND", "FAST_FOLLOW"]
     #[serde(default, rename = "deliveryType")]
@@ -4198,7 +4199,7 @@ pub struct ModuleMetadata {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -4212,7 +4213,7 @@ pub struct Money {
 }
 
 /// Holds data specific to Split APKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SplitApkMetadata {
     /// Indicates whether this APK is the main split of the module.
     #[serde(default, rename = "isMasterSplit")]
@@ -4223,7 +4224,7 @@ pub struct SplitApkMetadata {
 }
 
 /// Holds data specific to Standalone APKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandaloneApkMetadata {
     /// Names of the modules fused in this standalone APK.
     #[serde(default, rename = "fusedModuleName")]
@@ -4231,7 +4232,7 @@ pub struct StandaloneApkMetadata {
 }
 
 /// Represents a set of apk-level targetings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApkTargeting {
     /// The abi that the apk targets
     #[serde(default, rename = "abiTargeting")]
@@ -4255,7 +4256,7 @@ pub struct ApkTargeting {
 }
 
 /// Targeting on the module level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModuleTargeting {
     /// Targeting for device features.
     #[serde(default, rename = "deviceFeatureTargeting")]
@@ -4269,7 +4270,7 @@ pub struct ModuleTargeting {
 }
 
 /// Targeting based on Abi.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbiTargeting {
     /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
     #[serde(default)]
@@ -4280,7 +4281,7 @@ pub struct AbiTargeting {
 }
 
 /// Targeting based on language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageTargeting {
     /// Alternative languages.
     #[serde(default)]
@@ -4291,7 +4292,7 @@ pub struct LanguageTargeting {
 }
 
 /// Targeting based on multiple abis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiAbiTargeting {
     /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
     #[serde(default)]
@@ -4302,7 +4303,7 @@ pub struct MultiAbiTargeting {
 }
 
 /// Targeting based on screen density.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScreenDensityTargeting {
     /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
     #[serde(default)]
@@ -4313,7 +4314,7 @@ pub struct ScreenDensityTargeting {
 }
 
 /// Targeting by a texture compression format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextureCompressionFormatTargeting {
     /// List of alternative TCFs (TCFs targeted by the sibling splits).
     #[serde(default)]
@@ -4324,7 +4325,7 @@ pub struct TextureCompressionFormatTargeting {
 }
 
 /// Targeting for a device feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceFeatureTargeting {
     /// Feature of the device.
     #[serde(default, rename = "requiredFeature")]
@@ -4332,7 +4333,7 @@ pub struct DeviceFeatureTargeting {
 }
 
 /// Targeting based on sdk version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SdkVersionTargeting {
     /// Targeting of other sibling directories that were in the Bundle. For main splits this is targeting of other main splits.
     #[serde(default)]
@@ -4343,7 +4344,7 @@ pub struct SdkVersionTargeting {
 }
 
 /// Describes an inclusive/exclusive list of country codes that module targets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserCountriesTargeting {
     /// List of country codes in the two-letter CLDR territory format.
     #[serde(default, rename = "countryCodes")]
@@ -4354,7 +4355,7 @@ pub struct UserCountriesTargeting {
 }
 
 /// Represents a list of ABIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiAbi {
     /// A list of targeted ABIs, as represented by the Android Platform
     #[serde(default)]
@@ -4362,7 +4363,7 @@ pub struct MultiAbi {
 }
 
 /// Represents a screen density.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScreenDensity {
     /// Alias for a screen density. // TODO: enum values: ["DENSITY_UNSPECIFIED", "NODPI", "LDPI", "MDPI", "TVDPI", "HDPI", "XHDPI", "XXHDPI", "XXXHDPI"]
     #[serde(default, rename = "densityAlias")]
@@ -4373,7 +4374,7 @@ pub struct ScreenDensity {
 }
 
 /// Represents texture compression format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextureCompressionFormat {
     /// Alias for texture compression format. // TODO: enum values: ["UNSPECIFIED_TEXTURE_COMPRESSION_FORMAT", "ETC1_RGB8", "PALETTED", "THREE_DC", "ATC", "LATC", "DXT1", "S3TC", "PVRTC", "ASTC", "ETC2"]
     #[serde(default)]
@@ -4381,7 +4382,7 @@ pub struct TextureCompressionFormat {
 }
 
 /// Represents a device feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceFeature {
     /// Name of the feature.
     #[serde(default, rename = "featureName")]
@@ -4392,7 +4393,7 @@ pub struct DeviceFeature {
 }
 
 /// Represents an sdk version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SdkVersion {
     /// Inclusive minimum value of an sdk version.
     #[serde(default)]
@@ -4400,7 +4401,7 @@ pub struct SdkVersion {
 }
 
 /// Represents an Abi.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Abi {
     /// Alias for an abi. // TODO: enum values: ["UNSPECIFIED_CPU_ARCHITECTURE", "ARMEABI", "ARMEABI_V7A", "ARM64_V8A", "X86", "X86_64", "RISCV64"]
     #[serde(default)]

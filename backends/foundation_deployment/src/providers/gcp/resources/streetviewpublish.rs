@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request to delete multiple Photos.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeletePhotosRequest {
     /// Required. IDs of the Photos. HTTP GET requests require the following syntax for the URL query parameter: photoIds=&photoIds=&....
     #[serde(default, rename = "photoIds")]
@@ -19,7 +20,7 @@ pub struct BatchDeletePhotosRequest {
 }
 
 /// Response to batch delete of one or more Photos.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeletePhotosResponse {
     /// The status for the operation to delete a single Photo in the batch request.
     #[serde(default)]
@@ -27,7 +28,7 @@ pub struct BatchDeletePhotosResponse {
 }
 
 /// Response to batch get of Photos.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetPhotosResponse {
     /// List of results for each individual Photo requested, in the same order as the requests in BatchGetPhotos.
     #[serde(default)]
@@ -35,7 +36,7 @@ pub struct BatchGetPhotosResponse {
 }
 
 /// Request to update the metadata of photos. Updating the pixels of photos is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdatePhotosRequest {
     /// Required. List of UpdatePhotoRequests.
     #[serde(default, rename = "updatePhotoRequests")]
@@ -43,7 +44,7 @@ pub struct BatchUpdatePhotosRequest {
 }
 
 /// Response to batch update of metadata of one or more Photos.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdatePhotosResponse {
     /// List of results for each individual Photo updated, in the same order as the request.
     #[serde(default)]
@@ -51,11 +52,11 @@ pub struct BatchUpdatePhotosResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response to list all photo sequences that belong to a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPhotoSequencesResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -66,7 +67,7 @@ pub struct ListPhotoSequencesResponse {
 }
 
 /// Response to list all photos that belong to a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPhotosResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -77,7 +78,7 @@ pub struct ListPhotosResponse {
 }
 
 /// A sequence of 360 photos along with metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhotoSequence {
     /// Optional. Absolute time when the photo sequence starts to be captured. If the photo sequence is a video, this is the start time of the video. If this field is populated in input, it overrides the capture time in the video or XDM file.
     #[serde(default, rename = "captureTimeOverride")]
@@ -127,7 +128,7 @@ pub struct PhotoSequence {
 }
 
 /// Request to update the metadata of a Photo. Updating the pixels of a photo is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdatePhotoRequest {
     /// Required. Photo object containing the new metadata.
     #[serde(default)]
@@ -138,7 +139,7 @@ pub struct UpdatePhotoRequest {
 }
 
 /// Response payload for a single Photo in batch operations including BatchGetPhotos and BatchUpdatePhotos.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhotoResponse {
     /// The Photo resource, if the request was successful.
     #[serde(default)]
@@ -149,7 +150,7 @@ pub struct PhotoResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -169,7 +170,7 @@ pub struct Operation {
 }
 
 /// Additional details to accompany the ProcessingFailureReason enum. This message is always expected to be used in conjunction with ProcessingFailureReason, and the oneof value set in this message should match the FailureReason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessingFailureDetails {
     /// See GpsDataGapFailureDetails.
     #[serde(default, rename = "gpsDataGapDetails")]
@@ -189,7 +190,7 @@ pub struct ProcessingFailureDetails {
 }
 
 /// IMU data from the device sensors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Imu {
     /// The accelerometer measurements in meters/sec^2 with increasing timestamps from devices.
     #[serde(default, rename = "accelMpsps")]
@@ -203,7 +204,7 @@ pub struct Imu {
 }
 
 /// A rectangle in geographical coordinates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLngBounds {
     /// The northeast corner of these bounds.
     #[serde(default)]
@@ -214,7 +215,7 @@ pub struct LatLngBounds {
 }
 
 /// Photo is used to store 360 photos along with photo metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Photo {
     /// Optional. Absolute time when the photo was captured. When the photo has no exif timestamp, this is used to set a timestamp in the photo metadata.
     #[serde(default, rename = "captureTime")]
@@ -258,7 +259,7 @@ pub struct Photo {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -272,7 +273,7 @@ pub struct Status {
 }
 
 /// Details related to ProcessingFailureReason#GPS_DATA_GAP. If there are multiple GPS data gaps, only the one with the largest duration is reported here.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GpsDataGapFailureDetails {
     /// The duration of the gap in GPS data that was found.
     #[serde(default, rename = "gapDuration")]
@@ -283,7 +284,7 @@ pub struct GpsDataGapFailureDetails {
 }
 
 /// Details related to ProcessingFailureReason#IMU_DATA_GAP. If there are multiple IMU data gaps, only the one with the largest duration is reported here.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImuDataGapFailureDetails {
     /// The duration of the gap in IMU data that was found.
     #[serde(default, rename = "gapDuration")]
@@ -294,7 +295,7 @@ pub struct ImuDataGapFailureDetails {
 }
 
 /// Details related to ProcessingFailureReason#INSUFFICIENT_GPS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsufficientGpsFailureDetails {
     /// The number of GPS points that were found in the video.
     #[serde(default, rename = "gpsPointsFound")]
@@ -302,7 +303,7 @@ pub struct InsufficientGpsFailureDetails {
 }
 
 /// Details related to PhotoSequenceProcessingFailureReason#NO_OVERLAP_GPS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NoOverlapGpsFailureDetails {
     /// Time of last recorded GPS point.
     #[serde(default, rename = "gpsEndTime")]
@@ -319,7 +320,7 @@ pub struct NoOverlapGpsFailureDetails {
 }
 
 /// Details related to ProcessingFailureReason#NOT_OUTDOORS. If there are multiple indoor frames found, the first frame is recorded here.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotOutdoorsFailureDetails {
     /// Relative time (from the start of the video stream) when an indoor frame was found.
     #[serde(default, rename = "startTime")]
@@ -327,7 +328,7 @@ pub struct NotOutdoorsFailureDetails {
 }
 
 /// A Generic 3d measurement sample.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Measurement3d {
     /// The timestamp of the IMU measurement.
     #[serde(default, rename = "captureTime")]
@@ -344,7 +345,7 @@ pub struct Measurement3d {
 }
 
 /// A connection is the link from a source photo to a destination photo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Connection {
     /// Required. The destination of the connection from the containing photo to another photo.
     #[serde(default)]
@@ -352,7 +353,7 @@ pub struct Connection {
 }
 
 /// Place metadata for an entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Place {
     /// Output only. The language_code that the name is localized with. This should be the language_code specified in the request, but may be a fallback.
     #[serde(default, rename = "languageCode")]
@@ -366,7 +367,7 @@ pub struct Place {
 }
 
 /// Raw pose measurement for an entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pose {
     /// The estimated horizontal accuracy of this pose in meters with 68% confidence (one standard deviation). For example, on Android, this value is available from this method: https://developer.android.com/reference/android/location/Location#getAccuracy(). Other platforms have different methods of obtaining similar accuracy estimations.
     #[serde(default, rename = "accuracyMeters")]
@@ -395,7 +396,7 @@ pub struct Pose {
 }
 
 /// Upload reference for media files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadRef {
     /// An upload reference should be unique for each user. It follows the form: "https://streetviewpublish.googleapis.com/media/user/{account_id}/photo/{upload_reference}"
     #[serde(default, rename = "uploadUrl")]
@@ -403,7 +404,7 @@ pub struct UploadRef {
 }
 
 /// Identifier for a Photo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhotoId {
     /// A unique identifier for a photo.
     #[serde(default)]
@@ -411,7 +412,7 @@ pub struct PhotoId {
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
@@ -422,7 +423,7 @@ pub struct LatLng {
 }
 
 /// Level information containing level number and its corresponding name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Level {
     /// Required. A name assigned to this Level, restricted to 3 characters. Consider how the elevator buttons would be labeled for this level if there was an elevator.
     #[serde(default)]

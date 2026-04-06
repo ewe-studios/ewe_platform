@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Message for detach specific LUN from an Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetachLunRequest {
     /// Required. Name of the Lun to detach.
     #[serde(default)]
@@ -22,43 +23,43 @@ pub struct DetachLunRequest {
 }
 
 /// Message requesting to perform disable hyperthreading operation on a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisableHyperthreadingRequest {}
 
 /// Message for disabling the interactive serial console on an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisableInteractiveSerialConsoleRequest {}
 
 /// Message for response of DisableInteractiveSerialConsole.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisableInteractiveSerialConsoleResponse {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Message requesting to perform enable hyperthreading operation on a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnableHyperthreadingRequest {}
 
 /// Message for enabling the interactive serial console on an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnableInteractiveSerialConsoleRequest {}
 
 /// Message for response of EnableInteractiveSerialConsole.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnableInteractiveSerialConsoleResponse {}
 
 /// Request for skip lun cooloff and delete it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvictLunRequest {}
 
 /// Request for skip volume cooloff and delete it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvictVolumeRequest {}
 
 /// Response message for the list of servers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancesResponse {
     /// The list of servers.
     #[serde(default)]
@@ -72,7 +73,7 @@ pub struct ListInstancesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -83,7 +84,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message containing the list of storage volume luns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLunsResponse {
     /// The list of luns.
     #[serde(default)]
@@ -97,7 +98,7 @@ pub struct ListLunsResponse {
 }
 
 /// Response with Networks with IPs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNetworkUsageResponse {
     /// Networks with IPs.
     #[serde(default)]
@@ -105,7 +106,7 @@ pub struct ListNetworkUsageResponse {
 }
 
 /// Response message containing the list of networks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNetworksResponse {
     /// The list of networks.
     #[serde(default)]
@@ -119,7 +120,7 @@ pub struct ListNetworksResponse {
 }
 
 /// Response message containing the list of NFS shares.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNfsSharesResponse {
     /// A token identifying a page of results from the server.
     #[serde(default, rename = "nextPageToken")]
@@ -133,7 +134,7 @@ pub struct ListNfsSharesResponse {
 }
 
 /// Request for getting all available OS images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOSImagesResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -144,7 +145,7 @@ pub struct ListOSImagesResponse {
 }
 
 /// Response message for the list of provisioning quotas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProvisioningQuotasResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -155,7 +156,7 @@ pub struct ListProvisioningQuotasResponse {
 }
 
 /// Message for response of ListSSHKeys.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSSHKeysResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -166,7 +167,7 @@ pub struct ListSSHKeysResponse {
 }
 
 /// Response message containing the list of volume snapshots.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVolumeSnapshotsResponse {
     /// A token identifying a page of results from the server.
     #[serde(default, rename = "nextPageToken")]
@@ -180,7 +181,7 @@ pub struct ListVolumeSnapshotsResponse {
 }
 
 /// Response message containing the list of storage volumes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVolumesResponse {
     /// A token identifying a page of results from the server.
     #[serde(default, rename = "nextPageToken")]
@@ -194,7 +195,7 @@ pub struct ListVolumesResponse {
 }
 
 /// Response for LoadInstanceAuthInfo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadInstanceAuthInfoResponse {
     /// List of ssh keys.
     #[serde(default, rename = "sshKeys")]
@@ -205,7 +206,7 @@ pub struct LoadInstanceAuthInfoResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -225,7 +226,7 @@ pub struct Operation {
 }
 
 /// Message requesting to perform reimage operation on a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReimageInstanceRequest {
     /// Optional. Name of the KMS crypto key version used to encrypt the initial passwords. The key has to have ASYMMETRIC_DECRYPT purpose. Format is projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}/cryptoKeyVersions/{version}.
     #[serde(default, rename = "kmsKeyVersion")]
@@ -239,7 +240,7 @@ pub struct ReimageInstanceRequest {
 }
 
 /// Message requesting rename of a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenameInstanceRequest {
     /// Required. The new id of the instance.
     #[serde(default, rename = "newInstanceId")]
@@ -247,7 +248,7 @@ pub struct RenameInstanceRequest {
 }
 
 /// Message requesting rename of a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenameNetworkRequest {
     /// Required. The new id of the network.
     #[serde(default, rename = "newNetworkId")]
@@ -255,7 +256,7 @@ pub struct RenameNetworkRequest {
 }
 
 /// Message requesting rename of a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenameNfsShareRequest {
     /// Required. The new id of the nfsshare.
     #[serde(default, rename = "newNfsshareId")]
@@ -263,7 +264,7 @@ pub struct RenameNfsShareRequest {
 }
 
 /// Message requesting rename of a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenameVolumeRequest {
     /// Required. The new id of the volume.
     #[serde(default, rename = "newVolumeId")]
@@ -271,15 +272,15 @@ pub struct RenameVolumeRequest {
 }
 
 /// Message requesting to reset a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetInstanceRequest {}
 
 /// Response message from resetting a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetInstanceResponse {}
 
 /// Request for emergency resize Volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResizeVolumeRequest {
     /// New Volume size, in GiB.
     #[serde(default, rename = "sizeGib")]
@@ -287,11 +288,11 @@ pub struct ResizeVolumeRequest {
 }
 
 /// Message for restoring a volume snapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreVolumeSnapshotRequest {}
 
 /// Network template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServerNetworkTemplate {
     /// Instance types this template is applicable to.
     #[serde(default, rename = "applicableInstanceTypes")]
@@ -307,23 +308,23 @@ pub struct ServerNetworkTemplate {
 }
 
 /// Message requesting to start a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartInstanceRequest {}
 
 /// Response message from starting a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartInstanceResponse {}
 
 /// Message requesting to stop a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopInstanceRequest {}
 
 /// Response message from stopping a server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopInstanceResponse {}
 
 /// Request for SubmitProvisioningConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubmitProvisioningConfigRequest {
     /// Optional. Email provided to send a confirmation with provisioning config to.
     #[serde(default)]
@@ -334,7 +335,7 @@ pub struct SubmitProvisioningConfigRequest {
 }
 
 /// Response for SubmitProvisioningConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubmitProvisioningConfigResponse {
     /// The submitted provisioning config.
     #[serde(default, rename = "provisioningConfig")]
@@ -342,7 +343,7 @@ pub struct SubmitProvisioningConfigResponse {
 }
 
 /// User account provisioned for the customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserAccount {
     /// Encrypted initial password value.
     #[serde(default, rename = "encryptedPassword")]
@@ -353,7 +354,7 @@ pub struct UserAccount {
 }
 
 /// A server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// Output only. Create a time stamp.
     #[serde(default, rename = "createTime")]
@@ -422,7 +423,7 @@ pub struct Instance {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -442,7 +443,7 @@ pub struct Location {
 }
 
 /// Network with all used IP addresses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkUsage {
     /// Network.
     #[serde(default)]
@@ -453,7 +454,7 @@ pub struct NetworkUsage {
 }
 
 /// An NFS share.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NfsShare {
     /// List of allowed access points.
     #[serde(default, rename = "allowedClients")]
@@ -488,7 +489,7 @@ pub struct NfsShare {
 }
 
 /// Operation System image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSImage {
     /// Instance types this image is applicable to. [Available types](https://cloud.google.com/bare-metal/docs/bms-planning#server_configurations)
     #[serde(default, rename = "applicableInstanceTypes")]
@@ -508,7 +509,7 @@ pub struct OSImage {
 }
 
 /// A provisioning quota for a given project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisioningQuota {
     /// The asset type of this provisioning quota. // TODO: enum values: ["ASSET_TYPE_UNSPECIFIED", "ASSET_TYPE_SERVER", "ASSET_TYPE_STORAGE", "ASSET_TYPE_NETWORK"]
     #[serde(default, rename = "assetType")]
@@ -540,7 +541,7 @@ pub struct ProvisioningQuota {
 }
 
 /// A snapshot of a volume. Only boot volumes can have snapshots.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VolumeSnapshot {
     /// Output only. The creation time of the snapshot.
     #[serde(default, rename = "createTime")]
@@ -563,7 +564,7 @@ pub struct VolumeSnapshot {
 }
 
 /// An SSH key, used for authorizing with the interactive serial console feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SSHKey {
     /// Output only. The name of this SSH key. Currently, the only valid value for the location is "global".
     #[serde(default)]
@@ -574,7 +575,7 @@ pub struct SSHKey {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -588,7 +589,7 @@ pub struct Status {
 }
 
 /// Logical interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBaremetalsolutionV2ServerNetworkTemplateLogicalInterface {
     /// Interface name. This is not a globally unique identifier. Name is unique only inside the ServerNetworkTemplate. This is of syntax or and forms part of the network template name.
     #[serde(default)]
@@ -602,7 +603,7 @@ pub struct GoogleCloudBaremetalsolutionV2ServerNetworkTemplateLogicalInterface {
 }
 
 /// A provisioning configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisioningConfig {
     /// Output only. URI to Cloud Console UI view of this provisioning config.
     #[serde(default, rename = "cloudConsoleUri")]
@@ -652,7 +653,7 @@ pub struct ProvisioningConfig {
 }
 
 /// A storage volume logical unit number (LUN).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Lun {
     /// Display if this LUN is a boot LUN.
     #[serde(default, rename = "bootLun")]
@@ -693,7 +694,7 @@ pub struct Lun {
 }
 
 /// A storage volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Volume {
     /// Output only. Is the Volume attached at at least one instance. This field is a lightweight counterpart of instances field. It is filled in List responses as well.
     #[serde(default)]
@@ -770,7 +771,7 @@ pub struct Volume {
 }
 
 /// A Network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Network {
     /// The cidr of the Network.
     #[serde(default)]
@@ -826,7 +827,7 @@ pub struct Network {
 }
 
 /// Represents an ''access point'' for the share.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllowedClient {
     /// Allow dev flag. Which controls whether to allow creation of devices.
     #[serde(default, rename = "allowDev")]
@@ -855,7 +856,7 @@ pub struct AllowedClient {
 }
 
 /// A resource budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceQuota {
     /// Number of machines than can be created for the given location and instance_type.
     #[serde(default, rename = "availableMachineCount")]
@@ -875,7 +876,7 @@ pub struct InstanceQuota {
 }
 
 /// Configuration parameters for a new instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceConfig {
     /// If true networks can be from different projects of the same vendor account.
     #[serde(default, rename = "accountNetworksEnabled")]
@@ -923,7 +924,7 @@ pub struct InstanceConfig {
 }
 
 /// Configuration parameters for a new network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConfig {
     /// Interconnect bandwidth. Set only when type is CLIENT. // TODO: enum values: ["BANDWIDTH_UNSPECIFIED", "BW_1_GBPS", "BW_2_GBPS", "BW_5_GBPS", "BW_10_GBPS"]
     #[serde(default)]
@@ -964,7 +965,7 @@ pub struct NetworkConfig {
 }
 
 /// Configuration parameters for a new volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VolumeConfig {
     /// The GCP service of the storage volume. Available gcp_service are in https://cloud.google.com/bare-metal/docs/bms-planning.
     #[serde(default, rename = "gcpService")]
@@ -1005,7 +1006,7 @@ pub struct VolumeConfig {
 }
 
 /// Details about snapshot space reservation and usage on the storage volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotReservationDetail {
     /// The space on this storage volume reserved for snapshots, shown in GiB.
     #[serde(default, rename = "reservedSpaceGib")]
@@ -1022,7 +1023,7 @@ pub struct SnapshotReservationDetail {
 }
 
 /// Mount point for a network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkMountPoint {
     /// Network should be a default gateway.
     #[serde(default, rename = "defaultGateway")]
@@ -1039,7 +1040,7 @@ pub struct NetworkMountPoint {
 }
 
 /// A reservation of one or more addresses in a network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkAddressReservation {
     /// The last address of this reservation block, inclusive. I.e., for cases when reservations are only single addresses, end_address and start_address will be the same. Must be specified as a single IPv4 address, e.g. 10.1.2.2.
     #[serde(default, rename = "endAddress")]
@@ -1053,7 +1054,7 @@ pub struct NetworkAddressReservation {
 }
 
 /// A network VRF.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VRF {
     /// The name of the VRF.
     #[serde(default)]
@@ -1070,7 +1071,7 @@ pub struct VRF {
 }
 
 /// A network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkAddress {
     /// IPv4 address to be assigned to the server.
     #[serde(default)]
@@ -1084,7 +1085,7 @@ pub struct NetworkAddress {
 }
 
 /// Each logical interface represents a logical abstraction of the underlying physical interface (for eg. bond, nic) of the instance. Each logical interface can effectively map to multiple network-IP pairs and still be mapped to one underlying physical interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBaremetalsolutionV2LogicalInterface {
     /// The index of the logical interface mapping to the index of the hardware bond or nic on the chosen network template. This field is deprecated.
     #[serde(default, rename = "interfaceIndex")]
@@ -1099,7 +1100,7 @@ pub struct GoogleCloudBaremetalsolutionV2LogicalInterface {
 }
 
 /// A GCP vlan attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntakeVlanAttachment {
     /// Identifier of the VLAN attachment.
     #[serde(default)]
@@ -1110,7 +1111,7 @@ pub struct IntakeVlanAttachment {
 }
 
 /// A LUN(Logical Unit Number) range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LunRange {
     /// Number of LUNs to create.
     #[serde(default)]
@@ -1121,7 +1122,7 @@ pub struct LunRange {
 }
 
 /// A NFS export entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NfsExport {
     /// Allow dev flag in NfsShare AllowedClientsRequest.
     #[serde(default, rename = "allowDev")]
@@ -1147,7 +1148,7 @@ pub struct NfsExport {
 }
 
 /// VLAN attachment details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VlanAttachment {
     /// Immutable. The identifier of the attachment within vrf.
     #[serde(default)]
@@ -1173,7 +1174,7 @@ pub struct VlanAttachment {
 }
 
 /// Each logical network interface is effectively a network and IP pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogicalNetworkInterface {
     /// Whether this interface is the default gateway for the instance. Only one interface can be the default gateway for the instance.
     #[serde(default, rename = "defaultGateway")]
@@ -1193,7 +1194,7 @@ pub struct LogicalNetworkInterface {
 }
 
 /// QOS policy parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QosPolicy {
     /// The bandwidth permitted by the QOS policy, in gbps.
     #[serde(default, rename = "bandwidthGbps")]

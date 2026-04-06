@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response of ListNotifications endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1ListNotificationsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -26,7 +27,7 @@ pub struct GoogleCloudAdvisorynotificationsV1ListNotificationsResponse {
 }
 
 /// Settings for each NotificationType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1NotificationSettings {
     /// Whether the associated NotificationType is enabled.
     #[serde(default)]
@@ -34,7 +35,7 @@ pub struct GoogleCloudAdvisorynotificationsV1NotificationSettings {
 }
 
 /// Settings for Advisory Notifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1Settings {
     /// Required. Fingerprint for optimistic concurrency returned in Get requests. Must be provided for Update requests. If the value provided does not match the value known to the server, ABORTED will be thrown, and the client should retry the read-modify-write cycle.
     #[serde(default)]
@@ -48,7 +49,7 @@ pub struct GoogleCloudAdvisorynotificationsV1Settings {
 }
 
 /// A notification object for notifying customers about security and privacy issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1Notification {
     /// Output only. Time the notification was created.
     #[serde(default, rename = "createTime")]
@@ -69,7 +70,7 @@ pub struct GoogleCloudAdvisorynotificationsV1Notification {
 }
 
 /// A message which contains notification details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1Message {
     /// The attachments to download.
     #[serde(default)]
@@ -87,7 +88,7 @@ pub struct GoogleCloudAdvisorynotificationsV1Message {
 }
 
 /// A subject line of a notification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1Subject {
     /// The text content.
     #[serde(default)]
@@ -95,7 +96,7 @@ pub struct GoogleCloudAdvisorynotificationsV1Subject {
 }
 
 /// Attachment with specific information about the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1Attachment {
     /// A CSV file attachment. Max size is 10 MB.
     #[serde(default)]
@@ -106,7 +107,7 @@ pub struct GoogleCloudAdvisorynotificationsV1Attachment {
 }
 
 /// A message body containing text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1MessageBody {
     /// The text content of the message body.
     #[serde(default)]
@@ -114,7 +115,7 @@ pub struct GoogleCloudAdvisorynotificationsV1MessageBody {
 }
 
 /// A representation of a CSV file attachment, as a list of column headers and a list of data rows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1Csv {
     /// The list of data rows in a CSV file, as string arrays rather than as a single comma-separated string.
     #[serde(default, rename = "dataRows")]
@@ -126,7 +127,7 @@ pub struct GoogleCloudAdvisorynotificationsV1Csv {
 }
 
 /// A text object containing the English text and its localized copies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1Text {
     /// The English copy.
     #[serde(default, rename = "enText")]
@@ -140,7 +141,7 @@ pub struct GoogleCloudAdvisorynotificationsV1Text {
 }
 
 /// A representation of a single data row in a CSV file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAdvisorynotificationsV1CsvCsvRow {
     /// The data entries in a CSV file row, as a string array rather than a single comma-separated string.
     #[serde(default)]

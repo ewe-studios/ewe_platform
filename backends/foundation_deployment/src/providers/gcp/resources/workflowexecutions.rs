@@ -8,22 +8,23 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request for the CancelExecution method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelExecutionRequest {}
 
 /// Request for the DeleteExecutionHistory method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteExecutionHistoryRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response for the ExportData method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportDataResponse {
     /// The JSON string with customer data and metadata for an execution with the given name
     #[serde(default)]
@@ -31,7 +32,7 @@ pub struct ExportDataResponse {
 }
 
 /// RPC response object for the ListCallbacks method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCallbacksResponse {
     /// The callbacks which match the request.
     #[serde(default)]
@@ -42,7 +43,7 @@ pub struct ListCallbacksResponse {
 }
 
 /// Response for the ListExecutions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExecutionsResponse {
     /// The executions which match the request.
     #[serde(default)]
@@ -53,7 +54,7 @@ pub struct ListExecutionsResponse {
 }
 
 /// Response message for ExecutionHistory.ListStepEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListStepEntriesResponse {
     /// A token to retrieve next page of results. Pass this value in the ListStepEntriesRequest.page_token field in the subsequent call to ListStepEntries method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -67,7 +68,7 @@ pub struct ListStepEntriesResponse {
 }
 
 /// Request for the TriggerPubsubExecution method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TriggerPubsubExecutionRequest {
     /// Required. LINT: LEGACY_NAMES The query parameter value for __GCP_CloudEventsMode, set by the Eventarc service when configuring triggers.
     #[serde(default, rename = "GCPCloudEventsMode")]
@@ -84,7 +85,7 @@ pub struct TriggerPubsubExecutionRequest {
 }
 
 /// An instance of a Callback created by an execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Callback {
     /// Output only. The payloads received by the callback that have not been processed by a waiting execution step.
     #[serde(default, rename = "availablePayloads")]
@@ -101,7 +102,7 @@ pub struct Callback {
 }
 
 /// A running instance of a [Workflow](/workflows/docs/reference/rest/v1/projects.locations.workflows).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Execution {
     /// Input parameters of the execution represented as a JSON string. The size limit is 32KB. *Note*: If you are using the REST API directly to run your workflow, you must escape any JSON string value of argument. Example: ''{"argument":"{\"firstName\":\"FIRST\",\"lastName\":\"LAST\"}"}''
     #[serde(default)]
@@ -154,7 +155,7 @@ pub struct Execution {
 }
 
 /// An StepEntry contains debugging information for a step transition in a workflow execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StepEntry {
     /// Output only. The creation time of the step entry.
     #[serde(default, rename = "createTime")]
@@ -195,7 +196,7 @@ pub struct StepEntry {
 }
 
 /// A message that is published by publishers and consumed by subscribers. The message must contain either a non-empty data field or at least one attribute. Note that client libraries represent this object differently depending on the language. See the corresponding [client library documentation](https://cloud.google.com/pubsub/docs/reference/libraries) for more information. See [quotas and limits] (https://cloud.google.com/pubsub/quotas) for more information about message limits.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubsubMessage {
     /// Optional. Attributes for this message. If this field is empty, the message must contain non-empty data. This can be used to filter messages on the subscription.
     #[serde(default)]
@@ -215,7 +216,7 @@ pub struct PubsubMessage {
 }
 
 /// Error describes why the execution was abnormally terminated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Error {
     /// Human-readable stack trace string.
     #[serde(default)]
@@ -229,7 +230,7 @@ pub struct Error {
 }
 
 /// Describes an error related to the current state of the Execution resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StateError {
     /// Provides specifics about the error.
     #[serde(default)]
@@ -240,7 +241,7 @@ pub struct StateError {
 }
 
 /// Represents the current status of this execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// A list of currently executing or last executed step names for the workflow execution currently running. If the workflow has succeeded or failed, this is the last attempted or executed step. Presently, if the current step is inside a subworkflow, the list only includes that step. In the future, the list will contain items for each step in the call stack, starting with the outermost step in the main subworkflow, and ending with the most deeply nested step.
     #[serde(default, rename = "currentSteps")]
@@ -248,7 +249,7 @@ pub struct Status {
 }
 
 /// Exception describes why the step entry failed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Exception {
     /// Error message represented as a JSON string.
     #[serde(default)]
@@ -256,7 +257,7 @@ pub struct Exception {
 }
 
 /// NavigationInfo describes what steps if any come before or after this step, or what steps are parents or children of this step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NavigationInfo {
     /// Step entries that can be reached by "stepping into" e.g. a subworkflow call.
     #[serde(default)]
@@ -273,7 +274,7 @@ pub struct NavigationInfo {
 }
 
 /// StepEntryMetadata contains metadata information about this step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StepEntryMetadata {
     /// Expected iteration represents the expected number of iterations in the step''s progress.
     #[serde(default, rename = "expectedIteration")]
@@ -290,7 +291,7 @@ pub struct StepEntryMetadata {
 }
 
 /// VariableData contains the variable data for this step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VariableData {
     /// Variables that are associated with this step.
     #[serde(default)]
@@ -298,7 +299,7 @@ pub struct VariableData {
 }
 
 /// A collection of stack elements (frames) where an error occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StackTrace {
     /// An array of stack elements.
     #[serde(default)]
@@ -306,7 +307,7 @@ pub struct StackTrace {
 }
 
 /// Represents a step of the workflow this execution is running.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Step {
     /// Name of a routine within the workflow.
     #[serde(default)]
@@ -317,7 +318,7 @@ pub struct Step {
 }
 
 /// A single stack element (frame) where an error occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StackTraceElement {
     /// The source position information of the stack trace element.
     #[serde(default)]
@@ -331,7 +332,7 @@ pub struct StackTraceElement {
 }
 
 /// Position contains source position information about the stack trace element such as line number, column number and length of the code block in bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Position {
     /// The source code column position (of the line) the current instruction was generated from.
     #[serde(default)]

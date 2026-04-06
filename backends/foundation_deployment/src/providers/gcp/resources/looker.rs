@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request options for exporting data of an Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportInstanceRequest {
     /// Required. Encryption configuration (CMEK). For CMEK enabled instances it should be same as looker CMEK.
     #[serde(default, rename = "encryptionConfig")]
@@ -30,7 +31,7 @@ pub struct ExportInstanceRequest {
 }
 
 /// ExportMetadata represents the metadata of the exported artifacts. The metadata.json file in export artifact can be parsed as this message
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportMetadata {
     /// Encryption key that was used to encrypt the export artifacts.
     #[serde(default, rename = "exportEncryptionKey")]
@@ -56,7 +57,7 @@ pub struct ExportMetadata {
 }
 
 /// Requestion options for importing looker data to an Instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportInstanceRequest {
     /// Path to the import folder in Google Cloud Storage, in the form gs://bucketName/folderName.
     #[serde(default, rename = "gcsUri")]
@@ -64,7 +65,7 @@ pub struct ImportInstanceRequest {
 }
 
 /// Response from listing Looker instance backups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstanceBackupsResponse {
     /// The list of instances matching the request filters, up to the requested page_size.
     #[serde(default, rename = "instanceBackups")]
@@ -78,7 +79,7 @@ pub struct ListInstanceBackupsResponse {
 }
 
 /// Response from ListInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancesResponse {
     /// The list of instances matching the request filters, up to the requested ListInstancesRequest.pageSize.
     #[serde(default)]
@@ -92,7 +93,7 @@ pub struct ListInstancesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -103,7 +104,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -117,7 +118,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -143,11 +144,11 @@ pub struct OperationMetadata {
 }
 
 /// Request options for restarting an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestartInstanceRequest {}
 
 /// Request options for restoring an instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreInstanceRequest {
     /// Required. Backup being used to restore the instance Format: projects/{project}/locations/{location}/instances/{instance}/backups/{backup}
     #[serde(default)]
@@ -155,7 +156,7 @@ pub struct RestoreInstanceRequest {
 }
 
 /// Configuration for Encryption - e.g. CMEK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportEncryptionConfig {
     /// Required. Name of the CMEK key in KMS.
     #[serde(default, rename = "kmsKeyName")]
@@ -163,7 +164,7 @@ pub struct ExportEncryptionConfig {
 }
 
 /// Encryption key details for the exported artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportMetadataEncryptionKey {
     /// Name of the CMEK.
     #[serde(default)]
@@ -174,7 +175,7 @@ pub struct ExportMetadataEncryptionKey {
 }
 
 /// The details of a backup resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceBackup {
     /// Output only. The time when the backup was started.
     #[serde(default, rename = "createTime")]
@@ -194,7 +195,7 @@ pub struct InstanceBackup {
 }
 
 /// A Looker instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// Looker Instance Admin settings.
     #[serde(default, rename = "adminSettings")]
@@ -307,7 +308,7 @@ pub struct Instance {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -327,7 +328,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -347,7 +348,7 @@ pub struct Operation {
 }
 
 /// Looker instance Admin settings fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdminSettings {
     /// Email domain allowlist for the instance.
     #[serde(default, rename = "allowedEmailDomains")]
@@ -355,7 +356,7 @@ pub struct AdminSettings {
 }
 
 /// Controlled egress configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ControlledEgressConfig {
     /// Optional. List of fully qualified domain names to be added to the allowlist for outbound traffic.
     #[serde(default, rename = "egressFqdns")]
@@ -369,7 +370,7 @@ pub struct ControlledEgressConfig {
 }
 
 /// Custom domain information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomDomain {
     /// Domain name.
     #[serde(default)]
@@ -380,7 +381,7 @@ pub struct CustomDomain {
 }
 
 /// Specifies the maintenance denial period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DenyMaintenancePeriod {
     /// Required. End date of the deny maintenance period.
     #[serde(default, rename = "endDate")]
@@ -394,7 +395,7 @@ pub struct DenyMaintenancePeriod {
 }
 
 /// Encryption configuration (i.e. CMEK).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionConfig {
     /// Name of the CMEK key in KMS (input parameter).
     #[serde(default, rename = "kmsKeyName")]
@@ -408,7 +409,7 @@ pub struct EncryptionConfig {
 }
 
 /// Ingress IP allowlist configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngressIpAllowlistConfig {
     /// Optional. List of IP range rules to allow ingress traffic.
     #[serde(default, rename = "allowlistRules")]
@@ -422,7 +423,7 @@ pub struct IngressIpAllowlistConfig {
 }
 
 /// Published upcoming future maintenance schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceSchedule {
     /// The scheduled end time for the maintenance.
     #[serde(default, rename = "endTime")]
@@ -433,7 +434,7 @@ pub struct MaintenanceSchedule {
 }
 
 /// Specifies the recurring maintenance window.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
     /// Required. Day of the week for this MaintenanceWindow (in UTC). // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
@@ -444,7 +445,7 @@ pub struct MaintenanceWindow {
 }
 
 /// Looker instance OAuth login settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OAuthConfig {
     /// Input only. Client ID from an external OAuth application. This is an input-only field, and thus will not be set in any responses.
     #[serde(default, rename = "clientId")]
@@ -458,7 +459,7 @@ pub struct OAuthConfig {
 }
 
 /// Configuration for periodic export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PeriodicExportConfig {
     /// Required. Cloud Storage bucket URI for periodic export. Format: gs://{bucket_name}
     #[serde(default, rename = "gcsUri")]
@@ -472,7 +473,7 @@ pub struct PeriodicExportConfig {
 }
 
 /// Information for Private Service Connect (PSC) setup for a Looker instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PscConfig {
     /// Optional. List of VPCs that are allowed ingress into looker. Format: projects/{project}/global/networks/{network}
     #[serde(default, rename = "allowedVpcs")]
@@ -486,7 +487,7 @@ pub struct PscConfig {
 }
 
 /// Metadata about users for a Looker instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserMetadata {
     /// Optional. The number of additional developer users the instance owner has purchased.
     #[serde(default, rename = "additionalDeveloperUserCount")]
@@ -500,7 +501,7 @@ pub struct UserMetadata {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -514,7 +515,7 @@ pub struct Status {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -528,7 +529,7 @@ pub struct Date {
 }
 
 /// Ingress IP allowlist rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngressIpAllowlistRule {
     /// Optional. Description for the IP range.
     #[serde(default)]
@@ -539,7 +540,7 @@ pub struct IngressIpAllowlistRule {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -556,7 +557,7 @@ pub struct TimeOfDay {
 }
 
 /// Service attachment configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAttachment {
     /// Output only. Connection status. // TODO: enum values: ["UNKNOWN", "ACCEPTED", "PENDING", "REJECTED", "NEEDS_ATTENTION", "CLOSED"]
     #[serde(default, rename = "connectionStatus")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for ListViolatingSites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ViolatingSitesResponse {
     /// The list of violating sites.
     #[serde(default, rename = "violatingSites")]
@@ -19,7 +20,7 @@ pub struct ViolatingSitesResponse {
 }
 
 /// Response message for GetSiteSummary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteSummaryResponse {
     /// The site''s Abusive Experience Report status. // TODO: enum values: ["UNKNOWN", "PASSING", "FAILING"]
     #[serde(default, rename = "abusiveStatus")]

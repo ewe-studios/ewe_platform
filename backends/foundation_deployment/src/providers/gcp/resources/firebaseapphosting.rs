@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Represents the metadata of a long-running operation on domains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -44,11 +45,11 @@ pub struct DomainOperationMetadata {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Message for response to list backends
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackendsResponse {
     /// The list of backends
     #[serde(default)]
@@ -62,7 +63,7 @@ pub struct ListBackendsResponse {
 }
 
 /// Message for response to list builds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBuildsResponse {
     /// The list of builds.
     #[serde(default)]
@@ -76,7 +77,7 @@ pub struct ListBuildsResponse {
 }
 
 /// Message for response to list domains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDomainsResponse {
     /// Output only. The list of domains.
     #[serde(default)]
@@ -90,7 +91,7 @@ pub struct ListDomainsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -101,7 +102,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -115,7 +116,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Message for response to list rollouts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRolloutsResponse {
     /// A token identifying the next page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -129,7 +130,7 @@ pub struct ListRolloutsResponse {
 }
 
 /// Represents the metadata of a long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -155,7 +156,7 @@ pub struct OperationMetadata {
 }
 
 /// Controls traffic configuration for the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Traffic {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
@@ -193,7 +194,7 @@ pub struct Traffic {
 }
 
 /// Additional metadata for operations on custom domains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomDomainOperationMetadata {
     /// Output only. The custom domain''s CertState, which must be CERT_ACTIVE for the create operations to complete. // TODO: enum values: ["CERT_STATE_UNSPECIFIED", "CERT_PREPARING", "CERT_VALIDATING", "CERT_PROPAGATING", "CERT_ACTIVE", "CERT_EXPIRING_SOON", "CERT_EXPIRED"]
     #[serde(default, rename = "certState")]
@@ -216,7 +217,7 @@ pub struct CustomDomainOperationMetadata {
 }
 
 /// A backend is the primary resource of App Hosting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Backend {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
@@ -278,7 +279,7 @@ pub struct Backend {
 }
 
 /// A single build for a backend, at a specific point codebase reference tag and point in time. Encapsulates several resources, including an Artifact Registry container image, a Cloud Build invocation that built the image, and the Cloud Run revision that uses that image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Build {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
@@ -334,7 +335,7 @@ pub struct Build {
 }
 
 /// A domain name that is associated with a backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Domain {
     /// Optional. Annotations as key value pairs.
     #[serde(default)]
@@ -381,7 +382,7 @@ pub struct Domain {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -401,7 +402,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -421,7 +422,7 @@ pub struct Operation {
 }
 
 /// A single rollout of a build for a backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Rollout {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
@@ -465,7 +466,7 @@ pub struct Rollout {
 }
 
 /// A list of traffic splits that together represent where traffic is being routed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrafficSet {
     /// Required. The list of traffic splits.
     #[serde(default)]
@@ -473,7 +474,7 @@ pub struct TrafficSet {
 }
 
 /// The policy for how automatic builds and rollouts are triggered and rolled out.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RolloutPolicy {
     /// If set, specifies a branch that triggers a new build to be started with this policy. Otherwise, no automatic rollouts will happen.
     #[serde(default, rename = "codebaseBranch")]
@@ -493,7 +494,7 @@ pub struct RolloutPolicy {
 }
 
 /// A set of updates including ACME challenges and DNS records that allow App Hosting to create an SSL certificate and establish project ownership for your domain name before you direct traffic to App Hosting servers. Use these updates to facilitate zero downtime migrations to App Hosting from other services. After you''ve made the recommended updates, check your custom domain''s ownershipState and certState. To avoid downtime, they should be OWNERSHIP_ACTIVE and CERT_ACTIVE, respectively, before you update your A and AAAA records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiveMigrationStep {
     /// Output only. DNS updates to facilitate your domain''s zero-downtime migration to App Hosting.
     #[serde(default, rename = "dnsUpdates")]
@@ -510,7 +511,7 @@ pub struct LiveMigrationStep {
 }
 
 /// The connection to an external source repository to watch for event-driven updates to the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Codebase {
     /// Required. The resource name for the Developer Connect [gitRepositoryLink](https://cloud.google.com/developer-connect/docs/api/reference/rest/v1/projects.locations.connections.gitRepositoryLinks) connected to this backend, in the format: projects/{project}/locations/{location}/connections/{connection}/gitRepositoryLinks/{repositoryLink} The connection for the gitRepositoryLink must made be using the Firebase App Hosting GitHub App via the Firebase Console.
     #[serde(default)]
@@ -521,7 +522,7 @@ pub struct Codebase {
 }
 
 /// An external resource managed by App Hosting on the project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedResource {
     /// A Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service), managed by App Hosting.
     #[serde(default, rename = "runService")]
@@ -529,7 +530,7 @@ pub struct ManagedResource {
 }
 
 /// Additional configuration of the backend for this build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Config {
     /// Output only. [OUTPUT_ONLY] This field represents all environment variables employed during both the build and runtime. This list reflects the result of merging variables from all sources (Backend.override_env, Build.Config.env, YAML, defaults, system). Each variable includes its origin
     #[serde(default, rename = "effectiveEnv")]
@@ -543,7 +544,7 @@ pub struct Config {
 }
 
 /// The container for the rpc status and source for any errors found during the build process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Error {
     /// Output only. Resource link
     #[serde(default, rename = "cloudResource")]
@@ -557,7 +558,7 @@ pub struct Error {
 }
 
 /// The source for the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildSource {
     /// An archive source.
     #[serde(default)]
@@ -571,7 +572,7 @@ pub struct BuildSource {
 }
 
 /// The status of a custom domain''s linkage to a backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomDomainStatus {
     /// Output only. Tracks SSL certificate status for the domain. // TODO: enum values: ["CERT_STATE_UNSPECIFIED", "CERT_PREPARING", "CERT_VALIDATING", "CERT_PROPAGATING", "CERT_ACTIVE", "CERT_EXPIRING_SOON", "CERT_EXPIRED"]
     #[serde(default, rename = "certState")]
@@ -591,7 +592,7 @@ pub struct CustomDomainStatus {
 }
 
 /// Indicates whether App Hosting will serve content on the domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServingBehavior {
     /// Optional. Redirect behavior for a domain, if provided.
     #[serde(default)]
@@ -599,7 +600,7 @@ pub struct ServingBehavior {
 }
 
 /// The traffic allocation for the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrafficSplit {
     /// Required. The build that traffic is being routed to.
     #[serde(default)]
@@ -610,7 +611,7 @@ pub struct TrafficSplit {
 }
 
 /// A file path pattern to match against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Path {
     /// Optional. The pattern to match against.
     #[serde(default)]
@@ -621,7 +622,7 @@ pub struct Path {
 }
 
 /// A managed Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunService {
     /// Optional. The name of the Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service), in the format: projects/{project}/locations/{location}/services/{serviceId}
     #[serde(default)]
@@ -629,7 +630,7 @@ pub struct RunService {
 }
 
 /// Environment variables for this build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentVariable {
     /// Optional. Where this variable should be made available. If left unspecified, will be available in both BUILD and BACKEND.
     #[serde(default)]
@@ -652,7 +653,7 @@ pub struct EnvironmentVariable {
 }
 
 /// Configuration applied to the Cloud Run [service](https://cloud.google.com/run/docs/reference/rest/v2/projects.locations.services#resource:-service).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunConfig {
     /// Optional. Maximum number of requests that each Cloud Run instance can receive. By default, each instance can receive Cloud Run''s default of up to 80 requests at the same time. Concurrency can be set to any integer value up to 1000.
     #[serde(default)]
@@ -672,7 +673,7 @@ pub struct RunConfig {
 }
 
 /// The URI of an storage archive or a signed URL to use as the build source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArchiveSource {
     /// Optional. Deprecated: Not used. The author contained in the metadata of a version control change.
     #[serde(default)]
@@ -692,7 +693,7 @@ pub struct ArchiveSource {
 }
 
 /// A codebase source, representing the state of the codebase that the build will be created at.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CodebaseSource {
     /// Output only. The author contained in the metadata of a version control change.
     #[serde(default)]
@@ -724,7 +725,7 @@ pub struct CodebaseSource {
 }
 
 /// The URI of an Artifact Registry [container image](https://cloud.google.com/artifact-registry/docs/reference/rest/v1/projects.locations.repositories.dockerImages) to use as the build source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerSource {
     /// Required. A URI representing a container for the backend to use.
     #[serde(default)]
@@ -732,7 +733,7 @@ pub struct ContainerSource {
 }
 
 /// A set of DNS record updates that you should make to allow App Hosting to serve secure content in response to requests against your domain. These updates present the current state of your domain''s and related subdomains'' DNS records when App Hosting last queried them, and the desired set of records that App Hosting needs to see before your custom domain can be fully active.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsUpdates {
     /// Output only. The last time App Hosting checked your custom domain''s DNS records.
     #[serde(default, rename = "checkTime")]
@@ -749,7 +750,7 @@ pub struct DnsUpdates {
 }
 
 /// Specifies redirect behavior for a domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Redirect {
     /// Optional. The status code to use in a redirect response. Must be a valid HTTP 3XX status code. Defaults to 302 if not present.
     #[serde(default)]
@@ -760,7 +761,7 @@ pub struct Redirect {
 }
 
 /// Deprecated: Not used. Metadata for the user who started the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceUserMetadata {
     /// Output only. Deprecated: Not used. The user-chosen displayname. May be empty.
     #[serde(default, rename = "displayName")]
@@ -774,7 +775,7 @@ pub struct SourceUserMetadata {
 }
 
 /// Version control metadata for a user associated with a resolved codebase. Currently assumes a Git user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserMetadata {
     /// Output only. The ''name'' field in a Git user''s git.config. Required by Git.
     #[serde(default, rename = "displayName")]
@@ -788,7 +789,7 @@ pub struct UserMetadata {
 }
 
 /// A set of DNS records relevant to the setup and maintenance of a custom domain in App Hosting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecordSet {
     /// Output only. An error App Hosting services encountered when querying your domain''s DNS records. Note: App Hosting ignores NXDOMAIN errors, as those generally just mean that a domain name hasn''t been set up yet.
     #[serde(default, rename = "checkError")]
@@ -802,7 +803,7 @@ pub struct DnsRecordSet {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -816,7 +817,7 @@ pub struct Status {
 }
 
 /// A representation of a DNS records for a domain. DNS records are resource records that define how systems and services should behave when handling requests for a domain. For example, when you add A records to your domain''s DNS records, you''re informing other systems (such as your users'' web browsers) to contact those IPv4 addresses to retrieve resources relevant to your domain (such as your App Hosting files).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsRecord {
     /// Output only. The domain the record pertains to, e.g. foo.bar.com..
     #[serde(default, rename = "domainName")]

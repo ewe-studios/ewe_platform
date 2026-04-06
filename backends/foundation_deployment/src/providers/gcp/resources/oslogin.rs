@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// A response message for importing an SSH public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportSshPublicKeyResponse {
     /// Detailed information about import results.
     #[serde(default)]
@@ -26,7 +27,7 @@ pub struct ImportSshPublicKeyResponse {
 }
 
 /// A request message for creating a POSIX account entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisionPosixAccountRequest {
     /// Optional. The regions to wait for a POSIX account to be written to before returning a response. If unspecified, defaults to all regions. Regions are listed at https://cloud.google.com/about/locations#region.
     #[serde(default)]
@@ -34,7 +35,7 @@ pub struct ProvisionPosixAccountRequest {
 }
 
 /// A request message for signing an SSH public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignSshPublicKeyRequest {
     /// The App Engine instance to sign the SSH public key for. Expected format: apps/{app}/services/{service}/versions/{version}/instances/{instance}
     #[serde(default, rename = "appEngineInstance")]
@@ -51,7 +52,7 @@ pub struct SignSshPublicKeyRequest {
 }
 
 /// The response message for signing an SSH public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignSshPublicKeyResponse {
     /// The signed SSH public key to use in the SSH handshake.
     #[serde(default, rename = "signedSshPublicKey")]
@@ -59,7 +60,7 @@ pub struct SignSshPublicKeyResponse {
 }
 
 /// The SSH public key information associated with a Google account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SshPublicKey {
     /// An expiration time in microseconds since epoch.
     #[serde(default, rename = "expirationTimeUsec")]
@@ -76,7 +77,7 @@ pub struct SshPublicKey {
 }
 
 /// The user profile information used for logging in to a virtual machine on Google Compute Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoginProfile {
     /// Required. A unique user ID.
     #[serde(default)]
@@ -90,7 +91,7 @@ pub struct LoginProfile {
 }
 
 /// The POSIX account information associated with a Google account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosixAccount {
     /// Output only. A POSIX account identifier.
     #[serde(default, rename = "accountId")]

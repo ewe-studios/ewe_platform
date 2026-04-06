@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// An Application resource contains the top-level configuration of an App Engine application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
     /// Google Apps authentication domain that controls which users can access this application.Defaults to open access for any Google Account.
     #[serde(default, rename = "authDomain")]
@@ -65,7 +66,7 @@ pub struct Application {
 }
 
 /// Request message for Firewall.BatchUpdateIngressRules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateIngressRulesRequest {
     /// A list of FirewallRules to replace the existing set.
     #[serde(default, rename = "ingressRules")]
@@ -73,7 +74,7 @@ pub struct BatchUpdateIngressRulesRequest {
 }
 
 /// Response message for Firewall.UpdateAllIngressRules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateIngressRulesResponse {
     /// The full list of ingress FirewallRules for this application.
     #[serde(default, rename = "ingressRules")]
@@ -81,7 +82,7 @@ pub struct BatchUpdateIngressRulesResponse {
 }
 
 /// Request message for Instances.DebugInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DebugInstanceRequest {
     /// Public SSH key to add to the instance. Examples: [USERNAME]:ssh-rsa [KEY_VALUE] [USERNAME] [USERNAME]:ssh-rsa [KEY_VALUE] google-ssh {"userName":"[USERNAME]","expireOn":"[EXPIRE_TIME]"}For more information, see Adding and Removing SSH Keys (https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys).
     #[serde(default, rename = "sshKey")]
@@ -89,11 +90,11 @@ pub struct DebugInstanceRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for Versions.ExportAppImage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportAppImageRequest {
     /// Optional. The full resource name of the AR repository to export to. Format: projects/{project}/locations/{location}/repositories/{repository} If not specified, defaults to projects/{project}/locations/{location}/repositories/gae-standard in the same region as the app. The default repository will be created if it does not exist.
     #[serde(default, rename = "destinationRepository")]
@@ -101,7 +102,7 @@ pub struct ExportAppImageRequest {
 }
 
 /// Single source file that is part of the version to be deployed. Each source file that is deployed must be specified separately.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileInfo {
     /// The MIME type of the file.Defaults to the value from Google Cloud Storage.
     #[serde(default, rename = "mimeType")]
@@ -115,7 +116,7 @@ pub struct FileInfo {
 }
 
 /// Metadata for the given google.cloud.location.Location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppengineV1betaLocationMetadata {
     /// App Engine flexible environment is available in the given location.@OutputOnly
     #[serde(default, rename = "flexibleEnvironmentAvailable")]
@@ -129,7 +130,7 @@ pub struct GoogleAppengineV1betaLocationMetadata {
 }
 
 /// Response message for AuthorizedCertificates.ListAuthorizedCertificates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAuthorizedCertificatesResponse {
     /// The SSL certificates the user is authorized to administer.
     #[serde(default)]
@@ -140,7 +141,7 @@ pub struct ListAuthorizedCertificatesResponse {
 }
 
 /// Response message for AuthorizedDomains.ListAuthorizedDomains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAuthorizedDomainsResponse {
     /// The authorized domains belonging to the user.
     #[serde(default)]
@@ -151,7 +152,7 @@ pub struct ListAuthorizedDomainsResponse {
 }
 
 /// Response message for DomainMappings.ListDomainMappings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDomainMappingsResponse {
     /// The domain mappings for the application.
     #[serde(default, rename = "domainMappings")]
@@ -162,7 +163,7 @@ pub struct ListDomainMappingsResponse {
 }
 
 /// Response message for Firewall.ListIngressRules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListIngressRulesResponse {
     /// The ingress FirewallRules for this application.
     #[serde(default, rename = "ingressRules")]
@@ -173,7 +174,7 @@ pub struct ListIngressRulesResponse {
 }
 
 /// Response message for Instances.ListInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancesResponse {
     /// The instances belonging to the requested version.
     #[serde(default)]
@@ -184,7 +185,7 @@ pub struct ListInstancesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -195,7 +196,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -209,7 +210,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message for Applications.ListRuntimes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRuntimesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -220,7 +221,7 @@ pub struct ListRuntimesResponse {
 }
 
 /// Response message for Services.ListServices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServicesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -231,7 +232,7 @@ pub struct ListServicesResponse {
 }
 
 /// Response message for Versions.ListVersions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVersionsResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -242,7 +243,7 @@ pub struct ListVersionsResponse {
 }
 
 /// Metadata for the given google.cloud.location.Location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationMetadata {
     /// App Engine flexible environment is available in the given location.@OutputOnly
     #[serde(default, rename = "flexibleEnvironmentAvailable")]
@@ -256,7 +257,7 @@ pub struct LocationMetadata {
 }
 
 /// Metadata for the given google.longrunning.Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadataV1 {
     #[serde(default, rename = "createVersionMetadata")]
     pub create_version_metadata: ::core::option::Option<CreateVersionMetadataV1>,
@@ -284,7 +285,7 @@ pub struct OperationMetadataV1 {
 }
 
 /// Metadata for the given google.longrunning.Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadataV1Alpha {
     #[serde(default, rename = "createVersionMetadata")]
     pub create_version_metadata: ::core::option::Option<CreateVersionMetadataV1Alpha>,
@@ -312,7 +313,7 @@ pub struct OperationMetadataV1Alpha {
 }
 
 /// Metadata for the given google.longrunning.Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadataV1Beta {
     #[serde(default, rename = "createVersionMetadata")]
     pub create_version_metadata: ::core::option::Option<CreateVersionMetadataV1Beta>,
@@ -340,7 +341,7 @@ pub struct OperationMetadataV1Beta {
 }
 
 /// The request sent to CLHs during project events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectEvent {
     /// The unique ID for this project event. CLHs can use this value to dedup repeated calls. required
     #[serde(default, rename = "eventId")]
@@ -357,11 +358,11 @@ pub struct ProjectEvent {
 }
 
 /// Request message for ''Applications.RepairApplication''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepairApplicationRequest {}
 
 /// The request that is passed to CLH during per-resource events. The request will be sent with update semantics in all cases except for data governance purge events. These events will be sent with delete semantics and the CLH is expected to delete the resource receiving this event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceEvent {
     /// The unique ID for this per-resource event. CLHs can use this value to dedup repeated calls. required
     #[serde(default, rename = "eventId")]
@@ -375,7 +376,7 @@ pub struct ResourceEvent {
 }
 
 /// Rules to match an HTTP request and dispatch that request to a service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlDispatchRule {
     /// Domain name to match against. The wildcard "*" is supported if specified before a period: "*.".Defaults to matching all domains: "*".
     #[serde(default)]
@@ -389,7 +390,7 @@ pub struct UrlDispatchRule {
 }
 
 /// The feature specific settings to be used in the application. These define behaviors that are user configurable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeatureSettings {
     /// Boolean value indicating if split health checks should be used instead of the legacy health checks. At an app.yaml level, this means defaulting to ''readiness_check'' and ''liveness_check'' values instead of ''health_check'' ones. Once the legacy ''health_check'' behavior is deprecated, and this value is always true, this setting can be removed.
     #[serde(default, rename = "splitHealthChecks")]
@@ -400,7 +401,7 @@ pub struct FeatureSettings {
 }
 
 /// Identity-Aware Proxy
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityAwareProxy {
     /// Whether the serving infrastructure will authenticate and authorize all incoming requests.If true, the oauth2_client_id and oauth2_client_secret fields must be non-empty.
     #[serde(default)]
@@ -417,7 +418,7 @@ pub struct IdentityAwareProxy {
 }
 
 /// An SSL certificate that a user has been authorized to administer. A user is authorized to administer any certificate that applies to one of their authorized domains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizedCertificate {
     /// The SSL certificate serving the AuthorizedCertificate resource. This must be obtained independently from a certificate authority.
     #[serde(default, rename = "certificateRawData")]
@@ -449,7 +450,7 @@ pub struct AuthorizedCertificate {
 }
 
 /// A domain that a user has been authorized to administer. To authorize use of a domain, verify ownership via Search Console (https://search.google.com/search-console/welcome).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizedDomain {
     /// Fully qualified domain name of the domain authorized for use. Example: example.com.
     #[serde(default)]
@@ -460,7 +461,7 @@ pub struct AuthorizedDomain {
 }
 
 /// A domain serving an App Engine application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainMapping {
     /// Relative name of the domain serving the application. Example: example.com.
     #[serde(default)]
@@ -477,7 +478,7 @@ pub struct DomainMapping {
 }
 
 /// A single firewall rule that is evaluated against incoming traffic and provides an action to take on matched requests. A positive integer between 1, Int32.MaxValue-1 that defines the order of rule evaluation. Rules with the lowest priority are evaluated first.A default rule at priority Int32.MaxValue matches all IPv4 and IPv6 traffic when no previous rule matches. Only the action of this rule can be modified by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallRule {
     /// The action to take on matched requests. // TODO: enum values: ["UNSPECIFIED_ACTION", "ALLOW", "DENY"]
     #[serde(default)]
@@ -493,7 +494,7 @@ pub struct FirewallRule {
 }
 
 /// An Instance resource is the computing unit that App Engine uses to automatically scale an application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// Output only. App Engine release this instance is running on.
     #[serde(default, rename = "appEngineRelease")]
@@ -549,7 +550,7 @@ pub struct Instance {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -569,7 +570,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -589,7 +590,7 @@ pub struct Operation {
 }
 
 /// Runtime versions for App Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Runtime {
     /// Date when Runtime is decommissioned.
     #[serde(default, rename = "decommissionedDate")]
@@ -621,7 +622,7 @@ pub struct Runtime {
 }
 
 /// A Service resource is a logical component of an application that can share state and communicate in a secure fashion with other services. For example, an application that handles customer requests might include separate services to handle tasks such as backend data analysis or API requests from mobile devices. Each service has a collection of versions that define a specific set of code used to implement the functionality of that service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Service {
     /// Additional Google Generated Customer Metadata, this field won''t be provided by default and can be requested by setting the IncludeExtraData field in GetServiceRequest
     #[serde(default, rename = "generatedCustomerMetadata")]
@@ -644,7 +645,7 @@ pub struct Service {
 }
 
 /// A Version resource is a specific set of source code and configuration files that are deployed into a service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Version {
     /// Serving configuration for Google Cloud Endpoints (https://cloud.google.com/endpoints).Only returned in GET requests if view=FULL is set.
     #[serde(default, rename = "apiConfig")]
@@ -775,7 +776,7 @@ pub struct Version {
 }
 
 /// Metadata for the given google.longrunning.Operation during a google.appengine.v1.CreateVersionRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateVersionMetadataV1 {
     /// The Cloud Build ID if one was created as part of the version create. @OutputOnly
     #[serde(default, rename = "cloudBuildId")]
@@ -783,7 +784,7 @@ pub struct CreateVersionMetadataV1 {
 }
 
 /// Metadata for the given google.longrunning.Operation during a google.appengine.v1alpha.CreateVersionRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateVersionMetadataV1Alpha {
     /// The Cloud Build ID if one was created as part of the version create. @OutputOnly
     #[serde(default, rename = "cloudBuildId")]
@@ -791,7 +792,7 @@ pub struct CreateVersionMetadataV1Alpha {
 }
 
 /// Metadata for the given google.longrunning.Operation during a google.appengine.v1beta.CreateVersionRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateVersionMetadataV1Beta {
     /// The Cloud Build ID if one was created as part of the version create. @OutputOnly
     #[serde(default, rename = "cloudBuildId")]
@@ -799,7 +800,7 @@ pub struct CreateVersionMetadataV1Beta {
 }
 
 /// ProjectsMetadata is the metadata CCFE stores about the all the relevant projects (tenant, consumer, producer).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsMetadata {
     /// The consumer project id.
     #[serde(default, rename = "consumerProjectId")]
@@ -834,7 +835,7 @@ pub struct ProjectsMetadata {
 }
 
 /// ContainerState contains the externally-visible container state that is used to communicate the state and reasoning for that state to the CLH. This data is not persisted by CCFE, but is instead derived from CCFE''s internal representation of the container state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerState {
     #[serde(default, rename = "currentReasons")]
     pub current_reasons: ::core::option::Option<Reasons>,
@@ -847,7 +848,7 @@ pub struct ContainerState {
 }
 
 /// An SSL certificate obtained from a certificate authority.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateRawData {
     /// Unencrypted PEM encoded RSA private key. This field is set once on certificate creation and then encrypted. The key size must be 2048 bits or fewer. Must include the header and footer. Example: -----BEGIN RSA PRIVATE KEY----- -----END RSA PRIVATE KEY----- @InputOnly
     #[serde(default, rename = "privateKey")]
@@ -858,7 +859,7 @@ pub struct CertificateRawData {
 }
 
 /// A certificate managed by App Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedCertificate {
     /// Time at which the certificate was last renewed. The renewal process is fully managed. Certificate renewal will automatically occur before the certificate expires. Renewal errors can be tracked via ManagementStatus.@OutputOnly
     #[serde(default, rename = "lastRenewalTime")]
@@ -869,7 +870,7 @@ pub struct ManagedCertificate {
 }
 
 /// A DNS resource record.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceRecord {
     /// Relative name of the object affected by this record. Only applicable for CNAME records. Example: ''www''.
     #[serde(default)]
@@ -883,7 +884,7 @@ pub struct ResourceRecord {
 }
 
 /// SSL configuration for a DomainMapping resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslSettings {
     /// ID of the AuthorizedCertificate resource configuring SSL for the application. Clearing this field will remove SSL support.By default, a managed certificate is automatically created for every domain mapping. To omit SSL support or to configure SSL manually, specify SslManagementType.MANUAL on a CREATE or UPDATE request. You must be authorized to administer the AuthorizedCertificate resource to manually map it to a DomainMapping resource. Example: 12345.
     #[serde(default, rename = "certificateId")]
@@ -897,7 +898,7 @@ pub struct SslSettings {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -911,7 +912,7 @@ pub struct Status {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: A full date, with non-zero year, month, and day values. A month and day, with a zero year (for example, an anniversary). A year on its own, with a zero month and a zero day. A year and month, with a zero day (for example, a credit card expiration date).Related types: google.type.TimeOfDay google.type.DateTime google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -925,7 +926,7 @@ pub struct Date {
 }
 
 /// A NetworkSettings resource is a container for ingress settings for a version or service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkSettings {
     /// The ingress settings for version or service. // TODO: enum values: ["INGRESS_TRAFFIC_ALLOWED_UNSPECIFIED", "INGRESS_TRAFFIC_ALLOWED_ALL", "INGRESS_TRAFFIC_ALLOWED_INTERNAL_ONLY", "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"]
     #[serde(default, rename = "ingressTrafficAllowed")]
@@ -933,7 +934,7 @@ pub struct NetworkSettings {
 }
 
 /// Traffic routing configuration for versions within a single service. Traffic splits define how traffic directed to the service is assigned to versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrafficSplit {
     /// Mapping from version IDs within the service to fractional (0.000, 1] allocations of traffic for that version. Each version can be specified only once, but some versions in the service may not have any traffic allocation. Services that have traffic allocated cannot be deleted until either the service is deleted or their traffic allocation is removed. Allocations must sum to 1. Up to two decimal place precision is supported for IP-based splits and up to three decimal places is supported for cookie-based splits.
     #[serde(default)]
@@ -944,7 +945,7 @@ pub struct TrafficSplit {
 }
 
 /// Google Cloud Endpoints (https://cloud.google.com/endpoints) configuration for API handlers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiConfigHandler {
     /// Action to take when users access resources that require authentication. Defaults to redirect. // TODO: enum values: ["AUTH_FAIL_ACTION_UNSPECIFIED", "AUTH_FAIL_ACTION_REDIRECT", "AUTH_FAIL_ACTION_UNAUTHORIZED"]
     #[serde(default, rename = "authFailAction")]
@@ -964,7 +965,7 @@ pub struct ApiConfigHandler {
 }
 
 /// Automatic scaling is based on request rate, response latencies, and other application metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomaticScaling {
     /// The time period that the Autoscaler (https://cloud.google.com/compute/docs/autoscaler/) should wait before it starts collecting information from a new instance. This prevents the autoscaler from collecting information when the instance is initializing, during which the collected usage would not be reliable. Only applicable in the App Engine flexible environment.
     #[serde(default, rename = "coolDownPeriod")]
@@ -1008,7 +1009,7 @@ pub struct AutomaticScaling {
 }
 
 /// A service with basic scaling will create an instance when the application receives a request. The instance will be turned down when the app becomes idle. Basic scaling is ideal for work that is intermittent or driven by user activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasicScaling {
     /// Duration of time after the last request that an instance must wait before the instance is shut down.
     #[serde(default, rename = "idleTimeout")]
@@ -1019,7 +1020,7 @@ pub struct BasicScaling {
 }
 
 /// Code and application artifacts used to deploy a version to App Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Deployment {
     /// Options for any Google Cloud Build builds created as a part of this deployment.These options will only be used if a new build is created, such as when deploying to the App Engine flexible environment using files or zip.
     #[serde(default, rename = "cloudBuildOptions")]
@@ -1036,7 +1037,7 @@ pub struct Deployment {
 }
 
 /// Google Cloud Endpoints (https://cloud.google.com/endpoints) configuration. The Endpoints API Service provides tooling for serving Open API and gRPC endpoints via an NGINX proxy. Only valid for App Engine Flexible environment deployments.The fields here refer to the name and configuration ID of a "service" resource in the Service Management API (https://cloud.google.com/service-management/overview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointsApiService {
     /// Endpoints service configuration ID as specified by the Service Management API. For example "2016-09-19r1".By default, the rollout strategy for Endpoints is RolloutStrategy.FIXED. This means that Endpoints starts up with a particular configuration ID. When a new configuration is rolled out, Endpoints must be given the new configuration ID. The config_id field is used to give the configuration ID and is required in this case.Endpoints also has a rollout strategy called RolloutStrategy.MANAGED. When using this, Endpoints fetches the latest configuration and does not need the configuration ID. In this case, config_id must be omitted.
     #[serde(default, rename = "configId")]
@@ -1053,7 +1054,7 @@ pub struct EndpointsApiService {
 }
 
 /// The entrypoint for the application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entrypoint {
     /// The format should be a shell command that can be fed to bash -c.
     #[serde(default)]
@@ -1061,7 +1062,7 @@ pub struct Entrypoint {
 }
 
 /// Custom static error page to be served when an error occurs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorHandler {
     /// Error condition this handler applies to. // TODO: enum values: ["ERROR_CODE_UNSPECIFIED", "ERROR_CODE_DEFAULT", "ERROR_CODE_OVER_QUOTA", "ERROR_CODE_DOS_API_DENIAL", "ERROR_CODE_TIMEOUT"]
     #[serde(default, rename = "errorCode")]
@@ -1075,7 +1076,7 @@ pub struct ErrorHandler {
 }
 
 /// Runtime settings for the App Engine flexible environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlexibleRuntimeSettings {
     /// The operating system of the application runtime.
     #[serde(default, rename = "operatingSystem")]
@@ -1086,7 +1087,7 @@ pub struct FlexibleRuntimeSettings {
 }
 
 /// URL pattern and description of how the URL should be handled. App Engine can handle URLs by executing application code or by serving static files uploaded with the version, such as images, CSS, or JavaScript.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlMap {
     /// Uses API Endpoints to handle requests.
     #[serde(default, rename = "apiEndpoint")]
@@ -1115,7 +1116,7 @@ pub struct UrlMap {
 }
 
 /// Health checking configuration for VM instances. Unhealthy instances are killed and replaced with new instances. Only applicable for instances in App Engine flexible environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheck {
     /// Interval between health checks.
     #[serde(default, rename = "checkInterval")]
@@ -1141,7 +1142,7 @@ pub struct HealthCheck {
 }
 
 /// Third-party Python runtime library that is required by the application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Library {
     /// Name of the library. Example: "django".
     #[serde(default)]
@@ -1152,7 +1153,7 @@ pub struct Library {
 }
 
 /// Health checking configuration for VM instances. Unhealthy instances are killed and replaced with new instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LivenessCheck {
     /// Interval between health checks.
     #[serde(default, rename = "checkInterval")]
@@ -1178,7 +1179,7 @@ pub struct LivenessCheck {
 }
 
 /// A service with manual scaling runs continuously, allowing you to perform complex initialization and rely on the state of its memory over time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManualScaling {
     /// Number of instances to assign to the service at the start. This number can later be altered by using the Modules API (https://cloud.google.com/appengine/docs/python/modules/functions) set_num_instances() function.
     #[serde(default)]
@@ -1186,7 +1187,7 @@ pub struct ManualScaling {
 }
 
 /// Extra network settings. Only applicable in the App Engine flexible environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Network {
     /// List of ports, or port pairs, to forward from the virtual machine to the application container. Only applicable in the App Engine flexible environment.
     #[serde(default, rename = "forwardedPorts")]
@@ -1209,7 +1210,7 @@ pub struct Network {
 }
 
 /// Readiness checking configuration for VM instances. Unhealthy instances are removed from traffic rotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadinessCheck {
     /// A maximum time limit on application initialization, measured from moment the application successfully replies to a healthcheck until it is ready to serve traffic.
     #[serde(default, rename = "appStartTimeout")]
@@ -1235,7 +1236,7 @@ pub struct ReadinessCheck {
 }
 
 /// Machine resources for a version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Resources {
     /// Number of CPU cores needed.
     #[serde(default)]
@@ -1255,7 +1256,7 @@ pub struct Resources {
 }
 
 /// VPC access connector specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpcAccessConnector {
     /// The egress setting for the connector, controlling what traffic is diverted through it. // TODO: enum values: ["EGRESS_SETTING_UNSPECIFIED", "ALL_TRAFFIC", "PRIVATE_IP_RANGES"]
     #[serde(default, rename = "egressSetting")]
@@ -1266,7 +1267,7 @@ pub struct VpcAccessConnector {
 }
 
 /// For use only by GCE. GceTag is a wrapper around the GCE administrative tag with parent info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GceTag {
     /// The parents(s) of the tag. Eg. projects/123, folders/456 It usually contains only one parent. But, in some corner cases, it can contain multiple parents. Currently, organizations are not supported.
     #[serde(default)]
@@ -1277,7 +1278,7 @@ pub struct GceTag {
 }
 
 /// Containers transition between and within states based on reasons sent from various systems. CCFE will provide the CLH with reasons for the current state per system.The current systems that CCFE supports are: Service Management (Inception) Data Governance (Wipeout) Abuse (Ares) Billing (Internal Cloud Billing API) Service Activation (Service Controller)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reasons {
     /// TODO: enum values: ["ABUSE_UNKNOWN_REASON", "ABUSE_CONTROL_PLANE_SYNC", "SUSPEND", "REINSTATE"]
     #[serde(default)]
@@ -1297,7 +1298,7 @@ pub struct Reasons {
 }
 
 /// Target scaling by CPU usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CpuUtilization {
     /// Period of time over which CPU utilization is calculated.
     #[serde(default, rename = "aggregationWindowLength")]
@@ -1308,7 +1309,7 @@ pub struct CpuUtilization {
 }
 
 /// Target scaling by disk usage. Only applicable in the App Engine flexible environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskUtilization {
     /// Target bytes read per second.
     #[serde(default, rename = "targetReadBytesPerSecond")]
@@ -1325,7 +1326,7 @@ pub struct DiskUtilization {
 }
 
 /// Target scaling by network usage. Only applicable in the App Engine flexible environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkUtilization {
     /// Target bytes received per second.
     #[serde(default, rename = "targetReceivedBytesPerSecond")]
@@ -1342,7 +1343,7 @@ pub struct NetworkUtilization {
 }
 
 /// Target scaling by request utilization. Only applicable in the App Engine flexible environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestUtilization {
     /// Target number of concurrent requests.
     #[serde(default, rename = "targetConcurrentRequests")]
@@ -1353,7 +1354,7 @@ pub struct RequestUtilization {
 }
 
 /// Scheduler settings for standard environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandardSchedulerSettings {
     /// Maximum number of instances to run for this version. Set to 2147483647 to disable max_instances configuration.
     #[serde(default, rename = "maxInstances")]
@@ -1370,7 +1371,7 @@ pub struct StandardSchedulerSettings {
 }
 
 /// Options for the build operations performed as a part of the version deployment. Only applicable for App Engine flexible environment when creating a version using source code directly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudBuildOptions {
     /// Path to the yaml file used in deployment, used to determine runtime configuration details.Required for flexible environment builds.See https://cloud.google.com/appengine/docs/standard/python/config/appref for more details.
     #[serde(default, rename = "appYamlPath")]
@@ -1381,7 +1382,7 @@ pub struct CloudBuildOptions {
 }
 
 /// Docker image that is used to create a container and start a VM instance for the version that you deploy. Only applicable for instances running in the App Engine flexible environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerInfo {
     /// URI to the hosted container image in Google Container Registry. The URI must be fully qualified and include a tag or digest. Examples: "gcr.io/my-project/image:tag" or "gcr.io/my-project/image@digest"
     #[serde(default)]
@@ -1389,7 +1390,7 @@ pub struct ContainerInfo {
 }
 
 /// The zip file information for a zip deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZipInfo {
     /// An estimate of the number of files in a zip for a zip deployment. If set, must be greater than or equal to the actual number of files. Used for optimizing performance; if not provided, deployment may be slow.
     #[serde(default, rename = "filesCount")]
@@ -1400,7 +1401,7 @@ pub struct ZipInfo {
 }
 
 /// Uses Google Cloud Endpoints to handle requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiEndpointHandler {
     /// Path to the script from the application root directory.
     #[serde(default, rename = "scriptPath")]
@@ -1408,7 +1409,7 @@ pub struct ApiEndpointHandler {
 }
 
 /// Executes a script to handle the request that matches the URL pattern.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScriptHandler {
     /// Path to the script from the application root directory.
     #[serde(default, rename = "scriptPath")]
@@ -1416,7 +1417,7 @@ pub struct ScriptHandler {
 }
 
 /// Files served directly to the user for a given URL, such as images, CSS stylesheets, or JavaScript source files. Static file handlers describe which files in the application directory are static files, and which URLs serve them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StaticFilesHandler {
     /// Whether files should also be uploaded as code data. By default, files declared in static file handlers are uploaded as static data and are only served to end users; they cannot be read by the application. If enabled, uploads are charged against both your code and static data storage resource quotas.
     #[serde(default, rename = "applicationReadable")]
@@ -1442,7 +1443,7 @@ pub struct StaticFilesHandler {
 }
 
 /// Volumes mounted within the app container. Only applicable in the App Engine flexible environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Volume {
     /// Unique name for the volume.
     #[serde(default)]

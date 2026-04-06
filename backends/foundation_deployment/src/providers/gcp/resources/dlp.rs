@@ -8,42 +8,43 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for ActivateJobTrigger.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ActivateJobTriggerRequest {}
 
 /// Apply transformation to all findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AllInfoTypes {}
 
 /// Catch-all for all other tables not specified by other filters. Should always be last, except for single-table configurations, which will only have a TableReference target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AllOtherBigQueryTables {}
 
 /// Match database resources not covered by any other filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AllOtherDatabaseResources {}
 
 /// Match discovery resources not covered by any other filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AllOtherResources {}
 
 /// Apply to all text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AllText {}
 
 /// The request message for canceling a DLP job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CancelDlpJobRequest {}
 
 /// Use IAM authentication to connect. This requires the Cloud SQL IAM feature to be enabled on the instance, which is not the default for Cloud SQL. See https://cloud.google.com/sql/docs/postgres/authentication and https://cloud.google.com/sql/docs/mysql/authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CloudSqlIamCredential {}
 
 /// Request message for CreateConnection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CreateConnectionRequest {
     /// Required. The connection resource.
     #[serde(default)]
@@ -51,7 +52,7 @@ pub struct GooglePrivacyDlpV2CreateConnectionRequest {
 }
 
 /// Request message for CreateDeidentifyTemplate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CreateDeidentifyTemplateRequest {
     /// Required. The DeidentifyTemplate to create.
     #[serde(default, rename = "deidentifyTemplate")]
@@ -65,7 +66,7 @@ pub struct GooglePrivacyDlpV2CreateDeidentifyTemplateRequest {
 }
 
 /// Request message for CreateDiscoveryConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CreateDiscoveryConfigRequest {
     /// The config ID can contain uppercase and lowercase letters, numbers, and hyphens; that is, it must match the regular expression: [a-zA-Z\d-_]+. The maximum length is 100 characters. Can be empty to allow the system to generate one.
     #[serde(default, rename = "configId")]
@@ -76,7 +77,7 @@ pub struct GooglePrivacyDlpV2CreateDiscoveryConfigRequest {
 }
 
 /// Request message for CreateDlpJobRequest. Used to initiate long running jobs such as calculating risk metrics or inspecting Google Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CreateDlpJobRequest {
     /// An inspection job scans a storage repository for InfoTypes.
     #[serde(default, rename = "inspectJob")]
@@ -93,7 +94,7 @@ pub struct GooglePrivacyDlpV2CreateDlpJobRequest {
 }
 
 /// Request message for CreateInspectTemplate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CreateInspectTemplateRequest {
     /// Required. The InspectTemplate to create.
     #[serde(default, rename = "inspectTemplate")]
@@ -107,7 +108,7 @@ pub struct GooglePrivacyDlpV2CreateInspectTemplateRequest {
 }
 
 /// Request message for CreateJobTrigger.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CreateJobTriggerRequest {
     /// Required. The JobTrigger to create.
     #[serde(default, rename = "jobTrigger")]
@@ -121,7 +122,7 @@ pub struct GooglePrivacyDlpV2CreateJobTriggerRequest {
 }
 
 /// Request message for CreateStoredInfoType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CreateStoredInfoTypeRequest {
     /// Required. Configuration of the storedInfoType to create.
     #[serde(default)]
@@ -135,7 +136,7 @@ pub struct GooglePrivacyDlpV2CreateStoredInfoTypeRequest {
 }
 
 /// The schema of data to be saved to the BigQuery table when the DataProfileAction is enabled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataProfileBigQueryRowSchema {
     /// Column data profile column
     #[serde(default, rename = "columnProfile")]
@@ -149,7 +150,7 @@ pub struct GooglePrivacyDlpV2DataProfileBigQueryRowSchema {
 }
 
 /// Details about a piece of potentially sensitive information that was detected when the data resource was profiled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataProfileFinding {
     /// Resource name of the data profile associated with the finding.
     #[serde(default, rename = "dataProfileResourceName")]
@@ -184,7 +185,7 @@ pub struct GooglePrivacyDlpV2DataProfileFinding {
 }
 
 /// Pub/Sub topic message for a DataProfileAction.PubSubNotification event. To receive a message of protocol buffer schema type, convert the message data to an object of this proto class.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataProfilePubSubMessage {
     /// The event that caused the Pub/Sub message to be sent. // TODO: enum values: ["EVENT_TYPE_UNSPECIFIED", "NEW_PROFILE", "CHANGED_PROFILE", "SCORE_INCREASED", "ERROR_CHANGED"]
     #[serde(default)]
@@ -198,7 +199,7 @@ pub struct GooglePrivacyDlpV2DataProfilePubSubMessage {
 }
 
 /// Request to de-identify a ContentItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DeidentifyContentRequest {
     /// Configuration for the de-identification of the content item. Items specified here will override the template referenced by the deidentify_template_name argument.
     #[serde(default, rename = "deidentifyConfig")]
@@ -221,7 +222,7 @@ pub struct GooglePrivacyDlpV2DeidentifyContentRequest {
 }
 
 /// Results of de-identifying a ContentItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DeidentifyContentResponse {
     /// The de-identified item.
     #[serde(default)]
@@ -232,27 +233,27 @@ pub struct GooglePrivacyDlpV2DeidentifyContentResponse {
 }
 
 /// Do not profile the tables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Disabled {}
 
 /// Defines a condition where one bounding box encloses another.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Encloses {}
 
 /// The request message for finishing a DLP hybrid job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FinishDlpJobRequest {}
 
 /// Defines a condition where one bounding box is fully inside another.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FullyInside {}
 
 /// Processing occurs in the global region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2GlobalProcessing {}
 
 /// Request to search for potentially sensitive info in a custom location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2HybridInspectDlpJobRequest {
     /// The item to inspect.
     #[serde(default, rename = "hybridItem")]
@@ -260,7 +261,7 @@ pub struct GooglePrivacyDlpV2HybridInspectDlpJobRequest {
 }
 
 /// Request to search for potentially sensitive info in a custom location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2HybridInspectJobTriggerRequest {
     /// The item to inspect.
     #[serde(default, rename = "hybridItem")]
@@ -268,11 +269,11 @@ pub struct GooglePrivacyDlpV2HybridInspectJobTriggerRequest {
 }
 
 /// Quota exceeded errors will be thrown once quota has been met.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2HybridInspectResponse {}
 
 /// Request to search for potentially sensitive info in a ContentItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InspectContentRequest {
     /// Configuration for the inspector. What specified here will override the template referenced by the inspect_template_name argument.
     #[serde(default, rename = "inspectConfig")]
@@ -289,7 +290,7 @@ pub struct GooglePrivacyDlpV2InspectContentRequest {
 }
 
 /// Results of inspecting an item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InspectContentResponse {
     /// The findings.
     #[serde(default)]
@@ -297,15 +298,15 @@ pub struct GooglePrivacyDlpV2InspectContentResponse {
 }
 
 /// Sends an email when the job completes. The email goes to IAM project owners and technical [Essential Contacts](https://cloud.google.com/resource-manager/docs/managing-notification-contacts).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2JobNotificationEmails {}
 
 /// Skips the data without modifying it if the requested transformation would cause an error. For example, if a DateShift transformation were applied an an IP address, this mode would leave the IP address unchanged in the response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2LeaveUntransformed {}
 
 /// List of profiles generated for a given organization or project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListColumnDataProfilesResponse {
     /// List of data profiles.
     #[serde(default, rename = "columnDataProfiles")]
@@ -317,7 +318,7 @@ pub struct GooglePrivacyDlpV2ListColumnDataProfilesResponse {
 }
 
 /// Response message for ListConnections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListConnectionsResponse {
     /// List of connections.
     #[serde(default)]
@@ -328,7 +329,7 @@ pub struct GooglePrivacyDlpV2ListConnectionsResponse {
 }
 
 /// Response message for ListDeidentifyTemplates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListDeidentifyTemplatesResponse {
     /// List of deidentify templates, up to page_size in ListDeidentifyTemplatesRequest.
     #[serde(default, rename = "deidentifyTemplates")]
@@ -340,7 +341,7 @@ pub struct GooglePrivacyDlpV2ListDeidentifyTemplatesResponse {
 }
 
 /// Response message for ListDiscoveryConfigs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListDiscoveryConfigsResponse {
     /// List of configs, up to page_size in ListDiscoveryConfigsRequest.
     #[serde(default, rename = "discoveryConfigs")]
@@ -352,7 +353,7 @@ pub struct GooglePrivacyDlpV2ListDiscoveryConfigsResponse {
 }
 
 /// The response message for listing DLP jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListDlpJobsResponse {
     /// A list of DlpJobs that matches the specified filter in the request.
     #[serde(default)]
@@ -363,7 +364,7 @@ pub struct GooglePrivacyDlpV2ListDlpJobsResponse {
 }
 
 /// List of file store data profiles generated for a given organization or project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListFileStoreDataProfilesResponse {
     /// List of data profiles.
     #[serde(default, rename = "fileStoreDataProfiles")]
@@ -375,7 +376,7 @@ pub struct GooglePrivacyDlpV2ListFileStoreDataProfilesResponse {
 }
 
 /// Response to the ListInfoTypes request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListInfoTypesResponse {
     /// Set of sensitive infoTypes.
     #[serde(default, rename = "infoTypes")]
@@ -383,7 +384,7 @@ pub struct GooglePrivacyDlpV2ListInfoTypesResponse {
 }
 
 /// Response message for ListInspectTemplates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListInspectTemplatesResponse {
     /// List of inspectTemplates, up to page_size in ListInspectTemplatesRequest.
     #[serde(default, rename = "inspectTemplates")]
@@ -395,7 +396,7 @@ pub struct GooglePrivacyDlpV2ListInspectTemplatesResponse {
 }
 
 /// Response message for ListJobTriggers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListJobTriggersResponse {
     /// List of triggeredJobs, up to page_size in ListJobTriggersRequest.
     #[serde(default, rename = "jobTriggers")]
@@ -406,7 +407,7 @@ pub struct GooglePrivacyDlpV2ListJobTriggersResponse {
 }
 
 /// List of profiles generated for a given organization or project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListProjectDataProfilesResponse {
     /// The next page token.
     #[serde(default, rename = "nextPageToken")]
@@ -418,7 +419,7 @@ pub struct GooglePrivacyDlpV2ListProjectDataProfilesResponse {
 }
 
 /// Response message for ListStoredInfoTypes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListStoredInfoTypesResponse {
     /// If the next page is available then the next page token to be used in the following ListStoredInfoTypes request.
     #[serde(default, rename = "nextPageToken")]
@@ -430,7 +431,7 @@ pub struct GooglePrivacyDlpV2ListStoredInfoTypesResponse {
 }
 
 /// List of profiles generated for a given organization or project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ListTableDataProfilesResponse {
     /// The next page token.
     #[serde(default, rename = "nextPageToken")]
@@ -442,47 +443,47 @@ pub struct GooglePrivacyDlpV2ListTableDataProfilesResponse {
 }
 
 /// Job trigger option for hybrid jobs. Jobs must be manually created and finished.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Manual {}
 
 /// Processing occurs in a multi-region that contains the current region if available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2MultiRegionProcessing {}
 
 /// Defines a condition for overlapping bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Overlap {}
 
 /// Publish findings of a DlpJob to Data Catalog. In Data Catalog, tag templates are applied to the resource that Cloud DLP scanned. Data Catalog tag templates are stored in the same project and region where the BigQuery table exists. For Cloud DLP to create and apply the tag template, the Cloud DLP service agent must have the roles/datacatalog.tagTemplateOwner permission on the project. The tag template contains fields summarizing the results of the DlpJob. Any field values previously written by another DlpJob are deleted. InfoType naming patterns are strictly enforced when using this feature. Findings are persisted in Data Catalog storage and are governed by service-specific policies for Data Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PublishFindingsToCloudDataCatalog {}
 
 /// Publish findings of a DlpJob to Dataplex Universal Catalog as a sensitive-data-protection-job-result aspect. For more information, see [Send inspection results to Dataplex Universal Catalog as aspects](https://cloud.google.com/sensitive-data-protection/docs/add-aspects-inspection-job). Aspects are stored in Dataplex Universal Catalog storage and are governed by service-specific policies for Dataplex Universal Catalog. For more information, see [Service Specific Terms](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. This action is allowed only if all resources being scanned are BigQuery tables. Compatible with: Inspect
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PublishFindingsToDataplexCatalog {}
 
 /// Publish the result summary of a DlpJob to [Security Command Center](https://cloud.google.com/security-command-center). This action is available for only projects that belong to an organization. This action publishes the count of finding instances and their infoTypes. The summary of findings are persisted in Security Command Center and are governed by [service-specific policies for Security Command Center](https://cloud.google.com/terms/service-terms). Only a single instance of this action can be specified. Compatible with: Inspect
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PublishSummaryToCscc {}
 
 /// Message expressing intention to publish to Google Security Operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PublishToChronicle {}
 
 /// If set, a summary finding will be created or updated in Security Command Center for each profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PublishToSecurityCommandCenter {}
 
 /// Enable Stackdriver metric dlp.googleapis.com/finding_count. This will publish a metric to stack driver on each infotype requested and how many findings were found for it. CustomDetectors will be bucketed as ''Custom'' under the Stackdriver label ''info_type''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PublishToStackdriver {}
 
 /// Redact a given value. For example, if used with an InfoTypeTransformation transforming PHONE_NUMBER, and input ''My phone number is 206-555-0123'', the output would be ''My phone number is ''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RedactConfig {}
 
 /// Request to search for potentially sensitive info in an image and redact it by covering it with a colored rectangle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RedactImageRequest {
     /// The content must be PNG, JPEG, SVG or BMP.
     #[serde(default, rename = "byteItem")]
@@ -509,7 +510,7 @@ pub struct GooglePrivacyDlpV2RedactImageRequest {
 }
 
 /// Results of redacting an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RedactImageResponse {
     /// If an image was being inspected and the InspectConfig''s include_quote was set to true, then this field will include all text, if any, that was found in the image.
     #[serde(default, rename = "extractedText")]
@@ -523,7 +524,7 @@ pub struct GooglePrivacyDlpV2RedactImageResponse {
 }
 
 /// Request to re-identify an item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ReidentifyContentRequest {
     /// Configuration for the inspector.
     #[serde(default, rename = "inspectConfig")]
@@ -546,7 +547,7 @@ pub struct GooglePrivacyDlpV2ReidentifyContentRequest {
 }
 
 /// Results of re-identifying an item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ReidentifyContentResponse {
     /// The re-identified item.
     #[serde(default)]
@@ -557,11 +558,11 @@ pub struct GooglePrivacyDlpV2ReidentifyContentResponse {
 }
 
 /// Replace each matching finding with the name of the info_type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ReplaceWithInfoTypeConfig {}
 
 /// Collection of findings saved to a Cloud Storage bucket. This is used as the proto schema for textproto files created when specifying a cloud storage path to save Inspect findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SaveToGcsFindingsOutput {
     /// List of findings.
     #[serde(default)]
@@ -569,7 +570,7 @@ pub struct GooglePrivacyDlpV2SaveToGcsFindingsOutput {
 }
 
 /// Response message for SearchConnections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SearchConnectionsResponse {
     /// List of connections that match the search query. Note that only a subset of the fields will be populated, and only "name" is guaranteed to be set. For full details of a Connection, call GetConnection with the name.
     #[serde(default)]
@@ -580,19 +581,19 @@ pub struct GooglePrivacyDlpV2SearchConnectionsResponse {
 }
 
 /// Discovery target for credentials and secrets in cloud resource metadata. This target does not include any filtering or frequency controls. Cloud DLP will scan cloud resource metadata for secrets daily. No inspect template should be included in the discovery config for a security benchmarks scan. Instead, the built-in list of secrets and credentials infoTypes will be used (see https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference#credentials_and_secrets). Credentials and secrets discovered will be reported as vulnerabilities to Security Command Center.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SecretsDiscoveryTarget {}
 
 /// Message for detecting output from deidentification transformations such as [CryptoReplaceFfxFpeConfig](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/organizations.deidentifyTemplates#cryptoreplaceffxfpeconfig). These types of transformations are those that perform pseudonymization, thereby producing a "surrogate" as output. This should be used in conjunction with a field on the transformation such as surrogate_info_type. This CustomInfoType does not support the use of detection_rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SurrogateType {}
 
 /// Throw an error and fail the request when a transformation error occurs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ThrowError {}
 
 /// Details about a single transformation. This object contains a description of the transformation, information about whether the transformation was successfully applied, and the precise location where the transformation occurred. These details are stored in a user-specified BigQuery table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TransformationDetails {
     /// The top level name of the container where the transformation is located (this will be the source file name or table name).
     #[serde(default, rename = "containerName")]
@@ -616,7 +617,7 @@ pub struct GooglePrivacyDlpV2TransformationDetails {
 }
 
 /// Request message for UpdateConnection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2UpdateConnectionRequest {
     /// Required. The connection with new values for the relevant fields.
     #[serde(default)]
@@ -627,7 +628,7 @@ pub struct GooglePrivacyDlpV2UpdateConnectionRequest {
 }
 
 /// Request message for UpdateDeidentifyTemplate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2UpdateDeidentifyTemplateRequest {
     /// New DeidentifyTemplate value.
     #[serde(default, rename = "deidentifyTemplate")]
@@ -638,7 +639,7 @@ pub struct GooglePrivacyDlpV2UpdateDeidentifyTemplateRequest {
 }
 
 /// Request message for UpdateDiscoveryConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2UpdateDiscoveryConfigRequest {
     /// Required. New DiscoveryConfig value.
     #[serde(default, rename = "discoveryConfig")]
@@ -649,7 +650,7 @@ pub struct GooglePrivacyDlpV2UpdateDiscoveryConfigRequest {
 }
 
 /// Request message for UpdateInspectTemplate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2UpdateInspectTemplateRequest {
     /// New InspectTemplate value.
     #[serde(default, rename = "inspectTemplate")]
@@ -660,7 +661,7 @@ pub struct GooglePrivacyDlpV2UpdateInspectTemplateRequest {
 }
 
 /// Request message for UpdateJobTrigger.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2UpdateJobTriggerRequest {
     /// New JobTrigger value.
     #[serde(default, rename = "jobTrigger")]
@@ -671,7 +672,7 @@ pub struct GooglePrivacyDlpV2UpdateJobTriggerRequest {
 }
 
 /// Request message for UpdateStoredInfoType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2UpdateStoredInfoTypeRequest {
     /// Updated configuration for the storedInfoType. If not provided, a new version of the storedInfoType will be created with the existing configuration.
     #[serde(default)]
@@ -682,15 +683,15 @@ pub struct GooglePrivacyDlpV2UpdateStoredInfoTypeRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Proto2BridgeMessageSet {}
 
 /// Wire-format for a Status object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UtilStatusProto {
     /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
     #[serde(default, rename = "canonicalCode")]
@@ -710,7 +711,7 @@ pub struct UtilStatusProto {
 }
 
 /// Location of a data profile finding within a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataProfileFindingLocation {
     /// Name of the container where the finding is located. The top-level name is the source file name or table name. Names of some common storage containers are formatted as follows: * BigQuery tables: {project_id}:{dataset_id}.{table_id} * Cloud Storage files: gs://{bucket}/{path}
     #[serde(default, rename = "containerName")]
@@ -722,7 +723,7 @@ pub struct GooglePrivacyDlpV2DataProfileFindingLocation {
 }
 
 /// An individual hybrid item to inspect. Will be stored temporarily during processing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2HybridContentItem {
     /// Supplementary information that will be added to each finding.
     #[serde(default, rename = "findingDetails")]
@@ -733,7 +734,7 @@ pub struct GooglePrivacyDlpV2HybridContentItem {
 }
 
 /// The profile for a scanned column within a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ColumnDataProfile {
     /// The name of the column.
     #[serde(default)]
@@ -799,7 +800,7 @@ pub struct GooglePrivacyDlpV2ColumnDataProfile {
 }
 
 /// Combines all of the information about a DLP job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DlpJob {
     /// Events that should occur after the job has completed.
     #[serde(default, rename = "actionDetails")]
@@ -840,7 +841,7 @@ pub struct GooglePrivacyDlpV2DlpJob {
 }
 
 /// The profile for a file store. * Cloud Storage: maps 1:1 with a bucket. * Amazon S3: maps 1:1 with a bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FileStoreDataProfile {
     /// The snapshot of the configurations used to generate the profile.
     #[serde(default, rename = "configSnapshot")]
@@ -929,7 +930,7 @@ pub struct GooglePrivacyDlpV2FileStoreDataProfile {
 }
 
 /// InfoType description.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InfoTypeDescription {
     /// The category of the infoType.
     #[serde(default)]
@@ -967,7 +968,7 @@ pub struct GooglePrivacyDlpV2InfoTypeDescription {
 }
 
 /// An aggregated profile for this project, based on the resources profiled within it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ProjectDataProfile {
     /// The data risk level of this project.
     #[serde(default, rename = "dataRiskLevel")]
@@ -996,7 +997,7 @@ pub struct GooglePrivacyDlpV2ProjectDataProfile {
 }
 
 /// StoredInfoType resource message that contains information about the current version and any pending updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2StoredInfoType {
     /// Current version of the stored info type.
     #[serde(default, rename = "currentVersion")]
@@ -1011,7 +1012,7 @@ pub struct GooglePrivacyDlpV2StoredInfoType {
 }
 
 /// The profile for a scanned table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TableDataProfile {
     /// The snapshot of the configurations used to generate the profile.
     #[serde(default, rename = "configSnapshot")]
@@ -1109,7 +1110,7 @@ pub struct GooglePrivacyDlpV2TableDataProfile {
 }
 
 /// Configuration for determining how redaction of images should occur.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ImageRedactionConfig {
     /// Only one per info_type should be provided per request. If not specified, and redact_all_text is false, the DLP API will redact all text that it matches against all info_types that are found, but not specified in another ImageRedactionConfig.
     #[serde(default, rename = "infoType")]
@@ -1123,7 +1124,7 @@ pub struct GooglePrivacyDlpV2ImageRedactionConfig {
 }
 
 /// All the findings for a single scanned item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InspectResult {
     /// List of findings for an item.
     #[serde(default)]
@@ -1134,7 +1135,7 @@ pub struct GooglePrivacyDlpV2InspectResult {
 }
 
 /// Overview of the modifications that occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TransformationOverview {
     /// Transformations applied to the dataset.
     #[serde(default, rename = "transformationSummaries")]
@@ -1146,7 +1147,7 @@ pub struct GooglePrivacyDlpV2TransformationOverview {
 }
 
 /// The outcome of a transformation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TransformationResultStatus {
     /// Detailed error codes and messages
     #[serde(default)]
@@ -1157,7 +1158,7 @@ pub struct GooglePrivacyDlpV2TransformationResultStatus {
 }
 
 /// A flattened description of a PrimitiveTransformation or RecordSuppression.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TransformationDescription {
     /// A human-readable string representation of the RecordCondition corresponding to this transformation. Set if a RecordCondition was used to determine whether or not to apply this transformation. Examples: * (age_field &gt; 85) * (age_field &lt;= 18) * (zip_field exists) * (zip_field == 01234) && (city_field != "Springville") * (zip_field == 01234) && (age_field &lt;= 18) && (city_field exists)
     #[serde(default)]
@@ -1174,7 +1175,7 @@ pub struct GooglePrivacyDlpV2TransformationDescription {
 }
 
 /// Specifies the location of a transformation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TransformationLocation {
     /// Information about the functionality of the container where this finding occurred, if available. // TODO: enum values: ["TRANSFORM_UNKNOWN_CONTAINER", "TRANSFORM_BODY", "TRANSFORM_METADATA", "TRANSFORM_TABLE"]
     #[serde(default, rename = "containerType")]
@@ -1188,7 +1189,7 @@ pub struct GooglePrivacyDlpV2TransformationLocation {
 }
 
 /// A data connection to allow the DLP API to profile data in locations that require additional configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Connection {
     /// Connect to a Cloud SQL instance.
     #[serde(default, rename = "cloudSql")]
@@ -1205,7 +1206,7 @@ pub struct GooglePrivacyDlpV2Connection {
 }
 
 /// Contains a configuration to make API calls on a repeating basis. See https://cloud.google.com/sensitive-data-protection/docs/concepts-job-triggers to learn more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2JobTrigger {
     /// Output only. The creation timestamp of a triggeredJob.
     #[serde(default, rename = "createTime")]
@@ -1240,7 +1241,7 @@ pub struct GooglePrivacyDlpV2JobTrigger {
 }
 
 /// Location of a finding within a resource that produces a table data profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataProfileFindingRecordLocation {
     /// Field ID of the column containing the finding.
     #[serde(default)]
@@ -1248,7 +1249,7 @@ pub struct GooglePrivacyDlpV2DataProfileFindingRecordLocation {
 }
 
 /// Populate to associate additional data with each finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2HybridFindingDetails {
     /// Details about the container where the content being inspected is from.
     #[serde(default, rename = "containerDetails")]
@@ -1268,7 +1269,7 @@ pub struct GooglePrivacyDlpV2HybridFindingDetails {
 }
 
 /// Type of content to inspect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ContentItem {
     /// Content data to inspect or redact. Replaces type and data.
     #[serde(default, rename = "byteItem")]
@@ -1285,7 +1286,7 @@ pub struct GooglePrivacyDlpV2ContentItem {
 }
 
 /// The results of an Action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ActionDetails {
     /// Outcome of a de-identification action.
     #[serde(default, rename = "deidentifyDetails")]
@@ -1293,7 +1294,7 @@ pub struct GooglePrivacyDlpV2ActionDetails {
 }
 
 /// The results of an inspect DataSource job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InspectDataSourceDetails {
     /// The configuration used for this job.
     #[serde(default, rename = "requestedOptions")]
@@ -1304,7 +1305,7 @@ pub struct GooglePrivacyDlpV2InspectDataSourceDetails {
 }
 
 /// Result of a risk analysis operation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AnalyzeDataSourceRiskDetails {
     /// Categorical stats result
     #[serde(default, rename = "categoricalStatsResult")]
@@ -1337,7 +1338,7 @@ pub struct GooglePrivacyDlpV2AnalyzeDataSourceRiskDetails {
 }
 
 /// The file cluster summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FileClusterSummary {
     /// The data risk level of this cluster. RISK_LOW if nothing has been scanned.
     #[serde(default, rename = "dataRiskLevel")]
@@ -1369,7 +1370,7 @@ pub struct GooglePrivacyDlpV2FileClusterSummary {
 }
 
 /// Classification of infoTypes to organize them according to geographic location, industry, and data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InfoTypeCategory {
     /// The group of relevant businesses where this infoType is commonly used // TODO: enum values: ["INDUSTRY_UNSPECIFIED", "FINANCE", "HEALTH", "TELECOMMUNICATIONS"]
     #[serde(default, rename = "industryCategory")]
@@ -1383,7 +1384,7 @@ pub struct GooglePrivacyDlpV2InfoTypeCategory {
 }
 
 /// Locations at which a feature can be used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2LocationSupport {
     /// Specific locations where the feature may be used. Examples: us-central1, us, asia, global If scope is ANY_LOCATION, no regions will be listed.
     #[serde(default)]
@@ -1394,7 +1395,7 @@ pub struct GooglePrivacyDlpV2LocationSupport {
 }
 
 /// Details about each available version for an infotype.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2VersionDescription {
     /// Description of the version.
     #[serde(default)]
@@ -1405,7 +1406,7 @@ pub struct GooglePrivacyDlpV2VersionDescription {
 }
 
 /// Version of a StoredInfoType, including the configuration used to build it, create timestamp, and current state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2StoredInfoTypeVersion {
     /// StoredInfoType configuration.
     #[serde(default)]
@@ -1425,7 +1426,7 @@ pub struct GooglePrivacyDlpV2StoredInfoTypeVersion {
 }
 
 /// Snapshot of the configurations used to generate the profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataProfileConfigSnapshot {
     /// A copy of the configuration used to generate this profile. This is deprecated, and the DiscoveryConfig field is preferred moving forward. DataProfileJobConfig will still be written here for Discovery in BigQuery for backwards compatibility, but will not be updated with new fields, while DiscoveryConfig will.
     #[serde(default, rename = "dataProfileJob")]
@@ -1445,7 +1446,7 @@ pub struct GooglePrivacyDlpV2DataProfileConfigSnapshot {
 }
 
 /// A domain represents a thematic category that a data profile can fall under.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Domain {
     /// A domain category that this profile is related to. // TODO: enum values: ["CATEGORY_UNSPECIFIED", "AI", "CODE"]
     #[serde(default)]
@@ -1456,7 +1457,7 @@ pub struct GooglePrivacyDlpV2Domain {
 }
 
 /// Infotype details for other infoTypes found within a column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2OtherInfoTypeSummary {
     /// Approximate percentage of non-null rows that contained data detected by this infotype.
     #[serde(default, rename = "estimatedPrevalence")]
@@ -1470,7 +1471,7 @@ pub struct GooglePrivacyDlpV2OtherInfoTypeSummary {
 }
 
 /// The infoType details for this column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InfoTypeSummary {
     /// Not populated for predicted infotypes.
     #[serde(default, rename = "estimatedPrevalence")]
@@ -1481,7 +1482,7 @@ pub struct GooglePrivacyDlpV2InfoTypeSummary {
 }
 
 /// Success or errors for the profile generation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ProfileStatus {
     /// Profiling status code and optional message. The status.code value is 0 (default value) for OK.
     #[serde(default)]
@@ -1492,7 +1493,7 @@ pub struct GooglePrivacyDlpV2ProfileStatus {
 }
 
 /// A related resource. Examples: * The source BigQuery table for a Vertex AI dataset. * The source Cloud Storage bucket for a Vertex AI dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RelatedResource {
     /// The full resource name of the related resource.
     #[serde(default, rename = "fullResource")]
@@ -1500,7 +1501,7 @@ pub struct GooglePrivacyDlpV2RelatedResource {
 }
 
 /// A tag associated with a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Tag {
     /// The key of a tag key-value pair. For Google Cloud resources, this is the resource name of the key, for example, "tagKeys/123456".
     #[serde(default)]
@@ -1514,7 +1515,7 @@ pub struct GooglePrivacyDlpV2Tag {
 }
 
 /// Represents a piece of potentially sensitive content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Finding {
     /// Timestamp when finding was detected.
     #[serde(default, rename = "createTime")]
@@ -1558,7 +1559,7 @@ pub struct GooglePrivacyDlpV2Finding {
 }
 
 /// Summary of a single transformation. Only one of ''transformation'', ''field_transformation'', or ''record_suppress'' will be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TransformationSummary {
     /// Set if the transformation was limited to a specific FieldId.
     #[serde(default)]
@@ -1585,7 +1586,7 @@ pub struct GooglePrivacyDlpV2TransformationSummary {
 }
 
 /// The field in a record to transform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RecordTransformation {
     /// Findings container modification timestamp, if applicable.
     #[serde(default, rename = "containerTimestamp")]
@@ -1599,7 +1600,7 @@ pub struct GooglePrivacyDlpV2RecordTransformation {
 }
 
 /// Cloud SQL connection properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CloudSqlProperties {
     /// Built-in IAM authentication (must be configured in Cloud SQL).
     #[serde(default, rename = "cloudSqlIam")]
@@ -1619,7 +1620,7 @@ pub struct GooglePrivacyDlpV2CloudSqlProperties {
 }
 
 /// What event needs to occur for a new job to be started.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Trigger {
     /// For use with hybrid jobs. Jobs must be manually created and finished.
     #[serde(default)]
@@ -1630,7 +1631,7 @@ pub struct GooglePrivacyDlpV2Trigger {
 }
 
 /// Container for bytes to inspect or redact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ByteContentItem {
     /// Content data to inspect or redact.
     #[serde(default)]
@@ -1641,7 +1642,7 @@ pub struct GooglePrivacyDlpV2ByteContentItem {
 }
 
 /// Metadata on content to be scanned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ContentMetadata {
     /// User provided key-value pairs of content metadata.
     #[serde(default)]
@@ -1650,7 +1651,7 @@ pub struct GooglePrivacyDlpV2ContentMetadata {
 }
 
 /// Structured content to inspect. Up to 50,000 Values per request allowed. See https://cloud.google.com/sensitive-data-protection/docs/inspecting-structured-text#inspecting_a_table to learn more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Table {
     /// Headers of the table.
     #[serde(default)]
@@ -1661,7 +1662,7 @@ pub struct GooglePrivacyDlpV2Table {
 }
 
 /// The results of a Deidentify action from an inspect job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DeidentifyDataSourceDetails {
     /// Stats about the de-identification operation.
     #[serde(default, rename = "deidentifyStats")]
@@ -1672,7 +1673,7 @@ pub struct GooglePrivacyDlpV2DeidentifyDataSourceDetails {
 }
 
 /// Snapshot of the inspection configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RequestedOptions {
     /// Inspect config.
     #[serde(default, rename = "jobConfig")]
@@ -1683,7 +1684,7 @@ pub struct GooglePrivacyDlpV2RequestedOptions {
 }
 
 /// All Result fields are updated while the job is processing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Result {
     /// Statistics related to the processing of hybrid inspect.
     #[serde(default, rename = "hybridStats")]
@@ -1703,7 +1704,7 @@ pub struct GooglePrivacyDlpV2Result {
 }
 
 /// Result of the categorical stats computation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CategoricalStatsResult {
     /// Histogram of value frequencies in the column.
     #[serde(default, rename = "valueFrequencyHistogramBuckets")]
@@ -1712,7 +1713,7 @@ pub struct GooglePrivacyDlpV2CategoricalStatsResult {
 }
 
 /// Result of the δ-presence computation. Note that these results are an estimation, not exact values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DeltaPresenceEstimationResult {
     /// The intervals [min_probability, max_probability) do not overlap. If a value doesn''t correspond to any such interval, the associated frequency is zero. For example, the following records: {min_probability: 0, max_probability: 0.1, frequency: 17} {min_probability: 0.2, max_probability: 0.3, frequency: 42} {min_probability: 0.3, max_probability: 0.4, frequency: 99} mean that there are no record with an estimated probability in [0.1, 0.2) nor larger or equal to 0.4.
     #[serde(default, rename = "deltaPresenceEstimationHistogram")]
@@ -1722,7 +1723,7 @@ pub struct GooglePrivacyDlpV2DeltaPresenceEstimationResult {
 }
 
 /// Result of the k-anonymity computation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2kAnonymityResult {
     /// Histogram of k-anonymity equivalence classes.
     #[serde(default, rename = "equivalenceClassHistogramBuckets")]
@@ -1731,7 +1732,7 @@ pub struct GooglePrivacyDlpV2kAnonymityResult {
 }
 
 /// Result of the reidentifiability analysis. Note that these results are an estimation, not exact values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2kMapEstimationResult {
     /// The intervals [min_anonymity, max_anonymity] do not overlap. If a value doesn''t correspond to any such interval, the associated frequency is zero. For example, the following records: {min_anonymity: 1, max_anonymity: 1, frequency: 17} {min_anonymity: 2, max_anonymity: 3, frequency: 42} {min_anonymity: 5, max_anonymity: 10, frequency: 99} mean that there are no record with an estimated anonymity of 4, 5, or larger than 10.
     #[serde(default, rename = "kMapEstimationHistogram")]
@@ -1740,7 +1741,7 @@ pub struct GooglePrivacyDlpV2kMapEstimationResult {
 }
 
 /// Result of the l-diversity computation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2lDiversityResult {
     /// Histogram of l-diversity equivalence class sensitive value frequencies.
     #[serde(default, rename = "sensitiveValueFrequencyHistogramBuckets")]
@@ -1749,7 +1750,7 @@ pub struct GooglePrivacyDlpV2lDiversityResult {
 }
 
 /// Result of the numerical stats computation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2NumericalStatsResult {
     /// Maximum value appearing in the column.
     #[serde(default, rename = "maxValue")]
@@ -1763,7 +1764,7 @@ pub struct GooglePrivacyDlpV2NumericalStatsResult {
 }
 
 /// Risk analysis options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RequestedRiskAnalysisOptions {
     /// The job config for the risk job.
     #[serde(default, rename = "jobConfig")]
@@ -1771,7 +1772,7 @@ pub struct GooglePrivacyDlpV2RequestedRiskAnalysisOptions {
 }
 
 /// Score is a summary of all elements in the data profile. A higher number means more risk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataRiskLevel {
     /// The score applied to the resource. // TODO: enum values: ["RISK_SCORE_UNSPECIFIED", "RISK_LOW", "RISK_UNKNOWN", "RISK_MODERATE", "RISK_HIGH"]
     #[serde(default)]
@@ -1779,7 +1780,7 @@ pub struct GooglePrivacyDlpV2DataRiskLevel {
 }
 
 /// Message used to identify file cluster type being profiled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FileClusterType {
     /// Cluster type. // TODO: enum values: ["CLUSTER_UNSPECIFIED", "CLUSTER_UNKNOWN", "CLUSTER_TEXT", "CLUSTER_STRUCTURED_DATA", "CLUSTER_SOURCE_CODE", "CLUSTER_RICH_DOCUMENT", "CLUSTER_IMAGE", "CLUSTER_ARCHIVE", "CLUSTER_MULTIMEDIA", "CLUSTER_EXECUTABLE", "CLUSTER_AI_MODEL"]
     #[serde(default)]
@@ -1787,7 +1788,7 @@ pub struct GooglePrivacyDlpV2FileClusterType {
 }
 
 /// Information regarding the discovered file extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FileExtensionInfo {
     /// The file extension if set. (aka .pdf, .jpg, .txt)
     #[serde(default, rename = "fileExtension")]
@@ -1795,7 +1796,7 @@ pub struct GooglePrivacyDlpV2FileExtensionInfo {
 }
 
 /// Information regarding the discovered InfoType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FileStoreInfoTypeSummary {
     /// The InfoType seen.
     #[serde(default, rename = "infoType")]
@@ -1803,7 +1804,7 @@ pub struct GooglePrivacyDlpV2FileStoreInfoTypeSummary {
 }
 
 /// Configuration for stored infoTypes. All fields and subfield are provided by the user. For more information, see https://cloud.google.com/sensitive-data-protection/docs/creating-custom-infotypes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2StoredInfoTypeConfig {
     /// Description of the StoredInfoType (max 256 characters).
     #[serde(default)]
@@ -1824,7 +1825,7 @@ pub struct GooglePrivacyDlpV2StoredInfoTypeConfig {
 }
 
 /// Statistics for a StoredInfoType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2StoredInfoTypeStats {
     /// StoredInfoType where findings are defined by a dictionary of phrases.
     #[serde(default, rename = "largeCustomDictionary")]
@@ -1833,7 +1834,7 @@ pub struct GooglePrivacyDlpV2StoredInfoTypeStats {
 }
 
 /// Configuration for setting up a job to scan resources for profile generation. Only one data profile configuration may exist per organization, folder, or project. The generated data profiles are retained according to the [data retention policy] (https://cloud.google.com/sensitive-data-protection/docs/data-profiles#retention).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataProfileJobConfig {
     /// Actions to execute at the completion of the job.
     #[serde(default, rename = "dataProfileActions")]
@@ -1855,7 +1856,7 @@ pub struct GooglePrivacyDlpV2DataProfileJobConfig {
 }
 
 /// Configuration for discovery to scan resources for profile generation. Only one discovery configuration may exist per organization, folder, or project. The generated data profiles are retained according to the [data retention policy] (https://cloud.google.com/sensitive-data-protection/docs/data-profiles#retention).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryConfig {
     /// Actions to execute at the completion of scanning.
     #[serde(default)]
@@ -1900,7 +1901,7 @@ pub struct GooglePrivacyDlpV2DiscoveryConfig {
 }
 
 /// Specifies the location of the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Location {
     /// Zero-based byte offsets delimiting the finding. These are relative to the finding''s containing element. Note that when the content is not textual, this references the UTF-8 encoded textual representation of the content. Omitted if content is an image.
     #[serde(default, rename = "byteRange")]
@@ -1918,7 +1919,7 @@ pub struct GooglePrivacyDlpV2Location {
 }
 
 /// Message for infoType-dependent details parsed from quote.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2QuoteInfo {
     /// The date time indicated by the quote.
     #[serde(default, rename = "dateTime")]
@@ -1926,7 +1927,7 @@ pub struct GooglePrivacyDlpV2QuoteInfo {
 }
 
 /// A collection that informs the user the number of times a particular TransformationResultCode and error details occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SummaryResult {
     /// Outcome of the transformation. // TODO: enum values: ["TRANSFORMATION_RESULT_CODE_UNSPECIFIED", "SUCCESS", "ERROR"]
     #[serde(default)]
@@ -1940,7 +1941,7 @@ pub struct GooglePrivacyDlpV2SummaryResult {
 }
 
 /// A credential consisting of a username and password, where the password is stored in a Secret Manager resource. Note: Secret Manager [charges apply](https://cloud.google.com/secret-manager/pricing).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SecretManagerCredential {
     /// Required. The name of the Secret Manager resource that stores the password, in the form projects/project-id/secrets/secret-name/versions/version.
     #[serde(default, rename = "passwordSecretVersionName")]
@@ -1951,7 +1952,7 @@ pub struct GooglePrivacyDlpV2SecretManagerCredential {
 }
 
 /// Schedule for inspect job triggers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Schedule {
     /// With this option a job is started on a regular periodic basis. For example: every day (86400 seconds). A scheduled start time will be skipped if the previous execution has not ended when its scheduled time occurs. This value must be set to a time duration greater than or equal to 1 day and can be no longer than 60 days.
     #[serde(default, rename = "recurrencePeriodDuration")]
@@ -1959,7 +1960,7 @@ pub struct GooglePrivacyDlpV2Schedule {
 }
 
 /// A key-value pair in the Metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2KeyValueMetadataProperty {
     /// The key of the property.
     #[serde(default)]
@@ -1970,7 +1971,7 @@ pub struct GooglePrivacyDlpV2KeyValueMetadataProperty {
 }
 
 /// Values of the row.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Row {
     /// Individual cells.
     #[serde(default)]
@@ -1978,7 +1979,7 @@ pub struct GooglePrivacyDlpV2Row {
 }
 
 /// Summary of what was modified during a transformation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DeidentifyDataSourceStats {
     /// Number of successfully applied transformations.
     #[serde(default, rename = "transformationCount")]
@@ -1992,7 +1993,7 @@ pub struct GooglePrivacyDlpV2DeidentifyDataSourceStats {
 }
 
 /// De-identification options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RequestedDeidentifyOptions {
     /// Snapshot of the state of the DeidentifyTemplate from the Deidentify action at the time this job was run.
     #[serde(default, rename = "snapshotDeidentifyTemplate")]
@@ -2008,7 +2009,7 @@ pub struct GooglePrivacyDlpV2RequestedDeidentifyOptions {
 }
 
 /// Controls what and how to inspect for findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InspectJobConfig {
     /// Actions to execute at the completion of the job.
     #[serde(default)]
@@ -2025,7 +2026,7 @@ pub struct GooglePrivacyDlpV2InspectJobConfig {
 }
 
 /// The inspectTemplate contains a configuration (set of types of sensitive data to be detected) to be used anywhere you otherwise would normally specify InspectConfig. See https://cloud.google.com/sensitive-data-protection/docs/concepts-templates to learn more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InspectTemplate {
     /// Output only. The creation timestamp of an inspectTemplate.
     #[serde(default, rename = "createTime")]
@@ -2048,7 +2049,7 @@ pub struct GooglePrivacyDlpV2InspectTemplate {
 }
 
 /// Statistics related to processing hybrid inspect requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2HybridInspectStatistics {
     /// The number of hybrid inspection requests aborted because the job ran out of quota or was ended before they could be processed.
     #[serde(default, rename = "abortedCount")]
@@ -2062,7 +2063,7 @@ pub struct GooglePrivacyDlpV2HybridInspectStatistics {
 }
 
 /// Statistics regarding a specific InfoType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InfoTypeStats {
     /// Number of findings for this infoType.
     #[serde(default)]
@@ -2073,7 +2074,7 @@ pub struct GooglePrivacyDlpV2InfoTypeStats {
 }
 
 /// Histogram of value frequencies in the column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CategoricalStatsHistogramBucket {
     /// Total number of values in this bucket.
     #[serde(default, rename = "bucketSize")]
@@ -2093,7 +2094,7 @@ pub struct GooglePrivacyDlpV2CategoricalStatsHistogramBucket {
 }
 
 /// A DeltaPresenceEstimationHistogramBucket message with the following values: min_probability: 0.1 max_probability: 0.2 frequency: 42 means that there are 42 records for which δ is in [0.1, 0.2). An important particular case is when min_probability = max_probability = 1: then, every individual who shares this quasi-identifier combination is in the dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DeltaPresenceEstimationHistogramBucket {
     /// Number of records within these probability bounds.
     #[serde(default, rename = "bucketSize")]
@@ -2115,7 +2116,7 @@ pub struct GooglePrivacyDlpV2DeltaPresenceEstimationHistogramBucket {
 }
 
 /// Histogram of k-anonymity equivalence classes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2kAnonymityHistogramBucket {
     /// Total number of equivalence classes in this bucket.
     #[serde(default, rename = "bucketSize")]
@@ -2136,7 +2137,7 @@ pub struct GooglePrivacyDlpV2kAnonymityHistogramBucket {
 }
 
 /// A KMapEstimationHistogramBucket message with the following values: min_anonymity: 3 max_anonymity: 5 frequency: 42 means that there are 42 records whose quasi-identifier values correspond to 3, 4 or 5 people in the overlying population. An important particular case is when min_anonymity = max_anonymity = 1: the frequency field then corresponds to the number of uniquely identifiable records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2kMapEstimationHistogramBucket {
     /// Number of records within these anonymity bounds.
     #[serde(default, rename = "bucketSize")]
@@ -2157,7 +2158,7 @@ pub struct GooglePrivacyDlpV2kMapEstimationHistogramBucket {
 }
 
 /// Histogram of l-diversity equivalence class sensitive value frequencies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2lDiversityHistogramBucket {
     /// Total number of equivalence classes in this bucket.
     #[serde(default, rename = "bucketSize")]
@@ -2178,7 +2179,7 @@ pub struct GooglePrivacyDlpV2lDiversityHistogramBucket {
 }
 
 /// Configuration for a risk analysis job. See https://cloud.google.com/sensitive-data-protection/docs/concepts-risk-analysis to learn more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RiskAnalysisJobConfig {
     /// Actions to execute at the completion of the job. Are executed in the order provided.
     #[serde(default)]
@@ -2192,7 +2193,7 @@ pub struct GooglePrivacyDlpV2RiskAnalysisJobConfig {
 }
 
 /// Configuration for a custom dictionary created from a data source of any size up to the maximum size defined in the [limits](https://cloud.google.com/sensitive-data-protection/limits) page. The artifacts of dictionary creation are stored in the specified Cloud Storage location. Consider using CustomInfoType.Dictionary for smaller dictionaries that satisfy the size requirements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2LargeCustomDictionaryConfig {
     /// Field in a BigQuery table where each cell represents a dictionary phrase.
     #[serde(default, rename = "bigQueryField")]
@@ -2206,7 +2207,7 @@ pub struct GooglePrivacyDlpV2LargeCustomDictionaryConfig {
 }
 
 /// Summary statistics of a custom dictionary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2LargeCustomDictionaryStats {
     /// Approximate number of distinct phrases in the dictionary.
     #[serde(default, rename = "approxNumPhrases")]
@@ -2214,7 +2215,7 @@ pub struct GooglePrivacyDlpV2LargeCustomDictionaryStats {
 }
 
 /// The data that will be profiled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataProfileLocation {
     /// The ID of the folder within an organization to scan.
     #[serde(default, rename = "folderId")]
@@ -2225,7 +2226,7 @@ pub struct GooglePrivacyDlpV2DataProfileLocation {
 }
 
 /// A task to execute when a data profile has been generated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataProfileAction {
     /// Export data profiles into a provided location.
     #[serde(default, rename = "exportData")]
@@ -2249,7 +2250,7 @@ pub struct GooglePrivacyDlpV2DataProfileAction {
 }
 
 /// Details information about an error encountered during job execution or the results of an unsuccessful activation of the JobTrigger.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Error {
     /// Detailed error codes and messages.
     #[serde(default)]
@@ -2263,7 +2264,7 @@ pub struct GooglePrivacyDlpV2Error {
 }
 
 /// Project and scan location information. Only set when the parent is an org.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2OrgConfig {
     /// The data to scan: folder, org, or project
     #[serde(default)]
@@ -2274,7 +2275,7 @@ pub struct GooglePrivacyDlpV2OrgConfig {
 }
 
 /// The other cloud starting location for discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2OtherCloudDiscoveryStartingLocation {
     /// The AWS starting location for discovery.
     #[serde(default, rename = "awsLocation")]
@@ -2282,7 +2283,7 @@ pub struct GooglePrivacyDlpV2OtherCloudDiscoveryStartingLocation {
 }
 
 /// Configure processing location for discovery and inspection. For example, image OCR is only provided in limited regions but configuring ProcessingLocation will redirect OCR to a location where OCR is provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ProcessingLocation {
     /// Document processing falls back using this configuration.
     #[serde(default, rename = "documentFallbackLocation")]
@@ -2294,7 +2295,7 @@ pub struct GooglePrivacyDlpV2ProcessingLocation {
 }
 
 /// Target used to match against for Discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryTarget {
     /// BigQuery target for Discovery. The first target to match a table will be the one applied.
     #[serde(default, rename = "bigQueryTarget")]
@@ -2318,7 +2319,7 @@ pub struct GooglePrivacyDlpV2DiscoveryTarget {
 }
 
 /// Generic half-open interval [start, end)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Range {
     /// Index of the last character of the range (exclusive).
     #[serde(default)]
@@ -2329,7 +2330,7 @@ pub struct GooglePrivacyDlpV2Range {
 }
 
 /// Represents a container that may contain DLP findings. Examples of a container include a file, table, or database record.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Container {
     /// A string representation of the full container name. Examples: - BigQuery: ''Project:DataSetId.TableId'' - Cloud Storage: ''gs://Bucket/folders/filename.txt''
     #[serde(default, rename = "fullPath")]
@@ -2355,7 +2356,7 @@ pub struct GooglePrivacyDlpV2Container {
 }
 
 /// Precise location of the finding within a document, record, image, or metadata container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ContentLocation {
     /// Name of the container where the finding is located. The top level name is the source file name or table name. Names of some common storage containers are formatted as follows: * BigQuery tables: {project_id}:{dataset_id}.{table_id} * Cloud Storage files: gs://{bucket}/{path} * Datastore namespace: {namespace} Nested names could be absent if the embedded object has no string identifier (for example, an image contained within a document).
     #[serde(default, rename = "containerName")]
@@ -2381,7 +2382,7 @@ pub struct GooglePrivacyDlpV2ContentLocation {
 }
 
 /// Message for a date time object. e.g. 2018-01-01, 5th August.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DateTime {
     /// One or more of the following must be set. Must be a valid date or time value.
     #[serde(default)]
@@ -2398,7 +2399,7 @@ pub struct GooglePrivacyDlpV2DateTime {
 }
 
 /// DeidentifyTemplates contains instructions on how to de-identify content. See https://cloud.google.com/sensitive-data-protection/docs/concepts-templates to learn more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DeidentifyTemplate {
     /// Output only. The creation timestamp of an inspectTemplate.
     #[serde(default, rename = "createTime")]
@@ -2421,7 +2422,7 @@ pub struct GooglePrivacyDlpV2DeidentifyTemplate {
 }
 
 /// Shared message indicating Cloud storage type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2StorageConfig {
     /// BigQuery options.
     #[serde(default, rename = "bigQueryOptions")]
@@ -2441,7 +2442,7 @@ pub struct GooglePrivacyDlpV2StorageConfig {
 }
 
 /// Configuration description of the scanning process. When used with redactContent only info_types and min_likelihood are currently used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InspectConfig {
     /// Deprecated and unused.
     #[serde(default, rename = "contentOptions")]
@@ -2475,7 +2476,7 @@ pub struct GooglePrivacyDlpV2InspectConfig {
 }
 
 /// A tuple of values for the quasi-identifier columns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DeltaPresenceEstimationQuasiIdValues {
     /// The estimated probability that a given individual sharing these quasi-identifier values is in the dataset. This value, typically called δ, is the ratio between the number of records in the dataset with these quasi-identifier values, and the total number of individuals (inside *and* outside the dataset) with these quasi-identifier values. For example, if there are 15 individuals in the dataset who share the same quasi-identifier values, and an estimated 100 people in the entire population with these values, then δ is 0.15.
     #[serde(default, rename = "estimatedProbability")]
@@ -2486,7 +2487,7 @@ pub struct GooglePrivacyDlpV2DeltaPresenceEstimationQuasiIdValues {
 }
 
 /// The set of columns'' values that share the same ldiversity value
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2kAnonymityEquivalenceClass {
     /// Size of the equivalence class, for example number of rows with the above set of values.
     #[serde(default, rename = "equivalenceClassSize")]
@@ -2497,7 +2498,7 @@ pub struct GooglePrivacyDlpV2kAnonymityEquivalenceClass {
 }
 
 /// A tuple of values for the quasi-identifier columns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2kMapEstimationQuasiIdValues {
     /// The estimated anonymity for these quasi-identifier values.
     #[serde(default, rename = "estimatedAnonymity")]
@@ -2508,7 +2509,7 @@ pub struct GooglePrivacyDlpV2kMapEstimationQuasiIdValues {
 }
 
 /// The set of columns'' values that share the same ldiversity value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2lDiversityEquivalenceClass {
     /// Size of the k-anonymity equivalence class.
     #[serde(default, rename = "equivalenceClassSize")]
@@ -2526,7 +2527,7 @@ pub struct GooglePrivacyDlpV2lDiversityEquivalenceClass {
 }
 
 /// A task to execute on the completion of a job. See https://cloud.google.com/sensitive-data-protection/docs/concepts-actions to learn more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Action {
     /// Create a de-identified copy of the input data.
     #[serde(default)]
@@ -2555,7 +2556,7 @@ pub struct GooglePrivacyDlpV2Action {
 }
 
 /// Privacy metric to compute for reidentification risk analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PrivacyMetric {
     /// Categorical stats
     #[serde(default, rename = "categoricalStatsConfig")]
@@ -2579,7 +2580,7 @@ pub struct GooglePrivacyDlpV2PrivacyMetric {
 }
 
 /// Message defining a field of a BigQuery table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2BigQueryField {
     /// Designated field in the BigQuery table.
     #[serde(default)]
@@ -2590,7 +2591,7 @@ pub struct GooglePrivacyDlpV2BigQueryField {
 }
 
 /// Message representing a set of files in Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CloudStorageFileSet {
     /// The url, in the format gs:///. Trailing wildcard in the path is allowed.
     #[serde(default)]
@@ -2598,7 +2599,7 @@ pub struct GooglePrivacyDlpV2CloudStorageFileSet {
 }
 
 /// If set, the detailed data profiles will be persisted to the location of your choice whenever updated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Export {
     /// Store all profiles to BigQuery. * The system will create a new dataset and table for you if none are are provided. The dataset will be named sensitive_data_protection_discovery and table will be named discovery_profiles. This table will be placed in the same project as the container project running the scan. After the first profile is generated and the dataset and table are created, the discovery scan configuration will be updated with the dataset and table names. * See [Analyze data profiles stored in BigQuery](https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles). * See [Sample queries for your BigQuery table](https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles#sample_sql_queries). * Data is inserted using [streaming insert](https://cloud.google.com/blog/products/bigquery/life-of-a-bigquery-streaming-insert) and so data may be in the buffer for a period of time after the profile has finished. * The Pub/Sub notification is sent before the streaming buffer is guaranteed to be written, so data may not be instantly visible to queries by the time your topic receives the Pub/Sub notification. * The best practice is to use the same table for an entire organization so that you can take advantage of the [provided Looker reports](https://cloud.google.com/sensitive-data-protection/docs/analyze-data-profiles#use_a_premade_report). If you use VPC Service Controls to define security perimeters, then you must use a separate table for each boundary.
     #[serde(default, rename = "profileTable")]
@@ -2609,7 +2610,7 @@ pub struct GooglePrivacyDlpV2Export {
 }
 
 /// Send a Pub/Sub message into the given Pub/Sub topic to connect other systems to data profile generation. The message payload data will be the byte serialization of DataProfilePubSubMessage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PubSubNotification {
     /// How much data to include in the Pub/Sub message. If the user wishes to limit the size of the message, they can use resource_name and fetch the profile fields they wish to. Per table profile (not per column). // TODO: enum values: ["DETAIL_LEVEL_UNSPECIFIED", "TABLE_PROFILE", "RESOURCE_NAME", "FILE_STORE_PROFILE"]
     #[serde(default, rename = "detailOfMessage")]
@@ -2626,7 +2627,7 @@ pub struct GooglePrivacyDlpV2PubSubNotification {
 }
 
 /// Create Dataplex Universal Catalog aspects for profiled resources with the aspect type Sensitive Data Protection Profile. To learn more about aspects, see https://cloud.google.com/sensitive-data-protection/docs/add-aspects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PublishToDataplexCatalog {
     /// Whether creating a Dataplex Universal Catalog aspect for a profiled resource should lower the risk of the profile for that resource. This also lowers the data risk of resources at the lower levels of the resource hierarchy. For example, reducing the data risk of a table data profile also reduces the data risk of the constituent column data profiles.
     #[serde(default, rename = "lowerDataRiskToLow")]
@@ -2634,7 +2635,7 @@ pub struct GooglePrivacyDlpV2PublishToDataplexCatalog {
 }
 
 /// If set, attaches the [tags] (https://cloud.google.com/resource-manager/docs/tags/tags-overview) provided to profiled resources. Tags support [access control](https://cloud.google.com/iam/docs/tags-access-control). You can conditionally grant or deny access to a resource based on whether the resource has a specific tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TagResources {
     /// Whether applying a tag to a resource should lower the risk of the profile for that resource. For example, in conjunction with an [IAM deny policy](https://cloud.google.com/iam/docs/deny-overview), you can deny all principals a permission if a tag value is present, mitigating the risk of the resource. This also lowers the data risk of resources at the lower levels of the resource hierarchy. For example, reducing the data risk of a table data profile also reduces the data risk of the constituent column data profiles.
     #[serde(default, rename = "lowerDataRiskToLow")]
@@ -2648,7 +2649,7 @@ pub struct GooglePrivacyDlpV2TagResources {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2662,7 +2663,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// The location to begin a discovery scan. Denotes an organization ID or folder ID within an organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryStartingLocation {
     /// The ID of the folder within an organization to be scanned.
     #[serde(default, rename = "folderId")]
@@ -2673,7 +2674,7 @@ pub struct GooglePrivacyDlpV2DiscoveryStartingLocation {
 }
 
 /// The AWS starting location for discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AwsDiscoveryStartingLocation {
     /// The AWS account ID that this discovery config applies to. Within an AWS organization, you can find the AWS account ID inside an AWS account ARN. Example: arn:{partition}:organizations::{management_account_id}:account/{org_id}/{account_id}
     #[serde(default, rename = "accountId")]
@@ -2684,7 +2685,7 @@ pub struct GooglePrivacyDlpV2AwsDiscoveryStartingLocation {
 }
 
 /// Configure document processing to fall back to any of the following processing options if document processing is unavailable in the original request location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DocumentFallbackLocation {
     /// Processing occurs in the global region.
     #[serde(default, rename = "globalProcessing")]
@@ -2695,7 +2696,7 @@ pub struct GooglePrivacyDlpV2DocumentFallbackLocation {
 }
 
 /// Configure image processing to fall back to any of the following processing options if image processing is unavailable in the original request location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ImageFallbackLocation {
     /// Processing occurs in the global region.
     #[serde(default, rename = "globalProcessing")]
@@ -2706,7 +2707,7 @@ pub struct GooglePrivacyDlpV2ImageFallbackLocation {
 }
 
 /// Target used to match against for discovery with BigQuery tables
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2BigQueryDiscoveryTarget {
     /// How often and when to update profiles. New tables that match both the filter and conditions are scanned as quickly as possible depending on system capacity.
     #[serde(default)]
@@ -2723,7 +2724,7 @@ pub struct GooglePrivacyDlpV2BigQueryDiscoveryTarget {
 }
 
 /// Target used to match against for discovery with Cloud SQL tables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CloudSqlDiscoveryTarget {
     /// In addition to matching the filter, these conditions must be true before a profile is generated.
     #[serde(default)]
@@ -2741,7 +2742,7 @@ pub struct GooglePrivacyDlpV2CloudSqlDiscoveryTarget {
 }
 
 /// Target used to match against for discovery with Cloud Storage buckets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CloudStorageDiscoveryTarget {
     /// Optional. In addition to matching the filter, these conditions must be true before a profile is generated.
     #[serde(default)]
@@ -2759,7 +2760,7 @@ pub struct GooglePrivacyDlpV2CloudStorageDiscoveryTarget {
 }
 
 /// Target used to match against for discovery of resources from other clouds. An [AWS connector in Security Command Center (Enterprise](https://cloud.google.com/security-command-center/docs/connect-scc-to-aws) is required to use this feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2OtherCloudDiscoveryTarget {
     /// Optional. In addition to matching the filter, these conditions must be true before a profile is generated.
     #[serde(default)]
@@ -2780,7 +2781,7 @@ pub struct GooglePrivacyDlpV2OtherCloudDiscoveryTarget {
 }
 
 /// Target used to match against for discovery with Vertex AI datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2VertexDatasetDiscoveryTarget {
     /// In addition to matching the filter, these conditions must be true before a profile is generated.
     #[serde(default)]
@@ -2798,7 +2799,7 @@ pub struct GooglePrivacyDlpV2VertexDatasetDiscoveryTarget {
 }
 
 /// Location of a finding within a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DocumentLocation {
     /// Offset of the line, from the beginning of the file, where the finding is located.
     #[serde(default, rename = "fileOffset")]
@@ -2806,7 +2807,7 @@ pub struct GooglePrivacyDlpV2DocumentLocation {
 }
 
 /// Location of the finding within an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ImageLocation {
     /// Bounding boxes locating the pixels within the image containing the finding.
     #[serde(default, rename = "boundingBoxes")]
@@ -2814,7 +2815,7 @@ pub struct GooglePrivacyDlpV2ImageLocation {
 }
 
 /// Metadata Location
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2MetadataLocation {
     /// Metadata key that contains the finding.
     #[serde(default, rename = "keyValueMetadataLabel")]
@@ -2828,7 +2829,7 @@ pub struct GooglePrivacyDlpV2MetadataLocation {
 }
 
 /// Location of a finding within a row or record.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RecordLocation {
     /// Field id of the field containing the finding.
     #[serde(default, rename = "fieldId")]
@@ -2842,7 +2843,7 @@ pub struct GooglePrivacyDlpV2RecordLocation {
 }
 
 /// Time zone of the date time object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TimeZone {
     /// Set only if the offset can be determined. Positive for time ahead of UTC. E.g. For "UTC-9", this value is -540.
     #[serde(default, rename = "offsetMinutes")]
@@ -2850,7 +2851,7 @@ pub struct GooglePrivacyDlpV2TimeZone {
 }
 
 /// The configuration that controls how the data will change.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DeidentifyConfig {
     /// Treat the dataset as an image and redact.
     #[serde(default, rename = "imageTransformations")]
@@ -2869,7 +2870,7 @@ pub struct GooglePrivacyDlpV2DeidentifyConfig {
 }
 
 /// Options defining BigQuery table and row identifiers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2BigQueryOptions {
     /// References to fields excluded from scanning. This allows you to skip inspection of entire columns which you know have no findings. When inspecting a table, we recommend that you inspect all columns. Otherwise, findings might be affected because hints from excluded columns will not be used.
     #[serde(default, rename = "excludedFields")]
@@ -2895,7 +2896,7 @@ pub struct GooglePrivacyDlpV2BigQueryOptions {
 }
 
 /// Options defining a file or a set of files within a Cloud Storage bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CloudStorageOptions {
     /// Max number of bytes to scan from a file. If a scanned file''s size is bigger than this value then the rest of the bytes are omitted. Only one of bytes_limit_per_file and bytes_limit_per_file_percent can be specified. This field can''t be set if de-identification is requested. For certain file types, setting this field has no effect. For more information, see [Limits on bytes scanned per file](https://cloud.google.com/sensitive-data-protection/docs/supported-file-types#max-byte-size-per-file).
     #[serde(default, rename = "bytesLimitPerFile")]
@@ -2918,7 +2919,7 @@ pub struct GooglePrivacyDlpV2CloudStorageOptions {
 }
 
 /// Options defining a data set within Google Cloud Datastore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DatastoreOptions {
     /// The kind to process.
     #[serde(default)]
@@ -2929,7 +2930,7 @@ pub struct GooglePrivacyDlpV2DatastoreOptions {
 }
 
 /// Configuration to control jobs where the content being inspected is outside of Google Cloud Platform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2HybridOptions {
     /// A short description of where the data is coming from. Will be stored once in the job. 256 max length.
     #[serde(default)]
@@ -2946,7 +2947,7 @@ pub struct GooglePrivacyDlpV2HybridOptions {
 }
 
 /// Configuration of the timespan of the items to include in scanning. Currently only supported when inspecting Cloud Storage and BigQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TimespanConfig {
     /// When the job is started by a JobTrigger we will automatically figure out a valid start_time to avoid scanning files that have not been modified since the last time the JobTrigger executed. This will be based on the time of the execution of the last run of the JobTrigger or the timespan end_time used in the last run of the JobTrigger. **For BigQuery** Inspect jobs triggered by automatic population will scan data that is at least three hours old when the job starts. This is because streaming buffer rows are not read during inspection and reading up to the current timestamp will result in skipped rows. See the [known issue](https://cloud.google.com/sensitive-data-protection/docs/known-issues#recently-streamed-data) related to this operation.
     #[serde(default, rename = "enableAutoPopulationOfTimespanConfig")]
@@ -2963,7 +2964,7 @@ pub struct GooglePrivacyDlpV2TimespanConfig {
 }
 
 /// Custom information type provided by the user. Used to find domain-specific sensitive information configurable to the data in question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CustomInfoType {
     /// Set of detection rules to apply to all findings of this CustomInfoType. Rules are applied in the order that they are specified. Only supported for the dictionary, regex, and stored_type CustomInfoTypes.
     #[serde(default, rename = "detectionRules")]
@@ -2999,7 +3000,7 @@ pub struct GooglePrivacyDlpV2CustomInfoType {
 }
 
 /// Configuration to control the number of findings returned for inspection. This is not used for de-identification or data profiling. When redacting sensitive data from images, finding limits don''t apply. They can cause unexpected or inconsistent results, where only some data is redacted. Don''t include finding limits in RedactImage requests. Otherwise, Cloud DLP returns an error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FindingLimits {
     /// Configuration of findings limit given for specified infoTypes.
     #[serde(default, rename = "maxFindingsPerInfoType")]
@@ -3014,7 +3015,7 @@ pub struct GooglePrivacyDlpV2FindingLimits {
 }
 
 /// Configuration for setting a minimum likelihood per infotype. Used to customize the minimum likelihood level for specific infotypes in the request. For example, use this if you want to lower the precision for PERSON_NAME without lowering the precision for the other infotypes in the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InfoTypeLikelihood {
     /// Type of information the likelihood threshold applies to. Only one likelihood per info_type should be provided. If InfoTypeLikelihood does not have an info_type, the configuration fails.
     #[serde(default, rename = "infoType")]
@@ -3025,7 +3026,7 @@ pub struct GooglePrivacyDlpV2InfoTypeLikelihood {
 }
 
 /// Rule set for modifying a set of infoTypes to alter behavior under certain circumstances, depending on the specific details of the rules within the set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InspectionRuleSet {
     /// List of infoTypes this rule set is applied to.
     #[serde(default, rename = "infoTypes")]
@@ -3036,7 +3037,7 @@ pub struct GooglePrivacyDlpV2InspectionRuleSet {
 }
 
 /// A value of a field, including its frequency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ValueFrequency {
     /// How many times the value is contained in the field.
     #[serde(default)]
@@ -3047,7 +3048,7 @@ pub struct GooglePrivacyDlpV2ValueFrequency {
 }
 
 /// Create a de-identified copy of a storage bucket. Only compatible with Cloud Storage buckets. A TransformationDetail will be created for each transformation. Compatible with: Inspection of Cloud Storage
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Deidentify {
     /// Required. User settable Cloud Storage bucket and folders to store de-identified files. This field must be set for Cloud Storage deidentification. The output Cloud Storage bucket must be different from the input bucket. De-identified files will overwrite files in the output path. Form of: gs://bucket/folder/ or gs://bucket
     #[serde(default, rename = "cloudStorageOutput")]
@@ -3065,7 +3066,7 @@ pub struct GooglePrivacyDlpV2Deidentify {
 }
 
 /// Publish a message into a given Pub/Sub topic when DlpJob has completed. The message contains a single field, DlpJobName, which is equal to the finished job''s [DlpJob.name](https://cloud.google.com/sensitive-data-protection/docs/reference/rest/v2/projects.dlpJobs#DlpJob). Compatible with: Inspect, Risk
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PublishToPubSub {
     /// Cloud Pub/Sub topic to send notifications to. The topic must have given publishing access rights to the DLP API service account executing the long running DlpJob sending the notifications. Format is projects/{project}/topics/{topic}.
     #[serde(default)]
@@ -3073,7 +3074,7 @@ pub struct GooglePrivacyDlpV2PublishToPubSub {
 }
 
 /// If set, the detailed findings will be persisted to the specified OutputStorageConfig. Only a single instance of this action can be specified. Compatible with: Inspect, Risk
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SaveFindings {
     /// Location to store findings outside of DLP.
     #[serde(default, rename = "outputConfig")]
@@ -3081,7 +3082,7 @@ pub struct GooglePrivacyDlpV2SaveFindings {
 }
 
 /// Compute numerical stats over an individual column, including number of distinct values and value count distribution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CategoricalStatsConfig {
     /// Field to compute categorical stats on. All column types are supported except for arrays and structs. However, it may be more informative to use NumericalStats when the field type is supported, depending on the data.
     #[serde(default)]
@@ -3089,7 +3090,7 @@ pub struct GooglePrivacyDlpV2CategoricalStatsConfig {
 }
 
 /// δ-presence metric, used to estimate how likely it is for an attacker to figure out that one given individual appears in a de-identified dataset. Similarly to the k-map metric, we cannot compute δ-presence exactly without knowing the attack dataset, so we use a statistical model instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DeltaPresenceEstimationConfig {
     /// Several auxiliary tables can be used in the analysis. Each custom_tag used to tag a quasi-identifiers field must appear in exactly one field of one auxiliary table.
     #[serde(default, rename = "auxiliaryTables")]
@@ -3104,7 +3105,7 @@ pub struct GooglePrivacyDlpV2DeltaPresenceEstimationConfig {
 }
 
 /// k-anonymity metric, used for analysis of reidentification risk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2kAnonymityConfig {
     /// Message indicating that multiple rows might be associated to a single individual. If the same entity_id is associated to multiple quasi-identifier tuples over distinct rows, we consider the entire collection of tuples as the composite quasi-identifier. This collection is a multiset: the order in which the different tuples appear in the dataset is ignored, but their frequency is taken into account. Important note: a maximum of 1000 rows can be associated to a single entity ID. If more rows are associated with the same entity ID, some might be ignored.
     #[serde(default, rename = "entityId")]
@@ -3115,7 +3116,7 @@ pub struct GooglePrivacyDlpV2kAnonymityConfig {
 }
 
 /// Reidentifiability metric. This corresponds to a risk model similar to what is called "journalist risk" in the literature, except the attack dataset is statistically modeled instead of being perfectly known. This can be done using publicly available data (like the US Census), or using a custom statistical model (indicated as one or several BigQuery tables), or by extrapolating from the distribution of values in the input dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2kMapEstimationConfig {
     /// Several auxiliary tables can be used in the analysis. Each custom_tag used to tag a quasi-identifiers column must appear in exactly one column of one auxiliary table.
     #[serde(default, rename = "auxiliaryTables")]
@@ -3129,7 +3130,7 @@ pub struct GooglePrivacyDlpV2kMapEstimationConfig {
 }
 
 /// l-diversity metric, used for analysis of reidentification risk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2lDiversityConfig {
     /// Set of quasi-identifiers indicating how equivalence classes are defined for the l-diversity computation. When multiple fields are specified, they are considered a single composite key.
     #[serde(default, rename = "quasiIds")]
@@ -3140,7 +3141,7 @@ pub struct GooglePrivacyDlpV2lDiversityConfig {
 }
 
 /// Compute numerical stats over an individual column, including min, max, and quantiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2NumericalStatsConfig {
     /// Field to compute numerical stats on. Supported types are integer, float, date, datetime, timestamp, time.
     #[serde(default)]
@@ -3148,7 +3149,7 @@ pub struct GooglePrivacyDlpV2NumericalStatsConfig {
 }
 
 /// A condition for determining whether a Pub/Sub should be triggered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataProfilePubSubCondition {
     /// An expression.
     #[serde(default)]
@@ -3156,7 +3157,7 @@ pub struct GooglePrivacyDlpV2DataProfilePubSubCondition {
 }
 
 /// The tag to attach to profiles matching the condition. At most one TagCondition can be specified per sensitivity level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TagCondition {
     /// Conditions attaching the tag to a resource on its profile having this sensitivity score.
     #[serde(default, rename = "sensitivityScore")]
@@ -3167,7 +3168,7 @@ pub struct GooglePrivacyDlpV2TagCondition {
 }
 
 /// What must take place for a profile to be updated and how frequently it should occur. New tables are scanned as quickly as possible depending on system capacity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryGenerationCadence {
     /// Governs when to update data profiles when the inspection rules defined by the InspectTemplate change. If not set, changing the template will not cause a data profile to update.
     #[serde(default, rename = "inspectTemplateModifiedCadence")]
@@ -3187,7 +3188,7 @@ pub struct GooglePrivacyDlpV2DiscoveryGenerationCadence {
 }
 
 /// Requirements that must be true before a table is scanned in discovery for the first time. There is an AND relationship between the top-level attributes. Additionally, minimum conditions with an OR relationship that must be met before Cloud DLP scans a table can be set (like a minimum row count or a minimum table age).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryBigQueryConditions {
     /// BigQuery table must have been created after this date. Used to avoid backfilling.
     #[serde(default, rename = "createdAfter")]
@@ -3204,7 +3205,7 @@ pub struct GooglePrivacyDlpV2DiscoveryBigQueryConditions {
 }
 
 /// Determines what tables will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID, dataset ID, and table ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryBigQueryFilter {
     /// Catch-all. This should always be the last filter in the list because anything above it will apply first. Should only appear once in a configuration. If none is specified, a default one will be added automatically.
     #[serde(default, rename = "otherTables")]
@@ -3218,7 +3219,7 @@ pub struct GooglePrivacyDlpV2DiscoveryBigQueryFilter {
 }
 
 /// Requirements that must be true before a table is profiled for the first time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryCloudSqlConditions {
     /// Optional. Database engines that should be profiled. Optional. Defaults to ALL_SUPPORTED_DATABASE_ENGINES if unspecified.
     #[serde(default, rename = "databaseEngines")]
@@ -3229,7 +3230,7 @@ pub struct GooglePrivacyDlpV2DiscoveryCloudSqlConditions {
 }
 
 /// Determines what tables will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID, location, instance, database, and database resource name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryCloudSqlFilter {
     /// A specific set of database resources for this filter to apply to.
     #[serde(default)]
@@ -3244,7 +3245,7 @@ pub struct GooglePrivacyDlpV2DiscoveryCloudSqlFilter {
 }
 
 /// How often existing tables should have their profiles refreshed. New tables are scanned as quickly as possible depending on system capacity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryCloudSqlGenerationCadence {
     /// Governs when to update data profiles when the inspection rules defined by the InspectTemplate change. If not set, changing the template will not cause a data profile to update.
     #[serde(default, rename = "inspectTemplateModifiedCadence")]
@@ -3259,7 +3260,7 @@ pub struct GooglePrivacyDlpV2DiscoveryCloudSqlGenerationCadence {
 }
 
 /// Requirements that must be true before a file store is scanned in discovery for the first time. There is an AND relationship between the top-level attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryFileStoreConditions {
     /// Optional. Cloud Storage conditions.
     #[serde(default, rename = "cloudStorageConditions")]
@@ -3274,7 +3275,7 @@ pub struct GooglePrivacyDlpV2DiscoveryFileStoreConditions {
 }
 
 /// Determines which buckets will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID and bucket name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryCloudStorageFilter {
     /// Optional. The bucket to scan. Targets including this can only include one target (the target with this bucket). This enables profiling the contents of a single bucket, while the other options allow for easy profiling of many bucets within a project or an organization.
     #[serde(default, rename = "cloudStorageResourceReference")]
@@ -3289,7 +3290,7 @@ pub struct GooglePrivacyDlpV2DiscoveryCloudStorageFilter {
 }
 
 /// How often existing buckets should have their profiles refreshed. New buckets are scanned as quickly as possible depending on system capacity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryCloudStorageGenerationCadence {
     /// Optional. Governs when to update data profiles when the inspection rules defined by the InspectTemplate change. If not set, changing the template will not cause a data profile to update.
     #[serde(default, rename = "inspectTemplateModifiedCadence")]
@@ -3301,7 +3302,7 @@ pub struct GooglePrivacyDlpV2DiscoveryCloudStorageGenerationCadence {
 }
 
 /// Requirements that must be true before a resource is profiled for the first time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryOtherCloudConditions {
     /// Amazon S3 bucket conditions.
     #[serde(default, rename = "amazonS3BucketConditions")]
@@ -3313,7 +3314,7 @@ pub struct GooglePrivacyDlpV2DiscoveryOtherCloudConditions {
 }
 
 /// Message used to identify the type of resource being profiled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DataSourceType {
     /// A string that identifies the type of resource being profiled. Current values: * google/bigquery/table * google/project * google/sql/table * google/gcs/bucket
     #[serde(default, rename = "dataSource")]
@@ -3321,7 +3322,7 @@ pub struct GooglePrivacyDlpV2DataSourceType {
 }
 
 /// Determines which resources from the other cloud will have profiles generated. Includes the ability to filter by resource names.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryOtherCloudFilter {
     /// A collection of resources for this filter to apply to.
     #[serde(default)]
@@ -3336,7 +3337,7 @@ pub struct GooglePrivacyDlpV2DiscoveryOtherCloudFilter {
 }
 
 /// How often existing resources should have their profiles refreshed. New resources are scanned as quickly as possible depending on system capacity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryOtherCloudGenerationCadence {
     /// Optional. Governs when to update data profiles when the inspection rules defined by the InspectTemplate change. If not set, changing the template will not cause a data profile to update.
     #[serde(default, rename = "inspectTemplateModifiedCadence")]
@@ -3348,7 +3349,7 @@ pub struct GooglePrivacyDlpV2DiscoveryOtherCloudGenerationCadence {
 }
 
 /// Requirements that must be true before a dataset is profiled for the first time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetConditions {
     /// Vertex AI dataset must have been created after this date. Used to avoid backfilling.
     #[serde(default, rename = "createdAfter")]
@@ -3359,7 +3360,7 @@ pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetConditions {
 }
 
 /// Determines what datasets will have profiles generated within an organization or project. Includes the ability to filter by regular expression patterns on project ID or dataset regex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetFilter {
     /// A specific set of Vertex AI datasets for this filter to apply to.
     #[serde(default)]
@@ -3374,7 +3375,7 @@ pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetFilter {
 }
 
 /// How often existing datasets should have their profiles refreshed. New datasets are scanned as quickly as possible depending on system capacity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetGenerationCadence {
     /// Governs when to update data profiles when the inspection rules defined by the InspectTemplate change. If not set, changing the template will not cause a data profile to be updated.
     #[serde(default, rename = "inspectTemplateModifiedCadence")]
@@ -3386,7 +3387,7 @@ pub struct GooglePrivacyDlpV2DiscoveryVertexDatasetGenerationCadence {
 }
 
 /// Bounding box encompassing detected text within an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2BoundingBox {
     /// Height of the bounding box in pixels.
     #[serde(default)]
@@ -3403,7 +3404,7 @@ pub struct GooglePrivacyDlpV2BoundingBox {
 }
 
 /// The metadata key that contains a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2KeyValueMetadataLabel {
     /// The metadata key. The format depends on the source of the metadata. Example: - MSIP_Label_122709e3-8f6b-4860-985f-7f722a94f61e_Enabled (a Microsoft Purview Information Protection key example)
     #[serde(default)]
@@ -3411,7 +3412,7 @@ pub struct GooglePrivacyDlpV2KeyValueMetadataLabel {
 }
 
 /// Storage metadata label to indicate which metadata entry contains findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2StorageMetadataLabel {
     /// Label name.
     #[serde(default)]
@@ -3419,7 +3420,7 @@ pub struct GooglePrivacyDlpV2StorageMetadataLabel {
 }
 
 /// Message for a unique key indicating a record that contains a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RecordKey {
     /// Datastore key
     #[serde(default, rename = "bigQueryKey")]
@@ -3433,7 +3434,7 @@ pub struct GooglePrivacyDlpV2RecordKey {
 }
 
 /// Location of a finding within a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TableLocation {
     /// The zero-based index of the row where the finding is located. Only populated for resources that have a natural ordering, not BigQuery. In BigQuery, to identify the row a finding came from, populate BigQueryOptions.identifying_fields with your primary key column names and when you store the findings the value of those columns will be stored inside of Finding.
     #[serde(default, rename = "rowIndex")]
@@ -3441,7 +3442,7 @@ pub struct GooglePrivacyDlpV2TableLocation {
 }
 
 /// A type of transformation that is applied over images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ImageTransformations {
     /// List of transforms to make.
     #[serde(default)]
@@ -3449,7 +3450,7 @@ pub struct GooglePrivacyDlpV2ImageTransformations {
 }
 
 /// A type of transformation that is applied over structured data such as a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RecordTransformations {
     /// Transform the record by applying various field transformations.
     #[serde(default, rename = "fieldTransformations")]
@@ -3462,7 +3463,7 @@ pub struct GooglePrivacyDlpV2RecordTransformations {
 }
 
 /// How to handle transformation errors during de-identification. A transformation error occurs when the requested transformation is incompatible with the data. For example, trying to de-identify an IP address using a DateShift transformation would result in a transformation error, since date info cannot be extracted from an IP address. Information about any incompatible transformations, and how they were handled, is returned in the response as part of the TransformationOverviews.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TransformationErrorHandling {
     /// Ignore errors
     #[serde(default, rename = "leaveUntransformed")]
@@ -3473,7 +3474,7 @@ pub struct GooglePrivacyDlpV2TransformationErrorHandling {
 }
 
 /// Set of files to scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FileSet {
     /// The regex-filtered set of files to scan. Exactly one of url or regex_file_set must be set.
     #[serde(default, rename = "regexFileSet")]
@@ -3484,7 +3485,7 @@ pub struct GooglePrivacyDlpV2FileSet {
 }
 
 /// A representation of a Datastore kind.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2KindExpression {
     /// The name of the kind.
     #[serde(default)]
@@ -3492,7 +3493,7 @@ pub struct GooglePrivacyDlpV2KindExpression {
 }
 
 /// Instructions regarding the table content being inspected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TableOptions {
     /// The columns that are the primary keys for table objects included in ContentItem. A copy of this cell''s value will stored alongside alongside each finding so that the finding can be traced to the specific row it came from. No more than 3 may be provided.
     #[serde(default, rename = "identifyingFields")]
@@ -3500,7 +3501,7 @@ pub struct GooglePrivacyDlpV2TableOptions {
 }
 
 /// Deprecated; use InspectionRuleSet instead. Rule for modifying a CustomInfoType to alter behavior under certain circumstances, depending on the specific details of the rule. Not supported for the surrogate_type custom infoType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DetectionRule {
     /// Hotword-based detection rule.
     #[serde(default, rename = "hotwordRule")]
@@ -3508,7 +3509,7 @@ pub struct GooglePrivacyDlpV2DetectionRule {
 }
 
 /// Configuration for a custom infoType that detects key-value pairs in the metadata matching the specified regular expressions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2MetadataKeyValueExpression {
     /// The regular expression for the key. Key should be non-empty.
     #[serde(default, rename = "keyRegex")]
@@ -3519,7 +3520,7 @@ pub struct GooglePrivacyDlpV2MetadataKeyValueExpression {
 }
 
 /// A reference to a StoredInfoType to use with scanning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2StoredType {
     /// Timestamp indicating when the version of the StoredInfoType used for inspection was created. Output-only field, populated by the system.
     #[serde(default, rename = "createTime")]
@@ -3530,7 +3531,7 @@ pub struct GooglePrivacyDlpV2StoredType {
 }
 
 /// Max findings configuration per infoType, per content item or long running DlpJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InfoTypeLimit {
     /// Type of information the findings limit applies to. Only one limit per info_type should be provided. If InfoTypeLimit does not have an info_type, the DLP API applies the limit against all info_types that are found but not specified in another InfoTypeLimit.
     #[serde(default, rename = "infoType")]
@@ -3541,7 +3542,7 @@ pub struct GooglePrivacyDlpV2InfoTypeLimit {
 }
 
 /// A single inspection rule to be applied to infoTypes, specified in InspectionRuleSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InspectionRule {
     /// Adjustment rule.
     #[serde(default, rename = "adjustmentRule")]
@@ -3555,7 +3556,7 @@ pub struct GooglePrivacyDlpV2InspectionRule {
 }
 
 /// User specified templates and configs for how to deidentify structured, unstructures, and image files. User must provide either a unstructured deidentify template or at least one redact image config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TransformationConfig {
     /// De-identify template. If this template is specified, it will serve as the default de-identify template. This template cannot contain record_transformations since it can be used for unstructured content such as free-form text files. If this template is not set, a default ReplaceWithInfoTypeConfig will be used to de-identify unstructured content.
     #[serde(default, rename = "deidentifyTemplate")]
@@ -3569,7 +3570,7 @@ pub struct GooglePrivacyDlpV2TransformationConfig {
 }
 
 /// Config for storing transformation details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TransformationDetailsStorageConfig {
     /// The BigQuery table in which to store the output. This may be an existing table or in a new table in an existing dataset. If table_id is not set a new one will be generated for you with the following format: dlp_googleapis_transformation_details_yyyy_mm_dd_[dlp_job_id]. Pacific time zone will be used for generating the date details.
     #[serde(default)]
@@ -3577,7 +3578,7 @@ pub struct GooglePrivacyDlpV2TransformationDetailsStorageConfig {
 }
 
 /// Cloud repository for storing output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2OutputStorageConfig {
     /// Schema used for writing the findings for Inspect jobs. This field is only used for Inspect and must be unspecified for Risk jobs. Columns are derived from the Finding object. If appending to an existing table, any columns from the predefined schema that are missing will be added. No columns in the existing table will be deleted. If unspecified, then all available columns will be used for a new table or an (existing) table with no schema, and no changes will be made to an existing table that has a schema. Only for use with external storage. // TODO: enum values: ["OUTPUT_SCHEMA_UNSPECIFIED", "BASIC_COLUMNS", "GCS_COLUMNS", "DATASTORE_COLUMNS", "BIG_QUERY_COLUMNS", "ALL_COLUMNS"]
     #[serde(default, rename = "outputSchema")]
@@ -3591,7 +3592,7 @@ pub struct GooglePrivacyDlpV2OutputStorageConfig {
 }
 
 /// An auxiliary table containing statistical information on the relative frequency of different quasi-identifiers values. It has one or several quasi-identifiers columns, and one column that indicates the relative frequency of each quasi-identifier tuple. If a tuple is present in the data but not in the auxiliary table, the corresponding relative frequency is assumed to be zero (and thus, the tuple is highly reidentifiable).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2StatisticalTable {
     /// Required. Quasi-identifier columns.
     #[serde(default, rename = "quasiIds")]
@@ -3605,7 +3606,7 @@ pub struct GooglePrivacyDlpV2StatisticalTable {
 }
 
 /// A column with a semantic tag attached.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2QuasiId {
     /// A column can be tagged with a custom tag. In this case, the user must indicate an auxiliary table that contains statistical information on the possible values of this column.
     #[serde(default, rename = "customTag")]
@@ -3622,7 +3623,7 @@ pub struct GooglePrivacyDlpV2QuasiId {
 }
 
 /// An entity in a dataset is a field or set of fields that correspond to a single person. For example, in medical records the EntityId might be a patient identifier, or for financial records it might be an account identifier. This message is used when generalizations or analysis must take into account that multiple rows correspond to the same entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2EntityId {
     /// Composite key indicating which field contains the entity identifier.
     #[serde(default)]
@@ -3630,7 +3631,7 @@ pub struct GooglePrivacyDlpV2EntityId {
 }
 
 /// An auxiliary table contains statistical information on the relative frequency of different quasi-identifiers values. It has one or several quasi-identifiers columns, and one column that indicates the relative frequency of each quasi-identifier tuple. If a tuple is present in the data but not in the auxiliary table, the corresponding relative frequency is assumed to be zero (and thus, the tuple is highly reidentifiable).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AuxiliaryTable {
     /// Required. Quasi-identifier columns.
     #[serde(default, rename = "quasiIds")]
@@ -3644,7 +3645,7 @@ pub struct GooglePrivacyDlpV2AuxiliaryTable {
 }
 
 /// A column with a semantic tag attached.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TaggedField {
     /// A column can be tagged with a custom tag. In this case, the user must indicate an auxiliary table that contains statistical information on the possible values of this column.
     #[serde(default, rename = "customTag")]
@@ -3661,7 +3662,7 @@ pub struct GooglePrivacyDlpV2TaggedField {
 }
 
 /// An expression, consisting of an operator and conditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PubSubExpressions {
     /// Conditions to apply to the expression.
     #[serde(default)]
@@ -3672,7 +3673,7 @@ pub struct GooglePrivacyDlpV2PubSubExpressions {
 }
 
 /// A value of a tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TagValue {
     /// The namespaced name for the tag value to attach to resources. Must be in the format {parent_id}/{tag_key_short_name}/{short_name}, for example, "123456/environment/prod" for an organization parent, or "my-project/environment/prod" for a project parent.
     #[serde(default, rename = "namespacedValue")]
@@ -3680,7 +3681,7 @@ pub struct GooglePrivacyDlpV2TagValue {
 }
 
 /// The cadence at which to update data profiles when a schema is modified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoverySchemaModifiedCadence {
     /// How frequently profiles may be updated when schemas are modified. Defaults to monthly. // TODO: enum values: ["UPDATE_FREQUENCY_UNSPECIFIED", "UPDATE_FREQUENCY_NEVER", "UPDATE_FREQUENCY_DAILY", "UPDATE_FREQUENCY_MONTHLY"]
     #[serde(default)]
@@ -3691,7 +3692,7 @@ pub struct GooglePrivacyDlpV2DiscoverySchemaModifiedCadence {
 }
 
 /// The cadence at which to update data profiles when a table is modified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryTableModifiedCadence {
     /// How frequently data profiles can be updated when tables are modified. Defaults to never. // TODO: enum values: ["UPDATE_FREQUENCY_UNSPECIFIED", "UPDATE_FREQUENCY_NEVER", "UPDATE_FREQUENCY_DAILY", "UPDATE_FREQUENCY_MONTHLY"]
     #[serde(default)]
@@ -3702,7 +3703,7 @@ pub struct GooglePrivacyDlpV2DiscoveryTableModifiedCadence {
 }
 
 /// There is an OR relationship between these attributes. They are used to determine if a table should be scanned or not in Discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2OrConditions {
     /// Minimum age a table must have before Cloud DLP can profile it. Value must be 1 hour or greater.
     #[serde(default, rename = "minAge")]
@@ -3713,7 +3714,7 @@ pub struct GooglePrivacyDlpV2OrConditions {
 }
 
 /// The types of BigQuery tables supported by Cloud DLP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2BigQueryTableTypes {
     /// A set of BigQuery table types.
     #[serde(default)]
@@ -3721,7 +3722,7 @@ pub struct GooglePrivacyDlpV2BigQueryTableTypes {
 }
 
 /// Message defining the location of a BigQuery table with the projectId inferred from the parent project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TableReference {
     /// Dataset ID of the table.
     #[serde(default, rename = "datasetId")]
@@ -3735,7 +3736,7 @@ pub struct GooglePrivacyDlpV2TableReference {
 }
 
 /// Specifies a collection of BigQuery tables. Used for Discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2BigQueryTableCollection {
     /// A collection of regular expressions to match a BigQuery table against.
     #[serde(default, rename = "includeRegexes")]
@@ -3743,7 +3744,7 @@ pub struct GooglePrivacyDlpV2BigQueryTableCollection {
 }
 
 /// Match database resources using regex filters. Examples of database resources are tables, views, and stored procedures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DatabaseResourceCollection {
     /// A collection of regular expressions to match a database resource against.
     #[serde(default, rename = "includeRegexes")]
@@ -3751,7 +3752,7 @@ pub struct GooglePrivacyDlpV2DatabaseResourceCollection {
 }
 
 /// Identifies a single database resource, like a table within a database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DatabaseResourceReference {
     /// Required. Name of a database within the instance.
     #[serde(default)]
@@ -3768,7 +3769,7 @@ pub struct GooglePrivacyDlpV2DatabaseResourceReference {
 }
 
 /// How frequently to modify the profile when the table''s schema is modified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SchemaModifiedCadence {
     /// Frequency to regenerate data profiles when the schema is modified. Defaults to monthly. // TODO: enum values: ["UPDATE_FREQUENCY_UNSPECIFIED", "UPDATE_FREQUENCY_NEVER", "UPDATE_FREQUENCY_DAILY", "UPDATE_FREQUENCY_MONTHLY"]
     #[serde(default)]
@@ -3779,7 +3780,7 @@ pub struct GooglePrivacyDlpV2SchemaModifiedCadence {
 }
 
 /// Requirements that must be true before a Cloud Storage bucket or object is scanned in discovery for the first time. There is an AND relationship between the top-level attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryCloudStorageConditions {
     /// Required. Only objects with the specified attributes will be scanned. Defaults to [ALL_SUPPORTED_BUCKETS] if unset.
     #[serde(default, rename = "includedBucketAttributes")]
@@ -3790,7 +3791,7 @@ pub struct GooglePrivacyDlpV2DiscoveryCloudStorageConditions {
 }
 
 /// Identifies a single Cloud Storage bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CloudStorageResourceReference {
     /// Required. The bucket to scan.
     #[serde(default, rename = "bucketName")]
@@ -3801,7 +3802,7 @@ pub struct GooglePrivacyDlpV2CloudStorageResourceReference {
 }
 
 /// Match file stores (e.g. buckets) using filters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FileStoreCollection {
     /// Optional. A collection of regular expressions to match a file store against.
     #[serde(default, rename = "includeRegexes")]
@@ -3812,7 +3813,7 @@ pub struct GooglePrivacyDlpV2FileStoreCollection {
 }
 
 /// Amazon S3 bucket conditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AmazonS3BucketConditions {
     /// Optional. Bucket types that should be profiled. Optional. Defaults to TYPE_ALL_SUPPORTED if unspecified.
     #[serde(default, rename = "bucketTypes")]
@@ -3823,7 +3824,7 @@ pub struct GooglePrivacyDlpV2AmazonS3BucketConditions {
 }
 
 /// Match resources using regex filters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2OtherCloudResourceCollection {
     /// A collection of regular expressions to match a resource against.
     #[serde(default, rename = "includeRegexes")]
@@ -3831,7 +3832,7 @@ pub struct GooglePrivacyDlpV2OtherCloudResourceCollection {
 }
 
 /// Identifies a single resource, like a single Amazon S3 bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2OtherCloudSingleResourceReference {
     /// Amazon S3 bucket.
     #[serde(default, rename = "amazonS3Bucket")]
@@ -3839,7 +3840,7 @@ pub struct GooglePrivacyDlpV2OtherCloudSingleResourceReference {
 }
 
 /// Match dataset resources using regex filters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2VertexDatasetCollection {
     /// The regex used to filter dataset resources.
     #[serde(default, rename = "vertexDatasetRegexes")]
@@ -3847,7 +3848,7 @@ pub struct GooglePrivacyDlpV2VertexDatasetCollection {
 }
 
 /// Identifies a single Vertex AI resource. Only datasets are supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2VertexDatasetResourceReference {
     /// Required. The name of the Vertex AI resource. If set within a project-level configuration, the specified resource must be within the project. Examples: * projects/{project}/locations/{location}/datasets/{dataset}
     #[serde(default, rename = "datasetResourceName")]
@@ -3855,7 +3856,7 @@ pub struct GooglePrivacyDlpV2VertexDatasetResourceReference {
 }
 
 /// The cadence at which to update data profiles when the inspection rules defined by the InspectTemplate change.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence {
     /// How frequently data profiles can be updated when the template is modified. Defaults to never. // TODO: enum values: ["UPDATE_FREQUENCY_UNSPECIFIED", "UPDATE_FREQUENCY_NEVER", "UPDATE_FREQUENCY_DAILY", "UPDATE_FREQUENCY_MONTHLY"]
     #[serde(default)]
@@ -3863,7 +3864,7 @@ pub struct GooglePrivacyDlpV2DiscoveryInspectTemplateModifiedCadence {
 }
 
 /// Row key for identifying a record in BigQuery table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2BigQueryKey {
     /// Row number inferred at the time the table was scanned. This value is nondeterministic, cannot be queried, and may be null for inspection jobs. To locate findings within a table, specify inspect_job.storage_config.big_query_options.identifying_fields in CreateDlpJobRequest.
     #[serde(default, rename = "rowNumber")]
@@ -3874,7 +3875,7 @@ pub struct GooglePrivacyDlpV2BigQueryKey {
 }
 
 /// Record key for a finding in Cloud Datastore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DatastoreKey {
     /// Datastore entity key.
     #[serde(default, rename = "entityKey")]
@@ -3882,7 +3883,7 @@ pub struct GooglePrivacyDlpV2DatastoreKey {
 }
 
 /// Configuration for determining how redaction of images should occur.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ImageTransformation {
     /// Apply transformation to all findings not specified in other ImageTransformation''s selected_info_types. Only one instance is allowed within the ImageTransformations message.
     #[serde(default, rename = "allInfoTypes")]
@@ -3899,7 +3900,7 @@ pub struct GooglePrivacyDlpV2ImageTransformation {
 }
 
 /// The transformation to apply to the field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FieldTransformation {
     /// Only apply the transformation if the condition evaluates to true for the given RecordCondition. The conditions are allowed to reference fields that are not used in the actual transformation. Example Use Cases: - Apply a different bucket transformation to an age column if the zip code column for the same record is within a specific range. - Redact a field if the date of birth field is greater than 85.
     #[serde(default)]
@@ -3917,7 +3918,7 @@ pub struct GooglePrivacyDlpV2FieldTransformation {
 }
 
 /// Configuration to suppress records whose suppression conditions evaluate to true.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RecordSuppression {
     /// A condition that when it evaluates to true will result in the record being evaluated to be suppressed from the transformed content.
     #[serde(default)]
@@ -3925,7 +3926,7 @@ pub struct GooglePrivacyDlpV2RecordSuppression {
 }
 
 /// Message representing a set of files in a Cloud Storage bucket. Regular expressions are used to allow fine-grained control over which files in the bucket to include. Included files are those that match at least one item in include_regex and do not match any items in exclude_regex. Note that a file that matches items from both lists will _not_ be included. For a match to occur, the entire file path (i.e., everything in the url after the bucket name) must match the regular expression. For example, given the input {bucket_name: "mybucket", include_regex: ["directory1/.*"], exclude_regex: ["directory1/excluded.*"]}: * gs://mybucket/directory1/myfile will be included * gs://mybucket/directory1/directory2/myfile will be included (.* matches across /) * gs://mybucket/directory0/directory1/myfile will _not_ be included (the full path doesn''t match any items in include_regex) * gs://mybucket/directory1/excludedfile will _not_ be included (the path matches an item in exclude_regex) If include_regex is left empty, it will match all files by default (this is equivalent to setting include_regex: [".*"]). Some other common use cases: * {bucket_name: "mybucket", exclude_regex: [".*\.pdf"]} will include all files in mybucket except for .pdf files * {bucket_name: "mybucket", include_regex: ["directory/[^/]+"]} will include all files directly under gs://mybucket/directory/, without matching across /
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CloudStorageRegexFileSet {
     /// The name of a Cloud Storage bucket. Required.
     #[serde(default, rename = "bucketName")]
@@ -3939,7 +3940,7 @@ pub struct GooglePrivacyDlpV2CloudStorageRegexFileSet {
 }
 
 /// Rule that specifies conditions when a certain infoType''s finding details should be adjusted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AdjustmentRule {
     /// AdjustmentRule condition for image findings.
     #[serde(default, rename = "adjustByImageFindings")]
@@ -3954,7 +3955,7 @@ pub struct GooglePrivacyDlpV2AdjustmentRule {
 }
 
 /// The rule that specifies conditions when findings of infoTypes specified in InspectionRuleSet are removed from results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ExclusionRule {
     /// Dictionary which defines the rule.
     #[serde(default)]
@@ -3977,7 +3978,7 @@ pub struct GooglePrivacyDlpV2ExclusionRule {
 }
 
 /// The rule that adjusts the likelihood of findings within a certain proximity of hotwords.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2HotwordRule {
     /// Regular expression pattern defining what qualifies as a hotword.
     #[serde(default, rename = "hotwordRegex")]
@@ -3991,7 +3992,7 @@ pub struct GooglePrivacyDlpV2HotwordRule {
 }
 
 /// A quasi-identifier column has a custom_tag, used to know which column in the data corresponds to which column in the statistical model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2QuasiIdentifierField {
     /// A column can be tagged with a custom tag. In this case, the user must indicate an auxiliary table that contains statistical information on the possible values of this column.
     #[serde(default, rename = "customTag")]
@@ -4002,7 +4003,7 @@ pub struct GooglePrivacyDlpV2QuasiIdentifierField {
 }
 
 /// A quasi-identifier column has a custom_tag, used to know which column in the data corresponds to which column in the statistical model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2QuasiIdField {
     /// A auxiliary field.
     #[serde(default, rename = "customTag")]
@@ -4013,7 +4014,7 @@ pub struct GooglePrivacyDlpV2QuasiIdField {
 }
 
 /// A condition consisting of a value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PubSubCondition {
     /// The minimum data risk score that triggers the condition. // TODO: enum values: ["PROFILE_SCORE_BUCKET_UNSPECIFIED", "HIGH", "MEDIUM_OR_HIGH"]
     #[serde(default, rename = "minimumRiskScore")]
@@ -4024,7 +4025,7 @@ pub struct GooglePrivacyDlpV2PubSubCondition {
 }
 
 /// A collection of regular expressions to determine what tables to match against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2BigQueryRegexes {
     /// A single BigQuery regular expression pattern to match against one or more tables, datasets, or projects that contain BigQuery tables.
     #[serde(default)]
@@ -4032,7 +4033,7 @@ pub struct GooglePrivacyDlpV2BigQueryRegexes {
 }
 
 /// A collection of regular expressions to determine what database resources to match against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DatabaseResourceRegexes {
     /// A group of regular expression patterns to match against one or more database resources. Maximum of 100 entries. The sum of all regular expression''s length can''t exceed 10 KiB.
     #[serde(default)]
@@ -4040,7 +4041,7 @@ pub struct GooglePrivacyDlpV2DatabaseResourceRegexes {
 }
 
 /// A collection of regular expressions to determine what file store to match against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FileStoreRegexes {
     /// Required. The group of regular expression patterns to match against one or more file stores. Maximum of 100 entries. The sum of all regular expression''s length can''t exceed 10 KiB.
     #[serde(default)]
@@ -4048,7 +4049,7 @@ pub struct GooglePrivacyDlpV2FileStoreRegexes {
 }
 
 /// Tags to match against for filtering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TagFilters {
     /// Required. A resource must match ALL of the specified tag filters to be included in the collection.
     #[serde(default, rename = "tagFilters")]
@@ -4056,7 +4057,7 @@ pub struct GooglePrivacyDlpV2TagFilters {
 }
 
 /// A collection of regular expressions to determine what resources to match against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2OtherCloudResourceRegexes {
     /// A group of regular expression patterns to match against one or more resources. Maximum of 100 entries. The sum of all regular expression''s length can''t exceed 10 KiB.
     #[serde(default)]
@@ -4065,7 +4066,7 @@ pub struct GooglePrivacyDlpV2OtherCloudResourceRegexes {
 }
 
 /// Amazon S3 bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AmazonS3Bucket {
     /// The AWS account.
     #[serde(default, rename = "awsAccount")]
@@ -4076,7 +4077,7 @@ pub struct GooglePrivacyDlpV2AmazonS3Bucket {
 }
 
 /// A collection of regular expressions to determine what datasets to match against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2VertexDatasetRegexes {
     /// Required. The group of regular expression patterns to match against one or more datasets. Maximum of 100 entries. The sum of the lengths of all regular expressions can''t exceed 10 KiB.
     #[serde(default)]
@@ -4084,7 +4085,7 @@ pub struct GooglePrivacyDlpV2VertexDatasetRegexes {
 }
 
 /// Message defining the location of a BigQuery table. A table is uniquely identified by its project_id, dataset_id, and table_name. Within a query a table is often referenced with a string in the format of: :. or ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2BigQueryTable {
     /// Dataset ID of the table.
     #[serde(default, rename = "datasetId")]
@@ -4098,7 +4099,7 @@ pub struct GooglePrivacyDlpV2BigQueryTable {
 }
 
 /// A unique identifier for a Datastore entity. If a key''s partition ID or any of its path kinds or names are reserved/read-only, the key is reserved/read-only. A reserved/read-only key is forbidden in certain documented contexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Key {
     /// Entities are partitioned into subsets, currently identified by a project ID and namespace ID. Queries are scoped to a single partition.
     #[serde(default, rename = "partitionId")]
@@ -4109,7 +4110,7 @@ pub struct GooglePrivacyDlpV2Key {
 }
 
 /// Represents a color in the RGB color space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Color {
     /// The amount of blue in the color as a value in the interval [0, 1].
     #[serde(default)]
@@ -4123,7 +4124,7 @@ pub struct GooglePrivacyDlpV2Color {
 }
 
 /// Apply transformation to the selected info_types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SelectedInfoTypes {
     /// Required. InfoTypes to apply the transformation to. Required. Provided InfoType must be unique within the ImageTransformations message.
     #[serde(default, rename = "infoTypes")]
@@ -4131,7 +4132,7 @@ pub struct GooglePrivacyDlpV2SelectedInfoTypes {
 }
 
 /// A type of transformation that will scan unstructured text and apply various PrimitiveTransformations to each finding, where the transformation is applied to only values that were identified as a specific info_type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InfoTypeTransformations {
     /// Required. Transformation for each infoType. Cannot specify more than one for a given infoType.
     #[serde(default)]
@@ -4140,7 +4141,7 @@ pub struct GooglePrivacyDlpV2InfoTypeTransformations {
 }
 
 /// A condition for determining whether a transformation should be applied to a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2RecordCondition {
     /// An expression.
     #[serde(default)]
@@ -4148,7 +4149,7 @@ pub struct GooglePrivacyDlpV2RecordCondition {
 }
 
 /// AdjustmentRule condition for image findings. This rule is silently ignored if the content being inspected is not an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AdjustByImageFindings {
     /// Specifies the required spatial relationship between the bounding boxes of the target finding and the context infoType findings.
     #[serde(default, rename = "imageContainmentType")]
@@ -4162,7 +4163,7 @@ pub struct GooglePrivacyDlpV2AdjustByImageFindings {
 }
 
 /// AdjustmentRule condition for matching infoTypes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AdjustByMatchingInfoTypes {
     /// Sensitive Data Protection adjusts the likelihood of a finding if that finding also matches one of these infoTypes. For example, you can create a rule to adjust the likelihood of a PHONE_NUMBER finding if the string is found within a document that is classified as DOCUMENT_TYPE/HR/RESUME. To configure this, set PHONE_NUMBER in InspectionRuleSet.info_types. Add an adjustment_rule with an adjust_by_matching_info_types.info_types that contains DOCUMENT_TYPE/HR/RESUME. In this case, the likelihood of the PHONE_NUMBER finding is adjusted, but the likelihood of the DOCUMENT_TYPE/HR/RESUME finding is not.
     #[serde(default, rename = "infoTypes")]
@@ -4176,7 +4177,7 @@ pub struct GooglePrivacyDlpV2AdjustByMatchingInfoTypes {
 }
 
 /// Custom information type based on a dictionary of words or phrases. This can be used to match sensitive information specific to the data, such as a list of employee IDs or job titles. Dictionary words are case-insensitive and all characters other than letters and digits in the unicode [Basic Multilingual Plane](https://en.wikipedia.org/wiki/Plane_%28Unicode%29#Basic_Multilingual_Plane) will be replaced with whitespace when scanning for matches, so the dictionary phrase "Sam Johnson" will match all three phrases "sam johnson", "Sam, Johnson", and "Sam (Johnson)". Additionally, the characters surrounding any match must be of a different type than the adjacent characters within the word, so letters must be next to non-letters and digits next to non-digits. For example, the dictionary word "jen" will match the first three letters of the text "jen123" but will return no matches for "jennifer". Dictionary words containing a large number of characters that are not letters or digits may result in unexpected findings because such characters are treated as whitespace. The [limits](https://cloud.google.com/sensitive-data-protection/limits) page contains details about the size limits of dictionaries. For dictionaries that do not fit within these constraints, consider using LargeCustomDictionaryConfig in the StoredInfoType API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Dictionary {
     /// Newline-delimited file of words in Cloud Storage. Only a single file is accepted.
     #[serde(default, rename = "cloudStoragePath")]
@@ -4187,7 +4188,7 @@ pub struct GooglePrivacyDlpV2Dictionary {
 }
 
 /// The rule to exclude findings based on a hotword. For record inspection of tables, column names are considered hotwords. An example of this is to exclude a finding if it belongs to a BigQuery column that matches a specific pattern.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ExcludeByHotword {
     /// Regular expression pattern defining what qualifies as a hotword.
     #[serde(default, rename = "hotwordRegex")]
@@ -4198,7 +4199,7 @@ pub struct GooglePrivacyDlpV2ExcludeByHotword {
 }
 
 /// The rule to exclude image findings based on spatial relationships with other image findings. For example, exclude an image finding if it overlaps with another image finding. This rule is silently ignored if the content being inspected is not an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ExcludeByImageFindings {
     /// Specifies the required spatial relationship between the bounding boxes of the target finding and the context infoType findings.
     #[serde(default, rename = "imageContainmentType")]
@@ -4209,7 +4210,7 @@ pub struct GooglePrivacyDlpV2ExcludeByImageFindings {
 }
 
 /// List of excluded infoTypes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ExcludeInfoTypes {
     /// InfoType list in ExclusionRule rule drops a finding when it overlaps or contained within with a finding of an infoType from this list. For example, for InspectionRuleSet.info_types containing "PHONE_NUMBER" and exclusion_rule containing exclude_info_types.info_types with "EMAIL_ADDRESS" the phone number findings are dropped if they overlap with EMAIL_ADDRESS finding. That leads to "555-222-2222@example.org" to generate only a single finding, namely email address.
     #[serde(default, rename = "infoTypes")]
@@ -4217,7 +4218,7 @@ pub struct GooglePrivacyDlpV2ExcludeInfoTypes {
 }
 
 /// Message for specifying an adjustment to the likelihood of a finding as part of a detection rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2LikelihoodAdjustment {
     /// Set the likelihood of a finding to a fixed value. // TODO: enum values: ["LIKELIHOOD_UNSPECIFIED", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "fixedLikelihood")]
@@ -4228,7 +4229,7 @@ pub struct GooglePrivacyDlpV2LikelihoodAdjustment {
 }
 
 /// A pattern to match against one or more tables, datasets, or projects that contain BigQuery tables. At least one pattern must be specified. Regular expressions use RE2 [syntax](https://github.com/google/re2/wiki/Syntax); a guide can be found under the google/re2 repository on GitHub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2BigQueryRegex {
     /// If unset, this property matches all datasets.
     #[serde(default, rename = "datasetIdRegex")]
@@ -4242,7 +4243,7 @@ pub struct GooglePrivacyDlpV2BigQueryRegex {
 }
 
 /// A pattern to match against one or more database resources. At least one pattern must be specified. Regular expressions use RE2 [syntax](https://github.com/google/re2/wiki/Syntax); a guide can be found under the google/re2 repository on GitHub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DatabaseResourceRegex {
     /// Regex to test the database name against. If empty, all databases match.
     #[serde(default, rename = "databaseRegex")]
@@ -4259,7 +4260,7 @@ pub struct GooglePrivacyDlpV2DatabaseResourceRegex {
 }
 
 /// A pattern to match against one or more file stores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FileStoreRegex {
     /// Optional. Regex for Cloud Storage.
     #[serde(default, rename = "cloudStorageRegex")]
@@ -4267,7 +4268,7 @@ pub struct GooglePrivacyDlpV2FileStoreRegex {
 }
 
 /// A single tag to filter against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TagFilter {
     /// The namespaced name for the tag key. Must be in the format {parent_id}/{tag_key_short_name}, for example, "123456/sensitive" for an organization parent, or "my-project/sensitive" for a project parent.
     #[serde(default, rename = "namespacedTagKey")]
@@ -4278,7 +4279,7 @@ pub struct GooglePrivacyDlpV2TagFilter {
 }
 
 /// A pattern to match against one or more resources. At least one pattern must be specified. Regular expressions use RE2 [syntax](https://github.com/google/re2/wiki/Syntax); a guide can be found under the google/re2 repository on GitHub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2OtherCloudResourceRegex {
     /// Regex for Amazon S3 buckets.
     #[serde(default, rename = "amazonS3BucketRegex")]
@@ -4286,7 +4287,7 @@ pub struct GooglePrivacyDlpV2OtherCloudResourceRegex {
 }
 
 /// AWS account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AwsAccount {
     /// Required. AWS account ID.
     #[serde(default, rename = "accountId")]
@@ -4294,7 +4295,7 @@ pub struct GooglePrivacyDlpV2AwsAccount {
 }
 
 /// A pattern to match against one or more dataset resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2VertexDatasetRegex {
     /// For organizations, if unset, will match all projects. Has no effect for configurations created within a project.
     #[serde(default, rename = "projectIdRegex")]
@@ -4302,7 +4303,7 @@ pub struct GooglePrivacyDlpV2VertexDatasetRegex {
 }
 
 /// Datastore partition ID. A partition ID identifies a grouping of entities. The grouping is always by project and namespace, however the namespace ID may be empty. A partition ID contains several dimensions: project ID and namespace ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PartitionId {
     /// If not empty, the ID of the namespace to which the entities belong.
     #[serde(default, rename = "namespaceId")]
@@ -4313,7 +4314,7 @@ pub struct GooglePrivacyDlpV2PartitionId {
 }
 
 /// A (kind, ID/name) pair used to construct a key path. If either name or ID is set, the element is complete. If neither is set, the element is incomplete.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PathElement {
     /// The auto-allocated ID of the entity. Never equal to zero. Values less than zero are discouraged and may not be supported in the future.
     #[serde(default)]
@@ -4327,7 +4328,7 @@ pub struct GooglePrivacyDlpV2PathElement {
 }
 
 /// A transformation to apply to text that is identified as a specific info_type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InfoTypeTransformation {
     /// InfoTypes to apply the transformation to. An empty list will cause this transformation to apply to all findings that correspond to infoTypes that were requested in InspectConfig.
     #[serde(default, rename = "infoTypes")]
@@ -4338,7 +4339,7 @@ pub struct GooglePrivacyDlpV2InfoTypeTransformation {
 }
 
 /// An expression, consisting of an operator and conditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Expressions {
     /// Conditions to apply to the expression.
     #[serde(default)]
@@ -4349,7 +4350,7 @@ pub struct GooglePrivacyDlpV2Expressions {
 }
 
 /// Message representing a single file or path in Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CloudStoragePath {
     /// A URL representing a file or path (no wildcards) in Cloud Storage. Example: gs://[BUCKET_NAME]/dictionary.txt
     #[serde(default)]
@@ -4357,7 +4358,7 @@ pub struct GooglePrivacyDlpV2CloudStoragePath {
 }
 
 /// Message defining a custom regular expression.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Regex {
     /// The index of the submatch to extract as findings. When not specified, the entire match is returned. No more than 3 may be included.
     #[serde(default, rename = "groupIndexes")]
@@ -4368,7 +4369,7 @@ pub struct GooglePrivacyDlpV2Regex {
 }
 
 /// Message for specifying a window around a finding to apply a detection rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Proximity {
     /// Number of characters after the finding to consider.
     #[serde(default, rename = "windowAfter")]
@@ -4379,7 +4380,7 @@ pub struct GooglePrivacyDlpV2Proximity {
 }
 
 /// Specifies the relationship between bounding boxes for image findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ImageContainmentType {
     /// The context finding''s bounding box must fully contain the target finding''s bounding box.
     #[serde(default)]
@@ -4393,7 +4394,7 @@ pub struct GooglePrivacyDlpV2ImageContainmentType {
 }
 
 /// A pattern to match against one or more file stores. At least one pattern must be specified. Regular expressions use RE2 [syntax](https://github.com/google/re2/wiki/Syntax); a guide can be found under the google/re2 repository on GitHub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CloudStorageRegex {
     /// Optional. Regex to test the bucket name against. If empty, all buckets match. Example: "marketing2021" or "(marketing)\d{4}" will both match the bucket gs://marketing2021
     #[serde(default, rename = "bucketNameRegex")]
@@ -4404,7 +4405,7 @@ pub struct GooglePrivacyDlpV2CloudStorageRegex {
 }
 
 /// Amazon S3 bucket regex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AmazonS3BucketRegex {
     /// The AWS account regex.
     #[serde(default, rename = "awsAccountRegex")]
@@ -4415,7 +4416,7 @@ pub struct GooglePrivacyDlpV2AmazonS3BucketRegex {
 }
 
 /// A rule for transforming a value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2PrimitiveTransformation {
     /// Bucketing
     #[serde(default, rename = "bucketingConfig")]
@@ -4460,7 +4461,7 @@ pub struct GooglePrivacyDlpV2PrimitiveTransformation {
 }
 
 /// A collection of conditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Conditions {
     /// A collection of conditions.
     #[serde(default)]
@@ -4468,7 +4469,7 @@ pub struct GooglePrivacyDlpV2Conditions {
 }
 
 /// AWS account regex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2AwsAccountRegex {
     /// Optional. Regex to test the AWS account ID against. If empty, all accounts match.
     #[serde(default, rename = "accountIdRegex")]
@@ -4476,7 +4477,7 @@ pub struct GooglePrivacyDlpV2AwsAccountRegex {
 }
 
 /// Generalization function that buckets values based on ranges. The ranges and replacement values are dynamically provided by the user for custom behavior, such as 1-30 -&gt; LOW, 31-65 -&gt; MEDIUM, 66-100 -&gt; HIGH. This can be used on data of type: number, long, string, timestamp. If the bound Value type differs from the type of data being transformed, we will first attempt converting the type of the data to be transformed to match the type of the bound before comparing. See https://cloud.google.com/sensitive-data-protection/docs/concepts-bucketing to learn more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2BucketingConfig {
     /// Set of buckets. Ranges must be non-overlapping.
     #[serde(default)]
@@ -4484,7 +4485,7 @@ pub struct GooglePrivacyDlpV2BucketingConfig {
 }
 
 /// Partially mask a string by replacing a given number of characters with a fixed character. Masking can start from the beginning or end of the string. This can be used on data of any type (numbers, longs, and so on) and when de-identifying structured data we''ll attempt to preserve the original data''s type. (This allows you to take a long like 123 and modify it to a string like **3.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CharacterMaskConfig {
     /// When masking a string, items in this list will be skipped when replacing characters. For example, if the input string is 555-555-5555 and you instruct Cloud DLP to skip - and mask 5 characters with *, Cloud DLP returns ***-**5-5555.
     #[serde(default, rename = "charactersToIgnore")]
@@ -4502,7 +4503,7 @@ pub struct GooglePrivacyDlpV2CharacterMaskConfig {
 }
 
 /// Pseudonymization method that generates deterministic encryption for the given input. Outputs a base64 encoded representation of the encrypted output. Uses AES-SIV based on the RFC https://tools.ietf.org/html/rfc5297.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CryptoDeterministicConfig {
     /// A context may be used for higher security and maintaining referential integrity such that the same identifier in two different contexts will be given a distinct surrogate. The context is appended to plaintext value being encrypted. On decryption the provided context is validated against the value used during encryption. If a context was provided during encryption, same context must be provided during decryption as well. If the context is not set, plaintext would be used as is for encryption. If the context is set but: 1. there is no record present when transforming a given value or 2. the field is not present when transforming a given value, plaintext would be used as is for encryption. Note that case (1) is expected when an InfoTypeTransformation is applied to both structured and unstructured ContentItems.
     #[serde(default)]
@@ -4516,7 +4517,7 @@ pub struct GooglePrivacyDlpV2CryptoDeterministicConfig {
 }
 
 /// Pseudonymization method that generates surrogates via cryptographic hashing. Uses SHA-256. The key size must be either 32 or 64 bytes. Outputs a base64 encoded representation of the hashed output (for example, L7k0BHmF1ha5U3NfGykjro4xWi1MPVQPjhMAZbSV9mM=). Currently, only string and integer values can be hashed. See https://cloud.google.com/sensitive-data-protection/docs/pseudonymization to learn more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CryptoHashConfig {
     /// The key used by the hash function.
     #[serde(default, rename = "cryptoKey")]
@@ -4524,7 +4525,7 @@ pub struct GooglePrivacyDlpV2CryptoHashConfig {
 }
 
 /// Replaces an identifier with a surrogate using Format Preserving Encryption (FPE) with the FFX mode of operation; however when used in the ReidentifyContent API method, it serves the opposite function by reversing the surrogate back into the original identifier. The identifier must be encoded as ASCII. For a given crypto key and context, the same identifier will be replaced with the same surrogate. Identifiers must be at least two characters long. In the case that the identifier is the empty string, it will be skipped. See https://cloud.google.com/sensitive-data-protection/docs/pseudonymization to learn more. Note: We recommend using CryptoDeterministicConfig for all use cases which do not require preserving the input alphabet space and size, plus warrant referential integrity. FPE incurs significant latency costs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CryptoReplaceFfxFpeConfig {
     /// Common alphabets. // TODO: enum values: ["FFX_COMMON_NATIVE_ALPHABET_UNSPECIFIED", "NUMERIC", "HEXADECIMAL", "UPPER_CASE_ALPHA_NUMERIC", "ALPHA_NUMERIC"]
     #[serde(default, rename = "commonAlphabet")]
@@ -4547,7 +4548,7 @@ pub struct GooglePrivacyDlpV2CryptoReplaceFfxFpeConfig {
 }
 
 /// Shifts dates by random number of days, with option to be consistent for the same context. See https://cloud.google.com/sensitive-data-protection/docs/concepts-date-shifting to learn more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2DateShiftConfig {
     /// Points to the field that contains the context, for example, an entity id. If set, must also set cryptoKey. If set, shift will be consistent for the given context.
     #[serde(default)]
@@ -4564,7 +4565,7 @@ pub struct GooglePrivacyDlpV2DateShiftConfig {
 }
 
 /// Buckets values based on fixed size ranges. The Bucketing transformation can provide all of this functionality, but requires more configuration. This message is provided as a convenience to the user for simple bucketing strategies. The transformed value will be a hyphenated string of {lower_bound}-{upper_bound}. For example, if lower_bound = 10 and upper_bound = 20, all values that are within this bucket will be replaced with "10-20". This can be used on data of type: double, long. If the bound Value type differs from the type of data being transformed, we will first attempt converting the type of the data to be transformed to match the type of the bound before comparing. See https://cloud.google.com/sensitive-data-protection/docs/concepts-bucketing to learn more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FixedSizeBucketingConfig {
     /// Required. Size of each bucket (except for minimum and maximum buckets). So if lower_bound = 10, upper_bound = 89, and bucket_size = 10, then the following buckets would be used: -10, 10-20, 20-30, 30-40, 40-50, 50-60, 60-70, 70-80, 80-89, 89+. Precision up to 2 decimals works.
     #[serde(default, rename = "bucketSize")]
@@ -4578,7 +4579,7 @@ pub struct GooglePrivacyDlpV2FixedSizeBucketingConfig {
 }
 
 /// Replace each input value with a given Value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ReplaceValueConfig {
     /// Value to replace it with.
     #[serde(default, rename = "newValue")]
@@ -4586,7 +4587,7 @@ pub struct GooglePrivacyDlpV2ReplaceValueConfig {
 }
 
 /// Replace each input value with a value randomly selected from the dictionary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2ReplaceDictionaryConfig {
     /// A list of words to select from for random replacement. The [limits](https://cloud.google.com/sensitive-data-protection/limits) page contains details about the size limits of dictionaries.
     #[serde(default, rename = "wordList")]
@@ -4594,7 +4595,7 @@ pub struct GooglePrivacyDlpV2ReplaceDictionaryConfig {
 }
 
 /// For use with Date, Timestamp, and TimeOfDay, extract or preserve a portion of the value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TimePartConfig {
     /// The part of the time to keep. // TODO: enum values: ["TIME_PART_UNSPECIFIED", "YEAR", "MONTH", "DAY_OF_MONTH", "DAY_OF_WEEK", "WEEK_OF_YEAR", "HOUR_OF_DAY"]
     #[serde(default, rename = "partToExtract")]
@@ -4602,7 +4603,7 @@ pub struct GooglePrivacyDlpV2TimePartConfig {
 }
 
 /// The field type of value and field do not need to match to be considered equal, but not all comparisons are possible. EQUAL_TO and NOT_EQUAL_TO attempt to compare even with incompatible types, but all other comparisons are invalid with incompatible types. A value of type: - string can be compared against all other types - boolean can only be compared against other booleans - integer can be compared against doubles or a string if the string value can be parsed as an integer. - double can be compared against integers or a string if the string can be parsed as a double. - Timestamp can be compared against strings in RFC 3339 date string format. - TimeOfDay can be compared against timestamps and strings in the format of ''HH:mm:ss''. If we fail to compare do to type mismatch, a warning will be given and the condition will evaluate to false.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Condition {
     /// Required. Field within the record this condition is evaluated against.
     #[serde(default)]
@@ -4616,7 +4617,7 @@ pub struct GooglePrivacyDlpV2Condition {
 }
 
 /// Bucket is represented as a range, along with replacement values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Bucket {
     /// Upper bound of the range, exclusive; type must match min.
     #[serde(default)]
@@ -4630,7 +4631,7 @@ pub struct GooglePrivacyDlpV2Bucket {
 }
 
 /// Characters to skip when doing deidentification of a value. These will be left alone and skipped.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CharsToIgnore {
     /// Characters to not transform when masking.
     #[serde(default, rename = "charactersToSkip")]
@@ -4641,7 +4642,7 @@ pub struct GooglePrivacyDlpV2CharsToIgnore {
 }
 
 /// Type of information detected by the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2InfoType {
     /// Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern [A-Za-z0-9$_-]{1,64}.
     #[serde(default)]
@@ -4655,7 +4656,7 @@ pub struct GooglePrivacyDlpV2InfoType {
 }
 
 /// This is a data encryption key (DEK) (as opposed to a key encryption key (KEK) stored by Cloud Key Management Service (Cloud KMS). When using Cloud KMS to wrap or unwrap a DEK, be sure to set an appropriate IAM policy on the KEK to ensure an attacker cannot unwrap the DEK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2CryptoKey {
     /// Key wrapped using Cloud KMS
     #[serde(default, rename = "kmsWrapped")]
@@ -4669,7 +4670,7 @@ pub struct GooglePrivacyDlpV2CryptoKey {
 }
 
 /// Message defining a list of words or phrases to search for in the data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2WordList {
     /// Words or phrases defining the dictionary. The dictionary must contain at least one phrase and every phrase must contain at least 2 characters that are letters or digits. [required]
     #[serde(default)]
@@ -4677,7 +4678,7 @@ pub struct GooglePrivacyDlpV2WordList {
 }
 
 /// General identifier of a data field in a storage service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2FieldId {
     /// Name describing the field.
     #[serde(default)]
@@ -4685,7 +4686,7 @@ pub struct GooglePrivacyDlpV2FieldId {
 }
 
 /// Set of primitive values supported by the system. Note that for the purposes of inspection or transformation, the number of bytes considered to comprise a ''Value'' is based on its representation as a UTF-8 encoded string. For example, if ''integer_value'' is set to 123456789, the number of bytes would be counted as 9, even though an int64 only holds up to 8 bytes of data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2Value {
     /// boolean
     #[serde(default, rename = "booleanValue")]
@@ -4714,7 +4715,7 @@ pub struct GooglePrivacyDlpV2Value {
 }
 
 /// Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2SensitivityScore {
     /// The sensitivity score applied to the resource. // TODO: enum values: ["SENSITIVITY_SCORE_UNSPECIFIED", "SENSITIVITY_LOW", "SENSITIVITY_UNKNOWN", "SENSITIVITY_MODERATE", "SENSITIVITY_HIGH"]
     #[serde(default)]
@@ -4722,7 +4723,7 @@ pub struct GooglePrivacyDlpV2SensitivityScore {
 }
 
 /// Include to use an existing data crypto key wrapped by KMS. The wrapped key must be a 128-, 192-, or 256-bit key. Authorization requires the following IAM permissions when sending a request to perform a crypto transformation using a KMS-wrapped crypto key: dlp.kms.encrypt For more information, see [Creating a wrapped key] (https://cloud.google.com/sensitive-data-protection/docs/create-wrapped-key). Note: When you use Cloud KMS for cryptographic operations, [charges apply](https://cloud.google.com/kms/pricing).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2KmsWrappedCryptoKey {
     /// Required. The resource name of the KMS CryptoKey to use for unwrapping.
     #[serde(default, rename = "cryptoKeyName")]
@@ -4733,7 +4734,7 @@ pub struct GooglePrivacyDlpV2KmsWrappedCryptoKey {
 }
 
 /// Use this to have a random data crypto key generated. It will be discarded after the request finishes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2TransientCryptoKey {
     /// Required. Name of the key. This is an arbitrary string used to differentiate different keys. A unique key is generated per name: two separate TransientCryptoKey protos share the same generated key if their names are the same. When the data crypto key is generated, this name is not used in any way (repeating the api call will result in a different key being generated).
     #[serde(default)]
@@ -4741,7 +4742,7 @@ pub struct GooglePrivacyDlpV2TransientCryptoKey {
 }
 
 /// Using raw keys is prone to security risks due to accidentally leaking the key. Choose another type of key if possible.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePrivacyDlpV2UnwrappedCryptoKey {
     /// Required. A 128/192/256 bit key.
     #[serde(default)]
@@ -4749,7 +4750,7 @@ pub struct GooglePrivacyDlpV2UnwrappedCryptoKey {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -4763,7 +4764,7 @@ pub struct GoogleTypeDate {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeTimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]

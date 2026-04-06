@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// CustomerLicense resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerLicense {
     /// The ID of the application corresponding to this license query.
     #[serde(default, rename = "applicationId")]
@@ -34,7 +35,7 @@ pub struct CustomerLicense {
 }
 
 /// UserLicense resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserLicense {
     /// The ID of the application corresponding to the license query.
     #[serde(default, rename = "applicationId")]
@@ -63,7 +64,7 @@ pub struct UserLicense {
 }
 
 /// Editions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Editions {
     /// (Deprecated)
     #[serde(default, rename = "assignedSeats")]

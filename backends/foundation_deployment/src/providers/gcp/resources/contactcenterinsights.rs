@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The message to appeal an assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AppealAssessmentRequest {}
 
 /// The metadata for a bulk analyze conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsMetadata {
     /// The number of requested analyses that have completed successfully so far.
     #[serde(default, rename = "completedAnalysesCount")]
@@ -45,7 +46,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsMetadata {
 }
 
 /// The response for a bulk analyze conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsResponse {
     /// Count of failed analyses.
     #[serde(default, rename = "failedAnalysisCount")]
@@ -56,7 +57,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsResponse {
 }
 
 /// The metadata for a bulk delete conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -74,11 +75,11 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsMetadata {
 }
 
 /// The response for a bulk delete conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsResponse {}
 
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsMetadata {
     /// Partial errors during deletion operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
@@ -90,11 +91,11 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsMetadata {
 }
 
 /// Response for the BulkDeleteFeedbackLabels endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsResponse {}
 
 /// Metadata for the BulkDownloadFeedbackLabel endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -117,11 +118,11 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadata 
 }
 
 /// Response for the BulkDownloadFeedbackLabel endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsResponse {}
 
 /// The request for bulk uploading feedback labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequest {
     /// A cloud storage bucket source.
     #[serde(default, rename = "gcsSource")]
@@ -139,7 +140,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequest {
 }
 
 /// Response of querying an issue model''s statistics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse {
     /// The latest label statistics for the queried issue model. Includes results on both training data and data labeled after deployment.
     #[serde(default, rename = "currentStats")]
@@ -148,7 +149,7 @@ pub struct GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse {
 }
 
 /// The request for calculating conversation statistics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CalculateStatsRequest {
     /// A filter to reduce results to a specific subset. This field is useful for getting statistics about conversations with specific properties.
     #[serde(default)]
@@ -156,7 +157,7 @@ pub struct GoogleCloudContactcenterinsightsV1CalculateStatsRequest {
 }
 
 /// The response for calculating conversation statistics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponse {
     /// The average duration of all conversations. The average is calculated using only conversations that have a time duration.
     #[serde(default, rename = "averageDuration")]
@@ -186,7 +187,7 @@ pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponse {
 }
 
 /// Metadata for a create analysis operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CreateAnalysisOperationMetadata {
     /// Output only. The annotator selector used for the analysis (if any).
     #[serde(default, rename = "annotatorSelector")]
@@ -204,7 +205,7 @@ pub struct GoogleCloudContactcenterinsightsV1CreateAnalysisOperationMetadata {
 }
 
 /// Metadata for creating an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CreateIssueMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -218,7 +219,7 @@ pub struct GoogleCloudContactcenterinsightsV1CreateIssueMetadata {
 }
 
 /// Metadata for creating an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CreateIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -232,7 +233,7 @@ pub struct GoogleCloudContactcenterinsightsV1CreateIssueModelMetadata {
 }
 
 /// Metadata for deleting an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DeleteIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -246,7 +247,7 @@ pub struct GoogleCloudContactcenterinsightsV1DeleteIssueModelMetadata {
 }
 
 /// The metadata for deleting a QaQuestionTag Resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DeleteQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -261,7 +262,7 @@ pub struct GoogleCloudContactcenterinsightsV1DeleteQaQuestionTagMetadata {
 }
 
 /// Metadata for deploying an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -275,15 +276,15 @@ pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelMetadata {
 }
 
 /// The response to deploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelResponse {}
 
 /// The request to deploy a QaScorecardRevision
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DeployQaScorecardRevisionRequest {}
 
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DialogflowIntent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
@@ -291,7 +292,7 @@ pub struct GoogleCloudContactcenterinsightsV1DialogflowIntent {
 }
 
 /// The data for an entity annotation. Represents a phrase in the conversation that is a known entity, such as a person, an organization, or location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Entity {
     /// The representative name for the entity.
     #[serde(default, rename = "displayName")]
@@ -311,7 +312,7 @@ pub struct GoogleCloudContactcenterinsightsV1Entity {
 }
 
 /// Metadata for an export insights operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataMetadata {
     /// The number of conversations that were exported successfully.
     #[serde(default, rename = "completedExportCount")]
@@ -335,11 +336,11 @@ pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataMetadata {
 }
 
 /// Response for an export insights operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataResponse {}
 
 /// Metadata used for export issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -353,15 +354,15 @@ pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelMetadata {
 }
 
 /// Response from export issue model
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelResponse {}
 
 /// The message to finalize an assessment. Finalizing makes an assessment and its notes immutable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1FinalizeAssessmentRequest {}
 
 /// The response from a GenerateConversationSignedAudio request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerateConversationSignedAudioResponse {
     /// The signed uris for the audio.
     #[serde(default, rename = "signedAudioUris")]
@@ -370,7 +371,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerateConversationSignedAudioResp
 }
 
 /// The metadata for generative insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsMetadata {
     /// The error message when the generative insights request fails.
     #[serde(default, rename = "errorMessages")]
@@ -378,7 +379,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsMetadata {
 }
 
 /// The request for generative insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsRequest {
     /// The full name of the chart resource this request corresponds to. Format: projects/{project}/locations/{location}/dashboards/{dashboard}/charts/{chart}
     #[serde(default)]
@@ -410,7 +411,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsRequest {
 }
 
 /// The response for generative insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponse {
     /// The full list of generative responses. Each response is ordered by time.
     #[serde(default, rename = "generativeResponses")]
@@ -427,11 +428,11 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponse {
 }
 
 /// The data for a hold annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1HoldData {}
 
 /// Metadata used for import issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -445,7 +446,7 @@ pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelMetadata {
 }
 
 /// Response from import issue model
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelResponse {
     /// The issue model that was imported.
     #[serde(default, rename = "issueModel")]
@@ -453,7 +454,7 @@ pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelResponse {
 }
 
 /// The metadata for an IngestConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -479,11 +480,11 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsMetadata {
 }
 
 /// The response to an IngestConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsResponse {}
 
 /// Metadata for initializing a location-level encryption specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -501,11 +502,11 @@ pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecMetadata {
 }
 
 /// The response to initialize a location-level encryption specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecResponse {}
 
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Intent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
@@ -516,11 +517,11 @@ pub struct GoogleCloudContactcenterinsightsV1Intent {
 }
 
 /// The data for an interruption annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1InterruptionData {}
 
 /// Aggregated statistics about an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IssueModelLabelStatsIssueStats {
     /// Display name of the issue.
     #[serde(default, rename = "displayName")]
@@ -534,7 +535,7 @@ pub struct GoogleCloudContactcenterinsightsV1IssueModelLabelStatsIssueStats {
 }
 
 /// The response for listing all feedback labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
@@ -546,7 +547,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse {
 }
 
 /// The response to list analyses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListAnalysesResponse {
     /// The analyses that match the request.
     #[serde(default)]
@@ -558,7 +559,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListAnalysesResponse {
 }
 
 /// The response of listing views.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListAnalysisRulesResponse {
     /// The analysis_rule that match the request.
     #[serde(default, rename = "analysisRules")]
@@ -570,7 +571,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListAnalysisRulesResponse {
 }
 
 /// The response of listing assessment rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListAssessmentRulesResponse {
     /// The assessment rules that match the request.
     #[serde(default, rename = "assessmentRules")]
@@ -582,7 +583,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListAssessmentRulesResponse {
 }
 
 /// The response of listing assessments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListAssessmentsResponse {
     /// The assessments that match the request.
     #[serde(default)]
@@ -594,7 +595,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListAssessmentsResponse {
 }
 
 /// The response from a ListAuthorizedViewSet request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListAuthorizedViewSetsResponse {
     /// The AuthorizedViewSets under the parent.
     #[serde(default, rename = "authorizedViewSets")]
@@ -607,7 +608,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListAuthorizedViewSetsResponse {
 }
 
 /// The response from a ListAuthorizedViews request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListAuthorizedViewsResponse {
     /// The AuthorizedViews under the parent.
     #[serde(default, rename = "authorizedViews")]
@@ -619,7 +620,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListAuthorizedViewsResponse {
 }
 
 /// The response message for listing auto labeling rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListAutoLabelingRulesResponse {
     /// The auto labeling rules.
     #[serde(default, rename = "autoLabelingRules")]
@@ -631,7 +632,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListAutoLabelingRulesResponse {
 }
 
 /// The response of listing charts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListChartsResponse {
     /// The charts under the parent.
     #[serde(default)]
@@ -642,7 +643,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListChartsResponse {
 }
 
 /// The response of listing conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListConversationsResponse {
     /// The conversations that match the request.
     #[serde(default)]
@@ -654,7 +655,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListConversationsResponse {
 }
 
 /// The response of listing dashboards.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListDashboardsResponse {
     /// The dashboards under the parent.
     #[serde(default)]
@@ -666,7 +667,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListDashboardsResponse {
 }
 
 /// The response to list datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListDatasetsResponse {
     /// The datasets that match the request.
     #[serde(default)]
@@ -678,7 +679,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListDatasetsResponse {
 }
 
 /// The response for listing feedback labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
@@ -690,7 +691,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListFeedbackLabelsResponse {
 }
 
 /// The response of listing issue models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListIssueModelsResponse {
     /// The issue models that match the request.
     #[serde(default, rename = "issueModels")]
@@ -699,7 +700,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListIssueModelsResponse {
 }
 
 /// The response of listing issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListIssuesResponse {
     /// The issues that match the request.
     #[serde(default)]
@@ -707,7 +708,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListIssuesResponse {
 }
 
 /// The response of listing notes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListNotesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -718,7 +719,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListNotesResponse {
 }
 
 /// The response of listing phrase matchers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -730,7 +731,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse {
 }
 
 /// The response from a ListQaQuestionTags request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListQaQuestionTagsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -742,7 +743,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListQaQuestionTagsResponse {
 }
 
 /// The response from a ListQaQuestions request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListQaQuestionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -754,7 +755,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListQaQuestionsResponse {
 }
 
 /// The response from a ListQaScorecardRevisions request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -767,7 +768,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse {
 }
 
 /// The response from a ListQaScorecards request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListQaScorecardsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -779,7 +780,7 @@ pub struct GoogleCloudContactcenterinsightsV1ListQaScorecardsResponse {
 }
 
 /// The response of listing views.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ListViewsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -790,15 +791,15 @@ pub struct GoogleCloudContactcenterinsightsV1ListViewsResponse {
 }
 
 /// A note about the entire parent assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1NoteAssessmentNote {}
 
 /// The message to publish an assessment. Draft and appealed assessments can be published. Publishing simply changes the state of the assessment to published, allowing the console and authorized views to filter on the state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1PublishAssessmentRequest {}
 
 /// The metadata from querying metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsMetadata {
     /// Whether the result rows were truncated because the result row size is too large to materialize.
     #[serde(default, rename = "resultIsTruncated")]
@@ -806,7 +807,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsMetadata {
 }
 
 /// The request for querying metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsRequest {
     /// The dimensions that determine the grouping key for the query. Defaults to no dimension if this field is unspecified. If a dimension is specified, its key must also be specified. Each dimension''s key must be unique. If a time granularity is also specified, metric values in the dimension will be bucketed by this granularity. Up to one dimension is supported for now.
     #[serde(default)]
@@ -824,7 +825,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsRequest {
 }
 
 /// The response for querying metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponse {
     /// Required. The location of the data. "projects/{project}/locations/{location}"
     #[serde(default)]
@@ -844,11 +845,11 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponse {
 }
 
 /// The metadata for querying performance overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewMetadata {}
 
 /// The request for summarizing performance according to different metrics for conversations over a specified time window.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest {
     /// Conversations are from a single agent.
     #[serde(default, rename = "agentPerformanceSource")]
@@ -869,7 +870,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequest {
 }
 
 /// The response for querying performance overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewResponse {
     /// The summary text of the performance.
     #[serde(default, rename = "summaryText")]
@@ -877,11 +878,11 @@ pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewResponse {
 }
 
 /// Regex match configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1RegexMatchConfig {}
 
 /// The metadata for an SampleConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -904,11 +905,11 @@ pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadata {
 }
 
 /// The response to an SampleConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SampleConversationsResponse {}
 
 /// The response from a ListAuthorizedViews request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SearchAuthorizedViewsResponse {
     /// The AuthorizedViews under the parent.
     #[serde(default, rename = "authorizedViews")]
@@ -920,7 +921,7 @@ pub struct GoogleCloudContactcenterinsightsV1SearchAuthorizedViewsResponse {
 }
 
 /// The CCAI Insights project wide settings. Use these settings to configure the behavior of Insights. View these settings with [getsettings](https://cloud.google.com/contact-center/insights/docs/reference/rest/v1/projects.locations/getSettings) and change the settings with [updateSettings](https://cloud.google.com/contact-center/insights/docs/reference/rest/v1/projects.locations/updateSettings).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Settings {
     /// Default analysis settings.
     #[serde(default, rename = "analysisConfig")]
@@ -959,11 +960,11 @@ pub struct GoogleCloudContactcenterinsightsV1Settings {
 }
 
 /// The data for a silence annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SilenceData {}
 
 /// The request message for testing auto labeling rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleRequest {
     /// Required. The auto labeling rule to test.
     #[serde(default, rename = "autoLabelingRule")]
@@ -975,7 +976,7 @@ pub struct GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleRequest {
 }
 
 /// The response message for testing auto labeling rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleResponse {
     /// The result of the test auto labeling rule.
     #[serde(default, rename = "labelResult")]
@@ -983,7 +984,7 @@ pub struct GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleResponse {
 }
 
 /// Metadata for testing correlation config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -997,7 +998,7 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadata {
 }
 
 /// The request to test correlation config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequest {
     /// Optional. A list of conversations to test against.
     #[serde(default)]
@@ -1017,7 +1018,7 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequest {
 }
 
 /// The response of testing correlation config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigResponse {
     /// Results for the DETAILED_SYNC execution mode.
     #[serde(default, rename = "detailedResults")]
@@ -1030,7 +1031,7 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigResponse {
 }
 
 /// Request for TuneQaScorecardRevision endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1TuneQaScorecardRevisionRequest {
     /// Required. Filter for selecting the feedback labels that needs to be used for training. This filter can be used to limit the feedback labels used for tuning to a feedback labels created or updated for a specific time-window etc.
     #[serde(default)]
@@ -1041,7 +1042,7 @@ pub struct GoogleCloudContactcenterinsightsV1TuneQaScorecardRevisionRequest {
 }
 
 /// Metadata for undeploying an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1056,15 +1057,15 @@ pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelMetadata {
 }
 
 /// The response to undeploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelResponse {}
 
 /// The request to undeploy a QaScorecardRevision
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1UndeployQaScorecardRevisionRequest {}
 
 /// The metadata for updating a QaQuestionTag Resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1UpdateQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1079,7 +1080,7 @@ pub struct GoogleCloudContactcenterinsightsV1UpdateQaQuestionTagMetadata {
 }
 
 /// The metadata for an UploadConversation operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1UploadConversationMetadata {
     /// Output only. The operation name for a successfully created analysis operation, if any.
     #[serde(default, rename = "analysisOperation")]
@@ -1101,7 +1102,7 @@ pub struct GoogleCloudContactcenterinsightsV1UploadConversationMetadata {
 }
 
 /// The metadata for a bulk analyze conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsMetadata {
     /// The number of requested analyses that have completed successfully so far.
     #[serde(default, rename = "completedAnalysesCount")]
@@ -1132,7 +1133,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsMetad
 }
 
 /// The response for a bulk analyze conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsResponse {
     /// Count of failed analyses.
     #[serde(default, rename = "failedAnalysisCount")]
@@ -1143,7 +1144,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsRespo
 }
 
 /// The metadata for a bulk delete conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1162,11 +1163,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsMetada
 }
 
 /// The response for a bulk delete conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsResponse {}
 
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsMetadata {
     /// Partial errors during deletion operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
@@ -1179,11 +1180,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsMetad
 }
 
 /// Response for the BulkDeleteFeedbackLabels endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsResponse {}
 
 /// Metadata for a create analysis operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1CreateAnalysisOperationMetadata {
     /// Output only. The annotator selector used for the analysis (if any).
     #[serde(default, rename = "annotatorSelector")]
@@ -1201,7 +1202,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CreateAnalysisOperationMetada
 }
 
 /// Metadata for creating an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1215,7 +1216,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueMetadata {
 }
 
 /// Metadata for creating an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1230,7 +1231,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueModelMetadata {
 }
 
 /// Metadata for deleting an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1245,7 +1246,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteIssueModelMetadata {
 }
 
 /// The metadata for deleting a QaQuestionTag Resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1260,7 +1261,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteQaQuestionTagMetadata {
 }
 
 /// Metadata for deploying an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1275,11 +1276,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelMetadata {
 }
 
 /// The response to deploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelResponse {}
 
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowIntent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
@@ -1287,7 +1288,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowIntent {
 }
 
 /// The data for an entity annotation. Represents a phrase in the conversation that is a known entity, such as a person, an organization, or location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1Entity {
     /// The representative name for the entity.
     #[serde(default, rename = "displayName")]
@@ -1307,7 +1308,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Entity {
 }
 
 /// Metadata for an export insights operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataMetadata {
     /// The number of conversations that were exported successfully.
     #[serde(default, rename = "completedExportCount")]
@@ -1331,11 +1332,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataMetadata {
 }
 
 /// Response for an export insights operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataResponse {}
 
 /// Metadata used for export issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1350,11 +1351,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelMetadata {
 }
 
 /// Response from export issue model
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelResponse {}
 
 /// The metadata for generative insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsMetadata {
     /// The error message when the generative insights request fails.
     #[serde(default, rename = "errorMessages")]
@@ -1362,7 +1363,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsMetadata {
 }
 
 /// The response for generative insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponse {
     /// The full list of generative responses. Each response is ordered by time.
     #[serde(default, rename = "generativeResponses")]
@@ -1379,11 +1380,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponse {
 }
 
 /// The data for a hold annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1HoldData {}
 
 /// Metadata used for import issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1398,7 +1399,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelMetadata {
 }
 
 /// Response from import issue model
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelResponse {
     /// The issue model that was imported.
     #[serde(default, rename = "issueModel")]
@@ -1406,7 +1407,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelResponse {
 }
 
 /// The metadata for an IngestConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1432,11 +1433,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsMetadata {
 }
 
 /// The response to an IngestConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsResponse {}
 
 /// Metadata for initializing a location-level encryption specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1455,11 +1456,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecMetad
 }
 
 /// The response to initialize a location-level encryption specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecResponse {}
 
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1Intent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
@@ -1470,11 +1471,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Intent {
 }
 
 /// The data for an interruption annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1InterruptionData {}
 
 /// Aggregated statistics about an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelLabelStatsIssueStats {
     /// Display name of the issue.
     #[serde(default, rename = "displayName")]
@@ -1488,7 +1489,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelLabelStatsIssueStat
 }
 
 /// The response for listing all feedback labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ListAllFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
@@ -1501,7 +1502,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ListAllFeedbackLabelsResponse
 }
 
 /// The response for listing feedback labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ListFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
@@ -1514,7 +1515,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ListFeedbackLabelsResponse {
 }
 
 /// The metadata from querying metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsMetadata {
     /// Whether the result rows were truncated because the result row size is too large to materialize.
     #[serde(default, rename = "resultIsTruncated")]
@@ -1522,7 +1523,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsMetadata {
 }
 
 /// The response for querying metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponse {
     /// Required. The location of the data. "projects/{project}/locations/{location}"
     #[serde(default)]
@@ -1542,11 +1543,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponse {
 }
 
 /// The metadata for querying performance overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryPerformanceOverviewMetadata {}
 
 /// The response for querying performance overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryPerformanceOverviewResponse {
     /// The summary text of the performance.
     #[serde(default, rename = "summaryText")]
@@ -1554,7 +1555,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryPerformanceOverviewRespo
 }
 
 /// The metadata for an SampleConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1577,15 +1578,15 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadata {
 }
 
 /// The response to an SampleConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsResponse {}
 
 /// The data for a silence annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1SilenceData {}
 
 /// Metadata for testing correlation config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1599,7 +1600,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadata
 }
 
 /// The response of testing correlation config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigResponse {
     /// Results for the DETAILED_SYNC execution mode.
     #[serde(default, rename = "detailedResults")]
@@ -1610,7 +1611,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigResponse
 }
 
 /// Metadata for undeploying an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1625,11 +1626,11 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelMetadata {
 }
 
 /// The response to undeploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelResponse {}
 
 /// The metadata for updating a QaQuestionTag Resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1UpdateQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1644,7 +1645,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UpdateQaQuestionTagMetadata {
 }
 
 /// The metadata for an UploadConversation operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1UploadConversationMetadata {
     /// Output only. The operation name for a successfully created analysis operation, if any.
     #[serde(default, rename = "analysisOperation")]
@@ -1666,7 +1667,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UploadConversationMetadata {
 }
 
 /// The metadata for a bulk analyze conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsMetadata {
     /// The number of requested analyses that have completed successfully so far.
     #[serde(default, rename = "completedAnalysesCount")]
@@ -1697,7 +1698,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsMetadat
 }
 
 /// The response for a bulk analyze conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsResponse {
     /// Count of failed analyses.
     #[serde(default, rename = "failedAnalysisCount")]
@@ -1708,7 +1709,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsRespons
 }
 
 /// The metadata for a bulk delete conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1727,11 +1728,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsMetadata
 }
 
 /// The response for a bulk delete conversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsResponse {}
 
 /// Metadata for the BulkDeleteFeedbackLabels endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsMetadata {
     /// Partial errors during deletion operation that might cause the operation output to be incomplete.
     #[serde(default, rename = "partialErrors")]
@@ -1744,11 +1745,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsMetadat
 }
 
 /// Response for the BulkDeleteFeedbackLabels endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsResponse {}
 
 /// Metadata for the BulkDownloadFeedbackLabel endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1772,11 +1773,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetad
 }
 
 /// Response for the BulkDownloadFeedbackLabel endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsResponse {}
 
 /// Metadata for a create analysis operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainCreateAnalysisOperationMetadata {
     /// Output only. The annotator selector used for the analysis (if any).
     #[serde(default, rename = "annotatorSelector")]
@@ -1794,7 +1795,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainCreateAnalysisOperationMetadata
 }
 
 /// Metadata for creating an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1808,7 +1809,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueMetadata {
 }
 
 /// Metadata for creating an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1823,7 +1824,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueModelMetadata {
 }
 
 /// Metadata for deleting an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDeleteIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1838,7 +1839,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeleteIssueModelMetadata {
 }
 
 /// The metadata for deleting a QaQuestionTag Resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDeleteQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1853,7 +1854,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeleteQaQuestionTagMetadata {
 }
 
 /// Metadata for deploying an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1868,11 +1869,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelMetadata {
 }
 
 /// The response to deploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelResponse {}
 
 /// The data for a Dialogflow intent. Represents a detected intent in the conversation, e.g. MAKES_PROMISE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDialogflowIntent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
@@ -1880,7 +1881,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDialogflowIntent {
 }
 
 /// The data for an entity annotation. Represents a phrase in the conversation that is a known entity, such as a person, an organization, or location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainEntity {
     /// The representative name for the entity.
     #[serde(default, rename = "displayName")]
@@ -1900,7 +1901,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainEntity {
 }
 
 /// Metadata for an export insights operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataMetadata {
     /// The number of conversations that were exported successfully.
     #[serde(default, rename = "completedExportCount")]
@@ -1924,11 +1925,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataMetadata {
 }
 
 /// Response for an export insights operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataResponse {}
 
 /// Metadata used for export issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1943,11 +1944,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelMetadata {
 }
 
 /// Response from export issue model
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelResponse {}
 
 /// The metadata for generative insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsMetadata {
     /// The error message when the generative insights request fails.
     #[serde(default, rename = "errorMessages")]
@@ -1955,7 +1956,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsMetadata {
 }
 
 /// The response for generative insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponse {
     /// The full list of generative responses. Each response is ordered by time.
     #[serde(default, rename = "generativeResponses")]
@@ -1972,11 +1973,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponse {
 }
 
 /// The data for a hold annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainHoldData {}
 
 /// Metadata used for import issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1991,7 +1992,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelMetadata {
 }
 
 /// Response from import issue model
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelResponse {
     /// The issue model that was imported.
     #[serde(default, rename = "issueModel")]
@@ -1999,7 +2000,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelResponse {
 }
 
 /// The metadata for an IngestConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -2025,11 +2026,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsMetadata {
 }
 
 /// The response to an IngestConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsResponse {}
 
 /// Metadata for initializing a location-level encryption specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -2048,11 +2049,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecMetadat
 }
 
 /// The response to initialize a location-level encryption specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecResponse {}
 
 /// The data for an intent. Represents a detected intent in the conversation, for example MAKES_PROMISE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIntent {
     /// The human-readable name of the intent.
     #[serde(default, rename = "displayName")]
@@ -2063,11 +2064,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainIntent {
 }
 
 /// The data for an interruption annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainInterruptionData {}
 
 /// Aggregated statistics about an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIssueModelLabelStatsIssueStats {
     /// Display name of the issue.
     #[serde(default, rename = "displayName")]
@@ -2081,7 +2082,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueModelLabelStatsIssueStats 
 }
 
 /// The response for listing all feedback labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainListAllFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
@@ -2094,7 +2095,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainListAllFeedbackLabelsResponse {
 }
 
 /// The response for listing feedback labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainListFeedbackLabelsResponse {
     /// The feedback labels that match the request.
     #[serde(default, rename = "feedbackLabels")]
@@ -2107,7 +2108,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainListFeedbackLabelsResponse {
 }
 
 /// The metadata from querying metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsMetadata {
     /// Whether the result rows were truncated because the result row size is too large to materialize.
     #[serde(default, rename = "resultIsTruncated")]
@@ -2115,7 +2116,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsMetadata {
 }
 
 /// The response for querying metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponse {
     /// Required. The location of the data. "projects/{project}/locations/{location}"
     #[serde(default)]
@@ -2135,11 +2136,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponse {
 }
 
 /// The metadata for querying performance overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryPerformanceOverviewMetadata {}
 
 /// The response for querying performance overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryPerformanceOverviewResponse {
     /// The summary text of the performance.
     #[serde(default, rename = "summaryText")]
@@ -2147,7 +2148,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryPerformanceOverviewRespons
 }
 
 /// The metadata for an SampleConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -2170,15 +2171,15 @@ pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadata {
 }
 
 /// The response to an SampleConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsResponse {}
 
 /// The data for a silence annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainSilenceData {}
 
 /// Metadata for testing correlation config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -2192,7 +2193,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadata {
 }
 
 /// The response of testing correlation config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigResponse {
     /// Results for the DETAILED_SYNC execution mode.
     #[serde(default, rename = "detailedResults")]
@@ -2203,7 +2204,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigResponse {
 }
 
 /// Metadata for undeploying an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -2218,11 +2219,11 @@ pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelMetadata {
 }
 
 /// The response to undeploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelResponse {}
 
 /// The metadata for updating a QaQuestionTag Resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainUpdateQaQuestionTagMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -2237,7 +2238,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainUpdateQaQuestionTagMetadata {
 }
 
 /// The metadata for an UploadConversation operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainUploadConversationMetadata {
     /// Output only. The operation name for a successfully created analysis operation, if any.
     #[serde(default, rename = "analysisOperation")]
@@ -2259,7 +2260,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainUploadConversationMetadata {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -2270,7 +2271,7 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -2278,7 +2279,7 @@ pub struct GoogleIamV1TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -2286,7 +2287,7 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -2300,11 +2301,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// The request to analyze conversations in bulk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest {
     /// Required. Percentage of selected conversation to analyze, between [0, 100].
     #[serde(default, rename = "analysisPercentage")]
@@ -2325,7 +2326,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkAnalyzeConversationsRequest {
 }
 
 /// The request to delete conversations in bulk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest {
     /// Filter used to select the subset of conversations to delete.
     #[serde(default)]
@@ -2342,7 +2343,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteConversationsRequest {
 }
 
 /// Request for the BulkDeleteFeedbackLabels endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest {
     /// Optional. A filter to reduce results to a specific subset. Supports disjunctions (OR) and conjunctions (AND). Supported fields: * issue_model_id * qa_question_id * qa_scorecard_id * min_create_time * max_create_time * min_update_time * max_update_time * feedback_label_type: QUALITY_AI, TOPIC_MODELING
     #[serde(default)]
@@ -2353,7 +2354,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDeleteFeedbackLabelsRequest {
 }
 
 /// Statistics for BulkDownloadFeedbackLabels operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadataDownloadStats {
     /// Output only. Full name of the files written to Cloud storage.
     #[serde(default, rename = "fileNames")]
@@ -2370,7 +2371,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsMetadataD
 }
 
 /// Request for the BulkDownloadFeedbackLabel endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest {
     /// Optional. Filter parent conversations to download feedback labels for. When specified, the feedback labels will be downloaded for the conversations that match the filter. If template_qa_scorecard_id is set, all the conversations that match the filter will be paired with the questions under the scorecard for labeling.
     #[serde(default, rename = "conversationFilter")]
@@ -2403,7 +2404,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequest {
 }
 
 /// Google Cloud Storage Object details to get the feedback label file from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestGcsSource {
     /// Required. File format which will be ingested. // TODO: enum values: ["FORMAT_UNSPECIFIED", "CSV", "JSON"]
     #[serde(default)]
@@ -2414,7 +2415,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestGcsS
 }
 
 /// Google Sheets document details to get the feedback label file from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestSheetsSource {
     /// Required. The Google Sheets document to write the feedback labels to. Retrieved from Google Sheets URI. E.g. https://docs.google.com/spreadsheets/d/1234567890 The spreadsheet must be shared with the Insights P4SA.
     #[serde(default, rename = "spreadsheetUri")]
@@ -2422,7 +2423,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkUploadFeedbackLabelsRequestShee
 }
 
 /// A time series representing conversations over time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeries {
     /// The duration of each interval.
     #[serde(default, rename = "intervalDuration")]
@@ -2435,7 +2436,7 @@ pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeries {
 }
 
 /// The request to create an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CreateIssueRequest {
     /// Required. The values for the new issue.
     #[serde(default)]
@@ -2446,7 +2447,7 @@ pub struct GoogleCloudContactcenterinsightsV1CreateIssueRequest {
 }
 
 /// The request to create an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CreateIssueModelRequest {
     /// Required. The issue model to create.
     #[serde(default, rename = "issueModel")]
@@ -2457,7 +2458,7 @@ pub struct GoogleCloudContactcenterinsightsV1CreateIssueModelRequest {
 }
 
 /// The request to delete an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DeleteIssueModelRequest {
     /// Required. The name of the issue model to delete.
     #[serde(default)]
@@ -2465,7 +2466,7 @@ pub struct GoogleCloudContactcenterinsightsV1DeleteIssueModelRequest {
 }
 
 /// The request for deleting a QaQuestionTag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DeleteQaQuestionTagRequest {
     /// Required. The name of the QaQuestionTag to delete.
     #[serde(default)]
@@ -2473,7 +2474,7 @@ pub struct GoogleCloudContactcenterinsightsV1DeleteQaQuestionTagRequest {
 }
 
 /// The request to deploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelRequest {
     /// Required. The issue model to deploy.
     #[serde(default)]
@@ -2481,7 +2482,7 @@ pub struct GoogleCloudContactcenterinsightsV1DeployIssueModelRequest {
 }
 
 /// The request to export insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataRequest {
     /// Specified if sink is a BigQuery table.
     #[serde(default, rename = "bigQueryDestination")]
@@ -2506,7 +2507,7 @@ pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataRequest {
 }
 
 /// Request to export an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelRequest {
     /// Google Cloud Storage URI to export the issue model to.
     #[serde(default, rename = "gcsDestination")]
@@ -2519,7 +2520,7 @@ pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelRequest {
 }
 
 /// Signed audio URIs for a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SignedAudioUris {
     /// The signed URI for the audio from the Dialogflow conversation source.
     #[serde(default, rename = "signedDialogflowAudioUri")]
@@ -2535,7 +2536,7 @@ pub struct GoogleCloudContactcenterinsightsV1SignedAudioUris {
 }
 
 /// Wrapper for storing the generative response for a chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponseGenerativeResponse {
     /// The chart spec for the data. This will be specified in the vega-lite or vega format.
     #[serde(default, rename = "chartSpec")]
@@ -2554,7 +2555,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponseGenerativ
 }
 
 /// The conversation transcript for the chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscript {
     /// The conversation id of the chart.
     #[serde(default, rename = "conversationId")]
@@ -2575,7 +2576,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 }
 
 /// Request to import an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelRequest {
     /// Optional. If set to true, will create an issue model from the imported file with randomly generated IDs for the issue model and corresponding issues. Otherwise, replaces an existing model with the same ID as the file.
     #[serde(default, rename = "createNewModel")]
@@ -2590,7 +2591,7 @@ pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelRequest {
 }
 
 /// Statistics for IngestConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsMetadataIngestConversationsStats {
     /// Output only. The number of objects skipped because another conversation with the same transcript uri had already been ingested.
     #[serde(default, rename = "duplicatesSkippedCount")]
@@ -2607,7 +2608,7 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsMetadataIngestCo
 }
 
 /// The request to ingest conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequest {
     /// Configuration that applies to all conversations.
     #[serde(default, rename = "conversationConfig")]
@@ -2639,7 +2640,7 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequest {
 }
 
 /// The request to initialize a location-level encryption specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecRequest {
     /// Required. The encryption spec used for CMEK encryption. It is required that the kms key is in the same region as the endpoint. The same key will be used for all provisioned resources, if encryption is available. If the kms_key_name field is left empty, no encryption will be enforced.
     #[serde(default, rename = "encryptionSpec")]
@@ -2647,7 +2648,7 @@ pub struct GoogleCloudContactcenterinsightsV1InitializeEncryptionSpecRequest {
 }
 
 /// The CCAI Insights project wide analysis rule. This rule will be applied to all conversations that match the filter defined in the rule. For a conversation matches the filter, the annotators specified in the rule will be run. If a conversation matches multiple rules, a union of all the annotators will be run. One project can have multiple analysis rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AnalysisRule {
     /// If true, apply this rule to conversations. Otherwise, this rule is inactive and saved as a draft.
     #[serde(default)]
@@ -2677,7 +2678,7 @@ pub struct GoogleCloudContactcenterinsightsV1AnalysisRule {
 }
 
 /// The CCAI Insights project wide assessment rule. This assessment rule will be applied to all conversations from the previous sampling cycle that match the sample rule defined in the assessment rule. One project can have multiple assessment rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AssessmentRule {
     /// If true, apply this rule to conversations. Otherwise, this rule is inactive.
     #[serde(default)]
@@ -2703,7 +2704,7 @@ pub struct GoogleCloudContactcenterinsightsV1AssessmentRule {
 }
 
 /// The assessment resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Assessment {
     /// Information about the agent the assessment is for.
     #[serde(default, rename = "agentInfo")]
@@ -2725,7 +2726,7 @@ pub struct GoogleCloudContactcenterinsightsV1Assessment {
 }
 
 /// An AuthorizedViewSet contains a set of AuthorizedView resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AuthorizedViewSet {
     /// Output only. Create time.
     #[serde(default, rename = "createTime")]
@@ -2742,7 +2743,7 @@ pub struct GoogleCloudContactcenterinsightsV1AuthorizedViewSet {
 }
 
 /// Configurable dashboard
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Dashboard {
     /// Output only. Dashboard creation time.
     #[serde(default, rename = "createTime")]
@@ -2777,7 +2778,7 @@ pub struct GoogleCloudContactcenterinsightsV1Dashboard {
 }
 
 /// The conversation assessment note resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Note {
     /// The note is associated to the entire parent assessment.
     #[serde(default, rename = "assessmentNote")]
@@ -2808,7 +2809,7 @@ pub struct GoogleCloudContactcenterinsightsV1Note {
 }
 
 /// The phrase matcher resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1PhraseMatcher {
     /// Output only. The most recent time at which the activation status was updated.
     #[serde(default, rename = "activationUpdateTime")]
@@ -2848,7 +2849,7 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatcher {
 }
 
 /// A single question to be scored by the Insights QA feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaQuestion {
     /// Short, descriptive string, used in the UI where it''s not practical to display the full question body. E.g., "Greeting".
     #[serde(default)]
@@ -2901,7 +2902,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestion {
 }
 
 /// A revision of a QaScorecard. Modifying published scorecard fields would invalidate existing scorecard results — the questions may have changed, or the score weighting will make existing scores impossible to understand. So changes must create a new revision, rather than modifying the existing resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaScorecardRevision {
     /// Output only. Alternative IDs for this revision of the scorecard, e.g., latest.
     #[serde(default, rename = "alternateIds")]
@@ -2921,7 +2922,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecardRevision {
 }
 
 /// The View resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1View {
     /// Output only. The time at which this view was created.
     #[serde(default, rename = "createTime")]
@@ -2941,7 +2942,7 @@ pub struct GoogleCloudContactcenterinsightsV1View {
 }
 
 /// A slice contains a total and (if the request specified a time granularity) a time series of metric values. Each slice contains a unique combination of the cardinality of dimensions from the request. For example, if the request specifies a single ISSUE dimension and it has a cardinality of 2 (i.e. the data used to compute the metrics has 2 issues in total), the response will have 2 slices: * Slice 1 -&gt; dimensions=[Issue 1] * Slice 2 -&gt; dimensions=[Issue 2]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSlice {
     /// A unique combination of dimensions that this slice represents.
     #[serde(default)]
@@ -2960,7 +2961,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSlice {
 }
 
 /// The entity whose performance is being queried is a single agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequestAgentSource {
     /// Required. Agent id to query performance overview for.
     #[serde(default, rename = "agentId")]
@@ -2968,7 +2969,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryPerformanceOverviewRequestAgen
 }
 
 /// The request to sample conversations to a dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SampleConversationsRequest {
     /// The dataset resource to copy the sampled conversations to.
     #[serde(default, rename = "destinationDataset")]
@@ -2982,7 +2983,7 @@ pub struct GoogleCloudContactcenterinsightsV1SampleConversationsRequest {
 }
 
 /// Statistics for SampleConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadataSampleConversationsStats {
     /// Output only. The number of objects which were unable to be sampled due to errors. The errors are populated in the partial_errors field.
     #[serde(default, rename = "failedSampleCount")]
@@ -2993,7 +2994,7 @@ pub struct GoogleCloudContactcenterinsightsV1SampleConversationsMetadataSampleCo
 }
 
 /// An AuthorizedView represents a view of accessible Insights resources (for example, Conversation and Scorecard). Who have read access to the AuthorizedView resource will have access to these Insight resources as well.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AuthorizedView {
     /// A filter to reduce conversation results to a specific subset. The AuthorizedView''s assigned permission (read/write) could be applied to the subset of conversations. If conversation_filter is empty, there is no restriction on the conversations that the AuthorizedView can access. Having *authorizedViews.get* access to the AuthorizedView means having the same read/write access to the Conversations (as well as metadata/annotations linked to the conversation) that this AuthorizedView has.
     #[serde(default, rename = "conversationFilter")]
@@ -3013,7 +3014,7 @@ pub struct GoogleCloudContactcenterinsightsV1AuthorizedView {
 }
 
 /// Default configuration when creating Analyses in Insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig {
     /// To select the annotators to run and the phrase matchers to use (if any). If not specified, all annotators will be run.
     #[serde(default, rename = "annotatorSelector")]
@@ -3028,7 +3029,7 @@ pub struct GoogleCloudContactcenterinsightsV1SettingsAnalysisConfig {
 }
 
 /// Rule for auto-labeling conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AutoLabelingRule {
     /// Whether the rule is active.
     #[serde(default)]
@@ -3062,7 +3063,7 @@ pub struct GoogleCloudContactcenterinsightsV1AutoLabelingRule {
 }
 
 /// Statistics for TestCorrelationConfig operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadataFullConversationCorrelationStats {
     /// A list of errors that occurred during correlation, one for each conversation that failed.
     #[serde(default, rename = "conversationCorrelationErrors")]
@@ -3082,7 +3083,7 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadataFullCo
 }
 
 /// Wrapper for a list of conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequestConversations {
     /// Optional. The conversations.
     #[serde(default)]
@@ -3091,7 +3092,7 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigRequestConvers
 }
 
 /// A configuration that defines how to correlate conversations for a given a given project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CorrelationConfig {
     /// Output only. The time at which the correlation config was created.
     #[serde(default, rename = "createTime")]
@@ -3109,7 +3110,7 @@ pub struct GoogleCloudContactcenterinsightsV1CorrelationConfig {
 }
 
 /// Wrapper for detailed, step-by-step results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigResponseDetailedCorrelationResults
 {
     /// A list of constraint evaluation results for each pair of conversations.
@@ -3125,7 +3126,7 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigResponseDetail
 }
 
 /// The request to undeploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelRequest {
     /// Required. The issue model to undeploy.
     #[serde(default)]
@@ -3133,7 +3134,7 @@ pub struct GoogleCloudContactcenterinsightsV1UndeployIssueModelRequest {
 }
 
 /// The request for updating a QaQuestionTag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1UpdateQaQuestionTagRequest {
     /// Required. The QaQuestionTag to update.
     #[serde(default, rename = "qaQuestionTag")]
@@ -3144,7 +3145,7 @@ pub struct GoogleCloudContactcenterinsightsV1UpdateQaQuestionTagRequest {
 }
 
 /// Request to upload a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1UploadConversationRequest {
     /// Required. The conversation resource to create.
     #[serde(default)]
@@ -3164,7 +3165,7 @@ pub struct GoogleCloudContactcenterinsightsV1UploadConversationRequest {
 }
 
 /// The request to analyze conversations in bulk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsRequest {
     /// Required. Percentage of selected conversation to analyze, between [0, 100].
     #[serde(default, rename = "analysisPercentage")]
@@ -3185,7 +3186,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkAnalyzeConversationsReque
 }
 
 /// The request to delete conversations in bulk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsRequest {
     /// Filter used to select the subset of conversations to delete.
     #[serde(default)]
@@ -3202,7 +3203,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteConversationsReques
 }
 
 /// Request for the BulkDeleteFeedbackLabels endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsRequest {
     /// Optional. A filter to reduce results to a specific subset. Supports disjunctions (OR) and conjunctions (AND). Supported fields: * issue_model_id * qa_question_id * qa_scorecard_id * min_create_time * max_create_time * min_update_time * max_update_time * feedback_label_type: QUALITY_AI, TOPIC_MODELING
     #[serde(default)]
@@ -3213,7 +3214,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1BulkDeleteFeedbackLabelsReque
 }
 
 /// The request to create an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueRequest {
     /// Required. The values for the new issue.
     #[serde(default)]
@@ -3224,7 +3225,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueRequest {
 }
 
 /// The request to create an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueModelRequest {
     /// Required. The issue model to create.
     #[serde(default, rename = "issueModel")]
@@ -3235,7 +3236,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CreateIssueModelRequest {
 }
 
 /// The request to delete an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteIssueModelRequest {
     /// Required. The name of the issue model to delete.
     #[serde(default)]
@@ -3243,7 +3244,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteIssueModelRequest {
 }
 
 /// The request for deleting a QaQuestionTag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteQaQuestionTagRequest {
     /// Required. The name of the QaQuestionTag to delete.
     #[serde(default)]
@@ -3251,7 +3252,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeleteQaQuestionTagRequest {
 }
 
 /// The request to deploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelRequest {
     /// Required. The issue model to deploy.
     #[serde(default)]
@@ -3259,7 +3260,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DeployIssueModelRequest {
 }
 
 /// The request to export insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequest {
     /// Specified if sink is a BigQuery table.
     #[serde(default, rename = "bigQueryDestination")]
@@ -3284,7 +3285,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequest {
 }
 
 /// Request to export an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequest {
     /// Google Cloud Storage URI to export the issue model to.
     #[serde(default, rename = "gcsDestination")]
@@ -3297,7 +3298,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequest {
 }
 
 /// Wrapper for storing the generative response for a chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponseGenerativeResponse {
     /// The chart spec for the data. This will be specified in the vega-lite or vega format.
     #[serde(default, rename = "chartSpec")]
@@ -3314,7 +3315,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponseGen
 }
 
 /// The conversation transcript for the chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscript {
     /// The conversation id of the chart.
     #[serde(default, rename = "conversationId")]
@@ -3335,7 +3336,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 }
 
 /// Request to import an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequest {
     /// Optional. If set to true, will create an issue model from the imported file with randomly generated IDs for the issue model and corresponding issues. Otherwise, replaces an existing model with the same ID as the file.
     #[serde(default, rename = "createNewModel")]
@@ -3351,7 +3352,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequest {
 }
 
 /// Statistics for IngestConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsMetadataIngestConversationsStats
 {
     /// Output only. The number of objects skipped because another conversation with the same transcript uri had already been ingested.
@@ -3369,7 +3370,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsMetadataIn
 }
 
 /// The request to ingest conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequest {
     /// Configuration that applies to all conversations.
     #[serde(default, rename = "conversationConfig")]
@@ -3402,7 +3403,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequest {
 }
 
 /// The request to initialize a location-level encryption specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecRequest {
     /// Required. The encryption spec used for CMEK encryption. It is required that the kms key is in the same region as the endpoint. The same key will be used for all provisioned resources, if encryption is available. If the kms_key_name field is left empty, no encryption will be enforced.
     #[serde(default, rename = "encryptionSpec")]
@@ -3411,7 +3412,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1InitializeEncryptionSpecReque
 }
 
 /// A slice contains a total and (if the request specified a time granularity) a time series of metric values. Each slice contains a unique combination of the cardinality of dimensions from the request. For example, if the request specifies a single ISSUE dimension and it has a cardinality of 2 (i.e. the data used to compute the metrics has 2 issues in total), the response will have 2 slices: * Slice 1 -&gt; dimensions=[Issue 1] * Slice 2 -&gt; dimensions=[Issue 2]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSlice {
     /// A unique combination of dimensions that this slice represents.
     #[serde(default)]
@@ -3430,7 +3431,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSlice {
 }
 
 /// The request to sample conversations to a dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsRequest {
     /// The dataset resource to copy the sampled conversations to.
     #[serde(default, rename = "destinationDataset")]
@@ -3445,7 +3446,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsRequest {
 }
 
 /// Statistics for SampleConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadataSampleConversationsStats
 {
     /// Output only. The number of objects which were unable to be sampled due to errors. The errors are populated in the partial_errors field.
@@ -3457,7 +3458,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SampleConversationsMetadataSa
 }
 
 /// Statistics for TestCorrelationConfig operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadataFullConversationCorrelationStats {
     /// A list of errors that occurred during correlation, one for each conversation that failed.
     #[serde(default, rename = "conversationCorrelationErrors")]
@@ -3477,7 +3478,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadata
 }
 
 /// Wrapper for detailed, step-by-step results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigResponseDetailedCorrelationResults
 {
     /// A list of constraint evaluation results for each pair of conversations.
@@ -3493,7 +3494,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigResponse
 }
 
 /// The request to undeploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelRequest {
     /// Required. The issue model to undeploy.
     #[serde(default)]
@@ -3501,7 +3502,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UndeployIssueModelRequest {
 }
 
 /// The request for updating a QaQuestionTag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1UpdateQaQuestionTagRequest {
     /// Required. The QaQuestionTag to update.
     #[serde(default, rename = "qaQuestionTag")]
@@ -3513,7 +3514,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UpdateQaQuestionTagRequest {
 }
 
 /// Request to upload a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1UploadConversationRequest {
     /// Required. The conversation resource to create.
     #[serde(default)]
@@ -3534,7 +3535,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1UploadConversationRequest {
 }
 
 /// The request to analyze conversations in bulk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsRequest {
     /// Required. Percentage of selected conversation to analyze, between [0, 100].
     #[serde(default, rename = "analysisPercentage")]
@@ -3555,7 +3556,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkAnalyzeConversationsRequest
 }
 
 /// The request to delete conversations in bulk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsRequest {
     /// Filter used to select the subset of conversations to delete.
     #[serde(default)]
@@ -3572,7 +3573,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteConversationsRequest 
 }
 
 /// Request for the BulkDeleteFeedbackLabels endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsRequest {
     /// Optional. A filter to reduce results to a specific subset. Supports disjunctions (OR) and conjunctions (AND). Supported fields: * issue_model_id * qa_question_id * qa_scorecard_id * min_create_time * max_create_time * min_update_time * max_update_time * feedback_label_type: QUALITY_AI, TOPIC_MODELING
     #[serde(default)]
@@ -3583,7 +3584,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDeleteFeedbackLabelsRequest
 }
 
 /// Statistics for BulkDownloadFeedbackLabels operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetadataDownloadStats {
     /// Output only. Full name of the files written to Cloud storage.
     #[serde(default, rename = "fileNames")]
@@ -3600,7 +3601,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsMetad
 }
 
 /// Request for the BulkDownloadFeedbackLabel endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequest {
     /// Optional. Filter parent conversations to download feedback labels for. When specified, the feedback labels will be downloaded for the conversations that match the filter. If template_qa_scorecard_id is set, all the conversations that match the filter will be paired with the questions under the scorecard for labeling.
     #[serde(default, rename = "conversationFilter")]
@@ -3633,7 +3634,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsReque
 }
 
 /// The request to create an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueRequest {
     /// Required. The values for the new issue.
     #[serde(default)]
@@ -3644,7 +3645,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueRequest {
 }
 
 /// The request to create an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueModelRequest {
     /// Required. The issue model to create.
     #[serde(default, rename = "issueModel")]
@@ -3655,7 +3656,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainCreateIssueModelRequest {
 }
 
 /// The request to delete an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDeleteIssueModelRequest {
     /// Required. The name of the issue model to delete.
     #[serde(default)]
@@ -3663,7 +3664,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeleteIssueModelRequest {
 }
 
 /// The request for deleting a QaQuestionTag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDeleteQaQuestionTagRequest {
     /// Required. The name of the QaQuestionTag to delete.
     #[serde(default)]
@@ -3671,7 +3672,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeleteQaQuestionTagRequest {
 }
 
 /// The request to deploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelRequest {
     /// Required. The issue model to deploy.
     #[serde(default)]
@@ -3679,7 +3680,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDeployIssueModelRequest {
 }
 
 /// The request to export insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequest {
     /// Specified if sink is a BigQuery table.
     #[serde(default, rename = "bigQueryDestination")]
@@ -3704,7 +3705,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequest {
 }
 
 /// Request to export an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelRequest {
     /// Google Cloud Storage URI to export the issue model to.
     #[serde(default, rename = "gcsDestination")]
@@ -3717,7 +3718,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelRequest {
 }
 
 /// Wrapper for storing the generative response for a chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponseGenerativeResponse {
     /// The chart spec for the data. This will be specified in the vega-lite or vega format.
     #[serde(default, rename = "chartSpec")]
@@ -3734,7 +3735,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponseGener
 }
 
 /// The conversation transcript for the chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscript {
     /// The conversation id of the chart.
     #[serde(default, rename = "conversationId")]
@@ -3755,7 +3756,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 }
 
 /// Request to import an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelRequest {
     /// Optional. If set to true, will create an issue model from the imported file with randomly generated IDs for the issue model and corresponding issues. Otherwise, replaces an existing model with the same ID as the file.
     #[serde(default, rename = "createNewModel")]
@@ -3771,7 +3772,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelRequest {
 }
 
 /// Statistics for IngestConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsMetadataIngestConversationsStats
 {
     /// Output only. The number of objects skipped because another conversation with the same transcript uri had already been ingested.
@@ -3789,7 +3790,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsMetadataInge
 }
 
 /// The request to ingest conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequest {
     /// Configuration that applies to all conversations.
     #[serde(default, rename = "conversationConfig")]
@@ -3822,7 +3823,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequest {
 }
 
 /// The request to initialize a location-level encryption specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecRequest {
     /// Required. The encryption spec used for CMEK encryption. It is required that the kms key is in the same region as the endpoint. The same key will be used for all provisioned resources, if encryption is available. If the kms_key_name field is left empty, no encryption will be enforced.
     #[serde(default, rename = "encryptionSpec")]
@@ -3831,7 +3832,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainInitializeEncryptionSpecRequest
 }
 
 /// A slice contains a total and (if the request specified a time granularity) a time series of metric values. Each slice contains a unique combination of the cardinality of dimensions from the request. For example, if the request specifies a single ISSUE dimension and it has a cardinality of 2 (i.e. the data used to compute the metrics has 2 issues in total), the response will have 2 slices: * Slice 1 -&gt; dimensions=[Issue 1] * Slice 2 -&gt; dimensions=[Issue 2]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSlice {
     /// A unique combination of dimensions that this slice represents.
     #[serde(default)]
@@ -3850,7 +3851,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSlice {
 }
 
 /// The request to sample conversations to a dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsRequest {
     /// The dataset resource to copy the sampled conversations to.
     #[serde(default, rename = "destinationDataset")]
@@ -3864,7 +3865,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsRequest {
 }
 
 /// Statistics for SampleConversations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadataSampleConversationsStats
 {
     /// Output only. The number of objects which were unable to be sampled due to errors. The errors are populated in the partial_errors field.
@@ -3876,7 +3877,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainSampleConversationsMetadataSamp
 }
 
 /// Statistics for TestCorrelationConfig operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadataFullConversationCorrelationStats {
     /// A list of errors that occurred during correlation, one for each conversation that failed.
     #[serde(default, rename = "conversationCorrelationErrors")]
@@ -3896,7 +3897,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadataFu
 }
 
 /// Wrapper for detailed, step-by-step results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigResponseDetailedCorrelationResults
 {
     /// A list of constraint evaluation results for each pair of conversations.
@@ -3912,7 +3913,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigResponseDe
 }
 
 /// The request to undeploy an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelRequest {
     /// Required. The issue model to undeploy.
     #[serde(default)]
@@ -3920,7 +3921,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainUndeployIssueModelRequest {
 }
 
 /// The request for updating a QaQuestionTag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainUpdateQaQuestionTagRequest {
     /// Required. The QaQuestionTag to update.
     #[serde(default, rename = "qaQuestionTag")]
@@ -3932,7 +3933,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainUpdateQaQuestionTagRequest {
 }
 
 /// Request to upload a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainUploadConversationRequest {
     /// Required. The conversation resource to create.
     #[serde(default)]
@@ -3953,7 +3954,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainUploadConversationRequest {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -3970,7 +3971,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -3990,7 +3991,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// Google Cloud Storage Object details to write the feedback labels to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestGcsDestination {
     /// Optional. Add whitespace to the JSON file. Makes easier to read, but increases file size. Only applicable for JSON format.
     #[serde(default, rename = "addWhitespace")]
@@ -4010,7 +4011,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestGc
 }
 
 /// Google Sheets document details to write the feedback labels to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestSheetsDestination {
     /// Optional. The title of the new sheet to write the feedback labels to.
     #[serde(default, rename = "sheetTitle")]
@@ -4021,7 +4022,7 @@ pub struct GoogleCloudContactcenterinsightsV1BulkDownloadFeedbackLabelsRequestSh
 }
 
 /// A single interval in a time series.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInterval {
     /// The number of conversations created in this interval.
     #[serde(default, rename = "conversationCount")]
@@ -4032,7 +4033,7 @@ pub struct GoogleCloudContactcenterinsightsV1CalculateStatsResponseTimeSeriesInt
 }
 
 /// The issue resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Issue {
     /// Output only. The time at which this issue was created.
     #[serde(default, rename = "createTime")]
@@ -4055,7 +4056,7 @@ pub struct GoogleCloudContactcenterinsightsV1Issue {
 }
 
 /// The issue model resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IssueModel {
     /// Output only. The time at which this issue model was created.
     #[serde(default, rename = "createTime")]
@@ -4092,7 +4093,7 @@ pub struct GoogleCloudContactcenterinsightsV1IssueModel {
 }
 
 /// A BigQuery Table Reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataRequestBigQueryDestination {
     /// Required. The name of the BigQuery dataset that the snapshot result should be exported to. If this dataset does not exist, the export call returns an INVALID_ARGUMENT error.
     #[serde(default)]
@@ -4106,7 +4107,7 @@ pub struct GoogleCloudContactcenterinsightsV1ExportInsightsDataRequestBigQueryDe
 }
 
 /// Google Cloud Storage Object URI to save the issue model to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelRequestGcsDestination {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
@@ -4114,7 +4115,7 @@ pub struct GoogleCloudContactcenterinsightsV1ExportIssueModelRequestGcsDestinati
 }
 
 /// Wrapper for text output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponseGenerativeResponseTextOutput
 {
     /// The text output from the LLM.
@@ -4126,7 +4127,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsResponseGenerativ
 }
 
 /// The message in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessage {
     /// Output only. For user messages, this is the time at which the system received the message. For system messages, this is the time at which the system generated the message.
     #[serde(default, rename = "createTime")]
@@ -4143,7 +4144,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 }
 
 /// Google Cloud Storage Object URI to get the issue model file from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelRequestGcsSource {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
@@ -4151,7 +4152,7 @@ pub struct GoogleCloudContactcenterinsightsV1ImportIssueModelRequestGcsSource {
 }
 
 /// Configuration that applies to all conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestConversationConfig {
     /// Optional. Indicates which of the channels, 1 or 2, contains the agent. Note that this must be set for conversations to be properly displayed and analyzed.
     #[serde(default, rename = "agentChannel")]
@@ -4165,7 +4166,7 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestConversat
 }
 
 /// Configuration for Cloud Storage bucket sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestGcsSource {
     /// Optional. The Cloud Storage path to the conversation audio file. Note that: [1] Audio files will be transcribed if not already. [2] Audio files and transcript files must be in separate buckets / folders. [3] A source file and its corresponding audio file must share the same name to be properly ingested, E.g. gs://bucket/transcript/conversation1.json and gs://bucket/audio/conversation1.mp3.
     #[serde(default, rename = "audioBucketUri")]
@@ -4188,7 +4189,7 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestGcsSource
 }
 
 /// Configuration for processing transcript objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestTranscriptObjectConfig {
     /// Required. The medium transcript objects represent. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
     #[serde(default)]
@@ -4196,7 +4197,7 @@ pub struct GoogleCloudContactcenterinsightsV1IngestConversationsRequestTranscrip
 }
 
 /// A customer-managed encryption key specification that can be applied to all created resources (e.g. Conversation).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1EncryptionSpec {
     /// Required. The name of customer-managed encryption key that is used to secure a resource and its sub-resources. If empty, the resource is secured by our default encryption key. Only the key in the same location as this resource is allowed to be used for encryption. Format: projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{key}
     #[serde(default, rename = "kmsKey")]
@@ -4207,7 +4208,7 @@ pub struct GoogleCloudContactcenterinsightsV1EncryptionSpec {
 }
 
 /// Message for schedule info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ScheduleInfo {
     /// End time of the schedule. If not specified, will keep scheduling new pipelines for execution util the schedule is no longer active or deleted.
     #[serde(default, rename = "endTime")]
@@ -4224,7 +4225,7 @@ pub struct GoogleCloudContactcenterinsightsV1ScheduleInfo {
 }
 
 /// A note about a conversation turn.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1NoteConversationTurnNote {
     /// The conversation turn index that the note is associated with.
     #[serde(default, rename = "turnIndex")]
@@ -4232,7 +4233,7 @@ pub struct GoogleCloudContactcenterinsightsV1NoteConversationTurnNote {
 }
 
 /// Information about a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1UserInfo {
     /// The user''s username.
     #[serde(default)]
@@ -4240,7 +4241,7 @@ pub struct GoogleCloudContactcenterinsightsV1UserInfo {
 }
 
 /// A note about a QA question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1NoteQaQuestionNote {
     /// The question resource that the note is associated with.
     #[serde(default, rename = "qaQuestion")]
@@ -4248,7 +4249,7 @@ pub struct GoogleCloudContactcenterinsightsV1NoteQaQuestionNote {
 }
 
 /// A message representing a rule in the phrase matcher.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleGroup {
     /// A list of phrase match rules that are included in this group.
     #[serde(default, rename = "phraseMatchRules")]
@@ -4260,7 +4261,7 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleGroup {
 }
 
 /// Message representing a possible answer to the question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionAnswerChoice {
     /// Boolean value.
     #[serde(default, rename = "boolValue")]
@@ -4283,7 +4284,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionAnswerChoice {
 }
 
 /// A wrapper representing metrics calculated against a test-set on a LLM that was fine tuned for this question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionMetrics {
     /// Output only. Accuracy of the model. Measures the percentage of correct answers the model gave on the test set.
     #[serde(default)]
@@ -4291,7 +4292,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionMetrics {
 }
 
 /// Configuration for a predefined question. This field will only be set if the Question Type is predefined.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionPredefinedQuestionConfig {
     /// The type of the predefined question. // TODO: enum values: ["PREDEFINED_QUESTION_TYPE_UNSPECIFIED", "CONVERSATION_OUTCOME", "CONVERSATION_OUTCOME_ESCALATION_INITIATOR_ROLE"]
     #[serde(default, rename = "type")]
@@ -4299,7 +4300,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionPredefinedQuestionConfig 
 }
 
 /// Options for configuring the data used to generate the QA question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionQaQuestionDataOptions {
     /// Options for configuring the conversation data used to generate the QA question.
     #[serde(default, rename = "conversationDataOptions")]
@@ -4308,7 +4309,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionQaQuestionDataOptions {
 }
 
 /// Metadata about the tuning operation for the question. Will only be set if a scorecard containing this question has been tuned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionTuningMetadata {
     /// A list of any applicable data validation warnings about the question''s feedback labels.
     #[serde(default, rename = "datasetValidationWarnings")]
@@ -4322,7 +4323,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionTuningMetadata {
 }
 
 /// A QaScorecard represents a collection of questions to be scored during analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaScorecard {
     /// Output only. The time at which this scorecard was created.
     #[serde(default, rename = "createTime")]
@@ -4348,7 +4349,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecard {
 }
 
 /// A dimension determines the grouping key for the query. In SQL terms, these would be part of both the "SELECT" and "GROUP BY" clauses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Dimension {
     /// Output only. Metadata about the agent dimension.
     #[serde(default, rename = "agentDimensionMetadata")]
@@ -4407,7 +4408,7 @@ pub struct GoogleCloudContactcenterinsightsV1Dimension {
 }
 
 /// A time series of metric values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceTimeSeries {
     /// The data points that make up the time series .
     #[serde(default, rename = "dataPoints")]
@@ -4417,7 +4418,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceTimeSeries
 }
 
 /// Dataset resource represents a collection of conversations that may be bounded (Static Dataset, e.g. golden dataset for training), or unbounded (Dynamic Dataset, e.g. live traffic, or agent training traffic)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Dataset {
     /// Output only. Dataset create time.
     #[serde(default, rename = "createTime")]
@@ -4443,7 +4444,7 @@ pub struct GoogleCloudContactcenterinsightsV1Dataset {
 }
 
 /// Message for sampling conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SampleRule {
     /// To specify the filter for the conversions that should apply this sample rule. An empty filter means this sample rule applies to all conversations.
     #[serde(default, rename = "conversationFilter")]
@@ -4460,7 +4461,7 @@ pub struct GoogleCloudContactcenterinsightsV1SampleRule {
 }
 
 /// Condition for auto-labeling conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AutoLabelingRuleLabelingCondition {
     /// A optional CEL expression to be evaluated as a boolean value. Once evaluated as true, then we will proceed with the value evaluation. An empty condition will be auto evaluated as true.
     #[serde(default)]
@@ -4471,7 +4472,7 @@ pub struct GoogleCloudContactcenterinsightsV1AutoLabelingRuleLabelingCondition {
 }
 
 /// An error that occurred during correlation for a specific conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadataFullConversationCorrelationStatsConversationCorrelationError
 {
     /// The conversation resource name that had an error during correlation.
@@ -4483,7 +4484,7 @@ pub struct GoogleCloudContactcenterinsightsV1TestCorrelationConfigMetadataFullCo
 }
 
 /// A list of correlation rules for a given correlation type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CorrelationTypeConfig {
     /// A list of correlation rules to be evaluated for correlation.
     #[serde(default, rename = "correlationRules")]
@@ -4492,7 +4493,7 @@ pub struct GoogleCloudContactcenterinsightsV1CorrelationTypeConfig {
 }
 
 /// The result of testing a constraint expression on a pair of conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConstraintEvaluationResult {
     /// The first conversation resource name.
     #[serde(default, rename = "conversationA")]
@@ -4510,7 +4511,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConstraintEvaluationResult {
 }
 
 /// The result of testing correlation config on a single conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationResult {
     /// The conversation resource name.
     #[serde(default)]
@@ -4525,7 +4526,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationResult {
 }
 
 /// A tag is a resource which aims to categorize a set of questions across multiple scorecards, e.g., "Customer Satisfaction","Billing", etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaQuestionTag {
     /// Output only. The time at which the question tag was created.
     #[serde(default, rename = "createTime")]
@@ -4545,7 +4546,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaQuestionTag {
 }
 
 /// The conversation resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Conversation {
     /// An opaque, user-specified string representing the human agent who handled the conversation.
     #[serde(default, rename = "agentId")]
@@ -4628,7 +4629,7 @@ pub struct GoogleCloudContactcenterinsightsV1Conversation {
 }
 
 /// DLP resources used for redaction while ingesting conversations. DLP settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint or the Dialogflow / Agent Assist runtime integrations. When using Dialogflow / Agent Assist runtime integrations, redaction should be performed in Dialogflow / Agent Assist.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1RedactionConfig {
     /// The fully-qualified DLP deidentify template resource name. Format: projects/{project}/deidentifyTemplates/{template}
     #[serde(default, rename = "deidentifyTemplate")]
@@ -4639,7 +4640,7 @@ pub struct GoogleCloudContactcenterinsightsV1RedactionConfig {
 }
 
 /// Speech-to-Text configuration. Speech-to-Text settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SpeechConfig {
     /// Whether to disable word time offsets. If true, the enable_word_time_offsets field in the recognition config will be set to false.
     #[serde(default, rename = "disableWordTimeOffsets")]
@@ -4650,7 +4651,7 @@ pub struct GoogleCloudContactcenterinsightsV1SpeechConfig {
 }
 
 /// The issue resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1Issue {
     /// Output only. The time at which this issue was created.
     #[serde(default, rename = "createTime")]
@@ -4673,7 +4674,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Issue {
 }
 
 /// The issue model resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModel {
     /// Output only. The time at which this issue model was created.
     #[serde(default, rename = "createTime")]
@@ -4710,7 +4711,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModel {
 }
 
 /// A BigQuery Table Reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequestBigQueryDestination {
     /// Required. The name of the BigQuery dataset that the snapshot result should be exported to. If this dataset does not exist, the export call returns an INVALID_ARGUMENT error.
     #[serde(default)]
@@ -4724,7 +4725,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportInsightsDataRequestBigQ
 }
 
 /// Google Cloud Storage Object URI to save the issue model to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequestGcsDestination {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
@@ -4732,7 +4733,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ExportIssueModelRequestGcsDes
 }
 
 /// Wrapper for text output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponseGenerativeResponseTextOutput
 {
     /// The text output from the LLM.
@@ -4744,7 +4745,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightsResponseGen
 }
 
 /// The message in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessage {
     /// Output only. For user messages, this is the time at which the system received the message. For system messages, this is the time at which the system generated the message.
     #[serde(default, rename = "createTime")]
@@ -4761,7 +4762,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 }
 
 /// Google Cloud Storage Object URI to get the issue model file from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequestGcsSource {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
@@ -4769,7 +4770,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ImportIssueModelRequestGcsSou
 }
 
 /// Configuration that applies to all conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestConversationConfig {
     /// Optional. Indicates which of the channels, 1 or 2, contains the agent. Note that this must be set for conversations to be properly displayed and analyzed.
     #[serde(default, rename = "agentChannel")]
@@ -4783,7 +4784,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestCon
 }
 
 /// Configuration for Cloud Storage bucket sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestGcsSource {
     /// Optional. The Cloud Storage path to the conversation audio file. Note that: [1] Audio files will be transcribed if not already. [2] Audio files and transcript files must be in separate buckets / folders. [3] A source file and its corresponding audio file must share the same name to be properly ingested, E.g. gs://bucket/transcript/conversation1.json and gs://bucket/audio/conversation1.mp3.
     #[serde(default, rename = "audioBucketUri")]
@@ -4806,7 +4807,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestGcs
 }
 
 /// Configuration for processing transcript objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestTranscriptObjectConfig
 {
     /// Required. The medium transcript objects represent. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
@@ -4815,7 +4816,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IngestConversationsRequestTra
 }
 
 /// A customer-managed encryption key specification that can be applied to all created resources (e.g. Conversation).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1EncryptionSpec {
     /// Required. The name of customer-managed encryption key that is used to secure a resource and its sub-resources. If empty, the resource is secured by our default encryption key. Only the key in the same location as this resource is allowed to be used for encryption. Format: projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{key}
     #[serde(default, rename = "kmsKey")]
@@ -4826,7 +4827,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1EncryptionSpec {
 }
 
 /// A dimension determines the grouping key for the query. In SQL terms, these would be part of both the "SELECT" and "GROUP BY" clauses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1Dimension {
     /// Output only. Metadata about the agent dimension.
     #[serde(default, rename = "agentDimensionMetadata")]
@@ -4867,7 +4868,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Dimension {
 }
 
 /// A time series of metric values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceTimeSeries {
     /// The data points that make up the time series .
     #[serde(default, rename = "dataPoints")]
@@ -4877,7 +4878,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceTime
 }
 
 /// Dataset resource represents a collection of conversations that may be bounded (Static Dataset, e.g. golden dataset for training), or unbounded (Dynamic Dataset, e.g. live traffic, or agent training traffic)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1Dataset {
     /// Output only. Dataset create time.
     #[serde(default, rename = "createTime")]
@@ -4903,7 +4904,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Dataset {
 }
 
 /// Message for sampling conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1SampleRule {
     /// To specify the filter for the conversions that should apply this sample rule. An empty filter means this sample rule applies to all conversations.
     #[serde(default, rename = "conversationFilter")]
@@ -4920,7 +4921,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SampleRule {
 }
 
 /// An error that occurred during correlation for a specific conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadataFullConversationCorrelationStatsConversationCorrelationError
 {
     /// The conversation resource name that had an error during correlation.
@@ -4932,7 +4933,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1TestCorrelationConfigMetadata
 }
 
 /// The result of testing a constraint expression on a pair of conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResult {
     /// The first conversation resource name.
     #[serde(default, rename = "conversationA")]
@@ -4950,7 +4951,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResult {
 }
 
 /// The result of testing correlation config on a single conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationResult {
     /// The conversation resource name.
     #[serde(default)]
@@ -4961,7 +4962,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationResult
 }
 
 /// A tag is a resource which aims to categorize a set of questions across multiple scorecards, e.g., "Customer Satisfaction","Billing", etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaQuestionTag {
     /// Output only. The time at which the question tag was created.
     #[serde(default, rename = "createTime")]
@@ -4981,7 +4982,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaQuestionTag {
 }
 
 /// The conversation resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1Conversation {
     /// An opaque, user-specified string representing the human agent who handled the conversation.
     #[serde(default, rename = "agentId")]
@@ -5064,7 +5065,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Conversation {
 }
 
 /// DLP resources used for redaction while ingesting conversations. DLP settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint or the Dialogflow / Agent Assist runtime integrations. When using Dialogflow / Agent Assist runtime integrations, redaction should be performed in Dialogflow / Agent Assist.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1RedactionConfig {
     /// The fully-qualified DLP deidentify template resource name. Format: projects/{project}/deidentifyTemplates/{template}
     #[serde(default, rename = "deidentifyTemplate")]
@@ -5075,7 +5076,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1RedactionConfig {
 }
 
 /// Speech-to-Text configuration. Speech-to-Text settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1SpeechConfig {
     /// Whether to disable word time offsets. If true, the enable_word_time_offsets field in the recognition config will be set to false.
     #[serde(default, rename = "disableWordTimeOffsets")]
@@ -5086,7 +5087,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SpeechConfig {
 }
 
 /// Google Cloud Storage Object details to write the feedback labels to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequestGcsDestination {
     /// Optional. Add whitespace to the JSON file. Makes easier to read, but increases file size. Only applicable for JSON format.
     #[serde(default, rename = "addWhitespace")]
@@ -5106,7 +5107,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsReque
 }
 
 /// Google Sheets document details to write the feedback labels to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsRequestSheetsDestination
 {
     /// Optional. The title of the new sheet to write the feedback labels to.
@@ -5118,7 +5119,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainBulkDownloadFeedbackLabelsReque
 }
 
 /// The issue resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIssue {
     /// Output only. The time at which this issue was created.
     #[serde(default, rename = "createTime")]
@@ -5141,7 +5142,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssue {
 }
 
 /// The issue model resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIssueModel {
     /// Output only. The time at which this issue model was created.
     #[serde(default, rename = "createTime")]
@@ -5178,7 +5179,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueModel {
 }
 
 /// A BigQuery Table Reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequestBigQueryDestination {
     /// Required. The name of the BigQuery dataset that the snapshot result should be exported to. If this dataset does not exist, the export call returns an INVALID_ARGUMENT error.
     #[serde(default)]
@@ -5192,7 +5193,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportInsightsDataRequestBigQue
 }
 
 /// Google Cloud Storage Object URI to save the issue model to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelRequestGcsDestination {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
@@ -5200,7 +5201,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainExportIssueModelRequestGcsDesti
 }
 
 /// Wrapper for text output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponseGenerativeResponseTextOutput
 {
     /// The text output from the LLM.
@@ -5212,7 +5213,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightsResponseGener
 }
 
 /// The message in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessage {
     /// Output only. For user messages, this is the time at which the system received the message. For system messages, this is the time at which the system generated the message.
     #[serde(default, rename = "createTime")]
@@ -5229,7 +5230,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 }
 
 /// Google Cloud Storage Object URI to get the issue model file from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelRequestGcsSource {
     /// Required. Format: gs:///
     #[serde(default, rename = "objectUri")]
@@ -5237,7 +5238,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainImportIssueModelRequestGcsSourc
 }
 
 /// Configuration that applies to all conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestConversationConfig {
     /// Optional. Indicates which of the channels, 1 or 2, contains the agent. Note that this must be set for conversations to be properly displayed and analyzed.
     #[serde(default, rename = "agentChannel")]
@@ -5251,7 +5252,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestConve
 }
 
 /// Configuration for Cloud Storage bucket sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestGcsSource {
     /// Optional. The Cloud Storage path to the conversation audio file. Note that: [1] Audio files will be transcribed if not already. [2] Audio files and transcript files must be in separate buckets / folders. [3] A source file and its corresponding audio file must share the same name to be properly ingested, E.g. gs://bucket/transcript/conversation1.json and gs://bucket/audio/conversation1.mp3.
     #[serde(default, rename = "audioBucketUri")]
@@ -5274,7 +5275,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestGcsSo
 }
 
 /// Configuration for processing transcript objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestTranscriptObjectConfig {
     /// Required. The medium transcript objects represent. // TODO: enum values: ["MEDIUM_UNSPECIFIED", "PHONE_CALL", "CHAT"]
     #[serde(default)]
@@ -5282,7 +5283,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIngestConversationsRequestTrans
 }
 
 /// A customer-managed encryption key specification that can be applied to all created resources (e.g. Conversation).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainEncryptionSpec {
     /// Required. The name of customer-managed encryption key that is used to secure a resource and its sub-resources. If empty, the resource is secured by our default encryption key. Only the key in the same location as this resource is allowed to be used for encryption. Format: projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{key}
     #[serde(default, rename = "kmsKey")]
@@ -5293,7 +5294,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainEncryptionSpec {
 }
 
 /// A dimension determines the grouping key for the query. In SQL terms, these would be part of both the "SELECT" and "GROUP BY" clauses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimension {
     /// Output only. Metadata about the agent dimension.
     #[serde(default, rename = "agentDimensionMetadata")]
@@ -5334,7 +5335,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimension {
 }
 
 /// A time series of metric values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceTimeSeries {
     /// The data points that make up the time series .
     #[serde(default, rename = "dataPoints")]
@@ -5344,7 +5345,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceTimeSe
 }
 
 /// Dataset resource represents a collection of conversations that may be bounded (Static Dataset, e.g. golden dataset for training), or unbounded (Dynamic Dataset, e.g. live traffic, or agent training traffic)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDataset {
     /// Output only. Dataset create time.
     #[serde(default, rename = "createTime")]
@@ -5370,7 +5371,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDataset {
 }
 
 /// Message for sampling conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainSampleRule {
     /// To specify the filter for the conversions that should apply this sample rule. An empty filter means this sample rule applies to all conversations.
     #[serde(default, rename = "conversationFilter")]
@@ -5387,7 +5388,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainSampleRule {
 }
 
 /// An error that occurred during correlation for a specific conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadataFullConversationCorrelationStatsConversationCorrelationError
 {
     /// The conversation resource name that had an error during correlation.
@@ -5399,7 +5400,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainTestCorrelationConfigMetadataFu
 }
 
 /// The result of testing a constraint expression on a pair of conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResult {
     /// The first conversation resource name.
     #[serde(default, rename = "conversationA")]
@@ -5417,7 +5418,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResult {
 }
 
 /// The result of testing correlation config on a single conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationCorrelationResult {
     /// The conversation resource name.
     #[serde(default)]
@@ -5428,7 +5429,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationCorrelationResult {
 }
 
 /// A tag is a resource which aims to categorize a set of questions across multiple scorecards, e.g., "Customer Satisfaction","Billing", etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQaQuestionTag {
     /// Output only. The time at which the question tag was created.
     #[serde(default, rename = "createTime")]
@@ -5448,7 +5449,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaQuestionTag {
 }
 
 /// The conversation resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversation {
     /// An opaque, user-specified string representing the human agent who handled the conversation.
     #[serde(default, rename = "agentId")]
@@ -5531,7 +5532,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversation {
 }
 
 /// DLP resources used for redaction while ingesting conversations. DLP settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint or the Dialogflow / Agent Assist runtime integrations. When using Dialogflow / Agent Assist runtime integrations, redaction should be performed in Dialogflow / Agent Assist.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainRedactionConfig {
     /// The fully-qualified DLP deidentify template resource name. Format: projects/{project}/deidentifyTemplates/{template}
     #[serde(default, rename = "deidentifyTemplate")]
@@ -5542,7 +5543,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainRedactionConfig {
 }
 
 /// Speech-to-Text configuration. Speech-to-Text settings are applied to conversations ingested from the UploadConversation and IngestConversations endpoints, including conversation coming from CCAI Platform. They are not applied to conversations ingested from the CreateConversation endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainSpeechConfig {
     /// Whether to disable word time offsets. If true, the enable_word_time_offsets field in the recognition config will be set to false.
     #[serde(default, rename = "disableWordTimeOffsets")]
@@ -5553,7 +5554,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainSpeechConfig {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -5564,7 +5565,7 @@ pub struct GoogleIamV1AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -5578,7 +5579,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// Configs for the input data used to create the issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IssueModelInputDataConfig {
     /// A filter to reduce the conversations used for training the model to a specific subset. Refer to https://cloud.google.com/contact-center/insights/docs/filtering for details.
     #[serde(default)]
@@ -5592,7 +5593,7 @@ pub struct GoogleCloudContactcenterinsightsV1IssueModelInputDataConfig {
 }
 
 /// Aggregated statistics about an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IssueModelLabelStats {
     /// Number of conversations the issue model has analyzed at this point in time.
     #[serde(default, rename = "analyzedConversationsCount")]
@@ -5606,7 +5607,7 @@ pub struct GoogleCloudContactcenterinsightsV1IssueModelLabelStats {
 }
 
 /// A wrapper for system messages per turn.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageSystemMessages {
     /// A message from the system in response to the user.
     #[serde(default, rename = "systemMessages")]
@@ -5614,7 +5615,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 }
 
 /// The user message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageUserMessage
 {
     /// A message from the user that is interacting with the system.
@@ -5623,7 +5624,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 }
 
 /// The data for a phrase match rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRule {
     /// Provides additional information about the rule that specifies how to apply the rule.
     #[serde(default)]
@@ -5637,7 +5638,7 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRule {
 }
 
 /// Options for configuring what metadata is included in the conversation data used in QAI and Discovery Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationDataOptions {
     /// Whether to include the per turn Dialogflow interaction data in conversation transcript.
     #[serde(default, rename = "includeDialogflowInteractionData")]
@@ -5645,7 +5646,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationDataOptions {
 }
 
 /// Metadata about the agent dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DimensionAgentDimensionMetadata {
     /// Optional. The agent''s deployment display name. Only applicable to automated agents. This will be populated for AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDeploymentDisplayName")]
@@ -5671,7 +5672,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionAgentDimensionMetadata {
 }
 
 /// Metadata about the client sentiment category dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DimensionClientSentimentCategoryDimensionMetadata {
     /// Optional. The client sentiment category.
     #[serde(default, rename = "sentimentCategory")]
@@ -5679,7 +5680,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionClientSentimentCategoryDim
 }
 
 /// Metadata about the conversation profile dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DimensionConversationProfileDimensionMetadata {
     /// Optional. The conversation profile ID.
     #[serde(default, rename = "conversationProfileId")]
@@ -5687,7 +5688,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionConversationProfileDimensi
 }
 
 /// Metadata about the Conversational Agents playbook dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsPlaybookDimensionMetadata
 {
     /// Optional. The dialogflow playbook display name.
@@ -5699,7 +5700,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsPlaybo
 }
 
 /// Metadata about the Conversational Agents tool dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsToolDimensionMetadata {
     /// Optional. The dialogflow tool display name.
     #[serde(default, rename = "toolDisplayName")]
@@ -5710,7 +5711,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionConversationalAgentsToolDi
 }
 
 /// Metadata about the issue dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DimensionIssueDimensionMetadata {
     /// The issue display name.
     #[serde(default, rename = "issueDisplayName")]
@@ -5724,7 +5725,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionIssueDimensionMetadata {
 }
 
 /// Metadata about conversation labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DimensionLabelDimensionMetadata {
     /// Optional. The label key.
     #[serde(default, rename = "labelKey")]
@@ -5735,7 +5736,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionLabelDimensionMetadata {
 }
 
 /// Metadata about the conversation medium dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DimensionMediumDimensionMetadata {
     /// Optional. The conversation medium. Currently supports : PHONE_CALL, CHAT.
     #[serde(default)]
@@ -5743,7 +5744,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionMediumDimensionMetadata {
 }
 
 /// Metadata about the QA question-answer dimension. This is useful for showing the answer distribution for questions for a given scorecard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DimensionQaQuestionAnswerDimensionMetadata {
     /// Optional. The full body of the question.
     #[serde(default, rename = "answerValue")]
@@ -5760,7 +5761,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionQaQuestionAnswerDimensionM
 }
 
 /// Metadata about the QA question dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DimensionQaQuestionDimensionMetadata {
     /// Optional. The QA question ID.
     #[serde(default, rename = "qaQuestionId")]
@@ -5774,7 +5775,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionQaQuestionDimensionMetadat
 }
 
 /// Metadata about the QA scorecard dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DimensionQaScorecardDimensionMetadata {
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
@@ -5782,7 +5783,7 @@ pub struct GoogleCloudContactcenterinsightsV1DimensionQaScorecardDimensionMetada
 }
 
 /// A data point contains the metric values mapped to an interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPoint {
     /// The measure related to conversations.
     #[serde(default, rename = "conversationMeasure")]
@@ -5796,7 +5797,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPoint 
 }
 
 /// A correlation rule that defines how to join conversations for a given correlation type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CorrelationRule {
     /// Optional. Whether the config is active to be evaluated.
     #[serde(default)]
@@ -5813,7 +5814,7 @@ pub struct GoogleCloudContactcenterinsightsV1CorrelationRule {
 }
 
 /// The result of a single constraint rule on the pair of conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConstraintEvaluationResultRuleConstraintResult {
     /// Whether the constraint expression evaluated to true for (A, B) or (B, A).
     #[serde(default, rename = "constraintMet")]
@@ -5827,7 +5828,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConstraintEvaluationResultRuleConst
 }
 
 /// The result of a single correlation rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationResultRuleCorrelationResult {
     /// The correlation ID generated by the join key expression.
     #[serde(default, rename = "correlationId")]
@@ -5841,7 +5842,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationResultRuleCo
 }
 
 /// Call-specific metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationCallMetadata {
     /// The audio channel that contains the agent.
     #[serde(default, rename = "agentChannel")]
@@ -5852,7 +5853,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationCallMetadata {
 }
 
 /// Info for correlating across conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationInfo {
     /// Output only. The correlation types of this conversation. A single conversation can have multiple correlation types. For example a conversation that only has a single segment is both a SEGMENT and a FULL_CONVERSATION.
     #[serde(default, rename = "correlationTypes")]
@@ -5866,7 +5867,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationCorrelationInfo {
 }
 
 /// The conversation source, which is a combination of transcript and audio.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationDataSource {
     /// The source when the conversation comes from Dialogflow.
     #[serde(default, rename = "dialogflowSource")]
@@ -5886,7 +5887,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationDataSource {
 }
 
 /// The analysis resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Analysis {
     /// Output only. The result of the analysis, which is populated when the analysis finishes.
     #[serde(default, rename = "analysisResult")]
@@ -5907,7 +5908,7 @@ pub struct GoogleCloudContactcenterinsightsV1Analysis {
 }
 
 /// Conversation metadata related to quality management.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationQualityMetadata {
     /// Information about agents involved in the call.
     #[serde(default, rename = "agentInfo")]
@@ -5930,7 +5931,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationQualityMetadata {
 }
 
 /// An annotation that was generated during the customer and agent interaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1RuntimeAnnotation {
     /// The unique identifier of the annotation. Format: projects/{project}/locations/{location}/conversationDatasets/{dataset}/conversationDataItems/{data_item}/conversationAnnotations/{annotation}
     #[serde(default, rename = "annotationId")]
@@ -5978,7 +5979,7 @@ pub struct GoogleCloudContactcenterinsightsV1RuntimeAnnotation {
 }
 
 /// A message representing the transcript of a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationTranscript {
     /// A list of sequential transcript segments that comprise the conversation.
     #[serde(default, rename = "transcriptSegments")]
@@ -5988,7 +5989,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationTranscript {
 }
 
 /// Configs for the input data used to create the issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelInputDataConfig {
     /// A filter to reduce the conversations used for training the model to a specific subset. Refer to https://cloud.google.com/contact-center/insights/docs/filtering for details.
     #[serde(default)]
@@ -6002,7 +6003,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelInputDataConfig {
 }
 
 /// Aggregated statistics about an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelLabelStats {
     /// Number of conversations the issue model has analyzed at this point in time.
     #[serde(default, rename = "analyzedConversationsCount")]
@@ -6016,7 +6017,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelLabelStats {
 }
 
 /// A wrapper for system messages per turn.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageSystemMessages {
     /// A message from the system in response to the user.
     #[serde(default, rename = "systemMessages")]
@@ -6024,7 +6025,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 }
 
 /// The user message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageUserMessage
 {
     /// A message from the user that is interacting with the system.
@@ -6033,7 +6034,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 }
 
 /// Metadata about the agent dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionAgentDimensionMetadata {
     /// Optional. The agent''s deployment display name. Only applicable to automated agents. This will be populated for AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDeploymentDisplayName")]
@@ -6059,7 +6060,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionAgentDimensionMetada
 }
 
 /// Metadata about the client sentiment category dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionClientSentimentCategoryDimensionMetadata
 {
     /// Optional. The client sentiment category.
@@ -6068,7 +6069,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionClientSentimentCateg
 }
 
 /// Metadata about the conversation profile dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionConversationProfileDimensionMetadata {
     /// Optional. The conversation profile ID.
     #[serde(default, rename = "conversationProfileId")]
@@ -6076,7 +6077,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionConversationProfileD
 }
 
 /// Metadata about the Conversational Agents playbook dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionConversationalAgentsPlaybookDimensionMetadata
 {
     /// Optional. The dialogflow playbook display name.
@@ -6088,7 +6089,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionConversationalAgents
 }
 
 /// Metadata about the Conversational Agents tool dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionConversationalAgentsToolDimensionMetadata
 {
     /// Optional. The dialogflow tool display name.
@@ -6100,7 +6101,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionConversationalAgents
 }
 
 /// Metadata about the issue dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionIssueDimensionMetadata {
     /// The issue display name.
     #[serde(default, rename = "issueDisplayName")]
@@ -6114,7 +6115,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionIssueDimensionMetada
 }
 
 /// Metadata about conversation labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionLabelDimensionMetadata {
     /// Optional. The label key.
     #[serde(default, rename = "labelKey")]
@@ -6125,7 +6126,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionLabelDimensionMetada
 }
 
 /// Metadata about the conversation medium dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionMediumDimensionMetadata {
     /// Optional. The conversation medium. Currently supports : PHONE_CALL, CHAT.
     #[serde(default)]
@@ -6133,7 +6134,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionMediumDimensionMetad
 }
 
 /// Metadata about the QA question-answer dimension. This is useful for showing the answer distribution for questions for a given scorecard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionAnswerDimensionMetadata {
     /// Optional. The full body of the question.
     #[serde(default, rename = "answerValue")]
@@ -6150,7 +6151,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionAnswerDime
 }
 
 /// Metadata about the QA question dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionDimensionMetadata {
     /// Optional. The QA question ID.
     #[serde(default, rename = "qaQuestionId")]
@@ -6164,7 +6165,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaQuestionDimensionM
 }
 
 /// Metadata about the QA scorecard dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaScorecardDimensionMetadata {
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
@@ -6172,7 +6173,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DimensionQaScorecardDimension
 }
 
 /// A data point contains the metric values mapped to an interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPoint {
     /// The measure related to conversations.
     #[serde(default, rename = "conversationMeasure")]
@@ -6186,7 +6187,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceData
 }
 
 /// The result of a single constraint rule on the pair of conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResultRuleConstraintResult {
     /// Whether the constraint expression evaluated to true for (A, B) or (B, A).
     #[serde(default, rename = "constraintMet")]
@@ -6200,7 +6201,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConstraintEvaluationResultRul
 }
 
 /// The result of a single correlation rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationResultRuleCorrelationResult
 {
     /// The correlation ID generated by the join key expression.
@@ -6215,7 +6216,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationResult
 }
 
 /// Call-specific metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCallMetadata {
     /// The audio channel that contains the agent.
     #[serde(default, rename = "agentChannel")]
@@ -6226,7 +6227,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCallMetadata {
 }
 
 /// Info for correlating across conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationInfo {
     /// Output only. The correlation types of this conversation. A single conversation can have multiple correlation types. For example a conversation that only has a single segment is both a SEGMENT and a FULL_CONVERSATION.
     #[serde(default, rename = "correlationTypes")]
@@ -6240,7 +6241,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationCorrelationInfo {
 }
 
 /// The conversation source, which is a combination of transcript and audio.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationDataSource {
     /// The source when the conversation comes from Dialogflow.
     #[serde(default, rename = "dialogflowSource")]
@@ -6262,7 +6263,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationDataSource {
 }
 
 /// The analysis resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1Analysis {
     /// Output only. The result of the analysis, which is populated when the analysis finishes.
     #[serde(default, rename = "analysisResult")]
@@ -6284,7 +6285,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1Analysis {
 }
 
 /// Conversation metadata related to quality management.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadata {
     /// Information about agents involved in the call.
     #[serde(default, rename = "agentInfo")]
@@ -6310,7 +6311,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadata {
 }
 
 /// An annotation that was generated during the customer and agent interaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotation {
     /// The unique identifier of the annotation. Format: projects/{project}/locations/{location}/conversationDatasets/{dataset}/conversationDataItems/{data_item}/conversationAnnotations/{annotation}
     #[serde(default, rename = "annotationId")]
@@ -6360,7 +6361,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotation {
 }
 
 /// A message representing the transcript of a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscript {
     /// A list of sequential transcript segments that comprise the conversation.
     #[serde(default, rename = "transcriptSegments")]
@@ -6372,7 +6373,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscript {
 }
 
 /// Configs for the input data used to create the issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIssueModelInputDataConfig {
     /// A filter to reduce the conversations used for training the model to a specific subset. Refer to https://cloud.google.com/contact-center/insights/docs/filtering for details.
     #[serde(default)]
@@ -6386,7 +6387,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueModelInputDataConfig {
 }
 
 /// Aggregated statistics about an issue model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIssueModelLabelStats {
     /// Number of conversations the issue model has analyzed at this point in time.
     #[serde(default, rename = "analyzedConversationsCount")]
@@ -6400,7 +6401,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueModelLabelStats {
 }
 
 /// A wrapper for system messages per turn.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageSystemMessages {
     /// A message from the system in response to the user.
     #[serde(default, rename = "systemMessages")]
@@ -6408,7 +6409,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 }
 
 /// The user message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageUserMessage
 {
     /// A message from the user that is interacting with the system.
@@ -6417,7 +6418,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 }
 
 /// Metadata about the agent dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionAgentDimensionMetadata {
     /// Optional. The agent''s deployment display name. Only applicable to automated agents. This will be populated for AGENT_DEPLOYMENT_ID dimensions.
     #[serde(default, rename = "agentDeploymentDisplayName")]
@@ -6443,7 +6444,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionAgentDimensionMetadata
 }
 
 /// Metadata about the client sentiment category dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionClientSentimentCategoryDimensionMetadata {
     /// Optional. The client sentiment category.
     #[serde(default, rename = "sentimentCategory")]
@@ -6451,7 +6452,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionClientSentimentCategor
 }
 
 /// Metadata about the conversation profile dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionConversationProfileDimensionMetadata {
     /// Optional. The conversation profile ID.
     #[serde(default, rename = "conversationProfileId")]
@@ -6459,7 +6460,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionConversationProfileDim
 }
 
 /// Metadata about the Conversational Agents playbook dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionConversationalAgentsPlaybookDimensionMetadata
 {
     /// Optional. The dialogflow playbook display name.
@@ -6471,7 +6472,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionConversationalAgentsPl
 }
 
 /// Metadata about the Conversational Agents tool dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionConversationalAgentsToolDimensionMetadata
 {
     /// Optional. The dialogflow tool display name.
@@ -6483,7 +6484,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionConversationalAgentsTo
 }
 
 /// Metadata about the issue dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionIssueDimensionMetadata {
     /// The issue display name.
     #[serde(default, rename = "issueDisplayName")]
@@ -6497,7 +6498,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionIssueDimensionMetadata
 }
 
 /// Metadata about conversation labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionLabelDimensionMetadata {
     /// Optional. The label key.
     #[serde(default, rename = "labelKey")]
@@ -6508,7 +6509,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionLabelDimensionMetadata
 }
 
 /// Metadata about the conversation medium dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionMediumDimensionMetadata {
     /// Optional. The conversation medium. Currently supports : PHONE_CALL, CHAT.
     #[serde(default)]
@@ -6516,7 +6517,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionMediumDimensionMetadat
 }
 
 /// Metadata about the QA question-answer dimension. This is useful for showing the answer distribution for questions for a given scorecard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionAnswerDimensionMetadata {
     /// Optional. The full body of the question.
     #[serde(default, rename = "answerValue")]
@@ -6533,7 +6534,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionAnswerDimens
 }
 
 /// Metadata about the QA question dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionDimensionMetadata {
     /// Optional. The QA question ID.
     #[serde(default, rename = "qaQuestionId")]
@@ -6547,7 +6548,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaQuestionDimensionMet
 }
 
 /// Metadata about the QA scorecard dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaScorecardDimensionMetadata {
     /// Optional. The QA scorecard ID.
     #[serde(default, rename = "qaScorecardId")]
@@ -6555,7 +6556,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDimensionQaScorecardDimensionMe
 }
 
 /// A data point contains the metric values mapped to an interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPoint {
     /// The measure related to conversations.
     #[serde(default, rename = "conversationMeasure")]
@@ -6569,7 +6570,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPo
 }
 
 /// The result of a single constraint rule on the pair of conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResultRuleConstraintResult {
     /// Whether the constraint expression evaluated to true for (A, B) or (B, A).
     #[serde(default, rename = "constraintMet")]
@@ -6583,7 +6584,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConstraintEvaluationResultRuleC
 }
 
 /// The result of a single correlation rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationCorrelationResultRuleCorrelationResult
 {
     /// The correlation ID generated by the join key expression.
@@ -6598,7 +6599,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationCorrelationResultRu
 }
 
 /// Call-specific metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationCallMetadata {
     /// The audio channel that contains the agent.
     #[serde(default, rename = "agentChannel")]
@@ -6609,7 +6610,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationCallMetadata {
 }
 
 /// Info for correlating across conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationCorrelationInfo {
     /// Output only. The correlation types of this conversation. A single conversation can have multiple correlation types. For example a conversation that only has a single segment is both a SEGMENT and a FULL_CONVERSATION.
     #[serde(default, rename = "correlationTypes")]
@@ -6623,7 +6624,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationCorrelationInfo {
 }
 
 /// The conversation source, which is a combination of transcript and audio.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationDataSource {
     /// The source when the conversation comes from Dialogflow.
     #[serde(default, rename = "dialogflowSource")]
@@ -6643,7 +6644,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationDataSource {
 }
 
 /// The analysis resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainAnalysis {
     /// Output only. The result of the analysis, which is populated when the analysis finishes.
     #[serde(default, rename = "analysisResult")]
@@ -6665,7 +6666,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnalysis {
 }
 
 /// Conversation metadata related to quality management.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationQualityMetadata {
     /// Information about agents involved in the call.
     #[serde(default, rename = "agentInfo")]
@@ -6689,7 +6690,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationQualityMetadata {
 }
 
 /// An annotation that was generated during the customer and agent interaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainRuntimeAnnotation {
     /// The unique identifier of the annotation. Format: projects/{project}/locations/{location}/conversationDatasets/{dataset}/conversationDataItems/{data_item}/conversationAnnotations/{annotation}
     #[serde(default, rename = "annotationId")]
@@ -6739,7 +6740,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainRuntimeAnnotation {
 }
 
 /// A message representing the transcript of a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscript {
     /// A list of sequential transcript segments that comprise the conversation.
     #[serde(default, rename = "transcriptSegments")]
@@ -6751,7 +6752,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscript {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -6762,7 +6763,7 @@ pub struct GoogleIamV1AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -6779,7 +6780,7 @@ pub struct GoogleTypeExpr {
 }
 
 /// A message from the system in response to the user. This message can also be a message from the user as historical context for multiturn conversations with the system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageSystemMessage {
     /// Chart spec from LLM
     #[serde(default, rename = "chartSpec")]
@@ -6799,7 +6800,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 }
 
 /// Configuration information of a phrase match rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleConfig {
     /// The configuration for the exact match rule.
     #[serde(default, rename = "exactMatchConfig")]
@@ -6811,7 +6812,7 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatchRuleConfig {
 }
 
 /// The measure related to conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointConversationMeasure {
     /// The number of conversations that were assigned to an AA human supervisor.
     #[serde(default, rename = "aaSupervisorAssignedConversationsCount")]
@@ -6981,7 +6982,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointC
 }
 
 /// The measure related to dialogflow interactions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointDialogflowInteractionMeasure
 {
     /// The percentile result for audio in audio out latency in milliseconds per dialogflow interaction level.
@@ -7012,7 +7013,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointD
 }
 
 /// A Dialogflow source of conversation data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DialogflowSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
@@ -7023,7 +7024,7 @@ pub struct GoogleCloudContactcenterinsightsV1DialogflowSource {
 }
 
 /// A Cloud Storage source of conversation data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GcsSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
@@ -7034,7 +7035,7 @@ pub struct GoogleCloudContactcenterinsightsV1GcsSource {
 }
 
 /// The result of an analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AnalysisResult {
     /// Call-specific metadata created by the analysis.
     #[serde(default, rename = "callAnalysisMetadata")]
@@ -7047,7 +7048,7 @@ pub struct GoogleCloudContactcenterinsightsV1AnalysisResult {
 }
 
 /// Selector of all available annotators and phrase matchers to run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelector {
     /// The issue model to run. If not provided, the most recently deployed topic model will be used. The provided issue model will only be used for inference if the issue model is deployed and if run_issue_model_annotator is set to true. If more than one issue model is provided, only the first provided issue model will be used for inference.
     #[serde(default, rename = "issueModels")]
@@ -7097,7 +7098,7 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelector {
 }
 
 /// Information about an agent involved in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationQualityMetadataAgentInfo {
     /// A user-specified string representing the agent.
     #[serde(default, rename = "agentId")]
@@ -7138,7 +7139,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationQualityMetadataAgentInf
 }
 
 /// Represents a conversation, resource, and label provided by the user. Can take the form of a string label or a QaAnswer label. QaAnswer labels are used for Quality AI example conversations. String labels are used for Topic Modeling. AgentAssistSummary labels are used for Agent Assist Summarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1FeedbackLabel {
     /// Output only. Create time of the label.
     #[serde(default, rename = "createTime")]
@@ -7162,7 +7163,7 @@ pub struct GoogleCloudContactcenterinsightsV1FeedbackLabel {
 }
 
 /// The feedback that the customer has about a certain answer in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AnswerFeedback {
     /// Indicates whether an answer or item was clicked by the human agent.
     #[serde(default)]
@@ -7176,7 +7177,7 @@ pub struct GoogleCloudContactcenterinsightsV1AnswerFeedback {
 }
 
 /// Agent Assist Article Suggestion data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ArticleSuggestionData {
     /// The system''s confidence score that this article is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
@@ -7199,7 +7200,7 @@ pub struct GoogleCloudContactcenterinsightsV1ArticleSuggestionData {
 }
 
 /// Conversation summarization suggestion data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationSummarizationSuggestionData {
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "answerRecord")]
@@ -7225,7 +7226,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationSummarizationSuggestion
 }
 
 /// Dialogflow interaction data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DialogflowInteractionData {
     /// The confidence of the match ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default)]
@@ -7236,7 +7237,7 @@ pub struct GoogleCloudContactcenterinsightsV1DialogflowInteractionData {
 }
 
 /// Agent Assist frequently-asked-question answer data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1FaqAnswerData {
     /// The piece of text from the source knowledge base document.
     #[serde(default)]
@@ -7259,7 +7260,7 @@ pub struct GoogleCloudContactcenterinsightsV1FaqAnswerData {
 }
 
 /// Agent Assist Smart Compose suggestion data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SmartComposeSuggestionData {
     /// The system''s confidence score that this suggestion is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
@@ -7276,7 +7277,7 @@ pub struct GoogleCloudContactcenterinsightsV1SmartComposeSuggestionData {
 }
 
 /// Agent Assist Smart Reply data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SmartReplyData {
     /// The system''s confidence score that this reply is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
@@ -7293,7 +7294,7 @@ pub struct GoogleCloudContactcenterinsightsV1SmartReplyData {
 }
 
 /// Explicit input used for generating the answer
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1RuntimeAnnotationUserInput {
     /// The resource name of associated generator. Format: projects//locations//generators/
     #[serde(default, rename = "generatorName")]
@@ -7307,7 +7308,7 @@ pub struct GoogleCloudContactcenterinsightsV1RuntimeAnnotationUserInput {
 }
 
 /// A segment of a full transcript.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSegment {
     /// For conversations derived from multi-channel audio, this is the channel number corresponding to the audio from that channel. For audioChannelCount = N, its output values can range from ''1'' to ''N''. A channel tag of 0 indicates that the audio is mono.
     #[serde(default, rename = "channelTag")]
@@ -7342,7 +7343,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSeg
 }
 
 /// A message from the system in response to the user. This message can also be a message from the user as historical context for multiturn conversations with the system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageSystemMessage {
     /// Chart spec from LLM
     #[serde(default, rename = "chartSpec")]
@@ -7362,7 +7363,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 }
 
 /// The measure related to conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointConversationMeasure {
     /// The number of conversations that were assigned to an AA human supervisor.
     #[serde(default, rename = "aaSupervisorAssignedConversationsCount")]
@@ -7532,7 +7533,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceData
 }
 
 /// The measure related to dialogflow interactions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointDialogflowInteractionMeasure
 {
     /// The percentile result for audio in audio out latency in milliseconds per dialogflow interaction level.
@@ -7563,7 +7564,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceData
 }
 
 /// A Dialogflow source of conversation data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
@@ -7574,7 +7575,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowSource {
 }
 
 /// A Cloud Storage source of conversation data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1GcsSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
@@ -7585,7 +7586,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GcsSource {
 }
 
 /// The result of an analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnalysisResult {
     /// Call-specific metadata created by the analysis.
     #[serde(default, rename = "callAnalysisMetadata")]
@@ -7598,7 +7599,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnalysisResult {
 }
 
 /// Selector of all available annotators and phrase matchers to run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector {
     /// The issue model to run. If not provided, the most recently deployed topic model will be used. The provided issue model will only be used for inference if the issue model is deployed and if run_issue_model_annotator is set to true. If more than one issue model is provided, only the first provided issue model will be used for inference.
     #[serde(default, rename = "issueModels")]
@@ -7648,7 +7649,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelector {
 }
 
 /// Information about an agent involved in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadataAgentInfo {
     /// A user-specified string representing the agent.
     #[serde(default, rename = "agentId")]
@@ -7689,7 +7690,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationQualityMetadataAg
 }
 
 /// Represents a conversation, resource, and label provided by the user. Can take the form of a string label or a QaAnswer label. QaAnswer labels are used for Quality AI example conversations. String labels are used for Topic Modeling. AgentAssistSummary labels are used for Agent Assist Summarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1FeedbackLabel {
     /// Output only. Create time of the label.
     #[serde(default, rename = "createTime")]
@@ -7713,7 +7714,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1FeedbackLabel {
 }
 
 /// The feedback that the customer has about a certain answer in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnswerFeedback {
     /// Indicates whether an answer or item was clicked by the human agent.
     #[serde(default)]
@@ -7727,7 +7728,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnswerFeedback {
 }
 
 /// Agent Assist Article Suggestion data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ArticleSuggestionData {
     /// The system''s confidence score that this article is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
@@ -7750,7 +7751,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ArticleSuggestionData {
 }
 
 /// Conversation summarization suggestion data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationSummarizationSuggestionData {
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "answerRecord")]
@@ -7776,7 +7777,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationSummarizationSugg
 }
 
 /// Dialogflow interaction data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowInteractionData {
     /// The confidence of the match ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default)]
@@ -7787,7 +7788,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1DialogflowInteractionData {
 }
 
 /// Agent Assist frequently-asked-question answer data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1FaqAnswerData {
     /// The piece of text from the source knowledge base document.
     #[serde(default)]
@@ -7810,7 +7811,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1FaqAnswerData {
 }
 
 /// Agent Assist Smart Compose suggestion data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1SmartComposeSuggestionData {
     /// The system''s confidence score that this suggestion is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
@@ -7827,7 +7828,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SmartComposeSuggestionData {
 }
 
 /// Agent Assist Smart Reply data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1SmartReplyData {
     /// The system''s confidence score that this reply is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
@@ -7844,7 +7845,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SmartReplyData {
 }
 
 /// Explicit input used for generating the answer
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotationUserInput {
     /// The resource name of associated generator. Format: projects//locations//generators/
     #[serde(default, rename = "generatorName")]
@@ -7858,7 +7859,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1RuntimeAnnotationUserInput {
 }
 
 /// A segment of a full transcript.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscriptSegment {
     /// For conversations derived from multi-channel audio, this is the channel number corresponding to the audio from that channel. For audioChannelCount = N, its output values can range from ''1'' to ''N''. A channel tag of 0 indicates that the audio is mono.
     #[serde(default, rename = "channelTag")]
@@ -7893,7 +7894,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscr
 }
 
 /// A message from the system in response to the user. This message can also be a message from the user as historical context for multiturn conversations with the system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageSystemMessage {
     /// Chart spec from LLM
     #[serde(default, rename = "chartSpec")]
@@ -7913,7 +7914,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 }
 
 /// The measure related to conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointConversationMeasure {
     /// The number of conversations that were assigned to an AA human supervisor.
     #[serde(default, rename = "aaSupervisorAssignedConversationsCount")]
@@ -8083,7 +8084,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPo
 }
 
 /// The measure related to dialogflow interactions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointDialogflowInteractionMeasure
 {
     /// The percentile result for audio in audio out latency in milliseconds per dialogflow interaction level.
@@ -8114,7 +8115,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPo
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeInterval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
@@ -8125,7 +8126,7 @@ pub struct GoogleTypeInterval {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -8139,7 +8140,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// A Dialogflow source of conversation data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDialogflowSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
@@ -8150,7 +8151,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDialogflowSource {
 }
 
 /// A Cloud Storage source of conversation data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainGcsSource {
     /// Cloud Storage URI that points to a file that contains the conversation audio.
     #[serde(default, rename = "audioUri")]
@@ -8161,7 +8162,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGcsSource {
 }
 
 /// The result of an analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainAnalysisResult {
     /// Call-specific metadata created by the analysis.
     #[serde(default, rename = "callAnalysisMetadata")]
@@ -8174,7 +8175,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnalysisResult {
 }
 
 /// Selector of all available annotators and phrase matchers to run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelector {
     /// The issue model to run. If not provided, the most recently deployed topic model will be used. The provided issue model will only be used for inference if the issue model is deployed and if run_issue_model_annotator is set to true. If more than one issue model is provided, only the first provided issue model will be used for inference.
     #[serde(default, rename = "issueModels")]
@@ -8224,7 +8225,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelector {
 }
 
 /// Information about an agent involved in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationQualityMetadataAgentInfo {
     /// A user-specified string representing the agent.
     #[serde(default, rename = "agentId")]
@@ -8265,7 +8266,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationQualityMetadataAgen
 }
 
 /// Represents a conversation, resource, and label provided by the user. Can take the form of a string label or a QaAnswer label. QaAnswer labels are used for Quality AI example conversations. String labels are used for Topic Modeling. AgentAssistSummary labels are used for Agent Assist Summarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainFeedbackLabel {
     /// Output only. Create time of the label.
     #[serde(default, rename = "createTime")]
@@ -8289,7 +8290,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainFeedbackLabel {
 }
 
 /// The feedback that the customer has about a certain answer in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainAnswerFeedback {
     /// Indicates whether an answer or item was clicked by the human agent.
     #[serde(default)]
@@ -8303,7 +8304,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnswerFeedback {
 }
 
 /// Agent Assist Article Suggestion data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainArticleSuggestionData {
     /// The system''s confidence score that this article is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
@@ -8326,7 +8327,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainArticleSuggestionData {
 }
 
 /// Conversation summarization suggestion data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationSummarizationSuggestionData {
     /// The name of the answer record. Format: projects/{project}/locations/{location}/answerRecords/{answer_record}
     #[serde(default, rename = "answerRecord")]
@@ -8352,7 +8353,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationSummarizationSugges
 }
 
 /// Dialogflow interaction data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainDialogflowInteractionData {
     /// The confidence of the match ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default)]
@@ -8363,7 +8364,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainDialogflowInteractionData {
 }
 
 /// Agent Assist frequently-asked-question answer data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainFaqAnswerData {
     /// The piece of text from the source knowledge base document.
     #[serde(default)]
@@ -8386,7 +8387,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainFaqAnswerData {
 }
 
 /// Agent Assist Smart Compose suggestion data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainSmartComposeSuggestionData {
     /// The system''s confidence score that this suggestion is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
@@ -8403,7 +8404,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainSmartComposeSuggestionData {
 }
 
 /// Agent Assist Smart Reply data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainSmartReplyData {
     /// The system''s confidence score that this reply is a good match for this conversation, ranging from 0.0 (completely uncertain) to 1.0 (completely certain).
     #[serde(default, rename = "confidenceScore")]
@@ -8420,7 +8421,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainSmartReplyData {
 }
 
 /// Explicit input used for generating the answer
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainRuntimeAnnotationUserInput {
     /// The resource name of associated generator. Format: projects//locations//generators/
     #[serde(default, rename = "generatorName")]
@@ -8434,7 +8435,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainRuntimeAnnotationUserInput {
 }
 
 /// A segment of a full transcript.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscriptSegment {
     /// For conversations derived from multi-channel audio, this is the channel number corresponding to the audio from that channel. For audioChannelCount = N, its output values can range from ''1'' to ''N''. A channel tag of 0 indicates that the audio is mono.
     #[serde(default, rename = "channelTag")]
@@ -8469,7 +8470,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscrip
 }
 
 /// A text output message from the system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTranscriptMessageSystemMessageTextOutput
 {
     /// The parts of the message.
@@ -8481,7 +8482,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightConversationTransc
 }
 
 /// Exact match configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ExactMatchConfig {
     /// Whether to consider case sensitivity when performing an exact match.
     #[serde(default, rename = "caseSensitive")]
@@ -8489,7 +8490,7 @@ pub struct GoogleCloudContactcenterinsightsV1ExactMatchConfig {
 }
 
 /// Average QA normalized score for the tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointConversationMeasureQaTagScore
 {
     /// Average tag normalized score per tag.
@@ -8501,7 +8502,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointC
 }
 
 /// The percentile result. Currently supported percentiles are 50th, 90th, and 99th.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointPercentileResult {
     /// The 50th percentile value.
     #[serde(default)]
@@ -8515,7 +8516,7 @@ pub struct GoogleCloudContactcenterinsightsV1QueryMetricsResponseSliceDataPointP
 }
 
 /// Call-specific metadata created during analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AnalysisResultCallAnalysisMetadata {
     /// A list of call annotations that apply to this call.
     #[serde(default)]
@@ -8550,7 +8551,7 @@ pub struct GoogleCloudContactcenterinsightsV1AnalysisResultCallAnalysisMetadata 
 }
 
 /// Configuration for the QA feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig {
     /// A manual list of scorecards to score.
     #[serde(default, rename = "scorecardList")]
@@ -8560,7 +8561,7 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfig {
 }
 
 /// Configuration for summarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfig {
     /// Resource name of the Dialogflow conversation profile. Format: projects/{project}/locations/{location}/conversationProfiles/{conversation_profile}
     #[serde(default, rename = "conversationProfile")]
@@ -8574,7 +8575,7 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorSummarizationConfi
 }
 
 /// Metadata from Dialogflow relating to the current transcript segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSegmentDialogflowSegmentMetadata
 {
     /// Whether the transcript segment was covered under the configured smart reply allowlist in Agent Assist.
@@ -8583,7 +8584,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSeg
 }
 
 /// The call participant speaking for a given utterance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationParticipant {
     /// Deprecated. Use dialogflow_participant_name instead. The name of the Dialogflow participant. Format: projects/{project}/locations/{location}/conversations/{conversation}/participants/{participant}
     #[serde(default, rename = "dialogflowParticipant")]
@@ -8603,7 +8604,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationParticipant {
 }
 
 /// A wrapper for holding the audio for any given turn.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationDataSourceTurnLevelAudio {
     /// The duration of the audio.
     #[serde(default, rename = "audioDuration")]
@@ -8614,7 +8615,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationDataSourceTurnLevelAudi
 }
 
 /// Word-level info for words in a transcript.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSegmentWordInfo {
     /// A confidence estimate between 0.0 and 1.0 of the fidelity of this word. A default value of 0.0 indicates that the value is unset.
     #[serde(default)]
@@ -8631,7 +8632,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationTranscriptTranscriptSeg
 }
 
 /// A text output message from the system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversationTranscriptMessageSystemMessageTextOutput
 {
     /// The parts of the message.
@@ -8643,7 +8644,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1GenerativeInsightConversation
 }
 
 /// Average QA normalized score for the tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointConversationMeasureQaTagScore
 {
     /// Average tag normalized score per tag.
@@ -8655,7 +8656,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceData
 }
 
 /// The percentile result. Currently supported percentiles are 50th, 90th, and 99th.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceDataPointPercentileResult
 {
     /// The 50th percentile value.
@@ -8670,7 +8671,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QueryMetricsResponseSliceData
 }
 
 /// Call-specific metadata created during analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnalysisResultCallAnalysisMetadata {
     /// A list of call annotations that apply to this call.
     #[serde(default)]
@@ -8707,7 +8708,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnalysisResultCallAnalysisMet
 }
 
 /// Configuration for the QA feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfig {
     /// A manual list of scorecards to score.
     #[serde(default, rename = "scorecardList")]
@@ -8717,7 +8718,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfig {
 }
 
 /// Configuration for summarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorSummarizationConfig {
     /// Resource name of the Dialogflow conversation profile. Format: projects/{project}/locations/{location}/conversationProfiles/{conversation_profile}
     #[serde(default, rename = "conversationProfile")]
@@ -8731,7 +8732,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorSummarizatio
 }
 
 /// Metadata from Dialogflow relating to the current transcript segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscriptSegmentDialogflowSegmentMetadata
 {
     /// Whether the transcript segment was covered under the configured smart reply allowlist in Agent Assist.
@@ -8740,7 +8741,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscr
 }
 
 /// The call participant speaking for a given utterance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationParticipant {
     /// Deprecated. Use dialogflow_participant_name instead. The name of the Dialogflow participant. Format: projects/{project}/locations/{location}/conversations/{conversation}/participants/{participant}
     #[serde(default, rename = "dialogflowParticipant")]
@@ -8760,7 +8761,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationParticipant {
 }
 
 /// A wrapper for holding the audio for any given turn.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationDataSourceTurnLevelAudio {
     /// The duration of the audio.
     #[serde(default, rename = "audioDuration")]
@@ -8771,7 +8772,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationDataSourceTurnLev
 }
 
 /// Word-level info for words in a transcript.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscriptSegmentWordInfo {
     /// A confidence estimate between 0.0 and 1.0 of the fidelity of this word. A default value of 0.0 indicates that the value is unset.
     #[serde(default)]
@@ -8788,7 +8789,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationTranscriptTranscr
 }
 
 /// A text output message from the system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTranscriptMessageSystemMessageTextOutput
 {
     /// The parts of the message.
@@ -8800,7 +8801,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainGenerativeInsightConversationTr
 }
 
 /// Average QA normalized score for the tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointConversationMeasureQaTagScore
 {
     /// Average tag normalized score per tag.
@@ -8812,7 +8813,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPo
 }
 
 /// The percentile result. Currently supported percentiles are 50th, 90th, and 99th.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPointPercentileResult
 {
     /// The 50th percentile value.
@@ -8827,7 +8828,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQueryMetricsResponseSliceDataPo
 }
 
 /// Call-specific metadata created during analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainAnalysisResultCallAnalysisMetadata {
     /// A list of call annotations that apply to this call.
     #[serde(default)]
@@ -8864,7 +8865,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnalysisResultCallAnalysisMetad
 }
 
 /// Configuration for the QA feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfig {
     /// A manual list of scorecards to score.
     #[serde(default, rename = "scorecardList")]
@@ -8874,7 +8875,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfig {
 }
 
 /// Configuration for summarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorSummarizationConfig {
     /// Resource name of the Dialogflow conversation profile. Format: projects/{project}/locations/{location}/conversationProfiles/{conversation_profile}
     #[serde(default, rename = "conversationProfile")]
@@ -8888,7 +8889,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorSummarizationC
 }
 
 /// Metadata from Dialogflow relating to the current transcript segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscriptSegmentDialogflowSegmentMetadata
 {
     /// Whether the transcript segment was covered under the configured smart reply allowlist in Agent Assist.
@@ -8897,7 +8898,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscrip
 }
 
 /// The call participant speaking for a given utterance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationParticipant {
     /// Deprecated. Use dialogflow_participant_name instead. The name of the Dialogflow participant. Format: projects/{project}/locations/{location}/conversations/{conversation}/participants/{participant}
     #[serde(default, rename = "dialogflowParticipant")]
@@ -8917,7 +8918,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationParticipant {
 }
 
 /// A wrapper for holding the audio for any given turn.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationDataSourceTurnLevelAudio {
     /// The duration of the audio.
     #[serde(default, rename = "audioDuration")]
@@ -8928,7 +8929,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationDataSourceTurnLevel
 }
 
 /// Word-level info for words in a transcript.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscriptSegmentWordInfo {
     /// A confidence estimate between 0.0 and 1.0 of the fidelity of this word. A default value of 0.0 indicates that the value is unset.
     #[serde(default)]
@@ -8945,7 +8946,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationTranscriptTranscrip
 }
 
 /// A piece of metadata that applies to a window of a call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1CallAnnotation {
     /// The boundary in the conversation where the annotation ends, inclusive.
     #[serde(default, rename = "annotationEndBoundary")]
@@ -8988,7 +8989,7 @@ pub struct GoogleCloudContactcenterinsightsV1CallAnnotation {
 }
 
 /// Issue Modeling result on a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IssueModelResult {
     /// Issue model that generates the result. Format: projects/{project}/locations/{location}/issueModels/{issue_model}
     #[serde(default, rename = "issueModel")]
@@ -9000,7 +9001,7 @@ pub struct GoogleCloudContactcenterinsightsV1IssueModelResult {
 }
 
 /// The results of scoring a single conversation against a QaScorecard. Contains a collection of QaAnswers and aggregate score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaScorecardResult {
     /// ID of the agent that handled the conversation.
     #[serde(default, rename = "agentId")]
@@ -9043,7 +9044,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecardResult {
 }
 
 /// One channel of conversation-level sentiment data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSentiment {
     /// The channel of the audio that the data applies to.
     #[serde(default, rename = "channelTag")]
@@ -9054,7 +9055,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSentiment {
 }
 
 /// Conversation-level silence data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSilence {
     /// Amount of time calculated to be in silence.
     #[serde(default, rename = "silenceDuration")]
@@ -9065,7 +9066,7 @@ pub struct GoogleCloudContactcenterinsightsV1ConversationLevelSilence {
 }
 
 /// Container for a list of scorecards.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardList {
     /// List of QaScorecardRevisions.
     #[serde(default, rename = "qaScorecardRevisions")]
@@ -9073,7 +9074,7 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotatorSelectorQaConfigScorecardL
 }
 
 /// A piece of metadata that applies to a window of a call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1CallAnnotation {
     /// The boundary in the conversation where the annotation ends, inclusive.
     #[serde(default, rename = "annotationEndBoundary")]
@@ -9118,7 +9119,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1CallAnnotation {
 }
 
 /// Issue Modeling result on a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelResult {
     /// Issue model that generates the result. Format: projects/{project}/locations/{location}/issueModels/{issue_model}
     #[serde(default, rename = "issueModel")]
@@ -9131,7 +9132,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueModelResult {
 }
 
 /// The results of scoring a single conversation against a QaScorecard. Contains a collection of QaAnswers and aggregate score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResult {
     /// ID of the agent that handled the conversation.
     #[serde(default, rename = "agentId")]
@@ -9174,7 +9175,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResult {
 }
 
 /// One channel of conversation-level sentiment data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSentiment {
     /// The channel of the audio that the data applies to.
     #[serde(default, rename = "channelTag")]
@@ -9186,7 +9187,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSentiment {
 }
 
 /// Conversation-level silence data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSilence {
     /// Amount of time calculated to be in silence.
     #[serde(default, rename = "silenceDuration")]
@@ -9197,7 +9198,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1ConversationLevelSilence {
 }
 
 /// Container for a list of scorecards.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfigScorecardList {
     /// List of QaScorecardRevisions.
     #[serde(default, rename = "qaScorecardRevisions")]
@@ -9205,7 +9206,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotatorSelectorQaConfigScor
 }
 
 /// A piece of metadata that applies to a window of a call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainCallAnnotation {
     /// The boundary in the conversation where the annotation ends, inclusive.
     #[serde(default, rename = "annotationEndBoundary")]
@@ -9249,7 +9250,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainCallAnnotation {
 }
 
 /// Issue Modeling result on a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIssueModelResult {
     /// Issue model that generates the result. Format: projects/{project}/locations/{location}/issueModels/{issue_model}
     #[serde(default, rename = "issueModel")]
@@ -9262,7 +9263,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueModelResult {
 }
 
 /// The results of scoring a single conversation against a QaScorecard. Contains a collection of QaAnswers and aggregate score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResult {
     /// ID of the agent that handled the conversation.
     #[serde(default, rename = "agentId")]
@@ -9305,7 +9306,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResult {
 }
 
 /// One channel of conversation-level sentiment data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationLevelSentiment {
     /// The channel of the audio that the data applies to.
     #[serde(default, rename = "channelTag")]
@@ -9316,7 +9317,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationLevelSentiment {
 }
 
 /// Conversation-level silence data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainConversationLevelSilence {
     /// Amount of time calculated to be in silence.
     #[serde(default, rename = "silenceDuration")]
@@ -9327,7 +9328,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainConversationLevelSilence {
 }
 
 /// Container for a list of scorecards.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfigScorecardList {
     /// List of QaScorecardRevisions.
     #[serde(default, rename = "qaScorecardRevisions")]
@@ -9335,7 +9336,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnnotatorSelectorQaConfigScorec
 }
 
 /// A point in a conversation that marks the start or the end of an annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1AnnotationBoundary {
     /// The index in the sequence of transcribed pieces of the conversation where the boundary is located. This index starts at zero.
     #[serde(default, rename = "transcriptIndex")]
@@ -9346,7 +9347,7 @@ pub struct GoogleCloudContactcenterinsightsV1AnnotationBoundary {
 }
 
 /// The data for an entity mention annotation. This represents a mention of an Entity in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1EntityMentionData {
     /// The key of this entity in conversation entities. Can be used to retrieve the exact Entity this mention is attached to.
     #[serde(default, rename = "entityUniqueId")]
@@ -9360,7 +9361,7 @@ pub struct GoogleCloudContactcenterinsightsV1EntityMentionData {
 }
 
 /// The data for an intent match. Represents an intent match for a text segment in the conversation. A text segment can be part of a sentence, a complete sentence, or an utterance with multiple sentences.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IntentMatchData {
     /// The id of the matched intent. Can be used to retrieve the corresponding intent information.
     #[serde(default, rename = "intentUniqueId")]
@@ -9368,7 +9369,7 @@ pub struct GoogleCloudContactcenterinsightsV1IntentMatchData {
 }
 
 /// The data for an issue match annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IssueMatchData {
     /// Information about the issue''s assignment.
     #[serde(default, rename = "issueAssignment")]
@@ -9376,7 +9377,7 @@ pub struct GoogleCloudContactcenterinsightsV1IssueMatchData {
 }
 
 /// The data for a matched phrase matcher. Represents information identifying a phrase matcher for a given match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1PhraseMatchData {
     /// The human-readable name of the phrase matcher.
     #[serde(default, rename = "displayName")]
@@ -9387,7 +9388,7 @@ pub struct GoogleCloudContactcenterinsightsV1PhraseMatchData {
 }
 
 /// An answer to a QaQuestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaAnswer {
     /// Lists all answer sources containing one or more answer values of a specific source type, e.g., all system-generated answer sources, or all manual edit answer sources.
     #[serde(default, rename = "answerSources")]
@@ -9412,7 +9413,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaAnswer {
 }
 
 /// A scorecard result may have multiple sets of scores from varying sources, one of which becomes the "main" answer above. A ScoreSource represents each individual set of scores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultScoreSource {
     /// The normalized score, which is the score divided by the potential score.
     #[serde(default, rename = "normalizedScore")]
@@ -9434,7 +9435,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultScoreSource {
 }
 
 /// A point in a conversation that marks the start or the end of an annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary {
     /// The index in the sequence of transcribed pieces of the conversation where the boundary is located. This index starts at zero.
     #[serde(default, rename = "transcriptIndex")]
@@ -9445,7 +9446,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1AnnotationBoundary {
 }
 
 /// The data for an entity mention annotation. This represents a mention of an Entity in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1EntityMentionData {
     /// The key of this entity in conversation entities. Can be used to retrieve the exact Entity this mention is attached to.
     #[serde(default, rename = "entityUniqueId")]
@@ -9459,7 +9460,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1EntityMentionData {
 }
 
 /// The data for an intent match. Represents an intent match for a text segment in the conversation. A text segment can be part of a sentence, a complete sentence, or an utterance with multiple sentences.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IntentMatchData {
     /// The id of the matched intent. Can be used to retrieve the corresponding intent information.
     #[serde(default, rename = "intentUniqueId")]
@@ -9467,7 +9468,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IntentMatchData {
 }
 
 /// The data for an issue match annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueMatchData {
     /// Information about the issue''s assignment.
     #[serde(default, rename = "issueAssignment")]
@@ -9476,7 +9477,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueMatchData {
 }
 
 /// The data for a matched phrase matcher. Represents information identifying a phrase matcher for a given match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1PhraseMatchData {
     /// The human-readable name of the phrase matcher.
     #[serde(default, rename = "displayName")]
@@ -9487,7 +9488,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1PhraseMatchData {
 }
 
 /// An answer to a QaQuestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswer {
     /// Lists all answer sources containing one or more answer values of a specific source type, e.g., all system-generated answer sources, or all manual edit answer sources.
     #[serde(default, rename = "answerSources")]
@@ -9513,7 +9514,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswer {
 }
 
 /// A scorecard result may have multiple sets of scores from varying sources, one of which becomes the "main" answer above. A ScoreSource represents each individual set of scores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultScoreSource {
     /// The normalized score, which is the score divided by the potential score.
     #[serde(default, rename = "normalizedScore")]
@@ -9535,7 +9536,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultScoreSource 
 }
 
 /// A point in a conversation that marks the start or the end of an annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainAnnotationBoundary {
     /// The index in the sequence of transcribed pieces of the conversation where the boundary is located. This index starts at zero.
     #[serde(default, rename = "transcriptIndex")]
@@ -9546,7 +9547,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainAnnotationBoundary {
 }
 
 /// The data for an entity mention annotation. This represents a mention of an Entity in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainEntityMentionData {
     /// The key of this entity in conversation entities. Can be used to retrieve the exact Entity this mention is attached to.
     #[serde(default, rename = "entityUniqueId")]
@@ -9560,7 +9561,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainEntityMentionData {
 }
 
 /// The data for an intent match. Represents an intent match for a text segment in the conversation. A text segment can be part of a sentence, a complete sentence, or an utterance with multiple sentences.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIntentMatchData {
     /// The id of the matched intent. Can be used to retrieve the corresponding intent information.
     #[serde(default, rename = "intentUniqueId")]
@@ -9568,7 +9569,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIntentMatchData {
 }
 
 /// The data for an issue match annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIssueMatchData {
     /// Information about the issue''s assignment.
     #[serde(default, rename = "issueAssignment")]
@@ -9577,7 +9578,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueMatchData {
 }
 
 /// The data for a matched phrase matcher. Represents information identifying a phrase matcher for a given match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainPhraseMatchData {
     /// The human-readable name of the phrase matcher.
     #[serde(default, rename = "displayName")]
@@ -9588,7 +9589,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainPhraseMatchData {
 }
 
 /// An answer to a QaQuestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQaAnswer {
     /// Lists all answer sources containing one or more answer values of a specific source type, e.g., all system-generated answer sources, or all manual edit answer sources.
     #[serde(default, rename = "answerSources")]
@@ -9614,7 +9615,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaAnswer {
 }
 
 /// A scorecard result may have multiple sets of scores from varying sources, one of which becomes the "main" answer above. A ScoreSource represents each individual set of scores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResultScoreSource {
     /// The normalized score, which is the score divided by the potential score.
     #[serde(default, rename = "normalizedScore")]
@@ -9636,7 +9637,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResultScoreSource {
 }
 
 /// The data for a sentiment annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1SentimentData {
     /// A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.
     #[serde(default)]
@@ -9647,7 +9648,7 @@ pub struct GoogleCloudContactcenterinsightsV1SentimentData {
 }
 
 /// Information about the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1IssueAssignment {
     /// Immutable. Display name of the assigned issue. This field is set at time of analysis and immutable since then.
     #[serde(default, rename = "displayName")]
@@ -9661,7 +9662,7 @@ pub struct GoogleCloudContactcenterinsightsV1IssueAssignment {
 }
 
 /// A question may have multiple answers from varying sources, one of which becomes the "main" answer above. AnswerSource represents each individual answer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource {
     /// The answer value from this source. This field is populated by default, unless the question has a selection strategy configured to return multiple answer values, in which case answer_values will be populated instead.
     #[serde(default, rename = "answerValue")]
@@ -9672,7 +9673,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerSource {
 }
 
 /// Tags and their corresponding results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult {
     /// The normalized score the tag applies to.
     #[serde(default, rename = "normalizedScore")]
@@ -9689,7 +9690,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaScorecardResultQaTagResult {
 }
 
 /// The data for a sentiment annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1SentimentData {
     /// A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.
     #[serde(default)]
@@ -9700,7 +9701,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1SentimentData {
 }
 
 /// Information about the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1IssueAssignment {
     /// Immutable. Display name of the assigned issue. This field is set at time of analysis and immutable since then.
     #[serde(default, rename = "displayName")]
@@ -9714,7 +9715,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1IssueAssignment {
 }
 
 /// A question may have multiple answers from varying sources, one of which becomes the "main" answer above. AnswerSource represents each individual answer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerSource {
     /// The answer value from this source. This field is populated by default, unless the question has a selection strategy configured to return multiple answer values, in which case answer_values will be populated instead.
     #[serde(default, rename = "answerValue")]
@@ -9726,7 +9727,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerSource {
 }
 
 /// Tags and their corresponding results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultQaTagResult {
     /// The normalized score the tag applies to.
     #[serde(default, rename = "normalizedScore")]
@@ -9743,7 +9744,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaScorecardResultQaTagResult 
 }
 
 /// The data for a sentiment annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainSentimentData {
     /// A non-negative number from 0 to infinity which represents the absolute magnitude of sentiment regardless of score.
     #[serde(default)]
@@ -9754,7 +9755,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainSentimentData {
 }
 
 /// Information about the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainIssueAssignment {
     /// Immutable. Display name of the assigned issue. This field is set at time of analysis and immutable since then.
     #[serde(default, rename = "displayName")]
@@ -9768,7 +9769,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainIssueAssignment {
 }
 
 /// A question may have multiple answers from varying sources, one of which becomes the "main" answer above. AnswerSource represents each individual answer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerSource {
     /// The answer value from this source. This field is populated by default, unless the question has a selection strategy configured to return multiple answer values, in which case answer_values will be populated instead.
     #[serde(default, rename = "answerValue")]
@@ -9780,7 +9781,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerSource {
 }
 
 /// Tags and their corresponding results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResultQaTagResult {
     /// The normalized score the tag applies to.
     #[serde(default, rename = "normalizedScore")]
@@ -9797,7 +9798,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaScorecardResultQaTagResult {
 }
 
 /// Message for holding the value of a QaAnswer. QaQuestion.AnswerChoice defines the possible answer values for a question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue {
     /// Boolean value.
     #[serde(default, rename = "boolValue")]
@@ -9829,7 +9830,7 @@ pub struct GoogleCloudContactcenterinsightsV1QaAnswerAnswerValue {
 }
 
 /// Message for holding the value of a QaAnswer. QaQuestion.AnswerChoice defines the possible answer values for a question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerValue {
     /// Boolean value.
     #[serde(default, rename = "boolValue")]
@@ -9861,7 +9862,7 @@ pub struct GoogleCloudContactcenterinsightsV1alpha1QaAnswerAnswerValue {
 }
 
 /// Message for holding the value of a QaAnswer. QaQuestion.AnswerChoice defines the possible answer values for a question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerValue {
     /// Boolean value.
     #[serde(default, rename = "boolValue")]
@@ -9893,7 +9894,7 @@ pub struct GoogleCloudContactcenterinsightsV1mainQaAnswerAnswerValue {
 }
 
 /// Configurable dashboard''s widget that displays data as a chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Chart {
     /// Optional action to be taken when the chart is clicked.
     #[serde(default)]
@@ -9941,7 +9942,7 @@ pub struct GoogleCloudContactcenterinsightsV1Chart {
 }
 
 /// The action to be taken when the chart is clicked.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ChartAction {
     /// Redirect action.
     #[serde(default, rename = "redirectAction")]
@@ -9950,7 +9951,7 @@ pub struct GoogleCloudContactcenterinsightsV1ChartAction {
 }
 
 /// The request data for visualizing the dataset in the chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1ChartDataSource {
     /// Use natural language query to generate the chart.
     #[serde(default, rename = "generativeInsights")]
@@ -9964,7 +9965,7 @@ pub struct GoogleCloudContactcenterinsightsV1ChartDataSource {
 }
 
 /// Configurable dashboard''s container. Container can contain multiple widgets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Container {
     /// Output only. Unique ID for the container.
     #[serde(default, rename = "containerId")]
@@ -9995,7 +9996,7 @@ pub struct GoogleCloudContactcenterinsightsV1Container {
 }
 
 /// Date range configuration for dashboard charts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DateRangeConfig {
     /// An absolute date range.
     #[serde(default, rename = "absoluteDateRange")]
@@ -10009,7 +10010,7 @@ pub struct GoogleCloudContactcenterinsightsV1DateRangeConfig {
 }
 
 /// Relative date range configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange {
     /// Required. The quantity of units in the past.
     #[serde(default)]
@@ -10020,7 +10021,7 @@ pub struct GoogleCloudContactcenterinsightsV1DateRangeConfigRelativeDateRange {
 }
 
 /// Request that use natural language query to generate the chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsights {
     /// The chart checkpoint used to generate the chart.
     #[serde(default, rename = "chartCheckpoint")]
@@ -10046,7 +10047,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsights {
 }
 
 /// The current chart checkpoint state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint {
     /// The revision id of the chart.
     #[serde(default, rename = "revisionId")]
@@ -10057,7 +10058,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartCheckpoint {
 }
 
 /// The conversation used to generate the chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation {
     /// The conversation id of the chart.
     #[serde(default, rename = "conversationId")]
@@ -10078,7 +10079,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
 }
 
 /// The message in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessage {
     /// For user messages, this is the time at which the system received the message. For system messages, this is the time at which the system generated the message.
     #[serde(default, rename = "createTime")]
@@ -10095,7 +10096,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
 }
 
 /// A message from the system in response to the user. This message can also be a message from the user as historical context for multiturn conversations with the system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessage {
     /// Chart spec from LLM
     #[serde(default, rename = "chartSpec")]
@@ -10109,7 +10110,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
 }
 
 /// A text output message from the system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageSystemMessageTextOutput
 {
     /// The parts of the message.
@@ -10121,7 +10122,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
 }
 
 /// The user message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversationMessageUserMessage {
     /// A message from the user that is interacting with the system.
     #[serde(default)]
@@ -10129,7 +10130,7 @@ pub struct GoogleCloudContactcenterinsightsV1GenerativeInsightsChartConversation
 }
 
 /// A time window for querying conversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryInterval {
     /// Required. The end time of the time window.
     #[serde(default, rename = "endTime")]
@@ -10140,14 +10141,14 @@ pub struct GoogleCloudContactcenterinsightsV1QueryInterval {
 }
 
 /// Request data that use the existing QueryMetrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1QueryMetrics {
     #[serde(default)]
     pub request: ::core::option::Option<serde_json::Value>,
 }
 
 /// The redirect action to be taken when the chart is clicked.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1RedirectAction {
     /// The relative path to redirect to.
     #[serde(default, rename = "relativePath")]
@@ -10155,7 +10156,7 @@ pub struct GoogleCloudContactcenterinsightsV1RedirectAction {
 }
 
 /// Represents a dashboard element, could be a nested Container or Chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContactcenterinsightsV1Widget {
     /// A chart widget.
     #[serde(default)]

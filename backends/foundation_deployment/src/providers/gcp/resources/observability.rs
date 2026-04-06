@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response for listing buckets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBucketsResponse {
     /// Optional. The list of buckets.
     #[serde(default)]
@@ -30,7 +31,7 @@ pub struct ListBucketsResponse {
 }
 
 /// Response for listing datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatasetsResponse {
     /// The list of datasets.
     #[serde(default)]
@@ -41,7 +42,7 @@ pub struct ListDatasetsResponse {
 }
 
 /// Response for listing links.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLinksResponse {
     /// The list of links.
     #[serde(default)]
@@ -52,7 +53,7 @@ pub struct ListLinksResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -63,7 +64,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -77,7 +78,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response for listing TraceScopes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTraceScopesResponse {
     /// Optional. If there might be more results than appear in this response, then next_page_token is included. To get the next set of results, call the same method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -88,7 +89,7 @@ pub struct ListTraceScopesResponse {
 }
 
 /// Response for listing views.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListViewsResponse {
     /// Optional. A token that can be sent as page_token to retrieve the next page. When this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -99,7 +100,7 @@ pub struct ListViewsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -125,7 +126,7 @@ pub struct OperationMetadata {
 }
 
 /// Message describing Scope object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Scope {
     /// Required. The full resource name of the LogScope. For example: //logging.googleapis.com/projects/myproject/locations/global/logScopes/my-log-scope
     #[serde(default, rename = "logScope")]
@@ -142,7 +143,7 @@ pub struct Scope {
 }
 
 /// Describes the settings associated with a project, organization, or folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Settings {
     /// Optional. The location which should be used when any regional resources are provisioned by Google Cloud.
     #[serde(default, rename = "defaultStorageLocation")]
@@ -159,7 +160,7 @@ pub struct Settings {
 }
 
 /// Bucket configuration for storing observability data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Bucket {
     /// Optional. Settings for configuring CMEK on a bucket.
     #[serde(default, rename = "cmekSettings")]
@@ -188,7 +189,7 @@ pub struct Bucket {
 }
 
 /// A dataset is a collection of data that has a specific configuration. A dataset can be backed by multiple tables. One bucket can have multiple datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dataset {
     /// Output only. Create timestamp.
     #[serde(default, rename = "createTime")]
@@ -211,7 +212,7 @@ pub struct Dataset {
 }
 
 /// A link lets a dataset be accessible to BigQuery via usage of linked datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Link {
     /// Output only. Create timestamp.
     #[serde(default, rename = "createTime")]
@@ -228,7 +229,7 @@ pub struct Link {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -248,7 +249,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -268,7 +269,7 @@ pub struct Operation {
 }
 
 /// A trace scope is a collection of resources whose traces are queried together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TraceScope {
     /// Output only. The creation timestamp of the trace scope.
     #[serde(default, rename = "createTime")]
@@ -288,7 +289,7 @@ pub struct TraceScope {
 }
 
 /// A view corresponds to a read-only representation of a subset of the data in a dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct View {
     /// Output only. Create timestamp.
     #[serde(default, rename = "createTime")]
@@ -308,7 +309,7 @@ pub struct View {
 }
 
 /// Settings for configuring CMEK for a bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CmekSettings {
     /// Optional. The resource name for the configured Cloud KMS key. The format is: projects/[PROJECT_ID]/locations/[LOCATION]/keyRings/[KEYRING]/cryptoKeys/[KEY] For example: projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key
     #[serde(default, rename = "kmsKey")]
@@ -322,7 +323,7 @@ pub struct CmekSettings {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]

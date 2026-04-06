@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Message for response to listing cloud locations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCloudLocationsResponse {
     /// Output only. List of cloud locations.
     #[serde(default, rename = "cloudLocations")]
@@ -22,7 +23,7 @@ pub struct ListCloudLocationsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Message for response to searching cloud locations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchCloudLocationsResponse {
     /// Output only. List of cloud locations.
     #[serde(default, rename = "cloudLocations")]
@@ -44,7 +45,7 @@ pub struct SearchCloudLocationsResponse {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -64,7 +65,7 @@ pub struct Location {
 }
 
 /// Represents resource cloud locations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudLocation {
     /// Optional. The carbon free energy percentage of the cloud location. This represents the average percentage of time customers'' application will be running on carbon-free energy. See https://cloud.google.com/sustainability/region-carbon for more details. There is a difference between default value 0 and unset value. 0 means the carbon free energy percentage is 0%, while unset value means the carbon footprint data is not available.
     #[serde(default, rename = "carbonFreeEnergyPercentage")]

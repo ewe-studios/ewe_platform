@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Resource representing app details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1AppDetails {
     /// Output only. Android app information.
     #[serde(default, rename = "androidAppInfo")]
@@ -73,7 +74,7 @@ pub struct GoogleChromeManagementV1AppDetails {
 }
 
 /// Response containing the number of active devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountActiveDevicesResponse {
     /// Number of active devices in the 7 days leading up to the date specified in the request.
     #[serde(default, rename = "sevenDaysCount")]
@@ -84,7 +85,7 @@ pub struct GoogleChromeManagementV1CountActiveDevicesResponse {
 }
 
 /// Response containing summary of requested app installations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountChromeAppRequestsResponse {
     /// Token to specify the next page in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -99,7 +100,7 @@ pub struct GoogleChromeManagementV1CountChromeAppRequestsResponse {
 }
 
 /// Response containing counts for browsers that need attention.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse {
     /// Number of browsers that haven’t had any recent activity
     #[serde(default, rename = "noRecentActivityCount")]
@@ -113,7 +114,7 @@ pub struct GoogleChromeManagementV1CountChromeBrowsersNeedingAttentionResponse {
 }
 
 /// Response contains a list of CrashEventCountByVersionPerDay which count the chrome crash at the certain date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountChromeCrashEventsResponse {
     /// Crash event counts grouped by date and browser version.
     #[serde(default, rename = "crashEventCounts")]
@@ -123,7 +124,7 @@ pub struct GoogleChromeManagementV1CountChromeCrashEventsResponse {
 }
 
 /// Response containing a list of devices expiring in each month of a selected time frame. Counts are grouped by model and Auto Update Expiration date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateResponse {
     /// The list of reports sorted by auto update expiration date in ascending order.
     #[serde(default, rename = "deviceAueCountReports")]
@@ -132,7 +133,7 @@ pub struct GoogleChromeManagementV1CountChromeDevicesReachingAutoExpirationDateR
 }
 
 /// Response containing counts for devices that need attention.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse {
     /// Number of ChromeOS devices have not synced policies in the past 28 days.
     #[serde(default, rename = "noRecentPolicySyncCount")]
@@ -152,7 +153,7 @@ pub struct GoogleChromeManagementV1CountChromeDevicesThatNeedAttentionResponse {
 }
 
 /// Response containing a list of devices with a specific type of hardware specification from the requested hardware type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse {
     /// The DeviceHardwareCountReport for device cpu type (for example Intel(R) Core(TM) i7-10610U CPU @ 1.80GHz).
     #[serde(default, rename = "cpuReports")]
@@ -173,7 +174,7 @@ pub struct GoogleChromeManagementV1CountChromeHardwareFleetDevicesResponse {
 }
 
 /// Response containing requested browser versions details and counts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountChromeVersionsResponse {
     /// List of all browser versions and their install counts.
     #[serde(default, rename = "browserVersions")]
@@ -188,7 +189,7 @@ pub struct GoogleChromeManagementV1CountChromeVersionsResponse {
 }
 
 /// Response containing the number of devices with the given boot type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountDevicesPerBootTypeResponse {
     /// Number of devices with dev boot type.
     #[serde(default, rename = "devBootTypeCount")]
@@ -202,7 +203,7 @@ pub struct GoogleChromeManagementV1CountDevicesPerBootTypeResponse {
 }
 
 /// Response containing the number of devices with the given channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse {
     /// Number of devices with beta release channel.
     #[serde(default, rename = "betaChannelCount")]
@@ -231,7 +232,7 @@ pub struct GoogleChromeManagementV1CountDevicesPerReleaseChannelResponse {
 }
 
 /// Response containing details of queried installed apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountInstalledAppsResponse {
     /// List of installed apps matching request.
     #[serde(default, rename = "installedApps")]
@@ -246,7 +247,7 @@ pub struct GoogleChromeManagementV1CountInstalledAppsResponse {
 }
 
 /// Response containing a summary printing report for each printer from the specified organizational unit for the requested time interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountPrintJobsByPrinterResponse {
     /// Pagination token for requesting the next page.
     #[serde(default, rename = "nextPageToken")]
@@ -261,7 +262,7 @@ pub struct GoogleChromeManagementV1CountPrintJobsByPrinterResponse {
 }
 
 /// Response containing a summary printing report for each user that has initiated a print job with a printer from the specified organizational unit during the requested time interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountPrintJobsByUserResponse {
     /// Pagination token for requesting the next page.
     #[serde(default, rename = "nextPageToken")]
@@ -276,7 +277,7 @@ pub struct GoogleChromeManagementV1CountPrintJobsByUserResponse {
 }
 
 /// Response containing a list of print jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1EnumeratePrintJobsResponse {
     /// A token, which can be used in a subsequent request to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -290,7 +291,7 @@ pub struct GoogleChromeManagementV1EnumeratePrintJobsResponse {
 }
 
 /// Response containing a list of devices that have requested the queried extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse {
     /// Details of devices that have requested the queried extension.
     #[serde(default, rename = "deviceDetails")]
@@ -306,7 +307,7 @@ pub struct GoogleChromeManagementV1FetchDevicesRequestingExtensionResponse {
 }
 
 /// Response containing a list of users that have requested the queried extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1FetchUsersRequestingExtensionResponse {
     /// Token to specify the next page in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -322,7 +323,7 @@ pub struct GoogleChromeManagementV1FetchUsersRequestingExtensionResponse {
 }
 
 /// Response containing a list of devices with queried app installed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1FindInstalledAppDevicesResponse {
     /// A list of devices which have the app installed. Sorted in ascending alphabetical order on the Device.machine field.
     #[serde(default)]
@@ -336,7 +337,7 @@ pub struct GoogleChromeManagementV1FindInstalledAppDevicesResponse {
 }
 
 /// GoogleChromeManagementV1ListTelemetryDevicesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1ListTelemetryDevicesResponse {
     /// Telemetry devices returned in the response.
     #[serde(default)]
@@ -347,7 +348,7 @@ pub struct GoogleChromeManagementV1ListTelemetryDevicesResponse {
 }
 
 /// Response message for listing telemetry events for a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1ListTelemetryEventsResponse {
     /// Token to specify next page in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -359,7 +360,7 @@ pub struct GoogleChromeManagementV1ListTelemetryEventsResponse {
 }
 
 /// Response message for listing notification configs for a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -372,7 +373,7 @@ pub struct GoogleChromeManagementV1ListTelemetryNotificationConfigsResponse {
 }
 
 /// Response message for listing telemetry users for a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1ListTelemetryUsersResponse {
     /// Token to specify next page in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -384,11 +385,11 @@ pub struct GoogleChromeManagementV1ListTelemetryUsersResponse {
 }
 
 /// TelemetryAudioSevereUnderrunEvent is triggered when a audio devices run out of buffer data for more than 5 seconds. * Granular permission needed: TELEMETRY_API_AUDIO_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryAudioSevereUnderrunEvent {}
 
 /// Request message for claiming a certificate provisioning process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessRequest {
     /// Required. The instance id of the caller.
     #[serde(default, rename = "callerInstanceId")]
@@ -396,11 +397,11 @@ pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessRe
 }
 
 /// Response message for claiming a certificate provisioning process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessResponse {}
 
 /// Response to ListChromeBrowserProfileCommands method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsResponse {
     /// The list of commands returned.
     #[serde(default, rename = "chromeBrowserProfileCommands")]
@@ -416,7 +417,7 @@ pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfileCommandsRespo
 }
 
 /// Response to ListChromeBrowserProfiles method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse {
     /// The list of profiles returned.
     #[serde(default, rename = "chromeBrowserProfiles")]
@@ -432,7 +433,7 @@ pub struct GoogleChromeManagementVersionsV1ListChromeBrowserProfilesResponse {
 }
 
 /// Request to MoveThirdPartyProfileUser method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserRequest {
     /// Required. Destination organizational unit where the third party chrome profile user will be moved to.
     #[serde(default, rename = "destinationOrgUnit")]
@@ -440,7 +441,7 @@ pub struct GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserRequest {
 }
 
 /// Response for MoveThirdPartyProfileUser method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse {
     /// Output only. The moved third party profile user.
     #[serde(default, rename = "thirdPartyProfileUser")]
@@ -449,7 +450,7 @@ pub struct GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserResponse {
 }
 
 /// Request message for marking a certificate provisioning process as failed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1SetFailureRequest {
     /// Required. A message describing the failure details. It is displayed on the ChromeOS client device.
     #[serde(default, rename = "errorMessage")]
@@ -457,11 +458,11 @@ pub struct GoogleChromeManagementVersionsV1SetFailureRequest {
 }
 
 /// Response message for publishing a failure for a certificate provisioning process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1SetFailureResponse {}
 
 /// Metadata for the long-running operation returned by signData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1SignDataMetadata {
     /// Output only. Start time of the SignData operation.
     #[serde(default, rename = "startTime")]
@@ -469,7 +470,7 @@ pub struct GoogleChromeManagementVersionsV1SignDataMetadata {
 }
 
 /// Request message for requesting a signature from the client that initated a certificate provisioning process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1SignDataRequest {
     /// Required. The data that the client was asked to sign.
     #[serde(default, rename = "signData")]
@@ -480,7 +481,7 @@ pub struct GoogleChromeManagementVersionsV1SignDataRequest {
 }
 
 /// Response message for requesting a signature from the client that initated a certificate provisioning process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1SignDataResponse {
     /// Output only. The certificate provisioning process. The signature generated by the client will be available in the signature field of CertificateProvisioningProcess.
     #[serde(default, rename = "certificateProvisioningProcess")]
@@ -489,7 +490,7 @@ pub struct GoogleChromeManagementVersionsV1SignDataResponse {
 }
 
 /// Request message for uploading an issued certificate for a certificate provisioning process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1UploadCertificateRequest {
     /// Required. The issued certificate in PEM format.
     #[serde(default, rename = "certificatePem")]
@@ -497,15 +498,15 @@ pub struct GoogleChromeManagementVersionsV1UploadCertificateRequest {
 }
 
 /// Response message for publishing an issued certificate for a certificate provisioning process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1UploadCertificateResponse {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -519,11 +520,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Android app information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1AndroidAppInfo {
     /// Output only. Permissions requested by an Android app.
     #[serde(default)]
@@ -532,7 +533,7 @@ pub struct GoogleChromeManagementV1AndroidAppInfo {
 }
 
 /// Chrome Web Store app information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1ChromeAppInfo {
     /// Output only. Whether the app or extension is built and maintained by Google. Version-specific field that will only be set when the requested app version is found.
     #[serde(default, rename = "googleOwned")]
@@ -575,7 +576,7 @@ pub struct GoogleChromeManagementV1ChromeAppInfo {
 }
 
 /// Details of an app installation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1ChromeAppRequest {
     /// Output only. Format: app_details=customers/{customer_id}/apps/chrome/{app_id}
     #[serde(default, rename = "appDetails")]
@@ -601,7 +602,7 @@ pub struct GoogleChromeManagementV1ChromeAppRequest {
 }
 
 /// The count of the Chrome crash events at the date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CountChromeCrashEventsResponseCrashEventCount {
     /// Browser version this is counting.
     #[serde(default, rename = "browserVersion")]
@@ -615,7 +616,7 @@ pub struct GoogleChromeManagementV1CountChromeCrashEventsResponseCrashEventCount
 }
 
 /// Report for CountChromeDevicesPerAueDateResponse, contains the count of devices of a specific model and auto update expiration range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1DeviceAueCountReport {
     /// Enum value of month corresponding to the auto update expiration date in UTC time zone. If the device is already expired, this field is empty. // TODO: enum values: ["MONTH_UNSPECIFIED", "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
     #[serde(default, rename = "aueMonth")]
@@ -635,7 +636,7 @@ pub struct GoogleChromeManagementV1DeviceAueCountReport {
 }
 
 /// Report for CountChromeDevicesPerHardwareSpecResponse, contains the count of devices with a unique hardware specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1DeviceHardwareCountReport {
     /// Public name of the hardware specification.
     #[serde(default)]
@@ -646,7 +647,7 @@ pub struct GoogleChromeManagementV1DeviceHardwareCountReport {
 }
 
 /// Describes a browser version and its install count.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1BrowserVersion {
     /// Output only. The release channel of the installed browser. // TODO: enum values: ["RELEASE_CHANNEL_UNSPECIFIED", "CANARY", "DEV", "BETA", "STABLE"]
     #[serde(default)]
@@ -666,7 +667,7 @@ pub struct GoogleChromeManagementV1BrowserVersion {
 }
 
 /// Describes an installed app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1InstalledApp {
     /// Output only. Unique identifier of the app. For Chrome apps and extensions, the 32-character id (e.g. ehoadneljpdggcbbknedodolkkjodefl). For Android apps, the package name (e.g. com.evernote).
     #[serde(default, rename = "appId")]
@@ -707,7 +708,7 @@ pub struct GoogleChromeManagementV1InstalledApp {
 }
 
 /// Report for CountPrintJobsByPrinter, contains statistics on printer usage. Contains the total number of print jobs initiated with this printer, the number of users and the number of devices that have initiated at least one print job with this printer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1PrinterReport {
     /// Number of chrome devices that have been used to send print jobs to the specified printer.
     #[serde(default, rename = "deviceCount")]
@@ -730,7 +731,7 @@ pub struct GoogleChromeManagementV1PrinterReport {
 }
 
 /// Report for CountPrintJobsByUser, contains printing statistics for a user. Contains the number of printers, the number of devices used to initiate print jobs, and the number of print jobs initiated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1UserPrintReport {
     /// Number of chrome devices that have been used to initiate print jobs by the user.
     #[serde(default, rename = "deviceCount")]
@@ -750,7 +751,7 @@ pub struct GoogleChromeManagementV1UserPrintReport {
 }
 
 /// Represents a request to print a document that has been submitted to a printer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1PrintJob {
     /// Color mode. // TODO: enum values: ["COLOR_MODE_UNSPECIFIED", "BLACK_AND_WHITE", "COLOR"]
     #[serde(default, rename = "colorMode")]
@@ -794,7 +795,7 @@ pub struct GoogleChromeManagementV1PrintJob {
 }
 
 /// Details of a device requesting an extension, including the name of the device and the justification of the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1DeviceRequestingExtensionDetails {
     /// The name of a device that has requested the extension.
     #[serde(default, rename = "deviceName")]
@@ -805,7 +806,7 @@ pub struct GoogleChromeManagementV1DeviceRequestingExtensionDetails {
 }
 
 /// Details of a user requesting an extension, including the email and the justification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1UserRequestingExtensionDetails {
     /// The e-mail address of a user that has requested the extension.
     #[serde(default)]
@@ -816,7 +817,7 @@ pub struct GoogleChromeManagementV1UserRequestingExtensionDetails {
 }
 
 /// Describes a device reporting Chrome browser information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1Device {
     /// Output only. The ID of the device that reported this Chrome browser information.
     #[serde(default, rename = "deviceId")]
@@ -827,7 +828,7 @@ pub struct GoogleChromeManagementV1Device {
 }
 
 /// Telemetry data collected from a managed device. * Granular permission needed: TELEMETRY_API_DEVICE
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryDevice {
     /// Output only. App reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "appReport")]
@@ -932,7 +933,7 @@ pub struct GoogleChromeManagementV1TelemetryDevice {
 }
 
 /// Telemetry data reported by a managed device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryEvent {
     /// Output only. Payload for app install event. Present only when event_type is APP_INSTALLED.
     #[serde(default, rename = "appInstallEvent")]
@@ -992,7 +993,7 @@ pub struct GoogleChromeManagementV1TelemetryEvent {
 }
 
 /// Configuration to receive notifications of telemetry data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryNotificationConfig {
     /// Output only. Google Workspace customer that owns the resource.
     #[serde(default)]
@@ -1009,7 +1010,7 @@ pub struct GoogleChromeManagementV1TelemetryNotificationConfig {
 }
 
 /// Telemetry data collected from a managed user. * Granular permission needed: TELEMETRY_API_USER
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryUser {
     /// G Suite Customer whose enterprise enrolled the device.
     #[serde(default)]
@@ -1033,7 +1034,7 @@ pub struct GoogleChromeManagementV1TelemetryUser {
 }
 
 /// A representation of a remote command for a Chrome browser profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand {
     /// Output only. Result of the remote command.
     #[serde(default, rename = "commandResult")]
@@ -1061,7 +1062,7 @@ pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand {
 }
 
 /// A representation of a Chrome browser profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfile {
     /// Output only. The specific affiliation state of the profile. // TODO: enum values: ["AFFILIATION_STATE_UNSPECIFIED", "UNAFFILIATED_GENERIC", "PROFILE_ONLY", "UNAFFILIATED_LOCAL_MACHINE", "UNAFFILIATED_CLOUD_MACHINE", "AFFILIATED_CLOUD_MANAGED"]
     #[serde(default, rename = "affiliationState")]
@@ -1148,7 +1149,7 @@ pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfile {
 }
 
 /// A representation of non-Google (third party) user that is associated with a managed Chrome profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ThirdPartyProfileUser {
     /// Identifier. Format: customers/{customer_id}/thirdPartyProfileUsers/{third_party_profile_user_id}
     #[serde(default)]
@@ -1159,7 +1160,7 @@ pub struct GoogleChromeManagementVersionsV1ThirdPartyProfileUser {
 }
 
 /// A certificate provisioning process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1CertificateProvisioningProcess {
     /// Output only. The client certificate is being provisioned for a ChromeOS device. This contains information about the device.
     #[serde(default, rename = "chromeOsDevice")]
@@ -1212,7 +1213,7 @@ pub struct GoogleChromeManagementVersionsV1CertificateProvisioningProcess {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1232,7 +1233,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// Permission requested by an Android app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1AndroidAppPermission {
     /// Output only. The type of the permission.
     #[serde(default, rename = "type")]
@@ -1240,7 +1241,7 @@ pub struct GoogleChromeManagementV1AndroidAppPermission {
 }
 
 /// Permission requested by a Chrome app or extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1ChromeAppPermission {
     /// Output only. If available, whether this permissions grants the app/extension access to user data.
     #[serde(default, rename = "accessUserData")]
@@ -1254,7 +1255,7 @@ pub struct GoogleChromeManagementV1ChromeAppPermission {
 }
 
 /// Represent one host permission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1ChromeAppSiteAccess {
     /// Output only. This can contain very specific hosts, or patterns like "*.com" for instance.
     #[serde(default, rename = "hostMatch")]
@@ -1262,7 +1263,7 @@ pub struct GoogleChromeManagementV1ChromeAppSiteAccess {
 }
 
 /// Risk assessment data about an extension/app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1RiskAssessmentData {
     /// Individual risk assessments.
     #[serde(default)]
@@ -1274,7 +1275,7 @@ pub struct GoogleChromeManagementV1RiskAssessmentData {
 }
 
 /// Information about the battery. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDevicePowerStatus](https://chromeenterprise.google/policies/#ReportDevicePowerStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_BATTERY_INFO
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1BatteryInfo {
     /// Output only. Design capacity (mAmpere-hours).
     #[serde(default, rename = "designCapacity")]
@@ -1297,7 +1298,7 @@ pub struct GoogleChromeManagementV1BatteryInfo {
 }
 
 /// Status data for battery. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDevicePowerStatus](https://chromeenterprise.google/policies/#ReportDevicePowerStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_BATTERY_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1BatteryStatusReport {
     /// Output only. Battery health. // TODO: enum values: ["BATTERY_HEALTH_UNSPECIFIED", "BATTERY_HEALTH_NORMAL", "BATTERY_REPLACE_SOON", "BATTERY_REPLACE_NOW"]
     #[serde(default, rename = "batteryHealth")]
@@ -1321,7 +1322,7 @@ pub struct GoogleChromeManagementV1BatteryStatusReport {
 }
 
 /// Boot performance report of a device. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceBootMode](https://chromeenterprise.google/policies/#ReportDeviceBootMode) * Data Collection Frequency: On every boot up event * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_OS_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1BootPerformanceReport {
     /// Total time to boot up.
     #[serde(default, rename = "bootUpDuration")]
@@ -1344,7 +1345,7 @@ pub struct GoogleChromeManagementV1BootPerformanceReport {
 }
 
 /// CPU specifications for the device * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDeviceCpuInfo](https://chromeenterprise.google/policies/#ReportDeviceCpuInfo) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_CPU_INFO
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CpuInfo {
     /// Output only. Architecture type for the CPU. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDeviceCpuInfo](https://chromeenterprise.google/policies/#ReportDeviceCpuInfo) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A // TODO: enum values: ["ARCHITECTURE_UNSPECIFIED", "X64"]
     #[serde(default)]
@@ -1364,7 +1365,7 @@ pub struct GoogleChromeManagementV1CpuInfo {
 }
 
 /// Provides information about the status of the CPU. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceCpuInfo](https://chromeenterprise.google/policies/#ReportDeviceCpuInfo) * Data Collection Frequency: Every 10 minutes * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_CPU_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CpuStatusReport {
     /// Output only. CPU temperature sample info per CPU core in Celsius
     #[serde(default, rename = "cpuTemperatureInfo")]
@@ -1382,7 +1383,7 @@ pub struct GoogleChromeManagementV1CpuStatusReport {
 }
 
 /// Information of the graphics subsystem. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDeviceGraphicsStatus](https://chromeenterprise.google/policies/#ReportDeviceGraphicsStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_GRAPHICS_INFO
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1GraphicsInfo {
     /// Output only. Information about the graphics adapter (GPU).
     #[serde(default, rename = "adapterInfo")]
@@ -1400,7 +1401,7 @@ pub struct GoogleChromeManagementV1GraphicsInfo {
 }
 
 /// Information of the graphics subsystem. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceGraphicsInfo](https://chromeenterprise.google/policies/#ReportDeviceGraphicsInfo) * Data Collection Frequency: 3 hours. * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_GRAPHICS_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1GraphicsStatusReport {
     /// Output only. Information about the displays for the device.
     #[serde(default)]
@@ -1411,7 +1412,7 @@ pub struct GoogleChromeManagementV1GraphicsStatusReport {
 }
 
 /// Heartbeat status report of a device. * Available for Kiosks * This field provides online/offline/unknown status of a device and will only be included if the status has changed (e.g. Online -&gt; Offline) * Data for this field is controlled via policy: [HeartbeatEnabled](https://chromeenterprise.google/policies/#HeartbeatEnabled) [More Info](https://support.google.com/chrome/a/answer/6179663#:~:text=On%20the%20Chrome,device%20status%20alerts) * Heartbeat Frequency: 2 mins * Note: If a device goes offline, it can take up to 12 minutes for the online status of the device to be updated * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: N/A * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_DEVICE_ACTIVITY_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1HeartbeatStatusReport {
     /// Timestamp of when status changed was detected
     #[serde(default, rename = "reportTime")]
@@ -1422,7 +1423,7 @@ pub struct GoogleChromeManagementV1HeartbeatStatusReport {
 }
 
 /// Kiosk app status report of a device. * Available for Kiosks * This field provides the app id and version number running on a kiosk device and the timestamp of when the report was last updated * Data for this field is controlled via policy: [ReportDeviceSessionStatus](https://chromeenterprise.google/policies/#ReportDeviceSessionStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_APPS_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1KioskAppStatusReport {
     /// App id of kiosk app for example "mdmkkicfmmkgmpkmkdikhlbggogpicma"
     #[serde(default, rename = "appId")]
@@ -1436,7 +1437,7 @@ pub struct GoogleChromeManagementV1KioskAppStatusReport {
 }
 
 /// Memory information of a device. * This field has both telemetry and device information: - totalRamBytes - Device information - availableRamBytes - Telemetry information - totalMemoryEncryption - Device information * Data for this field is controlled via policy: [ReportDeviceMemoryInfo](https://chromeenterprise.google/policies/#ReportDeviceMemoryInfo) * Data Collection Frequency: - totalRamBytes - Only at upload - availableRamBytes - Every 10 minutes - totalMemoryEncryption - at device startup * Default Data Reporting Frequency: - totalRamBytes - 3 hours - availableRamBytes - 3 hours - totalMemoryEncryption - at device startup - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: only for totalMemoryEncryption * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_MEMORY_INFO
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1MemoryInfo {
     /// Output only. Amount of available RAM in bytes.
     #[serde(default, rename = "availableRamBytes")]
@@ -1451,7 +1452,7 @@ pub struct GoogleChromeManagementV1MemoryInfo {
 }
 
 /// Contains samples of memory status reports. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceMemoryInfo](https://chromeenterprise.google/policies/#ReportDeviceMemoryInfo) * Data Collection Frequency: Only at upload, SystemRamFreeByes is collected every 10 minutes * Default Data Reporting Frequency: Every 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_MEMORY_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1MemoryStatusReport {
     /// Output only. Number of page faults during this collection
     #[serde(default, rename = "pageFaults")]
@@ -1468,7 +1469,7 @@ pub struct GoogleChromeManagementV1MemoryStatusReport {
 }
 
 /// Network testing results to determine the health of the device''s network connection, for example whether the HTTPS latency is high or normal. * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1NetworkDiagnosticsReport {
     /// Output only. HTTPS latency test data.
     #[serde(default, rename = "httpsLatencyData")]
@@ -1479,7 +1480,7 @@ pub struct GoogleChromeManagementV1NetworkDiagnosticsReport {
 }
 
 /// Network device information. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportNetworkDeviceConfiguration](https://chromeenterprise.google/policies/#ReportNetworkDeviceConfiguration) * Data Collection Frequency: At device startup * Default Data Reporting Frequency: At device startup - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_NETWORK_INFO
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1NetworkInfo {
     /// Output only. List of network devices.
     #[serde(default, rename = "networkDevices")]
@@ -1488,7 +1489,7 @@ pub struct GoogleChromeManagementV1NetworkInfo {
 }
 
 /// State of visible/configured networks. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportNetworkStatus](https://chromeenterprise.google/policies/#ReportNetworkStatus) * Data Collection Frequency: 60 minutes * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: Yes * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1NetworkStatusReport {
     /// Output only. Current connection state of the network. // TODO: enum values: ["NETWORK_CONNECTION_STATE_UNSPECIFIED", "ONLINE", "CONNECTED", "PORTAL", "CONNECTING", "NOT_CONNECTED"]
     #[serde(default, rename = "connectionState")]
@@ -1547,7 +1548,7 @@ pub struct GoogleChromeManagementV1NetworkStatusReport {
 }
 
 /// Contains information regarding the current OS update status. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceOsUpdateStatus](https://chromeenterprise.google/policies/#ReportDeviceOsUpdateStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_OS_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1OsUpdateStatus {
     /// Output only. Timestamp of the last reboot.
     #[serde(default, rename = "lastRebootTime")]
@@ -1570,7 +1571,7 @@ pub struct GoogleChromeManagementV1OsUpdateStatus {
 }
 
 /// Runtime counters retrieved from CPU. Currently the runtime counters telemetry is only supported by Intel vPro PSR on Gen 14+.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1RuntimeCountersReport {
     /// Number of times that the device has entered into the hibernation state. Currently obtained via the PSR, count from S0-&gt;S4.
     #[serde(default, rename = "enterHibernationCount")]
@@ -1590,7 +1591,7 @@ pub struct GoogleChromeManagementV1RuntimeCountersReport {
 }
 
 /// Status data for storage. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceStorageStatus](https://chromeenterprise.google/policies/#ReportDeviceStorageStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_STORAGE_INFO
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1StorageInfo {
     /// The available space for user data storage in the device in bytes.
     #[serde(default, rename = "availableDiskBytes")]
@@ -1605,7 +1606,7 @@ pub struct GoogleChromeManagementV1StorageInfo {
 }
 
 /// Status data for storage. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceStorageStatus](https://chromeenterprise.google/policies/#ReportDeviceStorageStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_STORAGE_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1StorageStatusReport {
     /// Output only. Reports on disk.
     #[serde(default)]
@@ -1616,7 +1617,7 @@ pub struct GoogleChromeManagementV1StorageStatusReport {
 }
 
 /// Thunderbolt bus info. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDeviceSecurityStatus](https://chromeenterprise.google/policies/#ReportDeviceSecurityStatus) * Data Collection Frequency: At device startup * Default Data Reporting Frequency: At device startup - Policy Controlled: No * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_BUS_DEVICE_INFO
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1ThunderboltInfo {
     /// Security level of the Thunderbolt bus. // TODO: enum values: ["THUNDERBOLT_SECURITY_LEVEL_UNSPECIFIED", "THUNDERBOLT_SECURITY_NONE_LEVEL", "THUNDERBOLT_SECURITY_USER_LEVEL", "THUNDERBOLT_SECURITY_SECURE_LEVEL", "THUNDERBOLT_SECURITY_DP_ONLY_LEVEL", "THUNDERBOLT_SECURITY_USB_ONLY_LEVEL", "THUNDERBOLT_SECURITY_NO_PCIE_LEVEL"]
     #[serde(default, rename = "securityLevel")]
@@ -1624,7 +1625,7 @@ pub struct GoogleChromeManagementV1ThunderboltInfo {
 }
 
 /// App installation data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryAppInstallEvent {
     /// App id. For PWAs this is the start URL, and for extensions this is the extension id.
     #[serde(default, rename = "appId")]
@@ -1644,7 +1645,7 @@ pub struct GoogleChromeManagementV1TelemetryAppInstallEvent {
 }
 
 /// App launch data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryAppLaunchEvent {
     /// App id. For PWAs this is the start URL, and for extensions this is the extension id.
     #[serde(default, rename = "appId")]
@@ -1658,7 +1659,7 @@ pub struct GoogleChromeManagementV1TelemetryAppLaunchEvent {
 }
 
 /// App uninstall data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryAppUninstallEvent {
     /// App id. For PWAs this is the start URL, and for extensions this is the extension id.
     #[serde(default, rename = "appId")]
@@ -1672,7 +1673,7 @@ pub struct GoogleChromeManagementV1TelemetryAppUninstallEvent {
 }
 
 /// Information about a device associated with telemetry data. * Granular Permission needed: TELEMETRY_API_DEVICE
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryDeviceInfo {
     /// Output only. The unique Directory API ID of the device. This value is the same as the Admin Console''s Directory API ID in the ChromeOS Devices tab.
     #[serde(default, rename = "deviceId")]
@@ -1683,7 +1684,7 @@ pub struct GoogleChromeManagementV1TelemetryDeviceInfo {
 }
 
 /// External display connected/disconnected event payload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryExternalDisplayEvent {
     /// List of external displays that were connected/disconnected.
     #[serde(default, rename = "externalDisplayData")]
@@ -1693,7 +1694,7 @@ pub struct GoogleChromeManagementV1TelemetryExternalDisplayEvent {
 }
 
 /// Https latency routine is run periodically and TelemetryHttpsLatencyChangeEvent is triggered if a latency problem was detected or if the device has recovered from a latency problem. * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent {
     /// HTTPS latency routine data that triggered the event.
     #[serde(default, rename = "httpsLatencyRoutineData")]
@@ -1705,7 +1706,7 @@ pub struct GoogleChromeManagementV1TelemetryHttpsLatencyChangeEvent {
 }
 
 /// TelemetryNetworkConnectionStateChangeEvent is triggered on network connection state changes. * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent {
     /// Current connection state of the network. // TODO: enum values: ["NETWORK_CONNECTION_STATE_UNSPECIFIED", "ONLINE", "CONNECTED", "PORTAL", "CONNECTING", "NOT_CONNECTED"]
     #[serde(default, rename = "connectionState")]
@@ -1716,7 +1717,7 @@ pub struct GoogleChromeManagementV1TelemetryNetworkConnectionStateChangeEvent {
 }
 
 /// OS crash data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryOsCrashEvent {
     /// Crash id.
     #[serde(default, rename = "crashId")]
@@ -1730,7 +1731,7 @@ pub struct GoogleChromeManagementV1TelemetryOsCrashEvent {
 }
 
 /// TelemetryUsbPeripheralsEvent is triggered USB devices are either added or removed. * Granular permission needed: TELEMETRY_API_PERIPHERALS_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryUsbPeripheralsEvent {
     /// List of usb devices that were either added or removed.
     #[serde(default, rename = "usbPeripheralReport")]
@@ -1739,7 +1740,7 @@ pub struct GoogleChromeManagementV1TelemetryUsbPeripheralsEvent {
 }
 
 /// Information about a user associated with telemetry data. * Granular permission needed: TELEMETRY_API_USER
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryUserInfo {
     /// Output only. User''s email.
     #[serde(default)]
@@ -1750,7 +1751,7 @@ pub struct GoogleChromeManagementV1TelemetryUserInfo {
 }
 
 /// TelemetryNetworkSignalStrengthEvent is triggered on WiFi signal strength events. * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent {
     /// Unique identifier of the network.
     #[serde(default)]
@@ -1761,7 +1762,7 @@ pub struct GoogleChromeManagementV1TelemetryNetworkSignalStrengthEvent {
 }
 
 /// Configures how the telemetry data should be filtered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryNotificationFilter {
     /// If set, only sends notifications for telemetry data coming from this device.
     #[serde(default, rename = "deviceId")]
@@ -1782,7 +1783,7 @@ pub struct GoogleChromeManagementV1TelemetryNotificationFilter {
 }
 
 /// Telemetry data collected for a managed user and device. * Granular permission needed: TELEMETRY_API_DEVICE
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryUserDevice {
     /// Output only. App reports collected periodically sorted in a decreasing order of report_time.
     #[serde(default, rename = "appReport")]
@@ -1809,7 +1810,7 @@ pub struct GoogleChromeManagementV1TelemetryUserDevice {
 }
 
 /// Result of the execution of a command.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfileCommandCommandResult {
     /// Output only. Timestamp of the client execution of the remote command.
     #[serde(default, rename = "clientExecutionTime")]
@@ -1823,7 +1824,7 @@ pub struct GoogleChromeManagementVersionsV1ChromeBrowserProfileCommandCommandRes
 }
 
 /// Information of public key associated with a Chrome browser profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1AttestationCredential {
     /// Output only. Latest rotation timestamp of the public key rotation.
     #[serde(default, rename = "keyRotationTime")]
@@ -1840,7 +1841,7 @@ pub struct GoogleChromeManagementVersionsV1AttestationCredential {
 }
 
 /// Information of a device that runs a Chrome browser profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1DeviceInfo {
     /// Output only. Device ID that identifies the affiliated device on which the profile exists. If the device type is CHROME_BROWSER, then this represents a unique Directory API ID of the device that can be used in Admin SDK Browsers API.
     #[serde(default, rename = "affiliatedDeviceId")]
@@ -1857,7 +1858,7 @@ pub struct GoogleChromeManagementVersionsV1DeviceInfo {
 }
 
 /// Reporting data of a Chrome browser profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ReportingData {
     /// Output only. Executable path of the installed Chrome browser. A valid path is included only in affiliated profiles.
     #[serde(default, rename = "browserExecutablePath")]
@@ -1886,7 +1887,7 @@ pub struct GoogleChromeManagementVersionsV1ReportingData {
 }
 
 /// Describes the ChromeOS user session that a CertificateProvisioningProcess belongs to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ChromeOsUserSession {
     /// Output only. This field contains information about the ChromeOS device that the user session is running on. It is only set if the user is affiliated, i.e., if the user is managed by the same organization that manages the ChromeOS device.
     #[serde(default, rename = "chromeOsDevice")]
@@ -1900,7 +1901,7 @@ pub struct GoogleChromeManagementVersionsV1ChromeOsUserSession {
 }
 
 /// Describes a generic Certificate Authority Connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1GenericCaConnection {
     /// Output only. A string that references the administrator-provided configuration for the certification authority service.
     #[serde(default, rename = "caConnectionAdapterConfigReference")]
@@ -1908,7 +1909,7 @@ pub struct GoogleChromeManagementVersionsV1GenericCaConnection {
 }
 
 /// Describes a generic certificate provisioning profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1GenericProfile {
     /// Output only. A string that references the administrator-provided configuration for the certificate provisioning profile.
     #[serde(default, rename = "profileAdapterConfigReference")]
@@ -1916,7 +1917,7 @@ pub struct GoogleChromeManagementVersionsV1GenericProfile {
 }
 
 /// Describes a SCEP Certificate Authority Connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ScepCaConnection {
     /// Output only. A string that references the administrator-provided configuration for the certification authority service.
     #[serde(default, rename = "caConnectionAdapterConfigReference")]
@@ -1924,7 +1925,7 @@ pub struct GoogleChromeManagementVersionsV1ScepCaConnection {
 }
 
 /// Describes a SCEP certificate provisioning profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ScepProfile {
     /// Output only. The certificate template name as defined by the admin on their on-prem infrastructure. The Certificate Authority uses this name to identify the certificate template.
     #[serde(default, rename = "certificateTemplateName")]
@@ -1957,7 +1958,7 @@ pub struct GoogleChromeManagementVersionsV1ScepProfile {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1971,7 +1972,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// One risk assessment entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1RiskAssessmentEntry {
     /// Output only. The risk assessment provider from which this entry comes from. // TODO: enum values: ["RISK_ASSESSMENT_PROVIDER_UNSPECIFIED", "RISK_ASSESSMENT_PROVIDER_CRXCAVATOR", "RISK_ASSESSMENT_PROVIDER_SPIN_AI", "RISK_ASSESSMENT_PROVIDER_LAYERX", "RISK_ASSESSMENT_PROVIDER_SPIN_AI_V2"]
     #[serde(default)]
@@ -1985,7 +1986,7 @@ pub struct GoogleChromeManagementV1RiskAssessmentEntry {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -1999,7 +2000,7 @@ pub struct GoogleTypeDate {
 }
 
 /// Sampling data for battery. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDevicePowerStatus](https://chromeenterprise.google/policies/#ReportDevicePowerStatus) * Data Collection Frequency: Only at Upload * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1BatterySampleReport {
     /// Output only. Battery charge percentage.
     #[serde(default, rename = "chargeRate")]
@@ -2028,7 +2029,7 @@ pub struct GoogleChromeManagementV1BatterySampleReport {
 }
 
 /// CPU temperature of a device. Sampled per CPU core in Celsius. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceCpuInfo](https://chromeenterprise.google/policies/#ReportDeviceCpuInfo) * Data Collection Frequency: Every 10 minutes * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1CpuTemperatureInfo {
     /// Output only. CPU label. Example: Core 0
     #[serde(default)]
@@ -2039,7 +2040,7 @@ pub struct GoogleChromeManagementV1CpuTemperatureInfo {
 }
 
 /// Information of a graphics adapter (GPU).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1GraphicsAdapterInfo {
     /// Output only. Adapter name. Example: Mesa DRI Intel(R) UHD Graphics 620 (Kabylake GT2).
     #[serde(default)]
@@ -2053,7 +2054,7 @@ pub struct GoogleChromeManagementV1GraphicsAdapterInfo {
 }
 
 /// Information of a display device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1DisplayDevice {
     /// Output only. Display height in millimeters.
     #[serde(default, rename = "displayHeightMm")]
@@ -2085,7 +2086,7 @@ pub struct GoogleChromeManagementV1DisplayDevice {
 }
 
 /// Information on the device touch screen.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TouchScreenInfo {
     /// Output only. List of the internal touch screen devices.
     #[serde(default)]
@@ -2096,7 +2097,7 @@ pub struct GoogleChromeManagementV1TouchScreenInfo {
 }
 
 /// Information for a display.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1DisplayInfo {
     /// Output only. Represents the graphics card device id.
     #[serde(default, rename = "deviceId")]
@@ -2125,7 +2126,7 @@ pub struct GoogleChromeManagementV1DisplayInfo {
 }
 
 /// Memory encryption information of a device. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportDeviceMemoryInfo](https://chromeenterprise.google/policies/#ReportDeviceMemoryInfo) * Data Collection Frequency: At device startup * Default Data Reporting Frequency: At device startup - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: N/A
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TotalMemoryEncryptionInfo {
     /// Memory encryption algorithm. // TODO: enum values: ["MEMORY_ENCRYPTION_ALGORITHM_UNSPECIFIED", "MEMORY_ENCRYPTION_ALGORITHM_UNKNOWN", "MEMORY_ENCRYPTION_ALGORITHM_AES_XTS_128", "MEMORY_ENCRYPTION_ALGORITHM_AES_XTS_256"]
     #[serde(default, rename = "encryptionAlgorithm")]
@@ -2142,7 +2143,7 @@ pub struct GoogleChromeManagementV1TotalMemoryEncryptionInfo {
 }
 
 /// Details about the network device. * This field provides device information, which is static and will not change over time. * Data for this field is controlled via policy: [ReportNetworkDeviceConfiguration](https://chromeenterprise.google/policies/#ReportNetworkDeviceConfiguration) * Data Collection Frequency: At device startup * Default Data Reporting Frequency: At device startup - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: Yes * Reported for affiliated users only: N/A
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1NetworkDevice {
     /// Output only. The integrated circuit card ID associated with the device''s sim card.
     #[serde(default)]
@@ -2165,7 +2166,7 @@ pub struct GoogleChromeManagementV1NetworkDevice {
 }
 
 /// Information for disk volumes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1StorageInfoDiskVolume {
     /// Free storage space in bytes.
     #[serde(default, rename = "storageFreeBytes")]
@@ -2179,7 +2180,7 @@ pub struct GoogleChromeManagementV1StorageInfoDiskVolume {
 }
 
 /// Status of the single storage device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1DiskInfo {
     /// Output only. Number of bytes read since last boot.
     #[serde(default, rename = "bytesReadThisSession")]
@@ -2223,7 +2224,7 @@ pub struct GoogleChromeManagementV1DiskInfo {
 }
 
 /// External display data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryExternalDisplayData {
     /// The display name.
     #[serde(default, rename = "displayName")]
@@ -2246,7 +2247,7 @@ pub struct GoogleChromeManagementV1TelemetryExternalDisplayData {
 }
 
 /// Data that describes the result of the HTTPS latency diagnostics routine, with the HTTPS requests issued to Google websites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1HttpsLatencyRoutineData {
     /// Output only. HTTPS latency if routine succeeded or failed because of HIGH_LATENCY or VERY_HIGH_LATENCY.
     #[serde(default)]
@@ -2257,7 +2258,7 @@ pub struct GoogleChromeManagementV1HttpsLatencyRoutineData {
 }
 
 /// Configures how the telemetry events should be filtered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TelemetryEventNotificationFilter {
     /// Only sends the notifications for events of these types. Must not be empty.
     #[serde(default, rename = "eventTypes")]
@@ -2265,7 +2266,7 @@ pub struct GoogleChromeManagementV1TelemetryEventNotificationFilter {
 }
 
 /// App report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1AppReport {
     /// Timestamp when the report was collected.
     #[serde(default, rename = "reportTime")]
@@ -2276,7 +2277,7 @@ pub struct GoogleChromeManagementV1AppReport {
 }
 
 /// Status data for storage. * This field is telemetry information and this will change over time as the device is utilized. * Data for this field is controlled via policy: [ReportDeviceAudioStatus](https://chromeenterprise.google/policies/#ReportDeviceAudioStatus) * Data Collection Frequency: 10 minutes * Default Data Reporting Frequency: 3 hours - Policy Controlled: Yes * Cache: If the device is offline, the collected data is stored locally, and will be reported when the device is next online: No * Reported for affiliated users only: N/A * Granular permission needed: TELEMETRY_API_AUDIO_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1AudioStatusReport {
     /// Output only. Active input device''s name.
     #[serde(default, rename = "inputDevice")]
@@ -2302,7 +2303,7 @@ pub struct GoogleChromeManagementV1AudioStatusReport {
 }
 
 /// Device activity report. * Granular permission needed: TELEMETRY_API_DEVICE_ACTIVITY_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1DeviceActivityReport {
     /// Output only. Device activity state. // TODO: enum values: ["DEVICE_ACTIVITY_STATE_UNSPECIFIED", "ACTIVE", "IDLE", "LOCKED"]
     #[serde(default, rename = "deviceActivityState")]
@@ -2313,7 +2314,7 @@ pub struct GoogleChromeManagementV1DeviceActivityReport {
 }
 
 /// Network bandwidth report. * Granular permission needed: TELEMETRY_API_NETWORK_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1NetworkBandwidthReport {
     /// Output only. Download speed in kilobits per second.
     #[serde(default, rename = "downloadSpeedKbps")]
@@ -2324,7 +2325,7 @@ pub struct GoogleChromeManagementV1NetworkBandwidthReport {
 }
 
 /// Peripherals report. * Granular permission needed: TELEMETRY_API_PERIPHERALS_REPORT
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1PeripheralsReport {
     /// Output only. Timestamp of when the report was collected.
     #[serde(default, rename = "reportTime")]
@@ -2336,7 +2337,7 @@ pub struct GoogleChromeManagementV1PeripheralsReport {
 }
 
 /// Information of an extension installed on a Chrome browser profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ReportingDataExtensionData {
     /// Output only. Description of the extension.
     #[serde(default)]
@@ -2374,7 +2375,7 @@ pub struct GoogleChromeManagementVersionsV1ReportingDataExtensionData {
 }
 
 /// Information of the policies applied on an extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ReportingDataExtensionPolicyData {
     /// Output only. ID of the extension.
     #[serde(default, rename = "extensionId")]
@@ -2390,7 +2391,7 @@ pub struct GoogleChromeManagementVersionsV1ReportingDataExtensionPolicyData {
 }
 
 /// Describes the ChromeOS device that a CertificateProvisioningProcess belongs to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ChromeOsDevice {
     /// Output only. The unique Directory API ID of the device. This value is the same as the Admin Console''s Directory API ID in the ChromeOS Devices tab.
     #[serde(default, rename = "deviceDirectoryApiId")]
@@ -2401,7 +2402,7 @@ pub struct GoogleChromeManagementVersionsV1ChromeOsDevice {
 }
 
 /// Describes a subject alternative name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1SubjectAltName {
     /// Output only. The type of the SubjectAltName extension. // TODO: enum values: ["SUBJECT_ALT_NAME_TYPE_UNSPECIFIED", "RFC822_NAME", "DNS_NAME", "OTHER_NAME_USER_PRINCIPAL_NAME", "UNIFORM_RESOURCE_IDENTIFIER"]
     #[serde(default, rename = "type")]
@@ -2412,7 +2413,7 @@ pub struct GoogleChromeManagementVersionsV1SubjectAltName {
 }
 
 /// Risk assessment for a Chrome extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1RiskAssessment {
     /// Risk assessment for the extension. Currently, this is a numerical value, and its interpretation is specific to each risk assessment provider.
     #[serde(default)]
@@ -2426,7 +2427,7 @@ pub struct GoogleChromeManagementV1RiskAssessment {
 }
 
 /// Information of an internal touch screen device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1TouchScreenDevice {
     /// Output only. Touch screen device display name.
     #[serde(default, rename = "displayName")]
@@ -2440,7 +2441,7 @@ pub struct GoogleChromeManagementV1TouchScreenDevice {
 }
 
 /// App usage data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1AppUsageData {
     /// App id.
     #[serde(default, rename = "appId")]
@@ -2457,7 +2458,7 @@ pub struct GoogleChromeManagementV1AppUsageData {
 }
 
 /// USB connected peripheral report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementV1UsbPeripheralReport {
     /// Output only. Categories the device belongs to https://www.usb.org/defined-class-codes
     #[serde(default)]
@@ -2486,7 +2487,7 @@ pub struct GoogleChromeManagementV1UsbPeripheralReport {
 }
 
 /// Information of a policy applied on a Chrome browser profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ReportingDataPolicyData {
     /// Output only. Conflicting policy information.
     #[serde(default)]
@@ -2508,7 +2509,7 @@ pub struct GoogleChromeManagementVersionsV1ReportingDataPolicyData {
 }
 
 /// Information of conflicting policy applied on a Chrome browser profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromeManagementVersionsV1ReportingDataConflictingPolicyData {
     /// Output only. Source of the policy. // TODO: enum values: ["POLICY_SOURCE_UNSPECIFIED", "MACHINE_PLATFORM", "USER_PLATFORM", "MACHINE_LEVEL_USER_CLOUD", "USER_CLOUD", "MACHINE_MERGED"]
     #[serde(default)]

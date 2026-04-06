@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Request message for checking authorization for the instance owner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckAuthorizationRequest {
     /// Optional. The details of the OAuth authorization response. This may include additional params such as dry_run, version_info, origin, propagate, etc.
     #[serde(default, rename = "authorizationDetails")]
@@ -23,7 +24,7 @@ pub struct CheckAuthorizationRequest {
 }
 
 /// Response message for checking authorization for the instance owner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckAuthorizationResponse {
     /// Output only. Timestamp when this Authorization request was created.
     #[serde(default, rename = "createTime")]
@@ -37,7 +38,7 @@ pub struct CheckAuthorizationResponse {
 }
 
 /// Response for checking if a notebook instance is upgradeable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckInstanceUpgradabilityResponse {
     /// The new image self link this instance will be upgraded to if calling the upgrade endpoint. This field will only be populated if field upgradeable is true.
     #[serde(default, rename = "upgradeImage")]
@@ -54,7 +55,7 @@ pub struct CheckInstanceUpgradabilityResponse {
 }
 
 /// Response for getting WbI configurations in a location
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Config {
     /// Output only. The list of available images to create a WbI.
     #[serde(default, rename = "availableImages")]
@@ -71,7 +72,7 @@ pub struct Config {
 }
 
 /// Request for creating a notebook instance diagnostic file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiagnoseInstanceRequest {
     /// Required. Defines flags that are used to run the diagnostic tool
     #[serde(default, rename = "diagnosticConfig")]
@@ -82,11 +83,11 @@ pub struct DiagnoseInstanceRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for generating an EUC for the instance owner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateAccessTokenRequest {
     /// Required. The VM identity token (a JWT) for authenticating the VM. https://cloud.google.com/compute/docs/instances/verifying-instance-identity
     #[serde(default, rename = "vmToken")]
@@ -94,7 +95,7 @@ pub struct GenerateAccessTokenRequest {
 }
 
 /// Response message for generating an EUC for the instance owner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateAccessTokenResponse {
     /// Short-lived access token string which may be used to access Google APIs.
     #[serde(default)]
@@ -111,7 +112,7 @@ pub struct GenerateAccessTokenResponse {
 }
 
 /// Response for listing notebook instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancesResponse {
     /// A list of returned instances.
     #[serde(default)]
@@ -125,7 +126,7 @@ pub struct ListInstancesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -136,7 +137,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -150,7 +151,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -179,7 +180,7 @@ pub struct OperationMetadata {
 }
 
 /// Request for notebook instances to report information to Notebooks API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportInstanceInfoSystemRequest {
     /// Required. The Event to be reported.
     #[serde(default)]
@@ -190,11 +191,11 @@ pub struct ReportInstanceInfoSystemRequest {
 }
 
 /// Request for resetting a notebook instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetInstanceRequest {}
 
 /// Request for resizing the notebook instance disks
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResizeDiskRequest {
     /// Required. The boot disk to be resized. Only disk_size_gb will be used.
     #[serde(default, rename = "bootDisk")]
@@ -205,7 +206,7 @@ pub struct ResizeDiskRequest {
 }
 
 /// Request for restoring the notebook instance from a BackupSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreInstanceRequest {
     /// Snapshot to be used for restore.
     #[serde(default)]
@@ -213,7 +214,7 @@ pub struct RestoreInstanceRequest {
 }
 
 /// Request for rollbacking a notebook instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackInstanceRequest {
     /// Required. Output only. Revision Id
     #[serde(default, rename = "revisionId")]
@@ -224,7 +225,7 @@ pub struct RollbackInstanceRequest {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -232,15 +233,15 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request for starting a notebook instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartInstanceRequest {}
 
 /// Request for stopping a notebook instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopInstanceRequest {}
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -248,7 +249,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -256,11 +257,11 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Request for upgrading a notebook instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeInstanceRequest {}
 
 /// Request for upgrading a notebook instance from within the VM
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeInstanceSystemRequest {
     /// Required. The VM hardware token for authenticating the VM. https://cloud.google.com/compute/docs/instances/verifying-instance-identity
     #[serde(default, rename = "vmId")]
@@ -268,7 +269,7 @@ pub struct UpgradeInstanceSystemRequest {
 }
 
 /// ConfigImage represents an image release available to create a WbI
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageRelease {
     /// Output only. The name of the image of the form workbench-instances-vYYYYmmdd--
     #[serde(default, rename = "imageName")]
@@ -279,7 +280,7 @@ pub struct ImageRelease {
 }
 
 /// DefaultValues represents the default configuration values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultValues {
     /// Output only. The default machine type used by the backend if not provided by the user.
     #[serde(default, rename = "machineType")]
@@ -287,7 +288,7 @@ pub struct DefaultValues {
 }
 
 /// SupportedValues represents the values supported by the configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SupportedValues {
     /// Output only. The accelerator types supported by WbI.
     #[serde(default, rename = "acceleratorTypes")]
@@ -298,7 +299,7 @@ pub struct SupportedValues {
 }
 
 /// Defines flags that are used to run the diagnostic tool
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiagnosticConfig {
     /// Optional. Enables flag to copy all /home/jupyter folder contents
     #[serde(default, rename = "enableCopyHomeFilesFlag")]
@@ -318,7 +319,7 @@ pub struct DiagnosticConfig {
 }
 
 /// The definition of a notebook instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// Output only. Instance creation time.
     #[serde(default, rename = "createTime")]
@@ -383,7 +384,7 @@ pub struct Instance {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -403,7 +404,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -423,7 +424,7 @@ pub struct Operation {
 }
 
 /// The definition of an Event for a managed / semi-managed notebook instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Event {
     /// Optional. Event details. This field is used to pass event information.
     #[serde(default)]
@@ -437,7 +438,7 @@ pub struct Event {
 }
 
 /// Snapshot represents the snapshot of the data disk used to restore the Workbench Instance from. Refers to: compute/v1/projects/{project_id}/global/snapshots/{snapshot_id}
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Snapshot {
     /// Required. The project ID of the snapshot.
     #[serde(default, rename = "projectId")]
@@ -448,7 +449,7 @@ pub struct Snapshot {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -462,7 +463,7 @@ pub struct Policy {
 }
 
 /// The definition of how to configure a VM instance outside of Resources and Identity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GceSetup {
     /// Optional. The hardware accelerators used on this instance. If you use accelerators, make sure that your configuration has [enough vCPUs and memory to support the machine_type you have selected](https://cloud.google.com/compute/docs/gpus/#gpus-list). Currently supports only one accelerator configuration.
     #[serde(default, rename = "acceleratorConfigs")]
@@ -521,7 +522,7 @@ pub struct GceSetup {
 }
 
 /// The entry of VM image upgrade history.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeHistoryEntry {
     /// Optional. Action. Rolloback or Upgrade. // TODO: enum values: ["ACTION_UNSPECIFIED", "UPGRADE", "ROLLBACK"]
     #[serde(default)]
@@ -553,7 +554,7 @@ pub struct UpgradeHistoryEntry {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -567,7 +568,7 @@ pub struct Status {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -581,7 +582,7 @@ pub struct Binding {
 }
 
 /// An accelerator configuration for a VM instance Definition of a hardware accelerator. Note that there is no check on type and core_count combinations. TPUs are not supported. See [GPUs on Compute Engine](https://cloud.google.com/compute/docs/gpus/#gpus-list) to find a valid combination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorConfig {
     /// Optional. Count of cores of this accelerator.
     #[serde(default, rename = "coreCount")]
@@ -592,7 +593,7 @@ pub struct AcceleratorConfig {
 }
 
 /// The definition of a boot disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BootDisk {
     /// Optional. Input only. Disk encryption method used on the boot and data disks, defaults to GMEK. // TODO: enum values: ["DISK_ENCRYPTION_UNSPECIFIED", "GMEK", "CMEK"]
     #[serde(default, rename = "diskEncryption")]
@@ -609,7 +610,7 @@ pub struct BootDisk {
 }
 
 /// A set of Confidential Instance options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfidentialInstanceConfig {
     /// Optional. Defines the type of technology used by the confidential instance. // TODO: enum values: ["CONFIDENTIAL_INSTANCE_TYPE_UNSPECIFIED", "SEV"]
     #[serde(default, rename = "confidentialInstanceType")]
@@ -617,7 +618,7 @@ pub struct ConfidentialInstanceConfig {
 }
 
 /// Definition of a container image for starting a notebook instance with the environment installed in a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerImage {
     /// Required. The path to the container image repository. For example: gcr.io/{project_id}/{image_name}
     #[serde(default)]
@@ -628,7 +629,7 @@ pub struct ContainerImage {
 }
 
 /// An instance-attached disk resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataDisk {
     /// Optional. Input only. Disk encryption method used on the boot and data disks, defaults to GMEK. // TODO: enum values: ["DISK_ENCRYPTION_UNSPECIFIED", "GMEK", "CMEK"]
     #[serde(default, rename = "diskEncryption")]
@@ -648,7 +649,7 @@ pub struct DataDisk {
 }
 
 /// A GPU driver configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GPUDriverConfig {
     /// Optional. Specify a custom Cloud Storage path where the GPU driver is stored. If not specified, we''ll automatically choose from official GPU drivers.
     #[serde(default, rename = "customGpuDriverPath")]
@@ -659,7 +660,7 @@ pub struct GPUDriverConfig {
 }
 
 /// The definition of a network interface resource attached to a VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkInterface {
     /// Optional. An array of configurations for this interface. Currently, only one access config, ONE_TO_ONE_NAT, is supported. If no accessConfigs specified, the instance will have an external internet access through an ephemeral external IP address.
     #[serde(default, rename = "accessConfigs")]
@@ -676,7 +677,7 @@ pub struct NetworkInterface {
 }
 
 /// A reservation that an instance can consume from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationAffinity {
     /// Required. Specifies the type of reservation from which this instance can consume resources: RESERVATION_ANY (default), RESERVATION_SPECIFIC, or RESERVATION_NONE. See Consuming reserved instances for examples. // TODO: enum values: ["RESERVATION_UNSPECIFIED", "RESERVATION_NONE", "RESERVATION_ANY", "RESERVATION_SPECIFIC"]
     #[serde(default, rename = "consumeReservationType")]
@@ -690,7 +691,7 @@ pub struct ReservationAffinity {
 }
 
 /// A service account that acts as an identity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccount {
     /// Optional. Email address of the service account.
     #[serde(default)]
@@ -701,7 +702,7 @@ pub struct ServiceAccount {
 }
 
 /// A set of Shielded Instance options. See [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm). Not all combinations are valid.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShieldedInstanceConfig {
     /// Optional. Defines whether the VM instance has integrity monitoring enabled. Enables monitoring and attestation of the boot integrity of the VM instance. The attestation is performed against the integrity policy baseline. This baseline is initially derived from the implicitly trusted boot image when the VM instance is created.
     #[serde(default, rename = "enableIntegrityMonitoring")]
@@ -715,7 +716,7 @@ pub struct ShieldedInstanceConfig {
 }
 
 /// Definition of a custom Compute Engine virtual machine image for starting a notebook instance with the environment installed directly on the VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmImage {
     /// Optional. Use this VM image family to find the image; the newest image in this family will be used.
     #[serde(default)]
@@ -729,7 +730,7 @@ pub struct VmImage {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -746,7 +747,7 @@ pub struct Expr {
 }
 
 /// An access configuration attached to an instance''s network interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessConfig {
     /// An external IP address associated with this instance. Specify an unused static external IP address available to the project or leave this field undefined to use an IP from a shared ephemeral IP address pool. If you specify a static external IP address, it must live in the same region as the zone of the instance.
     #[serde(default, rename = "externalIp")]

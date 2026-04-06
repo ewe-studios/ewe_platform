@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Describes why a bundle is invalid. Intended for use in error details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EdgeConfigstoreBundleBadBundle {
     /// Describes all precondition violations.
     #[serde(default)]
@@ -20,7 +21,7 @@ pub struct EdgeConfigstoreBundleBadBundle {
 }
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiHttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
@@ -34,11 +35,11 @@ pub struct GoogleApiHttpBody {
 }
 
 /// Request for ActivateNatAddressRequest. Activate the nat address request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ActivateNatAddressRequest {}
 
 /// Request for AdjustAppGroupBalance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AdjustAppGroupBalanceRequest {
     /// Required. * A positive value of adjustment means that that the API provider wants to adjust the balance for an under-charged AppGroup i.e. the balance of the AppGroup will decrease. * A negative value of adjustment is not supported. Use credit balance API instead.
     #[serde(default)]
@@ -46,7 +47,7 @@ pub struct GoogleCloudApigeeV1AdjustAppGroupBalanceRequest {
 }
 
 /// Request for AdjustDeveloperBalance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AdjustDeveloperBalanceRequest {
     /// * A positive value of adjustment means that that the API provider wants to adjust the balance for an under-charged developer i.e. the balance of the developer will decrease. * A negative value of adjustment means that that the API provider wants to adjust the balance for an over-charged developer i.e. the balance of the developer will increase. NOTE: An adjustment cannot increase the balance of the developer beyond the balance as of the most recent credit. For example, if a developer''s balance is updated to be $100, and they spend $10, a negative adjustment can only increase the balance of the developer to $100.
     #[serde(default)]
@@ -54,7 +55,7 @@ pub struct GoogleCloudApigeeV1AdjustDeveloperBalanceRequest {
 }
 
 /// Reference to a certificate or key/certificate pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Alias {
     /// Resource ID for this alias. Values must match the regular expression [^/]{1,255}.
     #[serde(default)]
@@ -68,7 +69,7 @@ pub struct GoogleCloudApigeeV1Alias {
 }
 
 /// The API category resource wrapped with response status, error_code, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiCategoryResponse {
     /// The API category resource.
     #[serde(default)]
@@ -88,7 +89,7 @@ pub struct GoogleCloudApigeeV1ApiCategoryResponse {
 }
 
 /// The catalog item documentation wrapped with response status, error_code, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiDocDocumentationResponse {
     /// Output only. The documentation resource.
     #[serde(default)]
@@ -108,7 +109,7 @@ pub struct GoogleCloudApigeeV1ApiDocDocumentationResponse {
 }
 
 /// The catalog item resource wrapped with response status, error_code, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiDocResponse {
     /// The catalog item resource.
     #[serde(default)]
@@ -128,7 +129,7 @@ pub struct GoogleCloudApigeeV1ApiDocResponse {
 }
 
 /// API proxy revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiProxyRevision {
     /// Output only. The archive that generated this proxy revision. This field is only present on proxy revisions that were generated by an archive. Proxies generated by archives cannot be updated, deleted, or deployed to other environments. Format: organizations/*/environments/*/archiveDeployments/*
     #[serde(default)]
@@ -208,7 +209,7 @@ pub struct GoogleCloudApigeeV1ApiProxyRevision {
 }
 
 /// Response for GetApiSecurityRuntimeConfig[EnvironmentService.GetApiSecurityRuntimeConfig].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiSecurityRuntimeConfig {
     /// A list of up to 5 Cloud Storage Blobs that contain SecurityActions.
     #[serde(default)]
@@ -228,7 +229,7 @@ pub struct GoogleCloudApigeeV1ApiSecurityRuntimeConfig {
 }
 
 /// AppGroupBalance for the AppGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AppGroupBalance {
     /// Output only. List of all wallets. Each individual wallet stores the account balance for a particular currency.
     #[serde(default)]
@@ -236,7 +237,7 @@ pub struct GoogleCloudApigeeV1AppGroupBalance {
 }
 
 /// Monetization configuration for the AppGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AppGroupMonetizationConfig {
     /// Required. Billing type. // TODO: enum values: ["BILLING_TYPE_UNSPECIFIED", "PREPAID", "POSTPAID"]
     #[serde(default, rename = "billingType")]
@@ -244,7 +245,7 @@ pub struct GoogleCloudApigeeV1AppGroupMonetizationConfig {
 }
 
 /// GoogleCloudApigeeV1AsyncQueryResultView resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AsyncQueryResultView {
     /// Error code when there is a failure.
     #[serde(default)]
@@ -264,7 +265,7 @@ pub struct GoogleCloudApigeeV1AsyncQueryResultView {
 }
 
 /// GoogleCloudApigeeV1Attributes resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Attributes {
     /// List of attributes.
     #[serde(default)]
@@ -272,7 +273,7 @@ pub struct GoogleCloudApigeeV1Attributes {
 }
 
 /// Request for BatchComputeSecurityAssessmentResults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequest {
     /// An array of API Hub APIs to assess. A maximum of 1 API can be assessed.
     #[serde(default, rename = "apiHubApis")]
@@ -307,11 +308,11 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequest {
 }
 
 /// Message for include_all_resources option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestIncludeAll {}
 
 /// Response for BatchComputeSecurityAssessmentResults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse {
     /// The time of the assessment api call.
     #[serde(default, rename = "assessmentTime")]
@@ -326,7 +327,7 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsResponse {
 }
 
 /// Request for BatchUpdateSecurityIncident.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1BatchUpdateSecurityIncidentsRequest {
     /// Optional. Required. The request message specifying the resources to update. A maximum of 1000 can be modified in a batch.
     #[serde(default)]
@@ -335,7 +336,7 @@ pub struct GoogleCloudApigeeV1BatchUpdateSecurityIncidentsRequest {
 }
 
 /// Response for BatchUpdateSecurityIncident.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1BatchUpdateSecurityIncidentsResponse {
     /// Output only. Updated security incidents
     #[serde(default, rename = "securityIncidents")]
@@ -344,7 +345,7 @@ pub struct GoogleCloudApigeeV1BatchUpdateSecurityIncidentsResponse {
 }
 
 /// CanaryEvaluation represents the canary analysis between two versions of the runtime that is serving requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1CanaryEvaluation {
     /// Required. The stable version that is serving requests.
     #[serde(default)]
@@ -376,7 +377,7 @@ pub struct GoogleCloudApigeeV1CanaryEvaluation {
 }
 
 /// Request for ComputeEnvironmentScores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresRequest {
     /// Optional. Filters are used to filter scored components. Return all the components if no filter is mentioned. Example: [{ "scorePath": "/org@myorg/envgroup@myenvgroup/env@myenv/proxies/proxy@myproxy/source" }, { "scorePath": "/org@myorg/envgroup@myenvgroup/env@myenv/proxies/proxy@myproxy/target", }] This will return components with path: "/org@myorg/envgroup@myenvgroup/env@myenv/proxies/proxy@myproxy/source" OR "/org@myorg/envgroup@myenvgroup/env@myenv/proxies/proxy@myproxy/target"
     #[serde(default)]
@@ -395,7 +396,7 @@ pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresRequest {
 }
 
 /// Response for ComputeEnvironmentScores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresResponse {
     /// A page token, received from a previous ComputeScore call. Provide this to retrieve the subsequent page.
     #[serde(default, rename = "nextPageToken")]
@@ -406,7 +407,7 @@ pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresResponse {
 }
 
 /// ControlPlaneAccess is the request body and response body of UpdateControlPlaneAccess. and the response body of GetControlPlaneAccess. The input identities contains an array of service accounts to grant access to the respective control plane resource, with each service account specified using the following format: serviceAccount:***service-account-name***. The ***service-account-name*** is formatted like an email address. For example: my-control-plane-service_account@my_project_id.iam.gserviceaccount.com You might specify multiple service accounts, for example, if you have multiple environments and wish to assign a unique service account to each one.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ControlPlaneAccess {
     /// Optional. Array of service accounts authorized to publish analytics data to the control plane (for the Message Processor component).
     #[serde(default, rename = "analyticsPublisherIdentities")]
@@ -420,7 +421,7 @@ pub struct GoogleCloudApigeeV1ControlPlaneAccess {
 }
 
 /// Request for CreditAppGroupBalance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1CreditAppGroupBalanceRequest {
     /// Required. The amount of money to be credited. The wallet corresponding to the currency specified within transaction_amount will be updated. For example, if you specified currency_code within transaction_amount as "USD", then the amount would be added to the wallet which has the "USD" currency or if no such wallet exists, a new wallet will be created with the "USD" currency.
     #[serde(default, rename = "transactionAmount")]
@@ -431,7 +432,7 @@ pub struct GoogleCloudApigeeV1CreditAppGroupBalanceRequest {
 }
 
 /// Request for CreditDeveloperBalance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1CreditDeveloperBalanceRequest {
     /// The amount of money to be credited. The wallet corresponding to the currency specified within transaction_amount will be updated. For example, if you specified currency_code within transaction_amount as "USD", then the amount would be added to the wallet which has the "USD" currency or if no such wallet exists, a new wallet will be created with the "USD" currency.
     #[serde(default, rename = "transactionAmount")]
@@ -442,7 +443,7 @@ pub struct GoogleCloudApigeeV1CreditDeveloperBalanceRequest {
 }
 
 /// GoogleCloudApigeeV1DebugSession resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DebugSession {
     /// Optional. The number of request to be traced. Min = 1, Max = 15, Default = 10.
     #[serde(default)]
@@ -468,7 +469,7 @@ pub struct GoogleCloudApigeeV1DebugSession {
 }
 
 /// A transaction contains all of the debug information of the entire message flow of an API call processed by the runtime plane. The information is collected and recorded at critical points of the message flow in the runtime apiproxy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DebugSessionTransaction {
     /// Flag indicating whether a transaction is completed or not
     #[serde(default)]
@@ -479,7 +480,7 @@ pub struct GoogleCloudApigeeV1DebugSessionTransaction {
 }
 
 /// GoogleCloudApigeeV1DeleteCustomReportResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeleteCustomReportResponse {
     /// The response contains only a message field.
     #[serde(default)]
@@ -487,7 +488,7 @@ pub struct GoogleCloudApigeeV1DeleteCustomReportResponse {
 }
 
 /// Response for certain delete operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeleteResponse {
     /// Unique error code for the request, if any.
     #[serde(default, rename = "errorCode")]
@@ -507,7 +508,7 @@ pub struct GoogleCloudApigeeV1DeleteResponse {
 }
 
 /// Response for GenerateDeployChangeReport and GenerateUndeployChangeReport. This report contains any validation failures that would cause the deployment to be rejected, as well changes and conflicts in routing that may occur due to the new deployment. The existence of a routing warning does not necessarily imply that the deployment request is bad, if the desired state of the deployment request is to effect a routing change. The primary purposes of the routing messages are: 1) To inform users of routing changes that may have an effect on traffic currently being routed to other existing deployments. 2) To warn users if some base path in the proxy will not receive traffic due to an existing deployment having already claimed that base path. The presence of routing conflicts/changes will not cause non-dry-run DeployApiProxy/UndeployApiProxy requests to be rejected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeploymentChangeReport {
     /// All routing changes that may result from a deployment request.
     #[serde(default, rename = "routingChanges")]
@@ -525,7 +526,7 @@ pub struct GoogleCloudApigeeV1DeploymentChangeReport {
 }
 
 /// GoogleCloudApigeeV1DeveloperAppKey resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeveloperAppKey {
     /// List of API products for which the credential can be used. **Note**: Do not specify the list of API products when creating a consumer key and secret for a developer app. Instead, use the UpdateDeveloperAppKey API to make the association after the consumer key and secret are created.
     #[serde(default, rename = "apiProducts")]
@@ -557,7 +558,7 @@ pub struct GoogleCloudApigeeV1DeveloperAppKey {
 }
 
 /// Account balance for the developer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeveloperBalance {
     /// Output only. List of all wallets. Each individual wallet stores the account balance for a particular currency.
     #[serde(default)]
@@ -565,7 +566,7 @@ pub struct GoogleCloudApigeeV1DeveloperBalance {
 }
 
 /// Monetization configuration for the developer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeveloperMonetizationConfig {
     /// Billing type. // TODO: enum values: ["BILLING_TYPE_UNSPECIFIED", "PREPAID", "POSTPAID"]
     #[serde(default, rename = "billingType")]
@@ -573,15 +574,15 @@ pub struct GoogleCloudApigeeV1DeveloperMonetizationConfig {
 }
 
 /// Message to disable an enabled SecurityAction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DisableSecurityActionRequest {}
 
 /// Message to enable a disabled SecurityAction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EnableSecurityActionRequest {}
 
 /// GoogleCloudApigeeV1Environment resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Environment {
     /// Optional. API Proxy type supported by the environment. The type can be set when creating the Environment and cannot be changed. // TODO: enum values: ["API_PROXY_TYPE_UNSPECIFIED", "PROGRAMMABLE", "CONFIGURABLE"]
     #[serde(default, rename = "apiProxyType")]
@@ -628,7 +629,7 @@ pub struct GoogleCloudApigeeV1Environment {
 }
 
 /// GoogleCloudApigeeV1EnvironmentConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EnvironmentConfig {
     /// The latest runtime configurations for add-ons.
     #[serde(default, rename = "addonsConfig")]
@@ -709,15 +710,15 @@ pub struct GoogleCloudApigeeV1EnvironmentConfig {
 }
 
 /// Request for ExpireAppGroupSubscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ExpireAppGroupSubscriptionRequest {}
 
 /// Request for ExpireDeveloperSubscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ExpireDeveloperSubscriptionRequest {}
 
 /// Request body for [CreateExportRequest]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ExportRequest {
     /// Optional. Delimiter used in the CSV file, if outputFormat is set to csv. Defaults to the , (comma) character. Supported delimiter characters include comma (,), pipe (|), and tab (\t).
     #[serde(default, rename = "csvDelimiter")]
@@ -740,7 +741,7 @@ pub struct GoogleCloudApigeeV1ExportRequest {
 }
 
 /// GoogleCloudApigeeV1FlowHook resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1FlowHook {
     /// Optional. Flag that specifies whether execution should continue if the flow hook throws an exception. Set to true to continue execution. Set to false to stop execution if the flow hook throws an exception. Defaults to true.
     #[serde(default, rename = "continueOnError")]
@@ -757,11 +758,11 @@ pub struct GoogleCloudApigeeV1FlowHook {
 }
 
 /// Request for GenerateDownloadUrl method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GenerateDownloadUrlRequest {}
 
 /// Response for GenerateDownloadUrl method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GenerateDownloadUrlResponse {
     /// The Google Cloud Storage signed URL that can be used to download the Archive zip file.
     #[serde(default, rename = "downloadUri")]
@@ -769,11 +770,11 @@ pub struct GoogleCloudApigeeV1GenerateDownloadUrlResponse {
 }
 
 /// Request for GenerateUploadUrl method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GenerateUploadUrlRequest {}
 
 /// Response for GenerateUploadUrl method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GenerateUploadUrlResponse {
     /// The Google Cloud Storage signed URL that can be used to upload a new Archive zip file.
     #[serde(default, rename = "uploadUri")]
@@ -781,7 +782,7 @@ pub struct GoogleCloudApigeeV1GenerateUploadUrlResponse {
 }
 
 /// The response for GetAsyncQueryResultUrl
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GetAsyncQueryResultUrlResponse {
     /// The list of Signed URLs generated by the CreateAsyncQuery request
     #[serde(default)]
@@ -791,11 +792,11 @@ pub struct GoogleCloudApigeeV1GetAsyncQueryResultUrlResponse {
 }
 
 /// Request for GetSyncAuthorization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GetSyncAuthorizationRequest {}
 
 /// GoogleCloudApigeeV1IngressConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1IngressConfig {
     /// List of environment groups in the organization.
     #[serde(default, rename = "environmentGroups")]
@@ -816,7 +817,7 @@ pub struct GoogleCloudApigeeV1IngressConfig {
 }
 
 /// Collection of key/value string pairs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1KeyValueMap {
     /// Required. Flag that specifies whether entry values will be encrypted. This field is retained for backward compatibility and the value of encrypted will always be true. Apigee X and hybrid do not support unencrypted key value maps.
     #[serde(default)]
@@ -830,7 +831,7 @@ pub struct GoogleCloudApigeeV1KeyValueMap {
 }
 
 /// Datastore for Certificates and Aliases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Keystore {
     /// Output only. Aliases in this keystore.
     #[serde(default)]
@@ -841,7 +842,7 @@ pub struct GoogleCloudApigeeV1Keystore {
 }
 
 /// The response for ListApiCategoriesRequest. Next ID: 6
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListApiCategoriesResponse {
     /// The API category resources.
     #[serde(default)]
@@ -861,7 +862,7 @@ pub struct GoogleCloudApigeeV1ListApiCategoriesResponse {
 }
 
 /// Response for ListApiDebugSessions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListApiDebugSessionsResponse {
     /// Page token that you can include in a ListApiDebugSessionsRequest to retrieve the next page. If omitted, no subsequent pages exist.
     #[serde(default, rename = "nextPageToken")]
@@ -872,7 +873,7 @@ pub struct GoogleCloudApigeeV1ListApiDebugSessionsResponse {
 }
 
 /// GoogleCloudApigeeV1ListApiDocsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListApiDocsResponse {
     /// The catalog item resources.
     #[serde(default)]
@@ -895,7 +896,7 @@ pub struct GoogleCloudApigeeV1ListApiDocsResponse {
 }
 
 /// GoogleCloudApigeeV1ListApiProductsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListApiProductsResponse {
     /// Lists all API product names defined for an organization.
     #[serde(default, rename = "apiProduct")]
@@ -903,14 +904,14 @@ pub struct GoogleCloudApigeeV1ListApiProductsResponse {
 }
 
 /// GoogleCloudApigeeV1ListApiProxiesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListApiProxiesResponse {
     #[serde(default)]
     pub proxies: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1ApiProxy>>,
 }
 
 /// Response for list service extensions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListApimServiceExtensionsResponse {
     /// service extension in a given organization.
     #[serde(default, rename = "apimServiceExtensions")]
@@ -922,7 +923,7 @@ pub struct GoogleCloudApigeeV1ListApimServiceExtensionsResponse {
 }
 
 /// Response for ListAppGroupApps
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListAppGroupAppsResponse {
     /// List of AppGroup apps and their credentials.
     #[serde(default, rename = "appGroupApps")]
@@ -933,7 +934,7 @@ pub struct GoogleCloudApigeeV1ListAppGroupAppsResponse {
 }
 
 /// Response for ListAppGroupSubscriptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListAppGroupSubscriptionsResponse {
     /// The list of subscriptions for an AppGroup.
     #[serde(default, rename = "appGroupSubscriptions")]
@@ -945,7 +946,7 @@ pub struct GoogleCloudApigeeV1ListAppGroupSubscriptionsResponse {
 }
 
 /// ListAppGroupsResponse contains the 0 or more AppGroups, along with the optional page token and the total count of apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListAppGroupsResponse {
     /// List of AppGroups.
     #[serde(default, rename = "appGroups")]
@@ -959,7 +960,7 @@ pub struct GoogleCloudApigeeV1ListAppGroupsResponse {
 }
 
 /// GoogleCloudApigeeV1ListAppsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListAppsResponse {
     #[serde(default)]
     pub app: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1App>>,
@@ -972,7 +973,7 @@ pub struct GoogleCloudApigeeV1ListAppsResponse {
 }
 
 /// Response for ListArchiveDeployments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListArchiveDeploymentsResponse {
     /// Archive Deployments in the specified environment.
     #[serde(default, rename = "archiveDeployments")]
@@ -984,7 +985,7 @@ pub struct GoogleCloudApigeeV1ListArchiveDeploymentsResponse {
 }
 
 /// The response for ListAsyncQueries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListAsyncQueriesResponse {
     /// The asynchronous queries belong to requested resource name.
     #[serde(default)]
@@ -992,14 +993,14 @@ pub struct GoogleCloudApigeeV1ListAsyncQueriesResponse {
 }
 
 /// This message encapsulates a list of custom report definitions
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListCustomReportsResponse {
     #[serde(default)]
     pub qualifier: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1CustomReport>>,
 }
 
 /// Response for ListDataCollectors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListDataCollectorsResponse {
     /// Data collectors in the specified organization.
     #[serde(default, rename = "dataCollectors")]
@@ -1010,7 +1011,7 @@ pub struct GoogleCloudApigeeV1ListDataCollectorsResponse {
 }
 
 /// The response for ListDatastores
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListDatastoresResponse {
     /// A list of datastores
     #[serde(default)]
@@ -1018,7 +1019,7 @@ pub struct GoogleCloudApigeeV1ListDatastoresResponse {
 }
 
 /// GoogleCloudApigeeV1ListDebugSessionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListDebugSessionsResponse {
     /// Page token that you can include in a ListDebugSessionsRequest to retrieve the next page. If omitted, no subsequent pages exist.
     #[serde(default, rename = "nextPageToken")]
@@ -1029,7 +1030,7 @@ pub struct GoogleCloudApigeeV1ListDebugSessionsResponse {
 }
 
 /// GoogleCloudApigeeV1ListDeploymentsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListDeploymentsResponse {
     /// List of deployments.
     #[serde(default)]
@@ -1037,7 +1038,7 @@ pub struct GoogleCloudApigeeV1ListDeploymentsResponse {
 }
 
 /// GoogleCloudApigeeV1ListDeveloperAppsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListDeveloperAppsResponse {
     /// List of developer apps and their credentials.
     #[serde(default)]
@@ -1045,7 +1046,7 @@ pub struct GoogleCloudApigeeV1ListDeveloperAppsResponse {
 }
 
 /// Response for ListDeveloperSubscriptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListDeveloperSubscriptionsResponse {
     /// List of all subscriptions.
     #[serde(default, rename = "developerSubscriptions")]
@@ -1057,7 +1058,7 @@ pub struct GoogleCloudApigeeV1ListDeveloperSubscriptionsResponse {
 }
 
 /// Response for list DNS zones.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListDnsZonesResponse {
     /// DNS zones in a given organization.
     #[serde(default, rename = "dnsZones")]
@@ -1068,7 +1069,7 @@ pub struct GoogleCloudApigeeV1ListDnsZonesResponse {
 }
 
 /// Response for ListEndpointAttachments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListEndpointAttachmentsResponse {
     /// Endpoint attachments in the specified organization.
     #[serde(default, rename = "endpointAttachments")]
@@ -1080,7 +1081,7 @@ pub struct GoogleCloudApigeeV1ListEndpointAttachmentsResponse {
 }
 
 /// Response for ListEnvironmentGroupAttachments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListEnvironmentGroupAttachmentsResponse {
     /// EnvironmentGroupAttachments for the specified environment group.
     #[serde(default, rename = "environmentGroupAttachments")]
@@ -1092,7 +1093,7 @@ pub struct GoogleCloudApigeeV1ListEnvironmentGroupAttachmentsResponse {
 }
 
 /// Response for ListEnvironmentGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListEnvironmentGroupsResponse {
     /// EnvironmentGroups in the specified organization.
     #[serde(default, rename = "environmentGroups")]
@@ -1104,7 +1105,7 @@ pub struct GoogleCloudApigeeV1ListEnvironmentGroupsResponse {
 }
 
 /// Response for ListEnvironmentResources
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListEnvironmentResourcesResponse {
     /// List of resources files.
     #[serde(default, rename = "resourceFile")]
@@ -1112,7 +1113,7 @@ pub struct GoogleCloudApigeeV1ListEnvironmentResourcesResponse {
 }
 
 /// The response for ListExports
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListExportsResponse {
     /// Details of the export jobs.
     #[serde(default)]
@@ -1120,7 +1121,7 @@ pub struct GoogleCloudApigeeV1ListExportsResponse {
 }
 
 /// GoogleCloudApigeeV1ListHybridIssuersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListHybridIssuersResponse {
     /// Lists of hybrid services and its trusted issuer email ids.
     #[serde(default)]
@@ -1128,7 +1129,7 @@ pub struct GoogleCloudApigeeV1ListHybridIssuersResponse {
 }
 
 /// Response for ListInstanceAttachments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListInstanceAttachmentsResponse {
     /// Attachments for the instance.
     #[serde(default)]
@@ -1139,7 +1140,7 @@ pub struct GoogleCloudApigeeV1ListInstanceAttachmentsResponse {
 }
 
 /// Response for ListInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListInstancesResponse {
     /// Instances in the specified organization.
     #[serde(default)]
@@ -1150,7 +1151,7 @@ pub struct GoogleCloudApigeeV1ListInstancesResponse {
 }
 
 /// The request structure for listing key value map keys and its corresponding values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListKeyValueEntriesResponse {
     /// One or more key value map keys and values.
     #[serde(default, rename = "keyValueEntries")]
@@ -1162,7 +1163,7 @@ pub struct GoogleCloudApigeeV1ListKeyValueEntriesResponse {
 }
 
 /// Response for ListNatAddresses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListNatAddressesResponse {
     /// List of NAT Addresses for the instance.
     #[serde(default, rename = "natAddresses")]
@@ -1173,7 +1174,7 @@ pub struct GoogleCloudApigeeV1ListNatAddressesResponse {
 }
 
 /// GoogleCloudApigeeV1ListOfDevelopersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListOfDevelopersResponse {
     /// List of developers.
     #[serde(default)]
@@ -1181,7 +1182,7 @@ pub struct GoogleCloudApigeeV1ListOfDevelopersResponse {
 }
 
 /// GoogleCloudApigeeV1ListOrganizationsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListOrganizationsResponse {
     /// List of Apigee organizations and associated Google Cloud projects.
     #[serde(default)]
@@ -1190,7 +1191,7 @@ pub struct GoogleCloudApigeeV1ListOrganizationsResponse {
 }
 
 /// Response for ListRatePlans.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListRatePlansResponse {
     /// Value that can be sent as startKey to retrieve the next page of content. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextStartKey")]
@@ -1201,7 +1202,7 @@ pub struct GoogleCloudApigeeV1ListRatePlansResponse {
 }
 
 /// Contains a list of SecurityActions in response to a ListSecurityActionRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListSecurityActionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1213,7 +1214,7 @@ pub struct GoogleCloudApigeeV1ListSecurityActionsResponse {
 }
 
 /// Response for ListSecurityFeedback
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListSecurityFeedbackResponse {
     /// A token that can be sent as page_token in ListSecurityFeedbackRequest to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1225,7 +1226,7 @@ pub struct GoogleCloudApigeeV1ListSecurityFeedbackResponse {
 }
 
 /// Response for ListSecurityIncidents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListSecurityIncidentsResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1237,7 +1238,7 @@ pub struct GoogleCloudApigeeV1ListSecurityIncidentsResponse {
 }
 
 /// Response for ListSecurityMonitoringConditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListSecurityMonitoringConditionsResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1249,7 +1250,7 @@ pub struct GoogleCloudApigeeV1ListSecurityMonitoringConditionsResponse {
 }
 
 /// Response for ListSecurityProfileRevisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListSecurityProfileRevisionsResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1261,7 +1262,7 @@ pub struct GoogleCloudApigeeV1ListSecurityProfileRevisionsResponse {
 }
 
 /// Response for ListSecurityProfiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListSecurityProfilesResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1273,7 +1274,7 @@ pub struct GoogleCloudApigeeV1ListSecurityProfilesResponse {
 }
 
 /// Response for ListSecurityProfilesV2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListSecurityProfilesV2Response {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1285,7 +1286,7 @@ pub struct GoogleCloudApigeeV1ListSecurityProfilesV2Response {
 }
 
 /// The response for SecurityReports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListSecurityReportsResponse {
     /// If the number of security reports exceeded the page size requested, the token can be used to fetch the next page in a subsequent call. If the response is the last page and there are no more reports to return this field is left empty.
     #[serde(default, rename = "nextPageToken")]
@@ -1297,14 +1298,14 @@ pub struct GoogleCloudApigeeV1ListSecurityReportsResponse {
 }
 
 /// GoogleCloudApigeeV1ListSharedFlowsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListSharedFlowsResponse {
     #[serde(default, rename = "sharedFlows")]
     pub shared_flows: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SharedFlow>>,
 }
 
 /// A response to a ListSpaces request containing the list of organization spaces and a page token for the next page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListSpacesResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1315,7 +1316,7 @@ pub struct GoogleCloudApigeeV1ListSpacesResponse {
 }
 
 /// Response for ListTraceConfigOverrides.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ListTraceConfigOverridesResponse {
     /// Token value that can be passed as page_token to retrieve the next page of content.
     #[serde(default, rename = "nextPageToken")]
@@ -1327,7 +1328,7 @@ pub struct GoogleCloudApigeeV1ListTraceConfigOverridesResponse {
 }
 
 /// Moves API product to a different space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1MoveApiProductRequest {
     /// Optional. Resource ID of the space to move the API product to. If unspecified, the API product will be moved to the organization level.
     #[serde(default)]
@@ -1335,7 +1336,7 @@ pub struct GoogleCloudApigeeV1MoveApiProductRequest {
 }
 
 /// Moves an API Proxy to a different Space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1MoveApiProxyRequest {
     /// Optional. Resource ID of the space to move the proxy to. If unspecified, the proxy will be moved to the organization level.
     #[serde(default)]
@@ -1343,7 +1344,7 @@ pub struct GoogleCloudApigeeV1MoveApiProxyRequest {
 }
 
 /// Moves a Shared Flow to a different space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1MoveSharedFlowRequest {
     /// Optional. Resource ID of the space to move the shared flow to. If unspecified, the shared flow will be moved to the organization level.
     #[serde(default)]
@@ -1351,7 +1352,7 @@ pub struct GoogleCloudApigeeV1MoveSharedFlowRequest {
 }
 
 /// Metadata describing an Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1OperationMetadata {
     /// TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "INSERT", "DELETE", "UPDATE"]
     #[serde(default, rename = "operationType")]
@@ -1371,7 +1372,7 @@ pub struct GoogleCloudApigeeV1OperationMetadata {
 }
 
 /// Encapsulates a response format for JavaScript Optimized Scenario.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1OptimizedStats {
     /// Wraps the stats response for JavaScript Optimized Scenario with a response key. For example: { "Response": { "TimeUnit": [], "metaData": { "errors": [], "notices": [ "Source:Postgres", "Table used: edge.api.aaxgroup001.agg_api", "PG Host:ruappg08-ro.production.apigeeks.net", "query served by:80c4ebca-6a10-4a2e-8faf-c60c1ee306ca" ] }, "resultTruncated": false, "stats": { "data": [ { "identifier": { "names": [ "apiproxy" ], "values": [ "sirjee" ] }, "metric": [ { "env": "prod", "name": "sum(message_count)", "values": [ 36.0 ] }, { "env": "prod", "name": "sum(is_error)", "values": [ 36.0 ] } ] } ] } } }
     #[serde(default, rename = "Response")]
@@ -1379,7 +1380,7 @@ pub struct GoogleCloudApigeeV1OptimizedStats {
 }
 
 /// GoogleCloudApigeeV1Organization resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Organization {
     /// Optional. Addon configurations of the Apigee organization.
     #[serde(default, rename = "addonsConfig")]
@@ -1474,31 +1475,31 @@ pub struct GoogleCloudApigeeV1Organization {
 }
 
 /// Checks for abuse, which includes any requests sent to the API for purposes other than what it is intended for, such as high volumes of requests, data scraping, and abuse related to authorization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ProfileConfigAbuse {}
 
 /// By default, following policies will be included: - JWS - JWT - OAuth - BasicAuth - APIKey
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ProfileConfigAuthorization {}
 
 /// Checks to see if you have CORS policy in place.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ProfileConfigCORS {}
 
 /// Checks to see if you have configured mTLS for the target server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ProfileConfigMTLS {}
 
 /// By default, following policies will be included: - OASValidation - SOAPMessageValidation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ProfileConfigMediation {}
 
 /// By default, following policies will be included: - XMLThreatProtection - JSONThreatProtection
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ProfileConfigThreat {}
 
 /// Request for ProvisionOrganization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ProvisionOrganizationRequest {
     /// Primary Cloud Platform region for analytics data storage. For valid values, see [Create an organization](https://cloud.google.com/apigee/docs/hybrid/latest/precog-provision). Defaults to us-west1.
     #[serde(default, rename = "analyticsRegion")]
@@ -1515,7 +1516,7 @@ pub struct GoogleCloudApigeeV1ProvisionOrganizationRequest {
 }
 
 /// GoogleCloudApigeeV1Query resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Query {
     /// Delimiter used in the CSV file, if outputFormat is set to csv. Defaults to the , (comma) character. Supported delimiter characters include comma (,), pipe (|), and tab (\t).
     #[serde(default, rename = "csvDelimiter")]
@@ -1553,7 +1554,7 @@ pub struct GoogleCloudApigeeV1Query {
 }
 
 /// Request payload representing the query to be run for fetching security statistics as rows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1QueryTabularStatsRequest {
     /// Required. List of dimension names to group the aggregations by.
     #[serde(default)]
@@ -1576,7 +1577,7 @@ pub struct GoogleCloudApigeeV1QueryTabularStatsRequest {
 }
 
 /// Encapsulates two kinds of stats that are results of the dimensions and aggregations requested. - Tabular rows. - Time series data. Example of tabular rows, Represents security stats results as a row of flat values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1QueryTabularStatsResponse {
     /// Column names corresponding to the same order as the inner values in the stats field.
     #[serde(default)]
@@ -1590,7 +1591,7 @@ pub struct GoogleCloudApigeeV1QueryTabularStatsResponse {
 }
 
 /// QueryTimeSeriesStatsRequest represents a query that returns a collection of time series sequences grouped by their values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1QueryTimeSeriesStatsRequest {
     /// List of dimension names to group the aggregations by. If no dimensions are passed, a single trend line representing the requested metric aggregations grouped by environment is returned.
     #[serde(default)]
@@ -1619,7 +1620,7 @@ pub struct GoogleCloudApigeeV1QueryTimeSeriesStatsRequest {
 }
 
 /// Represents security stats result as a collection of time series sequences.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1QueryTimeSeriesStatsResponse {
     /// Column names corresponding to the same order as the inner values in the stats field.
     #[serde(default)]
@@ -1635,7 +1636,7 @@ pub struct GoogleCloudApigeeV1QueryTimeSeriesStatsResponse {
 }
 
 /// A Reference configuration. References must refer to a keystore that also exists in the parent environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Reference {
     /// Optional. A human-readable description of this reference.
     #[serde(default)]
@@ -1652,7 +1653,7 @@ pub struct GoogleCloudApigeeV1Reference {
 }
 
 /// Request for ReportInstanceStatus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ReportInstanceStatusRequest {
     /// A unique ID for the instance which is guaranteed to be unique in case the user installs multiple hybrid runtimes with the same instance ID.
     #[serde(default, rename = "instanceUid")]
@@ -1666,11 +1667,11 @@ pub struct GoogleCloudApigeeV1ReportInstanceStatusRequest {
 }
 
 /// Placeholder for future enhancements to status reporting protocol
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ReportInstanceStatusResponse {}
 
 /// Runtime configuration for the organization. Response for GetRuntimeConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RuntimeConfig {
     /// Cloud Storage bucket used for uploading Analytics records.
     #[serde(default, rename = "analyticsBucket")]
@@ -1687,7 +1688,7 @@ pub struct GoogleCloudApigeeV1RuntimeConfig {
 }
 
 /// Response for Schema call
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Schema {
     /// List of schema fields grouped as dimensions.
     #[serde(default)]
@@ -1701,11 +1702,11 @@ pub struct GoogleCloudApigeeV1Schema {
 }
 
 /// Message that should be set in case of an Allow Action. This does not have any fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityActionAllow {}
 
 /// SecurityActionsConfig reflects the current state of the SecurityActions feature. This is a singleton resource: https://google.aip.dev/156
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityActionsConfig {
     /// The flag that controls whether this feature is enabled. This is unset by default. When this flag is false, even if individual rules are enabled, no SecurityActions will be enforced.
     #[serde(default)]
@@ -1719,7 +1720,7 @@ pub struct GoogleCloudApigeeV1SecurityActionsConfig {
 }
 
 /// The message format of a recommendation from the assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendation {
     /// The display name of the assessment.
     #[serde(default, rename = "displayName")]
@@ -1739,7 +1740,7 @@ pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRec
 }
 
 /// Represents a SecurityProfileEnvironmentAssociation resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation {
     /// Output only. The time when environment was attached to the security profile.
     #[serde(default, rename = "attachTime")]
@@ -1753,7 +1754,7 @@ pub struct GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation {
 }
 
 /// The configuration definition for a specific assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityProfileV2ProfileAssessmentConfig {
     /// Include only these Gateway Types.
     #[serde(default)]
@@ -1766,7 +1767,7 @@ pub struct GoogleCloudApigeeV1SecurityProfileV2ProfileAssessmentConfig {
 }
 
 /// Body structure when user makes a request to create a security report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityReportQuery {
     /// Delimiter used in the CSV file, if outputFormat is set to csv. Defaults to the , (comma) character. Supported delimiter characters include comma (,), pipe (|), and tab (\t).
     #[serde(default, rename = "csvDelimiter")]
@@ -1805,7 +1806,7 @@ pub struct GoogleCloudApigeeV1SecurityReportQuery {
 }
 
 /// The response for security report result view APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityReportResultView {
     /// Error code when there is a failure.
     #[serde(default)]
@@ -1825,7 +1826,7 @@ pub struct GoogleCloudApigeeV1SecurityReportResultView {
 }
 
 /// SecuritySettings reflects the current state of the SecuritySettings feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecuritySettings {
     /// Optional. If true the user consents to the use of ML models for Abuse detection.
     #[serde(default, rename = "mlRetrainingFeedbackEnabled")]
@@ -1836,7 +1837,7 @@ pub struct GoogleCloudApigeeV1SecuritySettings {
 }
 
 /// Request for SetAddonEnablement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SetAddonEnablementRequest {
     /// If the Analytics should be enabled in the environment.
     #[serde(default, rename = "analyticsEnabled")]
@@ -1847,7 +1848,7 @@ pub struct GoogleCloudApigeeV1SetAddonEnablementRequest {
 }
 
 /// Request for SetAddons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SetAddonsRequest {
     /// Required. Add-on configurations.
     #[serde(default, rename = "addonsConfig")]
@@ -1855,7 +1856,7 @@ pub struct GoogleCloudApigeeV1SetAddonsRequest {
 }
 
 /// The metadata describing a shared flow revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SharedFlowRevision {
     /// The version of the configuration schema to which this shared flow conforms. The only supported value currently is majorVersion 4 and minorVersion 0. This setting may be used in the future to enable evolution of the shared flow format.
     #[serde(default, rename = "configurationVersion")]
@@ -1902,7 +1903,7 @@ pub struct GoogleCloudApigeeV1SharedFlowRevision {
 }
 
 /// Encapsulates a stats response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Stats {
     /// List of query results on the environment level.
     #[serde(default)]
@@ -1917,7 +1918,7 @@ pub struct GoogleCloudApigeeV1Stats {
 }
 
 /// Pub/Sub subscription of an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Subscription {
     /// Full name of the Pub/Sub subcription. Use the following structure in your request: subscription "projects/foo/subscription/bar"
     #[serde(default)]
@@ -1925,7 +1926,7 @@ pub struct GoogleCloudApigeeV1Subscription {
 }
 
 /// GoogleCloudApigeeV1SyncAuthorization resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SyncAuthorization {
     /// Entity tag (ETag) used for optimistic concurrency control as a way to help prevent simultaneous updates from overwriting each other. For example, when you call [getSyncAuthorization](organizations/getSyncAuthorization) an ETag is returned in the response. Pass that ETag when calling the [setSyncAuthorization](organizations/setSyncAuthorization) to ensure that you are updating the correct version. If you don''t pass the ETag in the call to setSyncAuthorization, then the existing authorization is overwritten indiscriminately. **Note**: We strongly recommend that you use the ETag in the read-modify-write cycle to avoid race conditions.
     #[serde(default)]
@@ -1936,7 +1937,7 @@ pub struct GoogleCloudApigeeV1SyncAuthorization {
 }
 
 /// TargetServer configuration. TargetServers are used to decouple a proxy TargetEndpoint HTTPTargetConnections from concrete URLs for backend services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1TargetServer {
     /// Optional. A human-readable description of this TargetServer.
     #[serde(default)]
@@ -1962,7 +1963,7 @@ pub struct GoogleCloudApigeeV1TargetServer {
 }
 
 /// The response for TestDatastore
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1TestDatastoreResponse {
     /// Output only. Error message of test connection failure
     #[serde(default)]
@@ -1973,7 +1974,7 @@ pub struct GoogleCloudApigeeV1TestDatastoreResponse {
 }
 
 /// TraceConfig defines the configurations in an environment of distributed trace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1TraceConfig {
     /// Required. Endpoint of the exporter.
     #[serde(default)]
@@ -1987,7 +1988,7 @@ pub struct GoogleCloudApigeeV1TraceConfig {
 }
 
 /// Request for UpdateAppGroupAppKey
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1UpdateAppGroupAppKeyRequest {
     /// Approve or revoke the consumer key by setting this value to approve or revoke respectively. The Content-Type header, if set, must be set to application/octet-stream, with empty body.
     #[serde(default)]
@@ -2001,7 +2002,7 @@ pub struct GoogleCloudApigeeV1UpdateAppGroupAppKeyRequest {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -2012,7 +2013,7 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -2020,7 +2021,7 @@ pub struct GoogleIamV1TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -2028,7 +2029,7 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -2042,11 +2043,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// A message type used to describe a single bundle validation error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EdgeConfigstoreBundleBadBundleViolation {
     /// A description of why the bundle is invalid and how to fix it.
     #[serde(default)]
@@ -2057,7 +2058,7 @@ pub struct EdgeConfigstoreBundleBadBundleViolation {
 }
 
 /// GoogleCloudApigeeV1Certificate resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Certificate {
     /// Chain of certificates under this name.
     #[serde(default, rename = "certInfo")]
@@ -2065,7 +2066,7 @@ pub struct GoogleCloudApigeeV1Certificate {
 }
 
 /// The documentation for a catalog item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiDocDocumentation {
     /// Optional. AsyncAPI Specification documentation.
     #[serde(default, rename = "asyncApiDocumentation")]
@@ -2079,7 +2080,7 @@ pub struct GoogleCloudApigeeV1ApiDocDocumentation {
 }
 
 /// Wallet used to manage an account balance for a particular currency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AppGroupBalanceWallet {
     /// Current remaining balance of the AppGroup for a particular currency.
     #[serde(default)]
@@ -2090,7 +2091,7 @@ pub struct GoogleCloudApigeeV1AppGroupBalanceWallet {
 }
 
 /// Message for the array of API Hub APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestApiHubApiArray {
     /// Required. The array of API Hub API IDs. Format: projects/{project}/locations/{location}/apis/{api}
     #[serde(default)]
@@ -2098,7 +2099,7 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestApiHub
 }
 
 /// Message for the array of API Hub Gateways.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestApiHubGatewayArray {
     /// Required. The array of API Hub Gateway IDs. Format: projects/{project}/locations/{location}/plugins/{plugin}/instances/{instance}
     #[serde(default)]
@@ -2106,7 +2107,7 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestApiHub
 }
 
 /// The security assessment result for one resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityAssessmentResult {
     /// The time of the assessment of this resource. This could lag behind assessment_time due to caching within the backend.
     #[serde(default, rename = "createTime")]
@@ -2124,7 +2125,7 @@ pub struct GoogleCloudApigeeV1SecurityAssessmentResult {
 }
 
 /// Request for UpdateSecurityIncident.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1UpdateSecurityIncidentRequest {
     /// Required. The security incident to update. Must contain all existing populated fields of the current incident.
     #[serde(default, rename = "securityIncident")]
@@ -2135,7 +2136,7 @@ pub struct GoogleCloudApigeeV1UpdateSecurityIncidentRequest {
 }
 
 /// Labels that can be used to filter Apigee metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1CanaryEvaluationMetricLabels {
     /// The environment ID associated with the metrics.
     #[serde(default)]
@@ -2149,7 +2150,7 @@ pub struct GoogleCloudApigeeV1CanaryEvaluationMetricLabels {
 }
 
 /// Filter scores by component path. Used custom filter instead of AIP-160 as the use cases are highly constrained and predictable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresRequestFilter {
     /// Optional. Return scores for this component. Example: "/org@myorg/envgroup@myenvgroup/env@myenv/proxies/proxy@myproxy/source"
     #[serde(default, rename = "scorePath")]
@@ -2157,7 +2158,7 @@ pub struct GoogleCloudApigeeV1ComputeEnvironmentScoresRequestFilter {
 }
 
 /// Represents Security Score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Score {
     /// Component containing score, recommendations and actions.
     #[serde(default)]
@@ -2171,7 +2172,7 @@ pub struct GoogleCloudApigeeV1Score {
 }
 
 /// Point is a group of information collected by runtime plane at critical points of the message flow of the processed API request. This is a list of supported point IDs, categorized to three major buckets. For each category, debug points that we are currently supporting are listed below: - Flow status debug points: StateChange FlowInfo Condition Execution DebugMask Error - Flow control debug points: FlowCallout Paused Resumed FlowReturn BreakFlow Error - Runtime debug points: ScriptExecutor FlowCalloutStepDefinition CustomTarget StepDefinition Oauth2ServicePoint RaiseFault NodeJS The detail information of the given debug point is stored in a list of results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Point {
     /// Name of a step in the transaction.
     #[serde(default)]
@@ -2182,7 +2183,7 @@ pub struct GoogleCloudApigeeV1Point {
 }
 
 /// Describes a potential routing change that may occur as a result of some deployment operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingChange {
     /// Human-readable description of this routing change.
     #[serde(default)]
@@ -2204,7 +2205,7 @@ pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingChange {
 }
 
 /// Describes what preconditions have failed. For example, if an RPC failed because it required the Terms of Service to be acknowledged, it could list the terms of service violation in the PreconditionFailure message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcPreconditionFailure {
     /// Describes all precondition violations.
     #[serde(default)]
@@ -2212,7 +2213,7 @@ pub struct GoogleRpcPreconditionFailure {
 }
 
 /// Wallet used to manage an account balance for a particular currency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeveloperBalanceWallet {
     /// Current remaining balance of the developer for a particular currency.
     #[serde(default)]
@@ -2223,7 +2224,7 @@ pub struct GoogleCloudApigeeV1DeveloperBalanceWallet {
 }
 
 /// Configuration for resolving the client ip.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfig {
     /// Resolves the client ip based on a custom header.
     #[serde(default, rename = "headerIndexAlgorithm")]
@@ -2233,7 +2234,7 @@ pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfig {
 }
 
 /// NodeConfig for setting the min/max number of nodes associated with the environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1NodeConfig {
     /// Output only. The current total number of gateway nodes that each environment currently has across all instances.
     #[serde(default, rename = "currentAggregateNodeCount")]
@@ -2247,7 +2248,7 @@ pub struct GoogleCloudApigeeV1NodeConfig {
 }
 
 /// RuntimeAddonsConfig defines the runtime configurations for add-ons in an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RuntimeAddonsConfig {
     /// Runtime configuration for Analytics add-on.
     #[serde(default, rename = "analyticsConfig")]
@@ -2267,7 +2268,7 @@ pub struct GoogleCloudApigeeV1RuntimeAddonsConfig {
 }
 
 /// Configuration for resolving the client ip.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfig {
     /// Resolves the client ip based on a custom header.
     #[serde(default, rename = "headerIndexAlgorithm")]
@@ -2277,7 +2278,7 @@ pub struct GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfig {
 }
 
 /// Data collector and its configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DataCollectorConfig {
     /// Name of the data collector in the following format: organizations/{org}/datacollectors/{datacollector}
     #[serde(default)]
@@ -2288,7 +2289,7 @@ pub struct GoogleCloudApigeeV1DataCollectorConfig {
 }
 
 /// GoogleCloudApigeeV1DebugMask resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DebugMask {
     /// List of JSON paths that specify the JSON elements to be filtered from JSON payloads in error flows.
     #[serde(default, rename = "faultJSONPaths")]
@@ -2320,7 +2321,7 @@ pub struct GoogleCloudApigeeV1DebugMask {
 }
 
 /// DeploymentGroupConfig represents a deployment group that should be present in a particular environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeploymentGroupConfig {
     /// Type of the deployment group, which will be either Standard or Extensible. // TODO: enum values: ["DEPLOYMENT_GROUP_TYPE_UNSPECIFIED", "STANDARD", "EXTENSIBLE"]
     #[serde(default, rename = "deploymentGroupType")]
@@ -2337,7 +2338,7 @@ pub struct GoogleCloudApigeeV1DeploymentGroupConfig {
 }
 
 /// NEXT ID: 11
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeploymentConfig {
     /// Additional key-value metadata for the deployment.
     #[serde(default)]
@@ -2369,7 +2370,7 @@ pub struct GoogleCloudApigeeV1DeploymentConfig {
 }
 
 /// GoogleCloudApigeeV1FlowHookConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1FlowHookConfig {
     /// Flag that specifies whether the flow should abort after an error in the flow hook. Defaults to true (continue on error).
     #[serde(default, rename = "continueOnError")]
@@ -2383,7 +2384,7 @@ pub struct GoogleCloudApigeeV1FlowHookConfig {
 }
 
 /// GoogleCloudApigeeV1KeystoreConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1KeystoreConfig {
     /// Aliases in the keystore.
     #[serde(default)]
@@ -2394,7 +2395,7 @@ pub struct GoogleCloudApigeeV1KeystoreConfig {
 }
 
 /// GoogleCloudApigeeV1ReferenceConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ReferenceConfig {
     /// Name of the reference in the following format: organizations/{org}/environments/{env}/references/{reference}
     #[serde(default)]
@@ -2405,7 +2406,7 @@ pub struct GoogleCloudApigeeV1ReferenceConfig {
 }
 
 /// GoogleCloudApigeeV1ResourceConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ResourceConfig {
     /// Location of the resource as a URI.
     #[serde(default)]
@@ -2416,7 +2417,7 @@ pub struct GoogleCloudApigeeV1ResourceConfig {
 }
 
 /// GoogleCloudApigeeV1TargetServerConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1TargetServerConfig {
     /// Whether the target server is enabled. An empty/omitted value for this field should be interpreted as true.
     #[serde(default)]
@@ -2439,7 +2440,7 @@ pub struct GoogleCloudApigeeV1TargetServerConfig {
 }
 
 /// NEXT ID: 10 RuntimeTraceConfig defines the configurations for distributed trace in an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RuntimeTraceConfig {
     /// Endpoint of the exporter.
     #[serde(default)]
@@ -2472,7 +2473,7 @@ pub struct GoogleCloudApigeeV1RuntimeTraceConfig {
 }
 
 /// Date range of the data to export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DateRange {
     /// Required. End date (exclusive) of the data to export in the format yyyy-mm-dd. The date range ends at 00:00:00 UTC on the end date- which will not be in the output.
     #[serde(default)]
@@ -2483,7 +2484,7 @@ pub struct GoogleCloudApigeeV1DateRange {
 }
 
 /// A Signed URL and the relevant metadata associated with it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GetAsyncQueryResultUrlResponseURLInfo {
     /// The MD5 Hash of the JSON data
     #[serde(default)]
@@ -2497,7 +2498,7 @@ pub struct GoogleCloudApigeeV1GetAsyncQueryResultUrlResponseURLInfo {
 }
 
 /// EnvironmentGroupConfig is a revisioned snapshot of an EnvironmentGroup and its associated routing rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EnvironmentGroupConfig {
     /// A list of proxies in each deployment group for proxy chaining calls.
     #[serde(default, rename = "endpointChainingRules")]
@@ -2524,7 +2525,7 @@ pub struct GoogleCloudApigeeV1EnvironmentGroupConfig {
 }
 
 /// ApiCategory represents an API category. [Catalog items](/apigee/docs/reference/apis/apigee/rest/v1/organizations.sites.apidocs) can be tagged with API categories; users viewing the API catalog in the portal will have the option to browse the catalog by category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiCategory {
     /// ID of the category (a UUID).
     #[serde(default)]
@@ -2541,7 +2542,7 @@ pub struct GoogleCloudApigeeV1ApiCategory {
 }
 
 /// Session carries the debug session id and its creation time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiDebugSession {
     /// The revision ID of the deployed API proxy.
     #[serde(default, rename = "apiProxyRevisionId")]
@@ -2558,7 +2559,7 @@ pub struct GoogleCloudApigeeV1ApiDebugSession {
 }
 
 /// ApiDoc represents an API catalog item. Catalog items are used in two ways in a portal: - Users can browse and interact with a visual representation of the API documentation - The api_product_name field provides a link to a backing [API product] (/apigee/docs/reference/apis/apigee/rest/v1/organizations.apiproducts). Through this link, portal users can create and manage developer apps linked to one or more API products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiDoc {
     /// Optional. Boolean flag that manages user access to the catalog item. When true, the catalog item has public visibility and can be viewed anonymously; otherwise, only registered users may view it. Note: when the parent portal is enrolled in the [audience management feature](https://cloud.google.com/apigee/docs/api-platform/publish/portal/portal-audience#enrolling_in_the_beta_release_of_the_audience_management_feature), and this flag is set to false, visibility is set to an indeterminate state and must be explicitly specified in the management UI (see [Manage the visibility of an API in your portal](https://cloud.google.com/apigee/docs/api-platform/publish/portal/publish-apis#visibility)). Additionally, when enrolled in the audience management feature, updates to this flag will be ignored as visibility permissions must be updated in the management UI.
     #[serde(default, rename = "anonAllowed")]
@@ -2614,7 +2615,7 @@ pub struct GoogleCloudApigeeV1ApiDoc {
 }
 
 /// GoogleCloudApigeeV1ApiProduct resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiProduct {
     /// Comma-separated list of API resources to be bundled in the API product. By default, the resource paths are mapped from the proxy.pathsuffix variable. The proxy path suffix is defined as the URI fragment following the ProxyEndpoint base path. For example, if the apiResources element is defined to be /forecastrss and the base path defined for the API proxy is /weather, then only requests to /weather/forecastrss are permitted by the API product. You can select a specific path, or you can select all subpaths with the following wildcard: - /**: Indicates that all sub-URIs are included. - /* : Indicates that only URIs one level down are included. By default, / supports the same resources as /** as well as the base path defined by the API proxy. For example, if the base path of the API proxy is /v1/weatherapikey, then the API product supports requests to /v1/weatherapikey and to any sub-URIs, such as /v1/weatherapikey/forecastrss, /v1/weatherapikey/region/CA, and so on. For more information, see Managing API products.
     #[serde(default, rename = "apiResources")]
@@ -2688,7 +2689,7 @@ pub struct GoogleCloudApigeeV1ApiProduct {
 }
 
 /// Metadata describing the API proxy
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiProxy {
     /// Output only. The type of the API proxy. // TODO: enum values: ["API_PROXY_TYPE_UNSPECIFIED", "PROGRAMMABLE", "CONFIGURABLE"]
     #[serde(default, rename = "apiProxyType")]
@@ -2717,7 +2718,7 @@ pub struct GoogleCloudApigeeV1ApiProxy {
 }
 
 /// APIM Service Extension is a resource under an Apigee Organization that is used to create APIM Service Extension to route traffic to existing X instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApimServiceExtension {
     /// Output only. The time that this resource was created on the server.
     #[serde(default, rename = "createTime")]
@@ -2752,7 +2753,7 @@ pub struct GoogleCloudApigeeV1ApimServiceExtension {
 }
 
 /// Response for [GetAppGroupApp].[AppGroupApps.GetAppGroupApp], [CreateAppGroupAppRequest].[AppGroupApp.CreateAppGroupAppRequest] and [DeleteAppGroupApp].[AppGroupApp.DeleteAppGroupApp]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AppGroupApp {
     /// List of API products associated with the AppGroup app.
     #[serde(default, rename = "apiProducts")]
@@ -2793,7 +2794,7 @@ pub struct GoogleCloudApigeeV1AppGroupApp {
 }
 
 /// AppGroup Subscription details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AppGroupSubscription {
     /// Required. Name of the API product for which the appgroup is purchasing a subscription.
     #[serde(default)]
@@ -2816,7 +2817,7 @@ pub struct GoogleCloudApigeeV1AppGroupSubscription {
 }
 
 /// AppGroup contains the request/response fields representing the logical grouping of apps. Note that appgroup_id, create_time and update_time cannot be changed by the user, and gets updated by the system. The name and the organization once provided cannot be edited subsequently.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AppGroup {
     /// Output only. Internal identifier that cannot be edited
     #[serde(default, rename = "appGroupId")]
@@ -2854,7 +2855,7 @@ pub struct GoogleCloudApigeeV1AppGroup {
 }
 
 /// GoogleCloudApigeeV1App resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1App {
     /// List of API products associated with the app.
     #[serde(default, rename = "apiProducts")]
@@ -2904,7 +2905,7 @@ pub struct GoogleCloudApigeeV1App {
 }
 
 /// Archive Deployment information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ArchiveDeployment {
     /// Output only. The time at which the Archive Deployment was created in milliseconds since the epoch.
     #[serde(default, rename = "createdAt")]
@@ -2927,7 +2928,7 @@ pub struct GoogleCloudApigeeV1ArchiveDeployment {
 }
 
 /// GoogleCloudApigeeV1AsyncQuery resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AsyncQuery {
     /// Creation time of the query.
     #[serde(default)]
@@ -2971,7 +2972,7 @@ pub struct GoogleCloudApigeeV1AsyncQuery {
 }
 
 /// GoogleCloudApigeeV1CustomReport resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1CustomReport {
     /// This field contains the chart type for the report
     #[serde(default, rename = "chartType")]
@@ -3042,7 +3043,7 @@ pub struct GoogleCloudApigeeV1CustomReport {
 }
 
 /// Data collector configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DataCollector {
     /// Output only. The time at which the data collector was created in milliseconds since the epoch.
     #[serde(default, rename = "createdAt")]
@@ -3062,7 +3063,7 @@ pub struct GoogleCloudApigeeV1DataCollector {
 }
 
 /// The data store defines the connection to export data repository (Cloud Storage, BigQuery), including the credentials used to access the data repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Datastore {
     /// Output only. Datastore create time, in milliseconds since the epoch of 1970-01-01T00:00:00Z
     #[serde(default, rename = "createTime")]
@@ -3088,7 +3089,7 @@ pub struct GoogleCloudApigeeV1Datastore {
 }
 
 /// Session carries the debug session id and its creation time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Session {
     /// The debug session ID.
     #[serde(default)]
@@ -3099,7 +3100,7 @@ pub struct GoogleCloudApigeeV1Session {
 }
 
 /// Deployment represents a deployment of an API proxy or shared flow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Deployment {
     /// API proxy.
     #[serde(default, rename = "apiProxy")]
@@ -3140,7 +3141,7 @@ pub struct GoogleCloudApigeeV1Deployment {
 }
 
 /// GoogleCloudApigeeV1DeveloperApp resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeveloperApp {
     /// List of API products associated with the developer app.
     #[serde(default, rename = "apiProducts")]
@@ -3184,7 +3185,7 @@ pub struct GoogleCloudApigeeV1DeveloperApp {
 }
 
 /// Structure of a DeveloperSubscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeveloperSubscription {
     /// Name of the API product for which the developer is purchasing a subscription.
     #[serde(default)]
@@ -3207,7 +3208,7 @@ pub struct GoogleCloudApigeeV1DeveloperSubscription {
 }
 
 /// A DNS zone is a resource under an Apigee organization that is used to create a DNS peering with Apigee''s network. DNS peering will let Apigee instances resolve the hostnames created in a peered network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DnsZone {
     /// Output only. The time that this resource was created on the server.
     #[serde(default, rename = "createTime")]
@@ -3233,7 +3234,7 @@ pub struct GoogleCloudApigeeV1DnsZone {
 }
 
 /// Apigee endpoint attachment. For more information, see [Southbound networking patterns] (https://cloud.google.com/apigee/docs/api-platform/architecture/southbound-networking-patterns-endpoints).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EndpointAttachment {
     /// Output only. State of the endpoint attachment connection to the service attachment. // TODO: enum values: ["CONNECTION_STATE_UNSPECIFIED", "UNAVAILABLE", "PENDING", "ACCEPTED", "REJECTED", "CLOSED", "FROZEN", "NEEDS_ATTENTION", "ACCEPTED_LIMITED_CAPACITY"]
     #[serde(default, rename = "connectionState")]
@@ -3256,7 +3257,7 @@ pub struct GoogleCloudApigeeV1EndpointAttachment {
 }
 
 /// EnvironmentGroupAttachment is a resource which defines an attachment of an environment to an environment group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EnvironmentGroupAttachment {
     /// Output only. The time at which the environment group attachment was created as milliseconds since epoch.
     #[serde(default, rename = "createdAt")]
@@ -3273,7 +3274,7 @@ pub struct GoogleCloudApigeeV1EnvironmentGroupAttachment {
 }
 
 /// EnvironmentGroup configuration. An environment group is used to group one or more Apigee environments under a single host name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EnvironmentGroup {
     /// Output only. The time at which the environment group was created as milliseconds since epoch.
     #[serde(default, rename = "createdAt")]
@@ -3293,7 +3294,7 @@ pub struct GoogleCloudApigeeV1EnvironmentGroup {
 }
 
 /// Details of an export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Export {
     /// Output only. Time the export job was created.
     #[serde(default)]
@@ -3325,7 +3326,7 @@ pub struct GoogleCloudApigeeV1Export {
 }
 
 /// GoogleCloudApigeeV1ServiceIssuersMapping resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ServiceIssuersMapping {
     /// List of trusted issuer email ids.
     #[serde(default, rename = "emailIds")]
@@ -3336,7 +3337,7 @@ pub struct GoogleCloudApigeeV1ServiceIssuersMapping {
 }
 
 /// InstanceAttachment represents the installation of an environment onto an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1InstanceAttachment {
     /// Output only. Time the attachment was created in milliseconds since epoch.
     #[serde(default, rename = "createdAt")]
@@ -3350,7 +3351,7 @@ pub struct GoogleCloudApigeeV1InstanceAttachment {
 }
 
 /// Apigee runtime instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Instance {
     /// Optional. Access logging configuration enables the access logging feature at the instance. Apigee customers can enable access logging to ship the access logs to their own project''s cloud logging.
     #[serde(default, rename = "accessLoggingConfig")]
@@ -3413,7 +3414,7 @@ pub struct GoogleCloudApigeeV1Instance {
 }
 
 /// Key value map pair where the value represents the data associated with the corresponding key. **Note**: Supported for Apigee hybrid 1.8.x and higher.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1KeyValueEntry {
     /// Resource URI that can be used to identify the scope of the key value map entries.
     #[serde(default)]
@@ -3424,7 +3425,7 @@ pub struct GoogleCloudApigeeV1KeyValueEntry {
 }
 
 /// Apigee NAT(network address translation) address. A NAT address is a static external IP address used for Internet egress traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1NatAddress {
     /// Output only. The static IPV4 address.
     #[serde(default, rename = "ipAddress")]
@@ -3438,7 +3439,7 @@ pub struct GoogleCloudApigeeV1NatAddress {
 }
 
 /// GoogleCloudApigeeV1Developer resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Developer {
     /// Access type.
     #[serde(default, rename = "accessType")]
@@ -3485,7 +3486,7 @@ pub struct GoogleCloudApigeeV1Developer {
 }
 
 /// GoogleCloudApigeeV1OrganizationProjectMapping resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1OrganizationProjectMapping {
     /// Output only. The Google Cloud region where control plane data is located. For more information, see https://cloud.google.com/about/locations/.
     #[serde(default)]
@@ -3502,7 +3503,7 @@ pub struct GoogleCloudApigeeV1OrganizationProjectMapping {
 }
 
 /// Rate plan details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RatePlan {
     /// Name of the API product that the rate plan is associated with.
     #[serde(default)]
@@ -3566,7 +3567,7 @@ pub struct GoogleCloudApigeeV1RatePlan {
 }
 
 /// A SecurityAction is rule that can be enforced at an environment level. The result is one of: - A denied API call - An explicitly allowed API call - A flagged API call (HTTP headers added before the target receives it) At least one condition is required to create a SecurityAction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityAction {
     /// Allow a request through if it matches this SecurityAction.
     #[serde(default)]
@@ -3607,7 +3608,7 @@ pub struct GoogleCloudApigeeV1SecurityAction {
 }
 
 /// Represents a feedback report from an Advanced API Security customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityFeedback {
     /// Optional. Optional text the user can provide for additional, unstructured context.
     #[serde(default)]
@@ -3637,7 +3638,7 @@ pub struct GoogleCloudApigeeV1SecurityFeedback {
 }
 
 /// Security monitoring condition for risk assessment version 2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityMonitoringCondition {
     /// Optional. The API Hub gateway monitored by the security monitoring condition. This should only be set if risk_assessment_type is API_HUB. Format: projects/{project}/locations/{location}/plugins/{plugin}/instances/{instance}
     #[serde(default, rename = "apiHubGateway")]
@@ -3677,7 +3678,7 @@ pub struct GoogleCloudApigeeV1SecurityMonitoringCondition {
 }
 
 /// Represents a SecurityProfile resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityProfile {
     /// Description of the security profile.
     #[serde(default)]
@@ -3720,7 +3721,7 @@ pub struct GoogleCloudApigeeV1SecurityProfile {
 }
 
 /// Security profile for risk assessment version 2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityProfileV2 {
     /// Output only. The time of the security profile creation.
     #[serde(default, rename = "createTime")]
@@ -3746,7 +3747,7 @@ pub struct GoogleCloudApigeeV1SecurityProfileV2 {
 }
 
 /// SecurityReport saves all the information about the created security report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityReport {
     /// Creation time of the query.
     #[serde(default)]
@@ -3790,7 +3791,7 @@ pub struct GoogleCloudApigeeV1SecurityReport {
 }
 
 /// The metadata describing a shared flow
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SharedFlow {
     /// The id of the most recently created revision for this shared flow.
     #[serde(default, rename = "latestRevisionId")]
@@ -3810,7 +3811,7 @@ pub struct GoogleCloudApigeeV1SharedFlow {
 }
 
 /// Organization space resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Space {
     /// Output only. Create timestamp of the space.
     #[serde(default, rename = "createTime")]
@@ -3827,7 +3828,7 @@ pub struct GoogleCloudApigeeV1Space {
 }
 
 /// A representation of a configuration override.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1TraceConfigOverride {
     /// ID of the API proxy that will have its trace configuration overridden.
     #[serde(default, rename = "apiProxy")]
@@ -3841,7 +3842,7 @@ pub struct GoogleCloudApigeeV1TraceConfigOverride {
 }
 
 /// Information about operation progress.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1OperationMetadataProgress {
     /// Description of the operation''s progress.
     #[serde(default)]
@@ -3858,7 +3859,7 @@ pub struct GoogleCloudApigeeV1OperationMetadataProgress {
 }
 
 /// Encapsulates a response format for JavaScript Optimized Scenario.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1OptimizedStatsResponse {
     /// List of time unit values. Time unit refers to an epoch timestamp value.
     #[serde(default, rename = "TimeUnit")]
@@ -3875,7 +3876,7 @@ pub struct GoogleCloudApigeeV1OptimizedStatsResponse {
 }
 
 /// More info about Metric: https://docs.apigee.com/api-platform/analytics/analytics-reference#metrics
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1QueryMetric {
     /// Alias for the metric. Alias will be used to replace metric name in query results.
     #[serde(default)]
@@ -3895,7 +3896,7 @@ pub struct GoogleCloudApigeeV1QueryMetric {
 }
 
 /// The optionally aggregated metric to query with its ordering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1MetricAggregation {
     /// Aggregation function associated with the metric. // TODO: enum values: ["AGGREGATION_FUNCTION_UNSPECIFIED", "AVG", "SUM", "MIN", "MAX", "COUNT_DISTINCT"]
     #[serde(default)]
@@ -3909,7 +3910,7 @@ pub struct GoogleCloudApigeeV1MetricAggregation {
 }
 
 /// A sequence of time series.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1QueryTimeSeriesStatsResponseSequence {
     /// Map of dimensions and their values that uniquely identifies a time series sequence.
     #[serde(default)]
@@ -3920,7 +3921,7 @@ pub struct GoogleCloudApigeeV1QueryTimeSeriesStatsResponseSequence {
 }
 
 /// The status of a resource loaded in the runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ResourceStatus {
     /// The resource name. Currently only two resources are supported: EnvironmentGroup - organizations/{org}/envgroups/{envgroup} EnvironmentConfig - organizations/{org}/environments/{environment}/deployedConfig
     #[serde(default)]
@@ -3937,7 +3938,7 @@ pub struct GoogleCloudApigeeV1ResourceStatus {
 }
 
 /// Message type for the schema element
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SchemaSchemaElement {
     /// Name of the field.
     #[serde(default)]
@@ -3948,7 +3949,7 @@ pub struct GoogleCloudApigeeV1SchemaSchemaElement {
 }
 
 /// The format of the assessment recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendationRecommendation {
     /// The description of the recommendation.
     #[serde(default)]
@@ -3959,7 +3960,7 @@ pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRec
 }
 
 /// Message for the array of API Hub Gateway Types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityProfileV2ProfileAssessmentConfigApiHubGatewayTypeArray {
     /// Required. The array of API Hub Gateway Types.
     #[serde(default, rename = "gatewayTypes")]
@@ -3967,7 +3968,7 @@ pub struct GoogleCloudApigeeV1SecurityProfileV2ProfileAssessmentConfigApiHubGate
 }
 
 /// Metric of the Query
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityReportQueryMetric {
     /// Aggregation function: avg, min, max, or sum.
     #[serde(default, rename = "aggregationFunction")]
@@ -3987,7 +3988,7 @@ pub struct GoogleCloudApigeeV1SecurityReportQueryMetric {
 }
 
 /// Add-on configurations for the Apigee organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AddonsConfig {
     /// Configuration for the Advanced API Ops add-on.
     #[serde(default, rename = "advancedApiOpsConfig")]
@@ -4011,7 +4012,7 @@ pub struct GoogleCloudApigeeV1AddonsConfig {
 }
 
 /// Version of the API proxy configuration schema. Currently, only 4.0 is supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ConfigVersion {
     /// Major version of the API proxy configuration schema.
     #[serde(default, rename = "majorVersion")]
@@ -4022,7 +4023,7 @@ pub struct GoogleCloudApigeeV1ConfigVersion {
 }
 
 /// List of resource files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ResourceFiles {
     /// List of resource files.
     #[serde(default, rename = "resourceFile")]
@@ -4030,7 +4031,7 @@ pub struct GoogleCloudApigeeV1ResourceFiles {
 }
 
 /// Encapsulates the environment wrapper:  "environments": [ { "metrics": [ { "name": "sum(message_count)", "values": [ "2.52056245E8" ] } ], "name": "prod" } ]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1StatsEnvironmentStats {
     /// List of metrics grouped under dimensions.
     #[serde(default)]
@@ -4044,7 +4045,7 @@ pub struct GoogleCloudApigeeV1StatsEnvironmentStats {
 }
 
 /// Encapsulates the hostname wrapper:  "hosts": [ { "metrics": [ { "name": "sum(message_count)", "values": [ "2.52056245E8" ] } ], "name": "example.com" } ]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1StatsHostStats {
     /// List of metrics grouped under dimensions.
     #[serde(default)]
@@ -4058,7 +4059,7 @@ pub struct GoogleCloudApigeeV1StatsHostStats {
 }
 
 /// TLS configuration information for virtual hosts and TargetServers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1TlsInfo {
     /// The SSL/TLS cipher suites to be used. For programmable proxies, it must be one of the cipher suite names listed in: http://docs.oracle.com/javase/8/docs/technotes/guides/security/StandardNames.html#ciphersuites. For configurable proxies, it must follow the configuration specified in: https://commondatastorage.googleapis.com/chromium-boringssl-docs/ssl.h.html#Cipher-suite-configuration. This setting has no effect for configurable proxies when negotiating TLS 1.3.
     #[serde(default)]
@@ -4093,7 +4094,7 @@ pub struct GoogleCloudApigeeV1TlsInfo {
 }
 
 /// AppGroupAppKey contains all the information associated with the credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AppGroupAppKey {
     /// Output only. List of API products and its status for which the credential can be used. **Note**: Use UpdateAppGroupAppKeyApiProductRequest API to make the association after the consumer key and secret are created.
     #[serde(default, rename = "apiProducts")]
@@ -4126,7 +4127,7 @@ pub struct GoogleCloudApigeeV1AppGroupAppKey {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -4143,7 +4144,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -4163,7 +4164,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// X.509 certificate as defined in RFC 5280.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1CertInfo {
     /// X.509 basic constraints extension.
     #[serde(default, rename = "basicConstraints")]
@@ -4201,7 +4202,7 @@ pub struct GoogleCloudApigeeV1CertInfo {
 }
 
 /// AsyncAPI Specification documentation for a catalog item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AsyncApiDocumentation {
     /// Required. The documentation file contents for the AsyncAPI Specification. JSON and YAML file formats are supported.
     #[serde(default)]
@@ -4209,7 +4210,7 @@ pub struct GoogleCloudApigeeV1AsyncApiDocumentation {
 }
 
 /// GraphQL documentation for a catalog item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GraphqlDocumentation {
     /// Required. The GraphQL endpoint URI to be queried by API consumers. Max length is 2,083 characters.
     #[serde(default, rename = "endpointUri")]
@@ -4220,7 +4221,7 @@ pub struct GoogleCloudApigeeV1GraphqlDocumentation {
 }
 
 /// OpenAPI Specification documentation for a catalog item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1oASDocumentation {
     /// Output only. The format of the input specification file contents. // TODO: enum values: ["FORMAT_UNSPECIFIED", "YAML", "JSON"]
     #[serde(default)]
@@ -4231,7 +4232,7 @@ pub struct GoogleCloudApigeeV1oASDocumentation {
 }
 
 /// Resource for which we are computing security assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityAssessmentResultResource {
     /// Output only. Additional details for the API Hub deployment.
     #[serde(default, rename = "apiHubDeploymentDetails")]
@@ -4253,7 +4254,7 @@ pub struct GoogleCloudApigeeV1SecurityAssessmentResultResource {
 }
 
 /// The result of the assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResult {
     /// The recommendations of the assessment. The key is the "name" of the assessment (not display_name), and the value are the recommendations.
     #[serde(default, rename = "assessmentRecommendations")]
@@ -4273,7 +4274,7 @@ pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResult {
 }
 
 /// Represents an SecurityIncident resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityIncident {
     /// Output only. Detection types which are part of the incident. Examples: Flooder, OAuth Abuser, Static Content Scraper, Anomaly Detection.
     #[serde(default, rename = "detectionTypes")]
@@ -4305,7 +4306,7 @@ pub struct GoogleCloudApigeeV1SecurityIncident {
 }
 
 /// Component is an individual security element that is scored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ScoreComponent {
     /// Time when score was calculated.
     #[serde(default, rename = "calculateTime")]
@@ -4329,7 +4330,7 @@ pub struct GoogleCloudApigeeV1ScoreComponent {
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeInterval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
@@ -4340,7 +4341,7 @@ pub struct GoogleTypeInterval {
 }
 
 /// Result is short for "action result", could be different types identified by "action_result" field. Supported types: 1. DebugInfo : generic debug info collected by runtime recorded as a list of properties. For example, the contents could be virtual host info, state change result, or execution metadata. Required fields : properties, timestamp 2. RequestMessage: information of a http request. Contains headers, request URI and http methods type.Required fields : headers, uri, verb 3. ResponseMessage: information of a http response. Contains headers, reason phrase and http status code. Required fields : headers, reasonPhrase, statusCode 4. ErrorMessage: information of a http error message. Contains detail error message, reason phrase and status code. Required fields : content, headers, reasonPhrase, statusCode 5. VariableAccess: a list of variable access actions, can be Get, Set and Remove. Required fields : accessList
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Result {
     /// Type of the action result. Can be one of the five: DebugInfo, RequestMessage, ResponseMessage, ErrorMessage, VariableAccess
     #[serde(default, rename = "ActionResult")]
@@ -4375,7 +4376,7 @@ pub struct GoogleCloudApigeeV1Result {
 }
 
 /// A message type used to describe a single precondition failure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcPreconditionFailureViolation {
     /// A description of how the precondition failed. Developers can use this description to understand how to fix the failure. For example: "Terms of service not accepted".
     #[serde(default)]
@@ -4389,7 +4390,7 @@ pub struct GoogleRpcPreconditionFailureViolation {
 }
 
 /// Resolves the client ip based on a custom header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgorithm {
     /// Required. The index of the ip in the header. Positive indices 0, 1, 2, 3 chooses indices from the left (first ips) Negative indices -1, -2, -3 chooses indices from the right (last ips)
     #[serde(default, rename = "ipHeaderIndex")]
@@ -4400,7 +4401,7 @@ pub struct GoogleCloudApigeeV1EnvironmentClientIPResolutionConfigHeaderIndexAlgo
 }
 
 /// Runtime configuration for the Analytics add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RuntimeAnalyticsConfig {
     /// If Runtime should send billing data to AX or not.
     #[serde(default, rename = "billingPipelineEnabled")]
@@ -4411,7 +4412,7 @@ pub struct GoogleCloudApigeeV1RuntimeAnalyticsConfig {
 }
 
 /// Runtime configuration for the API Security add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RuntimeApiSecurityConfig {
     /// If the API Security is enabled or not.
     #[serde(default)]
@@ -4419,7 +4420,7 @@ pub struct GoogleCloudApigeeV1RuntimeApiSecurityConfig {
 }
 
 /// Resolves the client ip based on a custom header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfigHeaderIndexAlgorithm {
     /// The index of the ip in the header. (By default, value is 0 if missing)
     #[serde(default, rename = "ipHeaderIndex")]
@@ -4430,7 +4431,7 @@ pub struct GoogleCloudApigeeV1EnvironmentConfigClientIPResolutionConfigHeaderInd
 }
 
 /// GoogleCloudApigeeV1AliasRevisionConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AliasRevisionConfig {
     /// Location of the alias file. For example, a Google Cloud Storage URI.
     #[serde(default)]
@@ -4444,7 +4445,7 @@ pub struct GoogleCloudApigeeV1AliasRevisionConfig {
 }
 
 /// GoogleCloudApigeeV1TlsInfoConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1TlsInfoConfig {
     /// List of ciphers that are granted access.
     #[serde(default)]
@@ -4479,7 +4480,7 @@ pub struct GoogleCloudApigeeV1TlsInfoConfig {
 }
 
 /// NEXT ID: 9 Trace configuration override for a specific API proxy in an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RuntimeTraceConfigOverride {
     /// Name of the API proxy that will have its trace configuration overridden following format: organizations/{org}/apis/{api}
     #[serde(default, rename = "apiProxy")]
@@ -4508,7 +4509,7 @@ pub struct GoogleCloudApigeeV1RuntimeTraceConfigOverride {
 }
 
 /// EndpointChainingRule specifies the proxies contained in a particular deployment group, so that other deployment groups can find them in chaining calls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EndpointChainingRule {
     /// The deployment group to target for cross-shard chaining calls to these proxies.
     #[serde(default, rename = "deploymentGroup")]
@@ -4519,7 +4520,7 @@ pub struct GoogleCloudApigeeV1EndpointChainingRule {
 }
 
 /// GoogleCloudApigeeV1RoutingRule resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RoutingRule {
     /// URI path prefix used to route to the specified environment. May contain one or more wildcards. For example, path segments consisting of a single * character will match any string.
     #[serde(default)]
@@ -4545,7 +4546,7 @@ pub struct GoogleCloudApigeeV1RoutingRule {
 }
 
 /// List of graphQL operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GraphQLOperationGroup {
     /// Flag that specifies whether the configuration is for Apigee API proxy or a remote service. Valid values include proxy or remoteservice. Defaults to proxy. Set to proxy when Apigee API proxies are associated with the API product. Set to remoteservice when non-Apigee proxies like Istio-Envoy are associated with the API product.
     #[serde(default, rename = "operationConfigType")]
@@ -4557,7 +4558,7 @@ pub struct GoogleCloudApigeeV1GraphQLOperationGroup {
 }
 
 /// List of gRPC operation configuration details associated with Apigee API proxies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GrpcOperationGroup {
     /// Required. List of operation configurations for either Apigee API proxies that are associated with this API product.
     #[serde(default, rename = "operationConfigs")]
@@ -4566,7 +4567,7 @@ pub struct GoogleCloudApigeeV1GrpcOperationGroup {
 }
 
 /// List of LLM operation configuration details associated with Apigee API proxies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1LlmOperationGroup {
     /// Required. List of LLM operation configurations for either Apigee API proxies that are associated with this API product.
     #[serde(default, rename = "operationConfigs")]
@@ -4575,7 +4576,7 @@ pub struct GoogleCloudApigeeV1LlmOperationGroup {
 }
 
 /// List of operation configuration details associated with Apigee API proxies or remote services. Remote services are non-Apigee proxies, such as Istio-Envoy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1OperationGroup {
     /// Flag that specifes whether the configuration is for Apigee API proxy or a remote service. Valid values include proxy or remoteservice. Defaults to proxy. Set to proxy when Apigee API proxies are associated with the API product. Set to remoteservice when non-Apigee proxies like Istio-Envoy are associated with the API product.
     #[serde(default, rename = "operationConfigType")]
@@ -4587,7 +4588,7 @@ pub struct GoogleCloudApigeeV1OperationGroup {
 }
 
 /// Extension configuration for Apigee extension processor service extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApimServiceExtensionExtension {
     /// Optional. Whether this request should fail open.
     #[serde(default, rename = "failOpen")]
@@ -4607,7 +4608,7 @@ pub struct GoogleCloudApigeeV1ApimServiceExtensionExtension {
 }
 
 /// Network configuration for the APIM service extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApimServiceExtensionNetworkConfig {
     /// Required. The region for the PSC NEG.
     #[serde(default)]
@@ -4618,7 +4619,7 @@ pub struct GoogleCloudApigeeV1ApimServiceExtensionNetworkConfig {
 }
 
 /// GoogleCloudApigeeV1QueryMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1QueryMetadata {
     /// Dimensions of the AsyncQuery.
     #[serde(default)]
@@ -4641,7 +4642,7 @@ pub struct GoogleCloudApigeeV1QueryMetadata {
 }
 
 /// GoogleCloudApigeeV1AsyncQueryResult resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AsyncQueryResult {
     /// Query result will be unaccessable after this time.
     #[serde(default)]
@@ -4652,7 +4653,7 @@ pub struct GoogleCloudApigeeV1AsyncQueryResult {
 }
 
 /// This encapsulates a metric property of the form sum(message_count) where name is message_count and function is sum
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1CustomReportMetric {
     /// aggregate function
     #[serde(default)]
@@ -4663,7 +4664,7 @@ pub struct GoogleCloudApigeeV1CustomReportMetric {
 }
 
 /// GoogleCloudApigeeV1ReportProperty resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ReportProperty {
     /// name of the property
     #[serde(default)]
@@ -4674,7 +4675,7 @@ pub struct GoogleCloudApigeeV1ReportProperty {
 }
 
 /// Configuration detail for datastore
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DatastoreConfig {
     /// Name of the Cloud Storage bucket. Required for gcs target_type.
     #[serde(default, rename = "bucketName")]
@@ -4694,7 +4695,7 @@ pub struct GoogleCloudApigeeV1DatastoreConfig {
 }
 
 /// The status of a deployment as reported by a single instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1InstanceDeploymentStatus {
     /// Revisions currently deployed in MPs.
     #[serde(default, rename = "deployedRevisions")]
@@ -4712,7 +4713,7 @@ pub struct GoogleCloudApigeeV1InstanceDeploymentStatus {
 }
 
 /// GoogleCloudApigeeV1PodStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1PodStatus {
     /// Version of the application running in the pod.
     #[serde(default, rename = "appVersion")]
@@ -4744,7 +4745,7 @@ pub struct GoogleCloudApigeeV1PodStatus {
 }
 
 /// Describes a routing conflict that may cause a deployment not to receive traffic at some base path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingConflict {
     /// Existing base path/deployment causing the conflict.
     #[serde(default, rename = "conflictingDeployment")]
@@ -4759,7 +4760,7 @@ pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingConflict {
 }
 
 /// GoogleCloudApigeeV1Credential resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Credential {
     /// List of API products this credential can be used for.
     #[serde(default, rename = "apiProducts")]
@@ -4788,7 +4789,7 @@ pub struct GoogleCloudApigeeV1Credential {
 }
 
 /// Fields for DNS PEERING zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DnsZonePeeringConfig {
     /// Required. The VPC network where the records for that private DNS zone''s namespace are available. Apigee will be performing DNS peering with this VPC network.
     #[serde(default, rename = "targetNetworkId")]
@@ -4799,7 +4800,7 @@ pub struct GoogleCloudApigeeV1DnsZonePeeringConfig {
 }
 
 /// Access logging configuration enables customers to ship the access logs from the tenant projects to their own project''s cloud logging. The feature is at the instance level ad disabled by default. It can be enabled during CreateInstance or UpdateInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AccessLoggingConfig {
     /// Optional. Boolean flag that specifies whether the customer access log feature is enabled.
     #[serde(default)]
@@ -4810,7 +4811,7 @@ pub struct GoogleCloudApigeeV1AccessLoggingConfig {
 }
 
 /// MaintenanceUpdatePolicy specifies the preferred window to perform maintenance on the instance (day of the week and time of day).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1MaintenanceUpdatePolicy {
     /// Optional. Maintenance channel to specify relative scheduling for maintenance. // TODO: enum values: ["MAINTENANCE_CHANNEL_UNSPECIFIED", "WEEK1", "WEEK2"]
     #[serde(default, rename = "maintenanceChannel")]
@@ -4823,7 +4824,7 @@ pub struct GoogleCloudApigeeV1MaintenanceUpdatePolicy {
 }
 
 /// Scheduled maintenance information for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ScheduledMaintenance {
     /// Output only. The start time (UTC) of the scheduled maintenance.
     #[serde(default, rename = "startTime")]
@@ -4831,7 +4832,7 @@ pub struct GoogleCloudApigeeV1ScheduledMaintenance {
 }
 
 /// API call volume range and the fees charged when the total number of API calls is within the range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RateRange {
     /// Ending value of the range. Set to 0 or null for the last range of values.
     #[serde(default)]
@@ -4845,7 +4846,7 @@ pub struct GoogleCloudApigeeV1RateRange {
 }
 
 /// API call volume range and the percentage of revenue to share with the developer when the total number of API calls is within the range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RevenueShareRange {
     /// Ending value of the range. Set to 0 or null for the last range of values.
     #[serde(default)]
@@ -4859,7 +4860,7 @@ pub struct GoogleCloudApigeeV1RevenueShareRange {
 }
 
 /// The following are a list of conditions. A valid SecurityAction must contain at least one condition. Within a condition, each element is ORed. Across conditions elements are ANDed. For example if a SecurityAction has the following: ip_address_ranges: ["ip1", "ip2"] and bot_reasons: ["Flooder", "Robot Abuser"] then this is interpreted as: enforce the action if the incoming request has ((ip_address_ranges = "ip1" OR ip_address_ranges = "ip2") AND (bot_reasons="Flooder" OR bot_reasons="Robot Abuser")). Conditions other than ip_address_ranges and bot_reasons cannot be ANDed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityActionConditionConfig {
     /// Optional. A list of access_tokens. Limit 1000 per action.
     #[serde(default, rename = "accessTokens")]
@@ -4897,7 +4898,7 @@ pub struct GoogleCloudApigeeV1SecurityActionConditionConfig {
 }
 
 /// Message that should be set in case of a Deny Action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityActionDeny {
     /// Optional. The HTTP response code if the Action = DENY.
     #[serde(default, rename = "responseCode")]
@@ -4905,7 +4906,7 @@ pub struct GoogleCloudApigeeV1SecurityActionDeny {
 }
 
 /// The message that should be set in the case of a Flag action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityActionFlag {
     /// Optional. A list of HTTP headers to be sent to the target in case of a FLAG SecurityAction. Limit 5 headers per SecurityAction. At least one is mandatory.
     #[serde(default)]
@@ -4914,7 +4915,7 @@ pub struct GoogleCloudApigeeV1SecurityActionFlag {
 }
 
 /// FeedbackContext captures the intent of the submitted feedback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityFeedbackFeedbackContext {
     /// Required. The attribute the user is providing feedback about. // TODO: enum values: ["ATTRIBUTE_UNSPECIFIED", "ATTRIBUTE_ENVIRONMENTS", "ATTRIBUTE_IP_ADDRESS_RANGES"]
     #[serde(default)]
@@ -4925,7 +4926,7 @@ pub struct GoogleCloudApigeeV1SecurityFeedbackFeedbackContext {
 }
 
 /// Message for the array of resources. For Apigee, the proxies are resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArray {
     /// Required. The array of resources. For Apigee, the proxies are resources.
     #[serde(default)]
@@ -4937,7 +4938,7 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResour
 }
 
 /// Environment information of attached environments. Scoring an environment is enabled only if it is attached to a security profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityProfileEnvironment {
     /// Output only. Time at which environment was attached to the security profile.
     #[serde(default, rename = "attachTime")]
@@ -4948,7 +4949,7 @@ pub struct GoogleCloudApigeeV1SecurityProfileEnvironment {
 }
 
 /// ProfileConfig defines a set of categories and policies which will be used to compute security score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ProfileConfig {
     /// List of categories of profile config.
     #[serde(default)]
@@ -4957,7 +4958,7 @@ pub struct GoogleCloudApigeeV1ProfileConfig {
 }
 
 /// Security configurations to manage scoring.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityProfileScoringConfig {
     /// Description of the config.
     #[serde(default)]
@@ -4971,7 +4972,7 @@ pub struct GoogleCloudApigeeV1SecurityProfileScoringConfig {
 }
 
 /// Metadata for the security report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityReportMetadata {
     /// Dimensions of the SecurityReport.
     #[serde(default)]
@@ -4994,7 +4995,7 @@ pub struct GoogleCloudApigeeV1SecurityReportMetadata {
 }
 
 /// Contains informations about the security report results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityReportResultMetadata {
     /// Output only. Expire_time is set to 7 days after report creation. Query result will be unaccessable after this time. Example: "2021-05-04T13:38:52-07:00"
     #[serde(default)]
@@ -5005,7 +5006,7 @@ pub struct GoogleCloudApigeeV1SecurityReportResultMetadata {
 }
 
 /// Metadata common to many entities in this API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1EntityMetadata {
     /// Time at which the API proxy was created, in milliseconds since epoch.
     #[serde(default, rename = "createdAt")]
@@ -5019,7 +5020,7 @@ pub struct GoogleCloudApigeeV1EntityMetadata {
 }
 
 /// TraceSamplingConfig represents the detail settings of distributed tracing. Only the fields that are defined in the distributed trace configuration can be overridden using the distribute trace configuration override APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1TraceSamplingConfig {
     /// Sampler of distributed tracing. OFF is the default value. // TODO: enum values: ["SAMPLER_UNSPECIFIED", "OFF", "PROBABILITY"]
     #[serde(default)]
@@ -5030,7 +5031,7 @@ pub struct GoogleCloudApigeeV1TraceSamplingConfig {
 }
 
 /// Encapsulates additional information about query execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Metadata {
     /// List of error messages as strings.
     #[serde(default)]
@@ -5041,7 +5042,7 @@ pub struct GoogleCloudApigeeV1Metadata {
 }
 
 /// Encapsulates a data node as represented below:  { "identifier": { "names": [ "apiproxy" ], "values": [ "sirjee" ] }, "metric": [ { "env": "prod", "name": "sum(message_count)", "values": [ 36.0 ] } ] } or  { "env": "prod", "name": "sum(message_count)", "values": [ 36.0 ] } Depending on whether a dimension is present in the query or not the data node type can be a simple metric value or dimension identifier with list of metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1OptimizedStatsNode {
     /// List of data values.
     #[serde(default)]
@@ -5049,7 +5050,7 @@ pub struct GoogleCloudApigeeV1OptimizedStatsNode {
 }
 
 /// The status of a specific resource revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RevisionStatus {
     /// Errors reported when attempting to load this revision.
     #[serde(default)]
@@ -5066,7 +5067,7 @@ pub struct GoogleCloudApigeeV1RevisionStatus {
 }
 
 /// Properties for the schema field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SchemaSchemaProperty {
     /// Time the field was created in RFC3339 string form. For example: 2016-02-26T10:23:09.592Z.
     #[serde(default, rename = "createTime")]
@@ -5080,7 +5081,7 @@ pub struct GoogleCloudApigeeV1SchemaSchemaProperty {
 }
 
 /// The format for a link in the recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRecommendationRecommendationLink
 {
     /// The text of the url. (ie: "Learn more")
@@ -5092,7 +5093,7 @@ pub struct GoogleCloudApigeeV1SecurityAssessmentResultScoringResultAssessmentRec
 }
 
 /// Configuration for the Advanced API Ops add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AdvancedApiOpsConfig {
     /// Flag that specifies whether the Advanced API Ops add-on is enabled.
     #[serde(default)]
@@ -5100,7 +5101,7 @@ pub struct GoogleCloudApigeeV1AdvancedApiOpsConfig {
 }
 
 /// Configuration for the Analytics add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AnalyticsConfig {
     /// Whether the Analytics add-on is enabled.
     #[serde(default)]
@@ -5117,7 +5118,7 @@ pub struct GoogleCloudApigeeV1AnalyticsConfig {
 }
 
 /// Configurations of the API Security add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiSecurityConfig {
     /// Flag that specifies whether the API security add-on is enabled.
     #[serde(default)]
@@ -5128,7 +5129,7 @@ pub struct GoogleCloudApigeeV1ApiSecurityConfig {
 }
 
 /// Configuration for the Connectors Platform add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ConnectorsPlatformConfig {
     /// Flag that specifies whether the Connectors Platform add-on is enabled.
     #[serde(default)]
@@ -5139,7 +5140,7 @@ pub struct GoogleCloudApigeeV1ConnectorsPlatformConfig {
 }
 
 /// Configuration for the Integration add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1IntegrationConfig {
     /// Flag that specifies whether the Integration add-on is enabled.
     #[serde(default)]
@@ -5147,7 +5148,7 @@ pub struct GoogleCloudApigeeV1IntegrationConfig {
 }
 
 /// Configuration for the Monetization add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1MonetizationConfig {
     /// Flag that specifies whether the Monetization add-on is enabled.
     #[serde(default)]
@@ -5155,7 +5156,7 @@ pub struct GoogleCloudApigeeV1MonetizationConfig {
 }
 
 /// Metadata about a resource file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ResourceFile {
     /// ID of the resource file.
     #[serde(default)]
@@ -5166,7 +5167,7 @@ pub struct GoogleCloudApigeeV1ResourceFile {
 }
 
 /// Encapsulates a metric grouped by dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DimensionMetric {
     /// Individual dimension names. E.g. ["dim1_name", "dim2_name"].
     #[serde(default, rename = "individualNames")]
@@ -5180,7 +5181,7 @@ pub struct GoogleCloudApigeeV1DimensionMetric {
 }
 
 /// GoogleCloudApigeeV1TlsInfoCommonName resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1TlsInfoCommonName {
     /// The TLS Common Name string of the certificate.
     #[serde(default)]
@@ -5191,7 +5192,7 @@ pub struct GoogleCloudApigeeV1TlsInfoCommonName {
 }
 
 /// APIProductAssociation has the API product and its administrative state association.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1aPIProductAssociation {
     /// API product to be associated with the credential.
     #[serde(default)]
@@ -5202,7 +5203,7 @@ pub struct GoogleCloudApigeeV1aPIProductAssociation {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -5213,7 +5214,7 @@ pub struct GoogleIamV1AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -5227,7 +5228,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -5241,7 +5242,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Documentation file contents for a catalog item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DocumentationFile {
     /// Required. The file contents. The max size is 4 MB.
     #[serde(default)]
@@ -5252,7 +5253,7 @@ pub struct GoogleCloudApigeeV1DocumentationFile {
 }
 
 /// Additional details if the resource is an API Hub deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityAssessmentResultResourceApiHubDeploymentDetails {
     /// The display name of the API Hub deployment.
     #[serde(default, rename = "displayName")]
@@ -5272,7 +5273,7 @@ pub struct GoogleCloudApigeeV1SecurityAssessmentResultResourceApiHubDeploymentDe
 }
 
 /// Recommendation based on security concerns and score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ScoreComponentRecommendation {
     /// Actions for the recommendation to improve the security score.
     #[serde(default)]
@@ -5291,7 +5292,7 @@ pub struct GoogleCloudApigeeV1ScoreComponentRecommendation {
 }
 
 /// GoogleCloudApigeeV1Access resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Access {
     #[serde(default, rename = "Get")]
     pub get: ::core::option::Option<GoogleCloudApigeeV1AccessGet>,
@@ -5302,7 +5303,7 @@ pub struct GoogleCloudApigeeV1Access {
 }
 
 /// Message for compatibility with legacy Edge specification for Java Properties object in JSON.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Properties {
     /// List of all properties in the object
     #[serde(default)]
@@ -5310,7 +5311,7 @@ pub struct GoogleCloudApigeeV1Properties {
 }
 
 /// GoogleCloudApigeeV1CommonNameConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1CommonNameConfig {
     #[serde(default, rename = "matchWildCards")]
     pub match_wild_cards: ::core::option::Option<bool>,
@@ -5319,7 +5320,7 @@ pub struct GoogleCloudApigeeV1CommonNameConfig {
 }
 
 /// GoogleCloudApigeeV1KeyAliasReference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1KeyAliasReference {
     /// Alias ID. Must exist in the keystore referred to by the reference.
     #[serde(default, rename = "aliasId")]
@@ -5330,7 +5331,7 @@ pub struct GoogleCloudApigeeV1KeyAliasReference {
 }
 
 /// NEXT ID: 3 RuntimeTraceSamplingConfig represents the detail settings of distributed tracing. Only the fields that are defined in the distributed trace configuration can be overridden using the distribute trace configuration override APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1RuntimeTraceSamplingConfig {
     /// Sampler of distributed tracing. OFF is the default value. // TODO: enum values: ["SAMPLER_UNSPECIFIED", "OFF", "PROBABILITY"]
     #[serde(default)]
@@ -5341,7 +5342,7 @@ pub struct GoogleCloudApigeeV1RuntimeTraceSamplingConfig {
 }
 
 /// Binds the resources in a proxy or remote service with the GraphQL operation and its associated quota enforcement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GraphQLOperationConfig {
     /// Required. Name of the API proxy endpoint or remote service with which the GraphQL operation and quota are associated.
     #[serde(default, rename = "apiSource")]
@@ -5358,7 +5359,7 @@ pub struct GoogleCloudApigeeV1GraphQLOperationConfig {
 }
 
 /// Binds the resources in a proxy or remote service with the gRPC operation and its associated quota enforcement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GrpcOperationConfig {
     /// Required. Name of the API proxy with which the gRPC operation and quota are associated.
     #[serde(default, rename = "apiSource")]
@@ -5378,7 +5379,7 @@ pub struct GoogleCloudApigeeV1GrpcOperationConfig {
 }
 
 /// Binds the resources in an API proxy or remote service with the allowed REST methods and associated quota enforcement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1LlmOperationConfig {
     /// Required. Name of the API proxy or remote service with which the resources, methods, and quota are associated.
     #[serde(default, rename = "apiSource")]
@@ -5395,7 +5396,7 @@ pub struct GoogleCloudApigeeV1LlmOperationConfig {
 }
 
 /// Binds the resources in an API proxy or remote service with the allowed REST methods and associated quota enforcement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1OperationConfig {
     /// Required. Name of the API proxy or remote service with which the resources, methods, and quota are associated.
     #[serde(default, rename = "apiSource")]
@@ -5412,7 +5413,7 @@ pub struct GoogleCloudApigeeV1OperationConfig {
 }
 
 /// Revisions deployed in the MPs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRevision {
     /// Percentage of MP replicas reporting this revision.
     #[serde(default)]
@@ -5423,7 +5424,7 @@ pub struct GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRevision {
 }
 
 /// Route deployed in the ingress routing table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRoute {
     /// Base path in the routing table.
     #[serde(default)]
@@ -5440,7 +5441,7 @@ pub struct GoogleCloudApigeeV1InstanceDeploymentStatusDeployedRoute {
 }
 
 /// Tuple representing a base path and the deployment containing it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment {
     /// Name of the deployed API proxy revision containing the base path.
     #[serde(default, rename = "apiProxy")]
@@ -5457,7 +5458,7 @@ pub struct GoogleCloudApigeeV1DeploymentChangeReportRoutingDeployment {
 }
 
 /// GoogleCloudApigeeV1ApiProductRef resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ApiProductRef {
     /// Name of the API product.
     #[serde(default)]
@@ -5468,7 +5469,7 @@ pub struct GoogleCloudApigeeV1ApiProductRef {
 }
 
 /// MaintenanceWindow specifies the preferred day of the week and time of day to perform maintenance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1MaintenanceUpdatePolicyMaintenanceWindow {
     /// Required. Preferred day of the week for maintenance, e.g. MONDAY, TUESDAY, etc. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default)]
@@ -5479,7 +5480,7 @@ pub struct GoogleCloudApigeeV1MaintenanceUpdatePolicyMaintenanceWindow {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeMoney {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -5493,7 +5494,7 @@ pub struct GoogleTypeMoney {
 }
 
 /// An HTTP header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityActionHttpHeader {
     /// The header name to be sent to the target.
     #[serde(default)]
@@ -5504,7 +5505,7 @@ pub struct GoogleCloudApigeeV1SecurityActionHttpHeader {
 }
 
 /// Resource for which we are computing security assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArrayResource {
     /// Required. Name of this resource. For an Apigee API Proxy, this should be the id of the API proxy. For an API Hub Deployment, this should be the id of the deployment.
     #[serde(default)]
@@ -5515,7 +5516,7 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResour
 }
 
 /// Advanced API Security provides security profile that scores the following categories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ProfileConfigCategory {
     /// Checks for abuse, which includes any requests sent to the API for purposes other than what it is intended for, such as high volumes of requests, data scraping, and abuse related to authorization.
     #[serde(default)]
@@ -5538,7 +5539,7 @@ pub struct GoogleCloudApigeeV1ProfileConfigCategory {
 }
 
 /// Details on why a resource update failed in the runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1UpdateError {
     /// Status code. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
     #[serde(default)]
@@ -5555,7 +5556,7 @@ pub struct GoogleCloudApigeeV1UpdateError {
 }
 
 /// Encapsulates the metric data point. For example: { "name": "sum(message_count)", "values" : [ { "timestamp": 1549004400000, "value": "39.0" }, { "timestamp" : 1548997200000, "value" : "0.0" } ] } or { "name": "sum(message_count)", "values" : ["39.0"] }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Metric {
     /// Metric name.
     #[serde(default)]
@@ -5566,7 +5567,7 @@ pub struct GoogleCloudApigeeV1Metric {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -5577,7 +5578,7 @@ pub struct GoogleIamV1AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -5594,7 +5595,7 @@ pub struct GoogleTypeExpr {
 }
 
 /// Action to improve security score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ScoreComponentRecommendationAction {
     /// Action context for the action.
     #[serde(default, rename = "actionContext")]
@@ -5606,7 +5607,7 @@ pub struct GoogleCloudApigeeV1ScoreComponentRecommendationAction {
 }
 
 /// Get action. For example, "Get" : { "name" : "target.name", "value" : "default" }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AccessGet {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -5615,7 +5616,7 @@ pub struct GoogleCloudApigeeV1AccessGet {
 }
 
 /// Remove action. For example, "Remove" : { "name" : "target.name", "success" : true }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AccessRemove {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -5624,7 +5625,7 @@ pub struct GoogleCloudApigeeV1AccessRemove {
 }
 
 /// Set action. For example, "Set" : { "name" : "target.name", "success" : true, "value" : "default" }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1AccessSet {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -5635,7 +5636,7 @@ pub struct GoogleCloudApigeeV1AccessSet {
 }
 
 /// A single property entry in the Properties message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Property {
     /// The property key
     #[serde(default)]
@@ -5646,7 +5647,7 @@ pub struct GoogleCloudApigeeV1Property {
 }
 
 /// Represents the pairing of GraphQL operation types and the GraphQL operation name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1GraphQLOperation {
     /// GraphQL operation name. The name and operation type will be used to apply quotas. If no name is specified, the quota will be applied to all GraphQL operations irrespective of their operation names in the payload.
     #[serde(default)]
@@ -5657,7 +5658,7 @@ pub struct GoogleCloudApigeeV1GraphQLOperation {
 }
 
 /// Represents the pairing of REST resource path, model and the actions (verbs) allowed on the resource path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1LlmOperation {
     /// Optional. methods refers to the REST verbs as in https://httpwg.org/specs/rfc9110.html For example: GET, POST, PUT, DELETE, etc. They need to be in uppercase. When none specified, all verb types are allowed.
     #[serde(default)]
@@ -5671,7 +5672,7 @@ pub struct GoogleCloudApigeeV1LlmOperation {
 }
 
 /// LLM Token Quota contains the essential parameters needed that can be applied on the resources, methods, models, API source combination associated with this API product. While LLM Token Quota is optional, setting it prevents requests from exceeding the provisioned parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1LlmTokenQuota {
     /// Required. Time interval over which the number of request messages is calculated.
     #[serde(default)]
@@ -5685,7 +5686,7 @@ pub struct GoogleCloudApigeeV1LlmTokenQuota {
 }
 
 /// Key-value pair to store extra metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Attribute {
     /// API key of the attribute.
     #[serde(default)]
@@ -5696,7 +5697,7 @@ pub struct GoogleCloudApigeeV1Attribute {
 }
 
 /// Represents the pairing of REST resource path and the actions (verbs) allowed on the resource path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Operation {
     /// methods refers to the REST verbs as in https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html. When none specified, all verb types are allowed.
     #[serde(default)]
@@ -5707,7 +5708,7 @@ pub struct GoogleCloudApigeeV1Operation {
 }
 
 /// Quota contains the essential parameters needed that can be applied on the resources, methods, API source combination associated with this API product. While Quota is optional, setting it prevents requests from exceeding the provisioned parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1Quota {
     /// Required. Time interval over which the number of request messages is calculated.
     #[serde(default)]
@@ -5721,7 +5722,7 @@ pub struct GoogleCloudApigeeV1Quota {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeTimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -5738,7 +5739,7 @@ pub struct GoogleTypeTimeOfDay {
 }
 
 /// Action context are all the relevant details for the action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ScoreComponentRecommendationActionActionContext {
     /// Documentation link for the action.
     #[serde(default, rename = "documentationLink")]

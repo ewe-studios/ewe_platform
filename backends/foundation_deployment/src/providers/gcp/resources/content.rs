@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Credentials allowing Google to call a partner''s API on behalf of a merchant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountCredentials {
     /// An OAuth access token.
     #[serde(default, rename = "accessToken")]
@@ -25,7 +26,7 @@ pub struct AccountCredentials {
 }
 
 /// AccountsAuthInfoResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsAuthInfoResponse {
     /// The account identifiers corresponding to the authenticated user. - For an individual account: only the merchant ID is defined - For an aggregator: only the aggregator ID is defined - For a subaccount of an MCA: both the merchant ID and the aggregator ID are defined.
     #[serde(default, rename = "accountIdentifiers")]
@@ -36,7 +37,7 @@ pub struct AccountsAuthInfoResponse {
 }
 
 /// AccountsClaimWebsiteResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsClaimWebsiteResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#accountsClaimWebsiteResponse".
     #[serde(default)]
@@ -44,7 +45,7 @@ pub struct AccountsClaimWebsiteResponse {
 }
 
 /// AccountsCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -52,7 +53,7 @@ pub struct AccountsCustomBatchRequest {
 }
 
 /// AccountsCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -63,7 +64,7 @@ pub struct AccountsCustomBatchResponse {
 }
 
 /// AccountsLinkRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsLinkRequest {
     /// Action to perform for this link. The "request" action is only available to select merchants. Acceptable values are: - "approve" - "remove" - "request"
     #[serde(default)]
@@ -86,7 +87,7 @@ pub struct AccountsLinkRequest {
 }
 
 /// AccountsLinkResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsLinkResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#accountsLinkResponse".
     #[serde(default)]
@@ -94,7 +95,7 @@ pub struct AccountsLinkResponse {
 }
 
 /// AccountsListLinksResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsListLinksResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#accountsListLinksResponse".
     #[serde(default)]
@@ -108,7 +109,7 @@ pub struct AccountsListLinksResponse {
 }
 
 /// AccountsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#accountsListResponse".
     #[serde(default)]
@@ -121,7 +122,7 @@ pub struct AccountsListResponse {
 }
 
 /// AccountsUpdateLabelsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsUpdateLabelsRequest {
     /// The IDs of labels that should be assigned to the account.
     #[serde(default, rename = "labelIds")]
@@ -129,7 +130,7 @@ pub struct AccountsUpdateLabelsRequest {
 }
 
 /// AccountsUpdateLabelsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsUpdateLabelsResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#accountsUpdateLabelsResponse".
     #[serde(default)]
@@ -137,7 +138,7 @@ pub struct AccountsUpdateLabelsResponse {
 }
 
 /// AccountstatusesCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountstatusesCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -145,7 +146,7 @@ pub struct AccountstatusesCustomBatchRequest {
 }
 
 /// AccountstatusesCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountstatusesCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -156,7 +157,7 @@ pub struct AccountstatusesCustomBatchResponse {
 }
 
 /// AccountstatusesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountstatusesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#accountstatusesListResponse".
     #[serde(default)]
@@ -169,7 +170,7 @@ pub struct AccountstatusesListResponse {
 }
 
 /// AccounttaxCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccounttaxCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -177,7 +178,7 @@ pub struct AccounttaxCustomBatchRequest {
 }
 
 /// AccounttaxCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccounttaxCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -188,7 +189,7 @@ pub struct AccounttaxCustomBatchResponse {
 }
 
 /// AccounttaxListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccounttaxListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#accounttaxListResponse".
     #[serde(default)]
@@ -201,7 +202,7 @@ pub struct AccounttaxListResponse {
 }
 
 /// CheckoutSettings for a specific merchant ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckoutSettings {
     /// Output only. The effective value of enrollment state for a given merchant ID. If account level settings are present then this value will be a copy of the account level settings. Otherwise, it will have the value of the parent account. // TODO: enum values: ["CHECKOUT_ON_MERCHANT_ENROLLMENT_STATE_UNSPECIFIED", "INACTIVE", "ENROLLED", "OPT_OUT"]
     #[serde(default, rename = "effectiveEnrollmentState")]
@@ -227,7 +228,7 @@ pub struct CheckoutSettings {
 }
 
 /// DatafeedsCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedsCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -235,7 +236,7 @@ pub struct DatafeedsCustomBatchRequest {
 }
 
 /// DatafeedsCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedsCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -246,7 +247,7 @@ pub struct DatafeedsCustomBatchResponse {
 }
 
 /// DatafeedsFetchNowResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedsFetchNowResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#datafeedsFetchNowResponse".
     #[serde(default)]
@@ -254,7 +255,7 @@ pub struct DatafeedsFetchNowResponse {
 }
 
 /// DatafeedsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#datafeedsListResponse".
     #[serde(default)]
@@ -267,7 +268,7 @@ pub struct DatafeedsListResponse {
 }
 
 /// DatafeedstatusesCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedstatusesCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -275,7 +276,7 @@ pub struct DatafeedstatusesCustomBatchRequest {
 }
 
 /// DatafeedstatusesCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedstatusesCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -286,7 +287,7 @@ pub struct DatafeedstatusesCustomBatchResponse {
 }
 
 /// DatafeedstatusesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedstatusesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#datafeedstatusesListResponse".
     #[serde(default)]
@@ -299,7 +300,7 @@ pub struct DatafeedstatusesListResponse {
 }
 
 /// Response message for GetFreeListingsProgramStatus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeListingsProgramStatus {
     /// State of the program. ENABLED if there are offers for at least one region. // TODO: enum values: ["PROGRAM_STATE_UNSPECIFIED", "NOT_ENABLED", "NO_OFFERS_UPLOADED", "ENABLED"]
     #[serde(default, rename = "globalState")]
@@ -311,7 +312,7 @@ pub struct FreeListingsProgramStatus {
 }
 
 /// Response containing generated recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateRecommendationsResponse {
     /// Recommendations generated for a request.
     #[serde(default)]
@@ -322,11 +323,11 @@ pub struct GenerateRecommendationsResponse {
 }
 
 /// Checkbox input allows merchants to provide a boolean value. Corresponds to the [html input type=checkbox](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.checkbox.html#input.checkbox). If merchant checks the box, the input value for the field is true, otherwise it is false. This type of input is often used as a confirmation that the merchant completed required steps before they are allowed to start the action. In such a case, the input field is marked as required and the button to trigger the action should stay disabled until the merchant checks the box.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputFieldCheckboxInput {}
 
 /// Request message for the InsertCheckoutSettings method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertCheckoutSettingsRequest {
     /// Required. The UrlSettings for the request. The presence of URL settings indicates Checkout enrollment.
     #[serde(default, rename = "uriSettings")]
@@ -334,7 +335,7 @@ pub struct InsertCheckoutSettingsRequest {
 }
 
 /// The IDs of labels that should be assigned to the CSS domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelIds {
     /// The list of label IDs.
     #[serde(default, rename = "labelIds")]
@@ -342,7 +343,7 @@ pub struct LabelIds {
 }
 
 /// LiasettingsCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiasettingsCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -350,7 +351,7 @@ pub struct LiasettingsCustomBatchRequest {
 }
 
 /// LiasettingsCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiasettingsCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -361,7 +362,7 @@ pub struct LiasettingsCustomBatchResponse {
 }
 
 /// LiasettingsGetAccessibleGmbAccountsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiasettingsGetAccessibleGmbAccountsResponse {
     /// The ID of the Merchant Center account.
     #[serde(default, rename = "accountId")]
@@ -375,7 +376,7 @@ pub struct LiasettingsGetAccessibleGmbAccountsResponse {
 }
 
 /// LiasettingsListPosDataProvidersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiasettingsListPosDataProvidersResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#liasettingsListPosDataProvidersResponse".
     #[serde(default)]
@@ -386,7 +387,7 @@ pub struct LiasettingsListPosDataProvidersResponse {
 }
 
 /// LiasettingsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiasettingsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#liasettingsListResponse".
     #[serde(default)]
@@ -399,7 +400,7 @@ pub struct LiasettingsListResponse {
 }
 
 /// LiasettingsRequestGmbAccessResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiasettingsRequestGmbAccessResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#liasettingsRequestGmbAccessResponse".
     #[serde(default)]
@@ -407,7 +408,7 @@ pub struct LiasettingsRequestGmbAccessResponse {
 }
 
 /// LiasettingsRequestInventoryVerificationResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiasettingsRequestInventoryVerificationResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#liasettingsRequestInventoryVerificationResponse".
     #[serde(default)]
@@ -415,7 +416,7 @@ pub struct LiasettingsRequestInventoryVerificationResponse {
 }
 
 /// LiasettingsSetInventoryVerificationContactResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiasettingsSetInventoryVerificationContactResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#liasettingsSetInventoryVerificationContactResponse".
     #[serde(default)]
@@ -423,7 +424,7 @@ pub struct LiasettingsSetInventoryVerificationContactResponse {
 }
 
 /// LiasettingsSetPosDataProviderResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiasettingsSetPosDataProviderResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#liasettingsSetPosDataProviderResponse".
     #[serde(default)]
@@ -431,7 +432,7 @@ pub struct LiasettingsSetPosDataProviderResponse {
 }
 
 /// Response message for the ListAccountLabels method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountLabelsResponse {
     /// The labels from the specified account.
     #[serde(default, rename = "accountLabels")]
@@ -442,7 +443,7 @@ pub struct ListAccountLabelsResponse {
 }
 
 /// Response for listing account return carriers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountReturnCarrierResponse {
     /// List of all available account return carriers for the merchant.
     #[serde(default, rename = "accountReturnCarriers")]
@@ -450,7 +451,7 @@ pub struct ListAccountReturnCarrierResponse {
 }
 
 /// Response message for the ListCollectionStatuses method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCollectionStatusesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -461,7 +462,7 @@ pub struct ListCollectionStatusesResponse {
 }
 
 /// Response message for the ListCollections method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCollectionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -472,7 +473,7 @@ pub struct ListCollectionsResponse {
 }
 
 /// Response message for the ListConversionSources method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConversionSourcesResponse {
     /// List of conversion sources.
     #[serde(default, rename = "conversionSources")]
@@ -483,7 +484,7 @@ pub struct ListConversionSourcesResponse {
 }
 
 /// The response message for the ListCsses method
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCssesResponse {
     /// The CSS domains affiliated with the specified CSS group.
     #[serde(default)]
@@ -494,7 +495,7 @@ pub struct ListCssesResponse {
 }
 
 /// Response message for the ListMethodQuotas method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMethodQuotasResponse {
     /// The current quota usage and limits per each method.
     #[serde(default, rename = "methodQuotas")]
@@ -505,7 +506,7 @@ pub struct ListMethodQuotasResponse {
 }
 
 /// Response message for Promotions.List method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPromotionResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -516,7 +517,7 @@ pub struct ListPromotionResponse {
 }
 
 /// Response message for the ListRegions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRegionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -527,7 +528,7 @@ pub struct ListRegionsResponse {
 }
 
 /// Response message for the ListReturnPolicyOnline method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReturnPolicyOnlineResponse {
     /// The retrieved return policies.
     #[serde(default, rename = "returnPolicies")]
@@ -535,7 +536,7 @@ pub struct ListReturnPolicyOnlineResponse {
 }
 
 /// LocalinventoryCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalinventoryCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -543,7 +544,7 @@ pub struct LocalinventoryCustomBatchRequest {
 }
 
 /// LocalinventoryCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalinventoryCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -554,7 +555,7 @@ pub struct LocalinventoryCustomBatchResponse {
 }
 
 /// Represents a merchant trade from which signals are extracted, e.g. shipping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrderTrackingSignal {
     /// The shipping fee of the order; this value should be set to zero in the case of free shipping.
     #[serde(default, rename = "customerShippingFee")]
@@ -590,7 +591,7 @@ pub struct OrderTrackingSignal {
 }
 
 /// PosCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -598,7 +599,7 @@ pub struct PosCustomBatchRequest {
 }
 
 /// PosCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -609,7 +610,7 @@ pub struct PosCustomBatchResponse {
 }
 
 /// PosInventoryRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosInventoryRequest {
     /// Required. The two-letter ISO 639-1 language code for the item.
     #[serde(default, rename = "contentLanguage")]
@@ -644,7 +645,7 @@ pub struct PosInventoryRequest {
 }
 
 /// PosInventoryResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosInventoryResponse {
     /// Required. The two-letter ISO 639-1 language code for the item.
     #[serde(default, rename = "contentLanguage")]
@@ -682,7 +683,7 @@ pub struct PosInventoryResponse {
 }
 
 /// PosListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#posListResponse".
     #[serde(default)]
@@ -692,7 +693,7 @@ pub struct PosListResponse {
 }
 
 /// PosSaleRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosSaleRequest {
     /// Required. The two-letter ISO 639-1 language code for the item.
     #[serde(default, rename = "contentLanguage")]
@@ -724,7 +725,7 @@ pub struct PosSaleRequest {
 }
 
 /// PosSaleResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosSaleResponse {
     /// Required. The two-letter ISO 639-1 language code for the item.
     #[serde(default, rename = "contentLanguage")]
@@ -759,7 +760,7 @@ pub struct PosSaleResponse {
 }
 
 /// The estimated days to deliver a product after an order is placed. Only authorized shipping signals partners working with a merchant can use this resource. Merchants should use the [products](https://developers.google.com/shopping-content/reference/rest/v2.1/products#productshipping) resource instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductDeliveryTime {
     /// Required. A set of associations between DeliveryArea and DeliveryTime entries. The total number of areaDeliveryTimes can be at most 100.
     #[serde(default, rename = "areaDeliveryTimes")]
@@ -771,7 +772,7 @@ pub struct ProductDeliveryTime {
 }
 
 /// ProductsCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductsCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -779,7 +780,7 @@ pub struct ProductsCustomBatchRequest {
 }
 
 /// ProductsCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductsCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -790,7 +791,7 @@ pub struct ProductsCustomBatchResponse {
 }
 
 /// ProductsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#productsListResponse".
     #[serde(default)]
@@ -803,7 +804,7 @@ pub struct ProductsListResponse {
 }
 
 /// ProductstatusesCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductstatusesCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -811,7 +812,7 @@ pub struct ProductstatusesCustomBatchRequest {
 }
 
 /// ProductstatusesCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductstatusesCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -822,7 +823,7 @@ pub struct ProductstatusesCustomBatchResponse {
 }
 
 /// ProductstatusesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductstatusesListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#productstatusesListResponse".
     #[serde(default)]
@@ -835,7 +836,7 @@ pub struct ProductstatusesListResponse {
 }
 
 /// Settings for Pub/Sub notifications, all methods require that the caller is a direct user of the merchant center account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubsubNotificationSettings {
     /// Cloud pub/sub topic to which notifications are sent (read-only).
     #[serde(default, rename = "cloudTopicName")]
@@ -849,7 +850,7 @@ pub struct PubsubNotificationSettings {
 }
 
 /// RegionalinventoryCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalinventoryCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -857,7 +858,7 @@ pub struct RegionalinventoryCustomBatchRequest {
 }
 
 /// RegionalinventoryCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalinventoryCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -868,7 +869,7 @@ pub struct RegionalinventoryCustomBatchResponse {
 }
 
 /// The payload for configuring how the content should be rendered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenderAccountIssuesRequestPayload {
     /// Optional. How the detailed content should be returned. Default option is to return the content as a pre-rendered HTML text. // TODO: enum values: ["CONTENT_OPTION_UNSPECIFIED", "PRE_RENDERED_HTML"]
     #[serde(default, rename = "contentOption")]
@@ -879,7 +880,7 @@ pub struct RenderAccountIssuesRequestPayload {
 }
 
 /// Response containing support content and actions for listed account issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenderAccountIssuesResponse {
     /// Alternate Dispute Resolution (ADR) is deprecated. Use prerendered_out_of_court_dispute_settlement instead.
     #[serde(default, rename = "alternateDisputeResolution")]
@@ -890,7 +891,7 @@ pub struct RenderAccountIssuesResponse {
 }
 
 /// The payload for configuring how the content should be rendered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenderProductIssuesRequestPayload {
     /// Optional. How the detailed content should be returned. Default option is to return the content as a pre-rendered HTML text. // TODO: enum values: ["CONTENT_OPTION_UNSPECIFIED", "PRE_RENDERED_HTML"]
     #[serde(default, rename = "contentOption")]
@@ -901,7 +902,7 @@ pub struct RenderProductIssuesRequestPayload {
 }
 
 /// Response containing support content and actions for listed product issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenderProductIssuesResponse {
     /// Alternate Dispute Resolution (ADR) is deprecated. Use prerendered_out_of_court_dispute_settlement instead.
     #[serde(default, rename = "alternateDisputeResolution")]
@@ -912,7 +913,7 @@ pub struct RenderProductIssuesResponse {
 }
 
 /// Request to report interactions on a recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportInteractionRequest {
     /// Required. Type of the interaction that is reported, for example INTERACTION_CLICK. // TODO: enum values: ["INTERACTION_TYPE_UNSPECIFIED", "INTERACTION_DISMISS", "INTERACTION_CLICK"]
     #[serde(default, rename = "interactionType")]
@@ -929,7 +930,7 @@ pub struct ReportInteractionRequest {
 }
 
 /// Request message for the RequestPhoneVerification method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestPhoneVerificationRequest {
     /// Language code [IETF BCP 47 syntax](https://tools.ietf.org/html/bcp47) (for example, en-US). Language code is used to provide localized SMS and PHONE_CALL. Default language used is en-US if not provided.
     #[serde(default, rename = "languageCode")]
@@ -946,7 +947,7 @@ pub struct RequestPhoneVerificationRequest {
 }
 
 /// Response message for the RequestPhoneVerification method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestPhoneVerificationResponse {
     /// The verification ID to use in subsequent calls to verifyphonenumber.
     #[serde(default, rename = "verificationId")]
@@ -954,7 +955,7 @@ pub struct RequestPhoneVerificationResponse {
 }
 
 /// Request message for the RequestReviewFreeListings Program method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestReviewFreeListingsRequest {
     /// The code [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the country for which review is to be requested.
     #[serde(default, rename = "regionCode")]
@@ -962,7 +963,7 @@ pub struct RequestReviewFreeListingsRequest {
 }
 
 /// Request message for the RequestReviewShoppingAds program method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestReviewShoppingAdsRequest {
     /// The code [ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2) of the country for which review is to be requested.
     #[serde(default, rename = "regionCode")]
@@ -970,7 +971,7 @@ pub struct RequestReviewShoppingAdsRequest {
 }
 
 /// Request message for the ReportService.Search method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchRequest {
     /// Number of ReportRows to retrieve in a single page. Defaults to 1000. Values above 5000 are coerced to 5000.
     #[serde(default, rename = "pageSize")]
@@ -984,7 +985,7 @@ pub struct SearchRequest {
 }
 
 /// Response message for the ReportService.Search method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchResponse {
     /// Token which can be sent as page_token to retrieve the next page. If omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -995,7 +996,7 @@ pub struct SearchResponse {
 }
 
 /// ShippingsettingsCustomBatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingsettingsCustomBatchRequest {
     /// The request entries to be processed in the batch.
     #[serde(default)]
@@ -1003,7 +1004,7 @@ pub struct ShippingsettingsCustomBatchRequest {
 }
 
 /// ShippingsettingsCustomBatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingsettingsCustomBatchResponse {
     /// The result of the execution of the batch requests.
     #[serde(default)]
@@ -1014,7 +1015,7 @@ pub struct ShippingsettingsCustomBatchResponse {
 }
 
 /// ShippingsettingsGetSupportedCarriersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingsettingsGetSupportedCarriersResponse {
     /// A list of supported carriers. May be empty.
     #[serde(default)]
@@ -1025,7 +1026,7 @@ pub struct ShippingsettingsGetSupportedCarriersResponse {
 }
 
 /// ShippingsettingsGetSupportedHolidaysResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingsettingsGetSupportedHolidaysResponse {
     /// A list of holidays applicable for delivery guarantees. May be empty.
     #[serde(default)]
@@ -1036,7 +1037,7 @@ pub struct ShippingsettingsGetSupportedHolidaysResponse {
 }
 
 /// ShippingsettingsGetSupportedPickupServicesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingsettingsGetSupportedPickupServicesResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsGetSupportedPickupServicesResponse".
     #[serde(default)]
@@ -1047,7 +1048,7 @@ pub struct ShippingsettingsGetSupportedPickupServicesResponse {
 }
 
 /// ShippingsettingsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingsettingsListResponse {
     /// Identifies what kind of resource this is. Value: the fixed string "content#shippingsettingsListResponse".
     #[serde(default)]
@@ -1060,7 +1061,7 @@ pub struct ShippingsettingsListResponse {
 }
 
 /// Response message for GetShoppingAdsProgramStatus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShoppingAdsProgramStatus {
     /// State of the program. ENABLED if there are offers for at least one region. // TODO: enum values: ["PROGRAM_STATE_UNSPECIFIED", "NOT_ENABLED", "NO_OFFERS_UPLOADED", "ENABLED"]
     #[serde(default, rename = "globalState")]
@@ -1072,7 +1073,7 @@ pub struct ShoppingAdsProgramStatus {
 }
 
 /// The payload for the triggered action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TriggerActionPayload {
     /// Required. The context from the selected action. The value is obtained from rendered issues and needs to be sent back to identify the action that is being triggered.
     #[serde(default, rename = "actionContext")]
@@ -1083,7 +1084,7 @@ pub struct TriggerActionPayload {
 }
 
 /// Response informing about the started action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TriggerActionResponse {
     /// The message for merchant.
     #[serde(default)]
@@ -1091,11 +1092,11 @@ pub struct TriggerActionResponse {
 }
 
 /// Request message for the UndeleteConversionSource method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteConversionSourceRequest {}
 
 /// Request message for the VerifyPhoneNumber method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyPhoneNumberRequest {
     /// Verification method used to receive verification code. // TODO: enum values: ["PHONE_VERIFICATION_METHOD_UNSPECIFIED", "SMS", "PHONE_CALL"]
     #[serde(default, rename = "phoneVerificationMethod")]
@@ -1109,7 +1110,7 @@ pub struct VerifyPhoneNumberRequest {
 }
 
 /// Response message for the VerifyPhoneNumber method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyPhoneNumberResponse {
     /// Verified phone number if verification is successful. This phone number can only be replaced by another verified phone number.
     #[serde(default, rename = "verifiedPhoneNumber")]
@@ -1117,7 +1118,7 @@ pub struct VerifyPhoneNumberResponse {
 }
 
 /// AccountIdentifier resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountIdentifier {
     /// The aggregator ID, set for aggregators and subaccounts (in that case, it represents the aggregator of the subaccount).
     #[serde(default, rename = "aggregatorId")]
@@ -1128,7 +1129,7 @@ pub struct AccountIdentifier {
 }
 
 /// A batch entry encoding a single non-batch accounts request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsCustomBatchRequestEntry {
     /// The account to create or update. Only defined if the method is insert or update.
     #[serde(default)]
@@ -1163,7 +1164,7 @@ pub struct AccountsCustomBatchRequestEntry {
 }
 
 /// A batch entry encoding a single non-batch accounts response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsCustomBatchResponseEntry {
     /// The retrieved, created, or updated account. Not defined if the method was delete, claimwebsite or link.
     #[serde(default)]
@@ -1180,7 +1181,7 @@ pub struct AccountsCustomBatchResponseEntry {
 }
 
 /// Additional information required for E_COMMERCE_PLATFORM link type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ECommercePlatformLinkInfo {
     /// The id used by the third party service provider to identify the merchant.
     #[serde(default, rename = "externalAccountId")]
@@ -1188,7 +1189,7 @@ pub struct ECommercePlatformLinkInfo {
 }
 
 /// Additional information required for PAYMENT_SERVICE_PROVIDER link type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentServiceProviderLinkInfo {
     /// The business country of the merchant account as identified by the third party service provider.
     #[serde(default, rename = "externalAccountBusinessCountry")]
@@ -1199,7 +1200,7 @@ pub struct PaymentServiceProviderLinkInfo {
 }
 
 /// LinkedAccount resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedAccount {
     /// The ID of the linked account.
     #[serde(default, rename = "linkedAccountId")]
@@ -1210,7 +1211,7 @@ pub struct LinkedAccount {
 }
 
 /// A batch entry encoding a single non-batch accountstatuses request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountstatusesCustomBatchRequestEntry {
     /// The ID of the (sub-)account whose status to get.
     #[serde(default, rename = "accountId")]
@@ -1230,7 +1231,7 @@ pub struct AccountstatusesCustomBatchRequestEntry {
 }
 
 /// A batch entry encoding a single non-batch accountstatuses response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountstatusesCustomBatchResponseEntry {
     /// The requested account status. Defined if and only if the request was successful.
     #[serde(default, rename = "accountStatus")]
@@ -1244,7 +1245,7 @@ pub struct AccountstatusesCustomBatchResponseEntry {
 }
 
 /// A batch entry encoding a single non-batch accounttax request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccounttaxCustomBatchRequestEntry {
     /// The ID of the account for which to get/update account tax settings.
     #[serde(default, rename = "accountId")]
@@ -1264,7 +1265,7 @@ pub struct AccounttaxCustomBatchRequestEntry {
 }
 
 /// A batch entry encoding a single non-batch accounttax response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccounttaxCustomBatchResponseEntry {
     /// The retrieved or updated account tax settings.
     #[serde(default, rename = "accountTax")]
@@ -1281,7 +1282,7 @@ pub struct AccounttaxCustomBatchResponseEntry {
 }
 
 /// A batch entry encoding a single non-batch datafeeds request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedsCustomBatchRequestEntry {
     /// An entry ID, unique within the batch request.
     #[serde(default, rename = "batchId")]
@@ -1301,7 +1302,7 @@ pub struct DatafeedsCustomBatchRequestEntry {
 }
 
 /// A batch entry encoding a single non-batch datafeeds response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedsCustomBatchResponseEntry {
     /// The ID of the request entry this entry responds to.
     #[serde(default, rename = "batchId")]
@@ -1315,7 +1316,7 @@ pub struct DatafeedsCustomBatchResponseEntry {
 }
 
 /// A batch entry encoding a single non-batch datafeedstatuses request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedstatusesCustomBatchRequestEntry {
     /// An entry ID, unique within the batch request.
     #[serde(default, rename = "batchId")]
@@ -1341,7 +1342,7 @@ pub struct DatafeedstatusesCustomBatchRequestEntry {
 }
 
 /// A batch entry encoding a single non-batch datafeedstatuses response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedstatusesCustomBatchResponseEntry {
     /// The ID of the request entry this entry responds to.
     #[serde(default, rename = "batchId")]
@@ -1355,7 +1356,7 @@ pub struct DatafeedstatusesCustomBatchResponseEntry {
 }
 
 /// Status of program and region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeListingsProgramStatusRegionStatus {
     /// Date by which eligibilityStatus will go from WARNING to DISAPPROVED. Only visible when your eligibilityStatus is WARNING. In [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: YYYY-MM-DD.
     #[serde(default, rename = "disapprovalDate")]
@@ -1388,7 +1389,7 @@ pub struct FreeListingsProgramStatusRegionStatus {
 }
 
 /// Recommendations are suggested ways to improve your merchant account''s performance. For example, to engage with a feature, or start using a new Google product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Recommendation {
     /// Output only. CTAs of this recommendation. Repeated.
     #[serde(default, rename = "additionalCallToAction")]
@@ -1427,7 +1428,7 @@ pub struct Recommendation {
 }
 
 /// Specifications related to the Checkout URL. The UriTemplate is of the form https://www.mystore.com/checkout?item_id={id} where {id} will be automatically replaced with data from the merchant account with this attribute [offer_id](https://developers.google.com/shopping-content/reference/rest/v2.1/products#Product.FIELDS.offer_id)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlSettings {
     /// URL template when the placeholders are expanded will redirect the buyer to the cart page on the merchant website with the selected item in cart.
     #[serde(default, rename = "cartUriTemplate")]
@@ -1438,7 +1439,7 @@ pub struct UrlSettings {
 }
 
 /// LiasettingsCustomBatchRequestEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiasettingsCustomBatchRequestEntry {
     /// The ID of the account for which to get/update account LIA settings.
     #[serde(default, rename = "accountId")]
@@ -1479,7 +1480,7 @@ pub struct LiasettingsCustomBatchRequestEntry {
 }
 
 /// LiasettingsCustomBatchResponseEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiasettingsCustomBatchResponseEntry {
     /// The ID of the request entry to which this entry responds.
     #[serde(default, rename = "batchId")]
@@ -1505,7 +1506,7 @@ pub struct LiasettingsCustomBatchResponseEntry {
 }
 
 /// Label assigned by CSS domain or CSS group to one of its sub-accounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountLabel {
     /// Immutable. The ID of account this label belongs to.
     #[serde(default, rename = "accountId")]
@@ -1525,7 +1526,7 @@ pub struct AccountLabel {
 }
 
 ///  The return carrier information. This service is designed for merchants enrolled in the Buy on Google program.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountReturnCarrier {
     /// Output only. Immutable. The Google-provided unique carrier ID, used to update the resource.
     #[serde(default, rename = "carrierAccountId")]
@@ -1542,7 +1543,7 @@ pub struct AccountReturnCarrier {
 }
 
 /// The collectionstatus message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CollectionStatus {
     /// A list of all issues associated with the collection.
     #[serde(default, rename = "collectionLevelIssuses")]
@@ -1564,7 +1565,7 @@ pub struct CollectionStatus {
 }
 
 /// The collection message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Collection {
     /// Label that you assign to a collection to help organize bidding and reporting in Shopping campaigns. [Custom label](https://support.google.com/merchants/answer/9674217)
     #[serde(default, rename = "customLabel0")]
@@ -1608,7 +1609,7 @@ pub struct Collection {
 }
 
 /// Represents a conversion source owned by a Merchant account. A merchant account can have up to 200 conversion sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConversionSource {
     /// Output only. Generated by the Content API upon creation of a new ConversionSource. Format: [a-z]{4}:.+ The four characters before the colon represent the type of conversio source. Content after the colon represents the ID of the conversion source within that type. The ID of two different conversion sources might be the same across different types. The following type prefixes are supported: - galk: For GoogleAnalyticsLink sources. - mcdn: For MerchantCenterDestination sources.
     #[serde(default, rename = "conversionSourceId")]
@@ -1628,7 +1629,7 @@ pub struct ConversionSource {
 }
 
 /// Information about CSS domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Css {
     /// Output only. Immutable. The CSS domain ID.
     #[serde(default, rename = "cssDomainId")]
@@ -1651,7 +1652,7 @@ pub struct Css {
 }
 
 /// The quota information per method in the Content API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MethodQuota {
     /// Output only. The method name, for example products.list. Method name does not contain version because quota can be shared between different API versions of the same method.
     #[serde(default)]
@@ -1668,7 +1669,7 @@ pub struct MethodQuota {
 }
 
 /// Represents a promotion. See the following articles for more details. * [Promotions feed specification](https://support.google.com/merchants/answer/2906014) * [Local promotions feed specification](https://support.google.com/merchants/answer/10146130) * [Promotions on Buy on Google product data specification](https://support.google.com/merchants/answer/9173673)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Promotion {
     /// Product filter by brand for the promotion.
     #[serde(default)]
@@ -1805,7 +1806,7 @@ pub struct Promotion {
 }
 
 /// Represents a geographic region that you can use as a target with both the RegionalInventory and ShippingSettings services. You can define regions as collections of either postal codes or, in some countries, using predefined geotargets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Region {
     /// The display name of the region.
     #[serde(default, rename = "displayName")]
@@ -1831,7 +1832,7 @@ pub struct Region {
 }
 
 /// Return policy online object. This is currently used to represent return policies for ads and free listings programs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReturnPolicyOnline {
     /// The countries of sale where the return policy is applicable. The values must be a valid 2 letter ISO 3166 code, e.g. "US".
     #[serde(default)]
@@ -1867,7 +1868,7 @@ pub struct ReturnPolicyOnline {
 }
 
 /// Batch entry encoding a single local inventory update request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalinventoryCustomBatchRequestEntry {
     /// An entry ID, unique within the batch request.
     #[serde(default, rename = "batchId")]
@@ -1887,7 +1888,7 @@ pub struct LocalinventoryCustomBatchRequestEntry {
 }
 
 /// Batch entry encoding a single local inventory update response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalinventoryCustomBatchResponseEntry {
     /// The ID of the request entry this entry responds to.
     #[serde(default, rename = "batchId")]
@@ -1901,7 +1902,7 @@ pub struct LocalinventoryCustomBatchResponseEntry {
 }
 
 /// The line items of the order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrderTrackingSignalLineItemDetails {
     /// Brand of the product.
     #[serde(default)]
@@ -1936,7 +1937,7 @@ pub struct OrderTrackingSignalLineItemDetails {
 }
 
 /// Represents how many items are in the shipment for the given shipment_id and line_item_id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrderTrackingSignalShipmentLineItemMapping {
     /// Required. The line item ID.
     #[serde(default, rename = "lineItemId")]
@@ -1950,7 +1951,7 @@ pub struct OrderTrackingSignalShipmentLineItemMapping {
 }
 
 /// The shipping information for the order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrderTrackingSignalShippingInfo {
     /// The time when the shipment was actually delivered. Include the year and timezone string, if available. This field is required, if one of the following fields is absent: tracking_id or carrier_name.
     #[serde(default, rename = "actualDeliveryTime")]
@@ -1988,7 +1989,7 @@ pub struct OrderTrackingSignalShippingInfo {
 }
 
 /// PosCustomBatchRequestEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosCustomBatchRequestEntry {
     /// An entry ID, unique within the batch request.
     #[serde(default, rename = "batchId")]
@@ -2017,7 +2018,7 @@ pub struct PosCustomBatchRequestEntry {
 }
 
 /// PosCustomBatchResponseEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosCustomBatchResponseEntry {
     /// The ID of the request entry to which this entry responds.
     #[serde(default, rename = "batchId")]
@@ -2040,7 +2041,7 @@ pub struct PosCustomBatchResponseEntry {
 }
 
 /// A pairing of DeliveryArea associated with a DeliveryTime for this product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductDeliveryTimeAreaDeliveryTime {
     /// Required. The delivery area associated with deliveryTime for this product.
     #[serde(default, rename = "deliveryArea")]
@@ -2051,7 +2052,7 @@ pub struct ProductDeliveryTimeAreaDeliveryTime {
 }
 
 /// The Content API ID of the product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductId {
     /// The Content API ID of the product, in the form channel:contentLanguage:targetCountry:offerId.
     #[serde(default, rename = "productId")]
@@ -2059,7 +2060,7 @@ pub struct ProductId {
 }
 
 /// A batch entry encoding a single non-batch products request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductsCustomBatchRequestEntry {
     /// An entry ID, unique within the batch request.
     #[serde(default, rename = "batchId")]
@@ -2085,7 +2086,7 @@ pub struct ProductsCustomBatchRequestEntry {
 }
 
 /// A batch entry encoding a single non-batch products response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductsCustomBatchResponseEntry {
     /// The ID of the request entry this entry responds to.
     #[serde(default, rename = "batchId")]
@@ -2102,7 +2103,7 @@ pub struct ProductsCustomBatchResponseEntry {
 }
 
 /// A batch entry encoding a single non-batch productstatuses request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductstatusesCustomBatchRequestEntry {
     /// An entry ID, unique within the batch request.
     #[serde(default, rename = "batchId")]
@@ -2125,7 +2126,7 @@ pub struct ProductstatusesCustomBatchRequestEntry {
 }
 
 /// A batch entry encoding a single non-batch productstatuses response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductstatusesCustomBatchResponseEntry {
     /// The ID of the request entry this entry responds to.
     #[serde(default, rename = "batchId")]
@@ -2142,7 +2143,7 @@ pub struct ProductstatusesCustomBatchResponseEntry {
 }
 
 /// A batch entry encoding a single non-batch regional inventory request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalinventoryCustomBatchRequestEntry {
     /// An entry ID, unique within the batch request.
     #[serde(default, rename = "batchId")]
@@ -2162,7 +2163,7 @@ pub struct RegionalinventoryCustomBatchRequestEntry {
 }
 
 /// A batch entry encoding a single non-batch regional inventory response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalinventoryCustomBatchResponseEntry {
     /// The ID of the request entry this entry responds to.
     #[serde(default, rename = "batchId")]
@@ -2179,7 +2180,7 @@ pub struct RegionalinventoryCustomBatchResponseEntry {
 }
 
 /// An issue affecting specific merchant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountIssue {
     /// A list of actionable steps that can be executed to solve the issue. An example is requesting a re-review or providing arguments when merchant disagrees with the issue. Actions that are supported in (your) third-party application can be rendered as buttons and should be available to merchant when they expand the issue.
     #[serde(default)]
@@ -2199,7 +2200,7 @@ pub struct AccountIssue {
 }
 
 /// The Alternate Dispute Resolution (ADR) that may be available to merchants in some regions. If present, the link should be shown on the same page as the list of issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlternateDisputeResolution {
     /// The label for the alternate dispute resolution link.
     #[serde(default)]
@@ -2210,7 +2211,7 @@ pub struct AlternateDisputeResolution {
 }
 
 /// An issue affecting specific product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductIssue {
     /// A list of actionable steps that can be executed to solve the issue. An example is requesting a re-review or providing arguments when merchant disagrees with the issue. Actions that are supported in (your) third-party application can be rendered as buttons and should be available to merchant when they expand the issue.
     #[serde(default)]
@@ -2230,7 +2231,7 @@ pub struct ProductIssue {
 }
 
 /// Result row returned from the search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportRow {
     /// Best sellers fields requested by the merchant in the query. Field values are only set if the merchant queries BestSellersProductClusterView or BestSellersBrandView.
     #[serde(default, rename = "bestSellers")]
@@ -2265,7 +2266,7 @@ pub struct ReportRow {
 }
 
 /// A batch entry encoding a single non-batch shippingsettings request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingsettingsCustomBatchRequestEntry {
     /// The ID of the account for which to get/update account shipping settings.
     #[serde(default, rename = "accountId")]
@@ -2285,7 +2286,7 @@ pub struct ShippingsettingsCustomBatchRequestEntry {
 }
 
 /// A batch entry encoding a single non-batch shipping settings response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingsettingsCustomBatchResponseEntry {
     /// The ID of the request entry to which this entry responds.
     #[serde(default, rename = "batchId")]
@@ -2302,7 +2303,7 @@ pub struct ShippingsettingsCustomBatchResponseEntry {
 }
 
 /// CarriersCarrier resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CarriersCarrier {
     /// The CLDR country code of the carrier (for example, "US"). Always present.
     #[serde(default)]
@@ -2319,7 +2320,7 @@ pub struct CarriersCarrier {
 }
 
 /// HolidaysHoliday resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HolidaysHoliday {
     /// The CLDR territory code of the country in which the holiday is available. For example, "US", "DE", "GB". A holiday cutoff can only be configured in a shipping settings service with matching delivery country. Always present.
     #[serde(default, rename = "countryCode")]
@@ -2342,7 +2343,7 @@ pub struct HolidaysHoliday {
 }
 
 /// PickupServicesPickupService resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PickupServicesPickupService {
     /// The name of the carrier (for example, "UPS"). Always present.
     #[serde(default, rename = "carrierName")]
@@ -2356,7 +2357,7 @@ pub struct PickupServicesPickupService {
 }
 
 /// Status of program and region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShoppingAdsProgramStatusRegionStatus {
     /// Date by which eligibilityStatus will go from WARNING to DISAPPROVED. Only visible when your eligibilityStatus is WARNING. In [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format: YYYY-MM-DD.
     #[serde(default, rename = "disapprovalDate")]
@@ -2389,7 +2390,7 @@ pub struct ShoppingAdsProgramStatusRegionStatus {
 }
 
 /// Input provided by the merchant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionInput {
     /// Required. Id of the selected action flow.
     #[serde(default, rename = "actionFlowId")]
@@ -2400,7 +2401,7 @@ pub struct ActionInput {
 }
 
 /// AccountsCustomBatchRequestEntryLinkRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountsCustomBatchRequestEntryLinkRequest {
     /// Action to perform for this link. The "request" action is only available to select merchants. Acceptable values are: - "approve" - "remove" - "request"
     #[serde(default)]
@@ -2417,7 +2418,7 @@ pub struct AccountsCustomBatchRequestEntryLinkRequest {
 }
 
 /// Account data. After the creation of a new account it may take a few minutes before it''s fully operational. The methods delete, insert, and update require the admin role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// Output only. How the account is managed. Acceptable values are: - "manual" - "automatic"
     #[serde(default, rename = "accountManagement")]
@@ -2476,7 +2477,7 @@ pub struct Account {
 }
 
 /// LinkService resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkService {
     /// Service provided to or by the linked account. Acceptable values are: - "shoppingActionsOrderManagement" - "shoppingActionsProductManagement" - "shoppingAdsProductManagement" - "paymentProcessing"
     #[serde(default)]
@@ -2487,7 +2488,7 @@ pub struct LinkService {
 }
 
 /// The status of an account, that is, information about its products, which is computed offline and not returned immediately at insertion time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountStatus {
     /// The ID of the account for which the status is reported.
     #[serde(default, rename = "accountId")]
@@ -2511,7 +2512,7 @@ pub struct AccountStatus {
 }
 
 /// The tax settings of a merchant account. All methods require the admin role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountTax {
     /// Required. The ID of the account to which these account tax settings belong.
     #[serde(default, rename = "accountId")]
@@ -2525,7 +2526,7 @@ pub struct AccountTax {
 }
 
 /// Datafeed configuration data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Datafeed {
     /// The two-letter ISO 639-1 language in which the attributes are defined in the data feed.
     #[serde(default, rename = "attributeLanguage")]
@@ -2557,7 +2558,7 @@ pub struct Datafeed {
 }
 
 /// The status of a datafeed, that is, the result of the last retrieval of the datafeed computed asynchronously when the feed processing is finished.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedStatus {
     /// The country for which the status is reported, represented as a CLDR territory code.
     #[serde(default)]
@@ -2595,7 +2596,7 @@ pub struct DatafeedStatus {
 }
 
 /// Additional details for review ineligibility reasons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeListingsProgramStatusReviewIneligibilityReasonDetails {
     /// This timestamp represents end of cooldown period for review ineligbility reason IN_COOLDOWN_PERIOD.
     #[serde(default, rename = "cooldownTime")]
@@ -2603,7 +2604,7 @@ pub struct FreeListingsProgramStatusReviewIneligibilityReasonDetails {
 }
 
 /// Call to action (CTA) that explains how a merchant can implement this recommendation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecommendationCallToAction {
     /// Output only. Intent of the action. This value describes the intent (for example, OPEN_CREATE_EMAIL_CAMPAIGN_FLOW) and can vary from recommendation to recommendation. This value can change over time for the same recommendation. Currently available intent values: - OPEN_CREATE_EMAIL_CAMPAIGN_FLOW: Opens a user journey where they can create a marketing email campaign. (No default URL) - OPEN_CREATE_COLLECTION_TAB: Opens a user journey where they can [create a collection](https://support.google.com/merchants/answer/9703228) for their Merchant account. (No default URL)
     #[serde(default)]
@@ -2617,7 +2618,7 @@ pub struct RecommendationCallToAction {
 }
 
 /// Google-provided description for the recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecommendationDescription {
     /// Output only. Text of the description.
     #[serde(default)]
@@ -2628,7 +2629,7 @@ pub struct RecommendationDescription {
 }
 
 /// Creative is a multimedia attachment to recommendation that can be used on the frontend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecommendationCreative {
     /// Type of the creative. // TODO: enum values: ["CREATIVE_TYPE_UNSPECIFIED", "VIDEO", "PHOTO"]
     #[serde(default, rename = "type")]
@@ -2639,7 +2640,7 @@ pub struct RecommendationCreative {
 }
 
 /// GmbAccounts resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GmbAccounts {
     /// The ID of the Merchant Center account.
     #[serde(default, rename = "accountId")]
@@ -2650,7 +2651,7 @@ pub struct GmbAccounts {
 }
 
 /// Local Inventory ads (LIA) settings. All methods except listposdataproviders require the admin role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiaSettings {
     /// The ID of the account to which these LIA settings belong. Ignored upon update, always present in get request responses.
     #[serde(default, rename = "accountId")]
@@ -2664,7 +2665,7 @@ pub struct LiaSettings {
 }
 
 /// PosDataProviders resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosDataProviders {
     /// Country code.
     #[serde(default)]
@@ -2676,7 +2677,7 @@ pub struct PosDataProviders {
 }
 
 /// Issue associated with the collection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CollectionStatusItemLevelIssue {
     /// Country codes (ISO 3166-1 alpha-2) where issue applies to the offer.
     #[serde(default, rename = "applicableCountries")]
@@ -2708,7 +2709,7 @@ pub struct CollectionStatusItemLevelIssue {
 }
 
 /// Destination status message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CollectionStatusDestinationStatus {
     /// Country codes (ISO 3166-1 alpha-2) where the collection is approved.
     #[serde(default, rename = "approvedCountries")]
@@ -2728,7 +2729,7 @@ pub struct CollectionStatusDestinationStatus {
 }
 
 /// The message for FeaturedProduct. [FeaturedProduct](https://support.google.com/merchants/answer/9703736)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CollectionFeaturedProduct {
     /// The unique identifier for the product item.
     #[serde(default, rename = "offerId")]
@@ -2742,7 +2743,7 @@ pub struct CollectionFeaturedProduct {
 }
 
 /// "Google Analytics Link" sources can be used to get conversion data from an existing Google Analytics property into the linked Merchant Center account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAnalyticsLink {
     /// Output only. Attribution settings for the linked Google Analytics property.
     #[serde(default, rename = "attributionSettings")]
@@ -2756,7 +2757,7 @@ pub struct GoogleAnalyticsLink {
 }
 
 /// "Merchant Center Destination" sources can be used to send conversion events from a website using a Google tag directly to a Merchant Center account where the source is created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MerchantCenterDestination {
     /// Required. Attribution settings being used for the Merchant Center Destination.
     #[serde(default, rename = "attributionSettings")]
@@ -2773,7 +2774,7 @@ pub struct MerchantCenterDestination {
 }
 
 /// A message that represents a time period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimePeriod {
     /// The ending timestamp.
     #[serde(default, rename = "endTime")]
@@ -2784,7 +2785,7 @@ pub struct TimePeriod {
 }
 
 /// The status of the promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromotionPromotionStatus {
     /// Date on which the promotion has been created in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format: Date, time, and offset, for example "2020-01-02T09:00:00+01:00" or "2020-01-02T09:00:00Z"
     #[serde(default, rename = "creationDate")]
@@ -2803,7 +2804,7 @@ pub struct PromotionPromotionStatus {
 }
 
 /// A list of geotargets that defines the region area.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionGeoTargetArea {
     /// Required. A non-empty list of [location IDs](https://developers.google.com/adwords/api/docs/appendix/geotargeting). They must all be of the same location type (e.g., state).
     #[serde(default, rename = "geotargetCriteriaIds")]
@@ -2811,7 +2812,7 @@ pub struct RegionGeoTargetArea {
 }
 
 /// A list of postal codes that defines the region area. Note: All regions defined using postal codes are accessible via the account''s ShippingSettings.postalCodeGroups resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionPostalCodeArea {
     /// Required. A range of postal codes.
     #[serde(default, rename = "postalCodes")]
@@ -2822,7 +2823,7 @@ pub struct RegionPostalCodeArea {
 }
 
 /// The available policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReturnPolicyOnlinePolicy {
     /// The number of days items can be returned after delivery, where one day is defined to be 24 hours after the delivery timestamp. Required for numberOfDaysAfterDelivery returns.
     #[serde(default)]
@@ -2833,7 +2834,7 @@ pub struct ReturnPolicyOnlinePolicy {
 }
 
 /// The restocking fee. This can either be a fixed fee or a micro percent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReturnPolicyOnlineRestockingFee {
     /// Fixed restocking fee.
     #[serde(default, rename = "fixedFee")]
@@ -2844,7 +2845,7 @@ pub struct ReturnPolicyOnlineRestockingFee {
 }
 
 /// The return reason category info wrapper.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReturnPolicyOnlineReturnReasonCategoryInfo {
     /// The corresponding return label source. If the ReturnMethod field includes BY_MAIL, it is required to specify ReturnLabelSource for both BUYER_REMORSE and ITEM_DEFECT return reason categories. // TODO: enum values: ["RETURN_LABEL_SOURCE_UNSPECIFIED", "DOWNLOAD_AND_PRINT", "IN_THE_BOX", "CUSTOMER_RESPONSIBILITY"]
     #[serde(default, rename = "returnLabelSource")]
@@ -2858,7 +2859,7 @@ pub struct ReturnPolicyOnlineReturnReasonCategoryInfo {
 }
 
 /// Local inventory resource. For accepted attribute values, see the local product inventory feed specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalInventory {
     /// The availability of the product. For accepted attribute values, see the local product inventory feed specification.
     #[serde(default)]
@@ -2896,7 +2897,7 @@ pub struct LocalInventory {
 }
 
 /// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateTime {
     /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
     #[serde(default)]
@@ -2928,7 +2929,7 @@ pub struct DateTime {
 }
 
 /// The absolute quantity of an item available at the given store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosInventory {
     /// Required. The two-letter ISO 639-1 language code for the item.
     #[serde(default, rename = "contentLanguage")]
@@ -2966,7 +2967,7 @@ pub struct PosInventory {
 }
 
 /// The change of the available quantity of an item at the given store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosSale {
     /// Required. The two-letter ISO 639-1 language code for the item.
     #[serde(default, rename = "contentLanguage")]
@@ -3001,7 +3002,7 @@ pub struct PosSale {
 }
 
 /// Store resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosStore {
     /// The business type of the store.
     #[serde(default, rename = "gcidCategory")]
@@ -3036,7 +3037,7 @@ pub struct PosStore {
 }
 
 /// A delivery area for the product. Only one of countryCode or postalCodeRange must be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeliveryArea {
     /// Required. The country that the product can be delivered to. Submit a [unicode CLDR region](http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml) such as US or CH.
     #[serde(default, rename = "countryCode")]
@@ -3050,7 +3051,7 @@ pub struct DeliveryArea {
 }
 
 /// A delivery time for this product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductDeliveryTimeAreaDeliveryTimeDeliveryTime {
     /// Required. The maximum number of business days (inclusive) between when an order is placed and when the product ships. If a product ships in the same day, set this value to 0.
     #[serde(default, rename = "maxHandlingTimeDays")]
@@ -3067,7 +3068,7 @@ pub struct ProductDeliveryTimeAreaDeliveryTimeDeliveryTime {
 }
 
 ///  Required product attributes are primarily defined by the product data specification. See the Product Data Specification Help Center article for information. Product data. After inserting, updating, or deleting a product, it may take several minutes before changes take effect. The following reference documentation lists the field names in the **camelCase** casing style while the Products Data Specification lists the names in the **snake_case** casing style.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Product {
     /// Additional URLs of images of the item.
     #[serde(default, rename = "additionalImageLinks")]
@@ -3386,7 +3387,7 @@ pub struct Product {
 }
 
 /// The status of a product, that is, information about a product computed asynchronously.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductStatus {
     /// Date on which the item has been created, in ISO 8601 format.
     #[serde(default, rename = "creationDate")]
@@ -3419,7 +3420,7 @@ pub struct ProductStatus {
 }
 
 /// Regional inventory resource. contains the regional name and all attributes which are overridden for the specified region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalInventory {
     /// The availability of the product.
     #[serde(default)]
@@ -3445,7 +3446,7 @@ pub struct RegionalInventory {
 }
 
 /// Overall impact of the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountIssueImpact {
     /// Detailed impact breakdown. Explains the types of restriction the issue has in different shopping destinations and territory. If present, it should be rendered to the merchant. Can be shown as a mouse over dropdown or a dialog. Each breakdown item represents a group of regions with the same impact details.
     #[serde(default)]
@@ -3459,7 +3460,7 @@ pub struct AccountIssueImpact {
 }
 
 /// Overall impact of product issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductIssueImpact {
     /// Detailed impact breakdown. Explains the types of restriction the issue has in different shopping destinations and territory. If present, it should be rendered to the merchant. Can be shown as a mouse over dropdown or a dialog. Each breakdown item represents a group of regions with the same impact details.
     #[serde(default)]
@@ -3473,7 +3474,7 @@ pub struct ProductIssueImpact {
 }
 
 /// Fields related to the [Best sellers reports](https://support.google.com/merchants/answer/9488679).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BestSellers {
     /// Google product category ID to calculate the ranking for, represented in [Google''s product taxonomy](https://support.google.com/merchants/answer/6324436). If a WHERE condition on best_sellers.category_id is not specified in the query, rankings for all top-level categories are returned.
     #[serde(default, rename = "categoryId")]
@@ -3505,7 +3506,7 @@ pub struct BestSellers {
 }
 
 /// Brand fields. Values are only set for fields requested explicitly in the request''s search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Brand {
     /// Name of the brand.
     #[serde(default)]
@@ -3513,7 +3514,7 @@ pub struct Brand {
 }
 
 /// Fields related to [competitive visibility reports] (https://support.google.com/merchants/answer/11366442).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompetitiveVisibility {
     /// [Ads / organic ratio] (https://support.google.com/merchants/answer/11366442#zippy=%2Cadsfree-ratio) shows how often a merchant receives impressions from Shopping ads compared to organic traffic. The number is rounded and bucketed. Available only in CompetitiveVisibilityTopMerchantView and CompetitiveVisibilityCompetitorView. Cannot be filtered on in the ''WHERE'' clause.
     #[serde(default, rename = "adsOrganicRatio")]
@@ -3557,7 +3558,7 @@ pub struct CompetitiveVisibility {
 }
 
 /// Performance metrics. Values are only set for metrics requested explicitly in the request''s search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metrics {
     /// *Deprecated*: This field is no longer supported and retrieving it returns 0 starting from May 2024. Average order size - the average number of items in an order. **This metric cannot be segmented by product dimensions and customer_country_code.**
     #[serde(default)]
@@ -3631,7 +3632,7 @@ pub struct Metrics {
 }
 
 /// Price competitiveness fields requested by the merchant in the query. Field values are only set if the merchant queries PriceCompetitivenessProductView. https://support.google.com/merchants/answer/9626903
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PriceCompetitiveness {
     /// The price benchmark currency (ISO 4217 code).
     #[serde(default, rename = "benchmarkPriceCurrencyCode")]
@@ -3645,7 +3646,7 @@ pub struct PriceCompetitiveness {
 }
 
 /// Price insights fields requested by the merchant in the query. Field values are only set if the merchant queries PriceInsightsProductView. https://support.google.com/merchants/answer/11916926
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PriceInsights {
     /// The predicted effectiveness of applying the price suggestion, bucketed. // TODO: enum values: ["EFFECTIVENESS_UNSPECIFIED", "LOW", "MEDIUM", "HIGH"]
     #[serde(default)]
@@ -3677,7 +3678,7 @@ pub struct PriceInsights {
 }
 
 /// Product cluster fields. A product cluster is a grouping for different offers that represent the same product. Values are only set for fields requested explicitly in the request''s search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductCluster {
     /// Brand of the product cluster.
     #[serde(default)]
@@ -3712,7 +3713,7 @@ pub struct ProductCluster {
 }
 
 /// Product fields. Values are only set for fields requested explicitly in the request''s search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductView {
     /// Aggregated destination status. // TODO: enum values: ["AGGREGATED_STATUS_UNSPECIFIED", "NOT_ELIGIBLE_OR_DISAPPROVED", "PENDING", "ELIGIBLE_LIMITED", "ELIGIBLE"]
     #[serde(default, rename = "aggregatedDestinationStatus")]
@@ -3804,7 +3805,7 @@ pub struct ProductView {
 }
 
 /// Dimensions according to which metrics are segmented in the response. Values of product dimensions, such as offer_id, reflect the state of a product at the time of the corresponding event, for example, impression or order. Segment fields cannot be selected in queries without also selecting at least one metric field. Values are only set for dimensions requested explicitly in the request''s search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Segments {
     /// Brand of the product.
     #[serde(default)]
@@ -3878,7 +3879,7 @@ pub struct Segments {
 }
 
 /// Topic trends fields requested by the merchant in the query. Field values are only set if the merchant queries TopicTrendsView. Forecast data can be queried up to 13 weeks by passing a future date in the date field. Historical data is measured daily, and forecasted data is projected weekly. All data points are normalized based on the highest data points returned in the response. If you make separate queries with different date ranges, you might see different values for the same date in each response. The recommended way to get a trend score of a topic is last7_days_search_interest / last{$day}_days_search_interest - 1. You can view trends for up to eight topics at a time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TopicTrends {
     /// Country trends are calculated for. Must be a two-letter country code (ISO 3166-1-alpha-2 code), for example, “US”.
     #[serde(default, rename = "customerCountryCode")]
@@ -3910,7 +3911,7 @@ pub struct TopicTrends {
 }
 
 /// A list of errors returned by a failed batch entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Errors {
     /// The HTTP status of the first error in errors.
     #[serde(default)]
@@ -3924,7 +3925,7 @@ pub struct Errors {
 }
 
 /// The merchant account''s shipping settings. All methods except getsupportedcarriers and getsupportedholidays require the admin role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShippingSettings {
     /// The ID of the account to which these account shipping settings belong. Ignored upon update, always present in get request responses.
     #[serde(default, rename = "accountId")]
@@ -3941,7 +3942,7 @@ pub struct ShippingSettings {
 }
 
 /// Additional details for review ineligibility reasons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShoppingAdsProgramStatusReviewIneligibilityReasonDetails {
     /// This timestamp represents end of cooldown period for review ineligbility reason IN_COOLDOWN_PERIOD.
     #[serde(default, rename = "cooldownTime")]
@@ -3949,7 +3950,7 @@ pub struct ShoppingAdsProgramStatusReviewIneligibilityReasonDetails {
 }
 
 /// Input provided by the merchant for input field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputValue {
     /// Value for checkbox input field.
     #[serde(default, rename = "checkboxInputValue")]
@@ -3966,7 +3967,7 @@ pub struct InputValue {
 }
 
 /// AccountAdsLink resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountAdsLink {
     /// Customer ID of the Ads account.
     #[serde(default, rename = "adsId")]
@@ -3977,7 +3978,7 @@ pub struct AccountAdsLink {
 }
 
 /// The automatic improvements of the account can be used to automatically update items, improve images and shipping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountAutomaticImprovements {
     /// This improvement will attempt to automatically correct submitted images if they don''t meet the [image requirements](https://support.google.com/merchants/answer/6324350), for example, removing overlays. If successful, the image will be replaced and approved. This improvement is only applied to images of disapproved offers. For more information see: [Automatic image improvements](https://support.google.com/merchants/answer/9242973) This field is only updated (cleared) if provided.
     #[serde(default, rename = "imageImprovements")]
@@ -3991,7 +3992,7 @@ pub struct AccountAutomaticImprovements {
 }
 
 /// The [business identity attributes](https://support.google.com/merchants/answer/10342414) can be used to self-declare attributes that let customers know more about your business.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountBusinessIdentity {
     /// Specifies whether the business identifies itself as being black-owned. This optional field is only available for merchants with a business country set to "US". This field is not allowed for marketplaces or marketplace sellers.
     #[serde(default, rename = "blackOwned")]
@@ -4014,7 +4015,7 @@ pub struct AccountBusinessIdentity {
 }
 
 /// AccountBusinessInformation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountBusinessInformation {
     /// The address of the business. Use \n to add a second address line.
     #[serde(default)]
@@ -4034,7 +4035,7 @@ pub struct AccountBusinessInformation {
 }
 
 /// Settings for conversion tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountConversionSettings {
     /// When enabled, free listing URLs have a parameter to enable conversion tracking for products owned by the current merchant account. See [auto-tagging](https://support.google.com/merchants/answer/11127659).
     #[serde(default, rename = "freeListingsAutoTaggingEnabled")]
@@ -4042,7 +4043,7 @@ pub struct AccountConversionSettings {
 }
 
 /// AccountGoogleMyBusinessLink resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountGoogleMyBusinessLink {
     /// The ID of the Business Profile. If this is provided, then gmbEmail is ignored. The value of this field should match the accountId used by the Business Profile API.
     #[serde(default, rename = "gmbAccountId")]
@@ -4056,7 +4057,7 @@ pub struct AccountGoogleMyBusinessLink {
 }
 
 /// AccountUser resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountUser {
     /// Whether user is an admin.
     #[serde(default)]
@@ -4082,7 +4083,7 @@ pub struct AccountUser {
 }
 
 /// AccountYouTubeChannelLink resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountYouTubeChannelLink {
     /// Channel ID.
     #[serde(default, rename = "channelId")]
@@ -4093,7 +4094,7 @@ pub struct AccountYouTubeChannelLink {
 }
 
 /// AccountStatusAccountLevelIssue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountStatusAccountLevelIssue {
     /// Country for which this issue is reported.
     #[serde(default)]
@@ -4119,7 +4120,7 @@ pub struct AccountStatusAccountLevelIssue {
 }
 
 /// AccountStatusProducts resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountStatusProducts {
     /// The channel the data applies to. Acceptable values are: - "local" - "online"
     #[serde(default)]
@@ -4139,7 +4140,7 @@ pub struct AccountStatusProducts {
 }
 
 /// Tax calculation rule to apply in a state or province (US only).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountTaxTaxRule {
     /// Country code in which tax is applicable.
     #[serde(default)]
@@ -4159,7 +4160,7 @@ pub struct AccountTaxTaxRule {
 }
 
 /// The required fields vary based on the frequency of fetching. For a monthly fetch schedule, day_of_month and hour are required. For a weekly fetch schedule, weekday and hour are required. For a daily fetch schedule, only hour is required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedFetchSchedule {
     /// The day of the month the feed file should be fetched (1-31).
     #[serde(default, rename = "dayOfMonth")]
@@ -4191,7 +4192,7 @@ pub struct DatafeedFetchSchedule {
 }
 
 /// DatafeedFormat resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedFormat {
     /// Delimiter for the separation of values in a delimiter-separated values feed. If not specified, the delimiter will be auto-detected. Ignored for non-DSV data feeds. Acceptable values are: - "pipe" - "tab" - "tilde"
     #[serde(default, rename = "columnDelimiter")]
@@ -4205,7 +4206,7 @@ pub struct DatafeedFormat {
 }
 
 /// DatafeedTarget resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedTarget {
     /// Deprecated. Use feedLabel instead. The country where the items in the feed will be included in the search index, represented as a CLDR territory code.
     #[serde(default)]
@@ -4228,7 +4229,7 @@ pub struct DatafeedTarget {
 }
 
 /// An error occurring in the feed, like "invalid price".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedStatusError {
     /// The code of the error, for example, "validation/invalid_value".
     #[serde(default)]
@@ -4245,7 +4246,7 @@ pub struct DatafeedStatusError {
 }
 
 /// GmbAccountsGmbAccount resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GmbAccountsGmbAccount {
     /// The email which identifies the Business Profile.
     #[serde(default)]
@@ -4262,7 +4263,7 @@ pub struct GmbAccountsGmbAccount {
 }
 
 /// LiaCountrySettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiaCountrySettings {
     /// The settings for the About page.
     #[serde(default)]
@@ -4291,7 +4292,7 @@ pub struct LiaCountrySettings {
 }
 
 /// PosDataProvidersPosDataProvider resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosDataProvidersPosDataProvider {
     /// The display name of Pos data Provider.
     #[serde(default, rename = "displayName")]
@@ -4305,7 +4306,7 @@ pub struct PosDataProvidersPosDataProvider {
 }
 
 /// Represents attribution settings for conversion sources receiving pre-attribution data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttributionSettings {
     /// Required. Lookback windows (in days) used for attribution in this source. Supported values are 7, 30, 40.
     #[serde(default, rename = "attributionLookbackWindowInDays")]
@@ -4319,7 +4320,7 @@ pub struct AttributionSettings {
 }
 
 /// The destination status of the promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromotionPromotionStatusDestinationStatus {
     /// The name of the destination.
     #[serde(default)]
@@ -4330,7 +4331,7 @@ pub struct PromotionPromotionStatusDestinationStatus {
 }
 
 /// The issue associated with the promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromotionPromotionStatusPromotionIssue {
     /// Code of the issue.
     #[serde(default)]
@@ -4341,7 +4342,7 @@ pub struct PromotionPromotionStatusPromotionIssue {
 }
 
 /// A range of postal codes that defines the region area.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionPostalCodeAreaPostalCodeRange {
     /// Required. A postal code or a pattern of the form prefix* denoting the inclusive lower bound of the range defining the area. Examples values: "94108", "9410*", "9*".
     #[serde(default)]
@@ -4352,7 +4353,7 @@ pub struct RegionPostalCodeAreaPostalCodeRange {
 }
 
 /// The return shipping fee. This can either be a fixed fee or a boolean to indicate that the customer pays the actual shipping cost.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReturnPolicyOnlineReturnShippingFee {
     /// Fixed return shipping fee amount. This value is only applicable when type is FIXED. We will treat the return shipping fee as free if type is FIXED and this value is not set.
     #[serde(default, rename = "fixedFee")]
@@ -4363,7 +4364,7 @@ pub struct ReturnPolicyOnlineReturnShippingFee {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
@@ -4374,7 +4375,7 @@ pub struct TimeZone {
 }
 
 /// A range of postal codes that defines the delivery area. Only set firstPostalCode when specifying a single postal code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeliveryAreaPostalCodeRange {
     /// Required. A postal code or a pattern of the form prefix* denoting the inclusive lower bound of the range defining the area. Examples values: "94108", "9410*", "9*".
     #[serde(default, rename = "firstPostalCode")]
@@ -4385,7 +4386,7 @@ pub struct DeliveryAreaPostalCodeRange {
 }
 
 /// Product [certification](https://support.google.com/merchants/answer/13528839), introduced for EU energy efficiency labeling compliance using the [EU EPREL](https://eprel.ec.europa.eu/screen/home) database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductCertification {
     /// The certification authority, for example "European_Commission". Maximum length is 2000 characters.
     #[serde(default, rename = "certificationAuthority")]
@@ -4402,7 +4403,7 @@ pub struct ProductCertification {
 }
 
 /// Product property for the Cloud Retail API. For example, properties for a TV product could be "Screen-Resolution" or "Screen-Size".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudExportAdditionalProperties {
     /// Boolean value of the given property. For example for a TV product, "True" or "False" if the screen is UHD.
     #[serde(default, rename = "boolValue")]
@@ -4431,7 +4432,7 @@ pub struct CloudExportAdditionalProperties {
 }
 
 /// Conditions to be met for a product to have free shipping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeShippingThreshold {
     /// Required. The [CLDR territory code](http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml) of the country to which an item will ship.
     #[serde(default)]
@@ -4442,7 +4443,7 @@ pub struct FreeShippingThreshold {
 }
 
 /// Details of a monthly installment payment offering. [Learn more](https://support.google.com/merchants/answer/6324474) about installments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Installment {
     /// The amount the buyer has to pay per month.
     #[serde(default)]
@@ -4459,7 +4460,7 @@ pub struct Installment {
 }
 
 /// Allows the setting up of loyalty program benefits (for example price or points). https://support.google.com/merchants/answer/12922446
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoyaltyProgram {
     /// Optional. The cashback that can be used for future purchases.
     #[serde(default, rename = "cashbackForFutureUse")]
@@ -4485,7 +4486,7 @@ pub struct LoyaltyProgram {
 }
 
 /// ProductProductDetail resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductProductDetail {
     /// The name of the product detail.
     #[serde(default, rename = "attributeName")]
@@ -4499,7 +4500,7 @@ pub struct ProductProductDetail {
 }
 
 /// ProductDimension resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductDimension {
     /// Required. The length units. Acceptable values are: - "in" - "cm"
     #[serde(default)]
@@ -4510,7 +4511,7 @@ pub struct ProductDimension {
 }
 
 /// ProductWeight resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductWeight {
     /// Required. The weight unit. Acceptable values are: - "g" - "kg" - "oz" - "lb"
     #[serde(default)]
@@ -4521,7 +4522,7 @@ pub struct ProductWeight {
 }
 
 /// ProductShipping resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductShipping {
     /// The CLDR territory code of the country to which an item will ship.
     #[serde(default)]
@@ -4559,7 +4560,7 @@ pub struct ProductShipping {
 }
 
 /// ProductShippingDimension resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductShippingDimension {
     /// The unit of value.
     #[serde(default)]
@@ -4570,7 +4571,7 @@ pub struct ProductShippingDimension {
 }
 
 /// ProductShippingWeight resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductShippingWeight {
     /// The unit of value.
     #[serde(default)]
@@ -4581,7 +4582,7 @@ pub struct ProductShippingWeight {
 }
 
 /// Structured description, for algorithmically (AI)-generated descriptions. See [description](https://support.google.com/merchants/answer/6324468#When_to_use) for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductStructuredDescription {
     /// Required. The description text. Maximum length is 5000 characters.
     #[serde(default)]
@@ -4592,7 +4593,7 @@ pub struct ProductStructuredDescription {
 }
 
 /// Structured title, for algorithmically (AI)-generated titles. See [title](https://support.google.com/merchants/answer/6324415#Whentouse) for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductStructuredTitle {
     /// Required. The title text. Maximum length is 150 characters.
     #[serde(default)]
@@ -4603,7 +4604,7 @@ pub struct ProductStructuredTitle {
 }
 
 /// ProductSubscriptionCost resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductSubscriptionCost {
     /// The amount the buyer has to pay per subscription period.
     #[serde(default)]
@@ -4617,7 +4618,7 @@ pub struct ProductSubscriptionCost {
 }
 
 /// Information regarding sustainability related incentive programs such as rebates or tax relief.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductSustainabilityIncentive {
     /// Optional. The fixed amount of the incentive.
     #[serde(default)]
@@ -4631,7 +4632,7 @@ pub struct ProductSustainabilityIncentive {
 }
 
 /// ProductTax resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductTax {
     /// The country within which the item is taxed, specified as a CLDR territory code.
     #[serde(default)]
@@ -4654,7 +4655,7 @@ pub struct ProductTax {
 }
 
 /// ProductUnitPricingBaseMeasure resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductUnitPricingBaseMeasure {
     /// The unit of the denominator.
     #[serde(default)]
@@ -4665,7 +4666,7 @@ pub struct ProductUnitPricingBaseMeasure {
 }
 
 /// ProductUnitPricingMeasure resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductUnitPricingMeasure {
     /// The unit of the measure.
     #[serde(default)]
@@ -4676,7 +4677,7 @@ pub struct ProductUnitPricingMeasure {
 }
 
 /// ProductStatusDestinationStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductStatusDestinationStatus {
     /// List of country codes (ISO 3166-1 alpha-2) where the offer is approved.
     #[serde(default, rename = "approvedCountries")]
@@ -4699,7 +4700,7 @@ pub struct ProductStatusDestinationStatus {
 }
 
 /// ProductStatusItemLevelIssue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductStatusItemLevelIssue {
     /// List of country codes (ISO 3166-1 alpha-2) where issue applies to the offer.
     #[serde(default, rename = "applicableCountries")]
@@ -4731,7 +4732,7 @@ pub struct ProductStatusItemLevelIssue {
 }
 
 /// A message that represents custom attributes. Exactly one of value or groupValues must be provided. Maximum allowed number of characters for each custom attribute is 10240 (represents sum of characters for name and value). Maximum 2500 custom attributes can be set per merchant, with total size of 102.4kB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomAttribute {
     /// Subattributes within this attribute group. Exactly one of value or groupValues must be provided.
     #[serde(default, rename = "groupValues")]
@@ -4745,7 +4746,7 @@ pub struct CustomAttribute {
 }
 
 /// A detailed impact breakdown for a group of regions where the impact of the issue on different shopping destinations is the same.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Breakdown {
     /// Human readable, localized description of issue''s effect on different targets. Should be rendered as a list. For example: * "Products not showing in ads" * "Products not showing organically"
     #[serde(default)]
@@ -4756,7 +4757,7 @@ pub struct Breakdown {
 }
 
 /// Item issue associated with the product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductViewItemIssue {
     /// Item issue type.
     #[serde(default, rename = "issueType")]
@@ -4770,7 +4771,7 @@ pub struct ProductViewItemIssue {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -4784,7 +4785,7 @@ pub struct Date {
 }
 
 /// An error returned by the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Error {
     /// The domain of the error.
     #[serde(default)]
@@ -4798,7 +4799,7 @@ pub struct Error {
 }
 
 /// PostalCodeGroup resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostalCodeGroup {
     /// The CLDR territory code of the country the postal code group applies to. Required.
     #[serde(default)]
@@ -4812,7 +4813,7 @@ pub struct PostalCodeGroup {
 }
 
 /// Service resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Service {
     /// A boolean exposing the active status of the shipping service. Required.
     #[serde(default)]
@@ -4853,7 +4854,7 @@ pub struct Service {
 }
 
 /// A fulfillment warehouse, which stores and handles inventory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Warehouse {
     /// Business days of the warehouse. If not set, will be Monday to Friday by default.
     #[serde(default, rename = "businessDayConfig")]
@@ -4873,7 +4874,7 @@ pub struct Warehouse {
 }
 
 /// Value for checkbox input field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputValueCheckboxInputValue {
     /// Required. True if the merchant checked the box field. False otherwise.
     #[serde(default)]
@@ -4881,7 +4882,7 @@ pub struct InputValueCheckboxInputValue {
 }
 
 /// Value for choice input field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputValueChoiceInputValue {
     /// Required. Id of the option that was selected by the merchant.
     #[serde(default, rename = "choiceInputOptionId")]
@@ -4889,7 +4890,7 @@ pub struct InputValueChoiceInputValue {
 }
 
 /// Value for text input field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputValueTextInputValue {
     /// Required. Text provided by the merchant.
     #[serde(default)]
@@ -4897,7 +4898,7 @@ pub struct InputValueTextInputValue {
 }
 
 /// This improvement will attempt to automatically correct submitted images if they don''t meet the [image requirements](https://support.google.com/merchants/answer/6324350), for example, removing overlays. If successful, the image will be replaced and approved. This improvement is only applied to images of disapproved offers. For more information see: [Automatic image improvements](https://support.google.com/merchants/answer/9242973)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountImageImprovements {
     /// Determines how the images should be automatically updated. If this field is not present, then the settings will be deleted. If there are no settings for subaccount, they are inherited from aggregator.
     #[serde(default, rename = "accountImageImprovementsSettings")]
@@ -4909,7 +4910,7 @@ pub struct AccountImageImprovements {
 }
 
 /// Turning on [item updates](https://support.google.com/merchants/answer/3246284) allows Google to automatically update items for you. When item updates are on, Google uses the structured data markup on the website and advanced data extractors to update the price and availability of the items. When the item updates are off, items with mismatched data aren''t shown.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountItemUpdates {
     /// Determines which attributes of the items should be automatically updated. If this field is not present, then the settings will be deleted. If there are no settings for subaccount, they are inherited from aggregator.
     #[serde(default, rename = "accountItemUpdatesSettings")]
@@ -4929,7 +4930,7 @@ pub struct AccountItemUpdates {
 }
 
 /// Not available for MCAs [accounts](https://support.google.com/merchants/answer/188487). By turning on [automatic shipping improvements](https://support.google.com/merchants/answer/10027038), you are allowing Google to improve the accuracy of your delivery times shown to shoppers using Google. More accurate delivery times, especially when faster, typically lead to better conversion rates. Google will improve your estimated delivery times based on various factors: * Delivery address of an order * Current handling time and shipping time settings * Estimated weekdays or business days * Parcel tracking data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountShippingImprovements {
     /// Enables automatic shipping improvements.
     #[serde(default, rename = "allowShippingImprovements")]
@@ -4937,7 +4938,7 @@ pub struct AccountShippingImprovements {
 }
 
 /// The account identity type used to specify attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountIdentityType {
     /// Optional. Indicates that the business identifies itself with a given identity type. Setting this field does not automatically mean eligibility for promotions.
     #[serde(default, rename = "selfIdentified")]
@@ -4945,7 +4946,7 @@ pub struct AccountIdentityType {
 }
 
 /// AccountAddress resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountAddress {
     /// CLDR country code (for example, "US"). All MCA sub-accounts inherit the country of their parent MCA by default, however the country can be updated for individual sub-accounts.
     #[serde(default)]
@@ -4965,7 +4966,7 @@ pub struct AccountAddress {
 }
 
 /// AccountCustomerService resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountCustomerService {
     /// Customer service email.
     #[serde(default)]
@@ -4979,7 +4980,7 @@ pub struct AccountCustomerService {
 }
 
 /// AccountStatusItemLevelIssue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountStatusItemLevelIssue {
     /// The attribute''s name, if the issue is caused by a single attribute.
     #[serde(default, rename = "attributeName")]
@@ -5008,7 +5009,7 @@ pub struct AccountStatusItemLevelIssue {
 }
 
 /// AccountStatusStatistics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountStatusStatistics {
     /// Number of active offers.
     #[serde(default)]
@@ -5025,7 +5026,7 @@ pub struct AccountStatusStatistics {
 }
 
 /// An example occurrence for a particular error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatafeedStatusExample {
     /// The ID of the example item.
     #[serde(default, rename = "itemId")]
@@ -5039,7 +5040,7 @@ pub struct DatafeedStatusExample {
 }
 
 /// LiaAboutPageSettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiaAboutPageSettings {
     /// The status of the verification process for the About page. Supported values are: - "active" - "inactive" - "pending"
     #[serde(default)]
@@ -5050,7 +5051,7 @@ pub struct LiaAboutPageSettings {
 }
 
 /// LiaInventorySettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiaInventorySettings {
     /// The email of the contact for the inventory verification process.
     #[serde(default, rename = "inventoryVerificationContactEmail")]
@@ -5067,7 +5068,7 @@ pub struct LiaInventorySettings {
 }
 
 /// Omnichannel experience details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiaOmnichannelExperience {
     /// The CLDR country code (for example, "US").
     #[serde(default)]
@@ -5081,7 +5082,7 @@ pub struct LiaOmnichannelExperience {
 }
 
 /// LiaOnDisplayToOrderSettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiaOnDisplayToOrderSettings {
     /// Shipping cost and policy URL.
     #[serde(default, rename = "shippingCostPolicyUrl")]
@@ -5092,7 +5093,7 @@ pub struct LiaOnDisplayToOrderSettings {
 }
 
 /// LiaPosDataProvider resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LiaPosDataProvider {
     /// The ID of the POS data provider.
     #[serde(default, rename = "posDataProviderId")]
@@ -5103,7 +5104,7 @@ pub struct LiaPosDataProvider {
 }
 
 /// Message representing a types of conversion events
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttributionSettingsConversionType {
     /// Output only. Option indicating if the type should be included in Merchant Center reporting.
     #[serde(default, rename = "includeInReporting")]
@@ -5114,7 +5115,7 @@ pub struct AttributionSettingsConversionType {
 }
 
 /// The price represented as a number and currency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PriceAmount {
     /// The currency of the price.
     #[serde(default)]
@@ -5125,7 +5126,7 @@ pub struct PriceAmount {
 }
 
 /// Region with code and localized name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BreakdownRegion {
     /// The [CLDR territory code] (http://www.unicode.org/repos/cldr/tags/latest/common/main/en.xml)
     #[serde(default)]
@@ -5136,7 +5137,7 @@ pub struct BreakdownRegion {
 }
 
 /// Type of the item issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductViewItemIssueItemIssueType {
     /// Canonical attribute name for attribute-specific issues.
     #[serde(default, rename = "canonicalAttribute")]
@@ -5147,7 +5148,7 @@ pub struct ProductViewItemIssueItemIssueType {
 }
 
 /// Severity of an issue per destination in a region, and aggregated severity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductViewItemIssueItemIssueSeverity {
     /// Severity of an issue aggregated for destination. // TODO: enum values: ["AGGREGATED_ISSUE_SEVERITY_UNSPECIFIED", "DISAPPROVED", "DEMOTED", "PENDING"]
     #[serde(default, rename = "aggregatedSeverity")]
@@ -5159,7 +5160,7 @@ pub struct ProductViewItemIssueItemIssueSeverity {
 }
 
 /// PostalCodeRange resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostalCodeRange {
     /// A postal code or a pattern of the form prefix* denoting the inclusive lower bound of the range defining the area. Examples values: "94108", "9410*", "9*". Required.
     #[serde(default, rename = "postalCodeRangeBegin")]
@@ -5170,7 +5171,7 @@ pub struct PostalCodeRange {
 }
 
 /// DeliveryTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeliveryTime {
     /// Business days cutoff time definition. If not configured, the cutoff time will be defaulted to 8AM PST. If local delivery, use Service.StoreConfig.CutoffConfig.
     #[serde(default, rename = "cutoffTime")]
@@ -5206,7 +5207,7 @@ pub struct DeliveryTime {
 }
 
 /// MinimumOrderValueTable resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MinimumOrderValueTable {
     #[serde(default, rename = "storeCodeSetWithMovs")]
     pub store_code_set_with_movs:
@@ -5214,7 +5215,7 @@ pub struct MinimumOrderValueTable {
 }
 
 /// PickupCarrierService resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PickupCarrierService {
     /// The name of the pickup carrier (for example, "UPS"). Required.
     #[serde(default, rename = "carrierName")]
@@ -5225,7 +5226,7 @@ pub struct PickupCarrierService {
 }
 
 /// RateGroup resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RateGroup {
     /// A list of shipping labels defining the products to which this rate group applies to. This is a disjunction: only one of the labels has to match for the rate group to apply. May only be empty for the last rate group of a service. Required.
     #[serde(default, rename = "applicableShippingLabels")]
@@ -5248,7 +5249,7 @@ pub struct RateGroup {
 }
 
 /// Stores that provide local delivery. Only valid with local delivery fulfillment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceStoreConfig {
     /// Time local delivery ends for the day. This can be either local_cutoff_time or store_close_offset_hours, if both are provided an error is thrown.
     #[serde(default, rename = "cutoffConfig")]
@@ -5265,7 +5266,7 @@ pub struct ServiceStoreConfig {
 }
 
 /// WarehouseCutoffTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WarehouseCutoffTime {
     /// Required. Hour (24-hour clock) of the cutoff time until which an order has to be placed to be processed in the same day by the warehouse. Hour is based on the timezone of warehouse.
     #[serde(default)]
@@ -5276,7 +5277,7 @@ pub struct WarehouseCutoffTime {
 }
 
 /// Address resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Address {
     /// Required. Top-level administrative subdivision of the country. For example, a state like California ("CA") or a province like Quebec ("QC").
     #[serde(default, rename = "administrativeArea")]
@@ -5296,7 +5297,7 @@ pub struct Address {
 }
 
 /// Settings for the Automatic Image Improvements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountImageImprovementsSettings {
     /// Enables automatic image improvements.
     #[serde(default, rename = "allowAutomaticImageImprovements")]
@@ -5304,7 +5305,7 @@ pub struct AccountImageImprovementsSettings {
 }
 
 /// Settings for the Automatic Item Updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountItemUpdatesSettings {
     /// If availability updates are enabled, any previous availability values get overwritten if Google finds an out-of-stock annotation on the offer''s page. If additionally allow_availability_updates field is set to true, values get overwritten if Google finds an in-stock annotation on the offer’s page.
     #[serde(default, rename = "allowAvailabilityUpdates")]
@@ -5321,7 +5322,7 @@ pub struct AccountItemUpdatesSettings {
 }
 
 /// Issue severity for all affected regions in a destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductViewItemIssueIssueSeverityPerDestination {
     /// List of demoted countries in the destination.
     #[serde(default, rename = "demotedCountries")]
@@ -5335,7 +5336,7 @@ pub struct ProductViewItemIssueIssueSeverityPerDestination {
 }
 
 /// CutoffTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CutoffTime {
     /// Hour of the cutoff time until which an order has to be placed to be processed in the same day. Required.
     #[serde(default)]
@@ -5349,7 +5350,7 @@ pub struct CutoffTime {
 }
 
 /// BusinessDayConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BusinessDayConfig {
     /// Regular business days, such as ''"monday"''. May not be empty.
     #[serde(default, rename = "businessDays")]
@@ -5357,7 +5358,7 @@ pub struct BusinessDayConfig {
 }
 
 /// HolidayCutoff resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HolidayCutoff {
     /// Date of the order deadline, in ISO 8601 format. For example, "2016-11-29" for 29th November 2016. Required.
     #[serde(default, rename = "deadlineDate")]
@@ -5377,7 +5378,7 @@ pub struct HolidayCutoff {
 }
 
 /// TransitTable resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitTable {
     /// A list of postal group names. The last value can be "all other locations". Example: ["zone 1", "zone 2", "all other locations"]. The referred postal code groups must match the delivery country of the service.
     #[serde(default, rename = "postalCodeGroupNames")]
@@ -5390,7 +5391,7 @@ pub struct TransitTable {
 }
 
 /// WarehouseBasedDeliveryTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WarehouseBasedDeliveryTime {
     /// Required. Carrier, such as "UPS" or "Fedex". The list of supported carriers can be retrieved through the listSupportedCarriers method.
     #[serde(default)]
@@ -5419,7 +5420,7 @@ pub struct WarehouseBasedDeliveryTime {
 }
 
 /// A list of store code sets sharing the same minimum order value. At least two sets are required and the last one must be empty, which signifies ''MOV for all other stores''. Each store code can only appear once across all the sets. All prices within a service must have the same currency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MinimumOrderValueTableStoreCodeSetWithMov {
     /// A list of unique store codes or empty for the catch all.
     #[serde(default, rename = "storeCodes")]
@@ -5430,7 +5431,7 @@ pub struct MinimumOrderValueTableStoreCodeSetWithMov {
 }
 
 /// CarrierRate resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CarrierRate {
     /// Carrier service, such as "UPS" or "Fedex". The list of supported carriers can be retrieved through the getSupportedCarriers method. Required.
     #[serde(default, rename = "carrierName")]
@@ -5453,7 +5454,7 @@ pub struct CarrierRate {
 }
 
 /// Table resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Table {
     /// Headers of the table''s columns. Optional: if not set then the table has only one dimension.
     #[serde(default, rename = "columnHeaders")]
@@ -5470,7 +5471,7 @@ pub struct Table {
 }
 
 /// Time local delivery ends for the day based on the local timezone of the store. local_cutoff_time and store_close_offset_hours are mutually exclusive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceStoreConfigCutoffConfig {
     /// Time in hours and minutes in the local timezone when local delivery ends.
     #[serde(default, rename = "localCutoffTime")]
@@ -5484,7 +5485,7 @@ pub struct ServiceStoreConfigCutoffConfig {
 }
 
 /// Distance represented by an integer and unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Distance {
     /// The distance unit. Acceptable values are None, Miles, and Kilometers.
     #[serde(default)]
@@ -5495,14 +5496,14 @@ pub struct Distance {
 }
 
 /// TransitTableTransitTimeRow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitTableTransitTimeRow {
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<TransitTableTransitTimeRowTransitTimeValue>>,
 }
 
 /// A non-empty list of row or column headers for a table. Exactly one of prices, weights, numItems, postalCodeGroupNames, or location must be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Headers {
     /// A list of location ID sets. Must be non-empty. Can only be set if all other fields are not set.
     #[serde(default)]
@@ -5522,7 +5523,7 @@ pub struct Headers {
 }
 
 /// Row resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Row {
     /// The list of cells that constitute the row. Must have the same length as columnHeaders for two-dimensional tables, a length of 1 for one-dimensional tables. Required.
     #[serde(default)]
@@ -5530,7 +5531,7 @@ pub struct Row {
 }
 
 /// Time in hours and minutes in the local timezone when local delivery ends.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceStoreConfigCutoffConfigLocalCutoffTime {
     /// Hour local delivery orders must be placed by to process the same day.
     #[serde(default)]
@@ -5541,7 +5542,7 @@ pub struct ServiceStoreConfigCutoffConfigLocalCutoffTime {
 }
 
 /// TransitTableTransitTimeRowTransitTimeValue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitTableTransitTimeRowTransitTimeValue {
     /// Must be greater than or equal to minTransitTimeInDays.
     #[serde(default, rename = "maxTransitTimeInDays")]
@@ -5552,7 +5553,7 @@ pub struct TransitTableTransitTimeRowTransitTimeValue {
 }
 
 /// LocationIdSet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationIdSet {
     /// A non-empty list of location IDs. They must all be of the same location type (for example, state).
     #[serde(default, rename = "locationIds")]
@@ -5560,7 +5561,7 @@ pub struct LocationIdSet {
 }
 
 /// Weight resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Weight {
     /// Required. The weight unit. Acceptable values are: - "kg" - "lb"
     #[serde(default)]
@@ -5571,7 +5572,7 @@ pub struct Weight {
 }
 
 /// The single value of a rate group or the value of a rate group table''s cell. Exactly one of noShipping, flatRate, pricePercentage, carrierRateName, subtableName must be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiValue {
     /// The name of a carrier rate referring to a carrier rate defined in the same rate group. Can only be set if all other fields are not set.
     #[serde(default, rename = "carrierRateName")]
@@ -5591,7 +5592,7 @@ pub struct ApiValue {
 }
 
 /// Price resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Price {
     /// The currency of the price.
     #[serde(default)]
@@ -5602,7 +5603,7 @@ pub struct Price {
 }
 
 /// An actionable step that can be executed to solve the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Action {
     /// Action implemented and performed in (your) third-party application. The application should point the merchant to the place, where they can access the corresponding functionality or provide instructions, if the specific functionality is not available.
     #[serde(default, rename = "builtinSimpleAction")]
@@ -5626,7 +5627,7 @@ pub struct Action {
 }
 
 /// Flow that can be selected for an action. When merchant selects a flow, application should open a dialog with more information and input form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionFlow {
     /// Label for the button to trigger the action from the action dialog. For example: "Request review"
     #[serde(default, rename = "dialogButtonLabel")]
@@ -5652,7 +5653,7 @@ pub struct ActionFlow {
 }
 
 /// A single reason why the action is not available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionReason {
     /// Optional. An action that needs to be performed to solve the problem represented by this reason. This action will always be available. Should be rendered as a link or button next to the summarizing message. For example, the review may be available only once merchant configure all required attributes. In such a situation this action can be a link to the form, where they can fill the missing attribute to unblock the main action.
     #[serde(default)]
@@ -5666,7 +5667,7 @@ pub struct ActionReason {
 }
 
 /// Action that is implemented and performed in (your) third-party application. Represents various functionality that is expected to be available to merchant and will help them with resolving the issue. The application should point the merchant to the place, where they can access the corresponding functionality. If the functionality is not supported, it is recommended to explain the situation to merchant and provide them with instructions how to solve the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuiltInSimpleAction {
     /// Long text from an external source that should be available to the merchant. Present when the type is SHOW_ADDITIONAL_CONTENT.
     #[serde(default, rename = "additionalContent")]
@@ -5681,7 +5682,7 @@ pub struct BuiltInSimpleAction {
 }
 
 /// Long text from external source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuiltInSimpleActionAdditionalContent {
     /// Long text organized into paragraphs.
     #[serde(default)]
@@ -5692,7 +5693,7 @@ pub struct BuiltInSimpleActionAdditionalContent {
 }
 
 /// Action that is implemented and performed in (your) third-party application. The application needs to show an additional content and input form to the merchant. They can start the action only when they provided all required inputs. The application will request processing of the action by calling the [triggeraction method](https://developers.google.com/shopping-content/reference/rest/v2.1/merchantsupport/triggeraction).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuiltInUserInputAction {
     /// Internal details. Not for display but need to be sent back when triggering the action.
     #[serde(default, rename = "actionContext")]
@@ -5703,7 +5704,7 @@ pub struct BuiltInUserInputAction {
 }
 
 /// An important message that should be highlighted. Usually displayed as a banner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Callout {
     /// A full message that needs to be shown to the merchant.
     #[serde(default, rename = "fullMessage")]
@@ -5714,7 +5715,7 @@ pub struct Callout {
 }
 
 /// Action that is implemented and performed outside of the third-party application. It should redirect the merchant to the provided URL of an external system where they can perform the action. For example to request a review in the Merchant Center.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalAction {
     /// The type of external action. // TODO: enum values: ["EXTERNAL_ACTION_TYPE_UNSPECIFIED", "REVIEW_PRODUCT_ISSUE_IN_MERCHANT_CENTER", "REVIEW_ACCOUNT_ISSUE_IN_MERCHANT_CENTER", "LEGAL_APPEAL_IN_HELP_CENTER", "VERIFY_IDENTITY_IN_MERCHANT_CENTER"]
     #[serde(default, rename = "type")]
@@ -5725,7 +5726,7 @@ pub struct ExternalAction {
 }
 
 /// Input field that needs to be available to the merchant. If the field is marked as required, then a value needs to be provided for a successful processing of the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputField {
     /// Input field to provide a boolean value. Corresponds to the [html input type=checkbox](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.checkbox.html#input.checkbox).
     #[serde(default, rename = "checkboxInput")]
@@ -5748,7 +5749,7 @@ pub struct InputField {
 }
 
 /// Choice input allows merchants to select one of the offered choices. Some choices may be linked to additional input fields that should be displayed under or next to the choice option. The value for the additional input field needs to be provided only when the specific choice is selected by the merchant. For example, additional input field can be hidden or disabled until the merchant selects the specific choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputFieldChoiceInput {
     /// A list of choices. Only one option can be selected.
     #[serde(default)]
@@ -5756,7 +5757,7 @@ pub struct InputFieldChoiceInput {
 }
 
 /// A choice that merchant can select.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputFieldChoiceInputChoiceInputOption {
     /// Input that should be displayed when this option is selected. The additional input will not contain a ChoiceInput.
     #[serde(default, rename = "additionalInput")]
@@ -5770,7 +5771,7 @@ pub struct InputFieldChoiceInputChoiceInputOption {
 }
 
 /// Text input allows merchants to provide a text value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputFieldTextInput {
     /// Additional info regarding the field to be displayed to merchant. For example, warning to not include personal identifiable information. There may be more information to be shown in a tooltip.
     #[serde(default, rename = "additionalInfo")]
@@ -5787,7 +5788,7 @@ pub struct InputFieldTextInput {
 }
 
 /// Block of text that may contain a tooltip with more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextWithTooltip {
     /// Value of the tooltip as a simple text.
     #[serde(default, rename = "simpleTooltipValue")]

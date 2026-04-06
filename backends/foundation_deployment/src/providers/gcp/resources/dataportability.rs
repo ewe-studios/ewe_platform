@@ -8,22 +8,23 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request to cancel a Portability Archive job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelPortabilityArchiveRequest {}
 
 /// Response to canceling a Data Portability Archive job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelPortabilityArchiveResponse {}
 
 /// Request to check the token''s access type. All required information is derived from the attached OAuth token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckAccessTypeRequest {}
 
 /// Response to checking the token''s access type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckAccessTypeResponse {
     /// Jobs initiated with this token will be one-time if any requested resources have one-time access.
     #[serde(default, rename = "oneTimeResources")]
@@ -34,11 +35,11 @@ pub struct CheckAccessTypeResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request to kick off an Archive job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitiatePortabilityArchiveRequest {
     /// Optional. The timestamp that represents the end point for the data you are exporting. If the end_time is not specified in the InitiatePortabilityArchiveRequest, this field is set to the latest available data.
     #[serde(default, rename = "endTime")]
@@ -52,7 +53,7 @@ pub struct InitiatePortabilityArchiveRequest {
 }
 
 /// Response from initiating an Archive job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitiatePortabilityArchiveResponse {
     /// The access type of the Archive job initiated by the API. // TODO: enum values: ["ACCESS_TYPE_UNSPECIFIED", "ACCESS_TYPE_ONE_TIME", "ACCESS_TYPE_TIME_BASED"]
     #[serde(default, rename = "accessType")]
@@ -63,7 +64,7 @@ pub struct InitiatePortabilityArchiveResponse {
 }
 
 /// Resource that contains the state of an Archive job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortabilityArchiveState {
     /// The timestamp that represents the end point for the data you are exporting. If the end_time value is set in the InitiatePortabilityArchiveRequest, this field is set to that value. If end_time is not set, this value is set to the time the export was requested.
     #[serde(default, rename = "exportTime")]
@@ -83,15 +84,15 @@ pub struct PortabilityArchiveState {
 }
 
 /// Request to reset exhausted OAuth scopes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetAuthorizationRequest {}
 
 /// Request to retry a failed Portability Archive job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetryPortabilityArchiveRequest {}
 
 /// Response from retrying a Portability Archive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetryPortabilityArchiveResponse {
     /// The archive job ID that is initiated by the retry endpoint. This can be used to get the state of the new job.
     #[serde(default, rename = "archiveJobId")]

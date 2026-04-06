@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Defines a parameter structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameter {
     /// Sets the value of the parameter in an assignment if no value is given.
     #[serde(default, rename = "defaultValue")]
@@ -33,7 +34,7 @@ pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameter {
 }
 
 /// The response returned from the ListConstraints method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2ListConstraintsResponse {
     /// The collection of constraints that are available on the targeted resource.
     #[serde(default)]
@@ -44,7 +45,7 @@ pub struct GoogleCloudOrgpolicyV2ListConstraintsResponse {
 }
 
 /// The response returned from the ListCustomConstraints method. It will be empty if no custom or managed constraints are set on the organization resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2ListCustomConstraintsResponse {
     /// All custom and managed constraints that exist on the organization resource. It will be empty if no custom constraints are set.
     #[serde(default, rename = "customConstraints")]
@@ -56,7 +57,7 @@ pub struct GoogleCloudOrgpolicyV2ListCustomConstraintsResponse {
 }
 
 /// The response returned from the ListPolicies method. It will be empty if no policies are set on the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2ListPoliciesResponse {
     /// Page token used to retrieve the next page. This is currently not used, but the server may at any point start supplying a valid token.
     #[serde(default, rename = "nextPageToken")]
@@ -67,7 +68,7 @@ pub struct GoogleCloudOrgpolicyV2ListPoliciesResponse {
 }
 
 /// A message that holds specific allowed and denied values. This message can define specific values and subtrees of the Resource Manager resource hierarchy (Organizations, Folders, Projects) that are allowed or denied. This is achieved by using the under: and optional is: prefixes. The under: prefix is used to denote resource subtree values. The is: prefix is used to denote specific values, and is required only if the value contains a ":". Values prefixed with "is:" are treated the same as values with no prefix. Ancestry subtrees must be in one of the following formats: - projects/ (for example, projects/tokyo-rain-123) - folders/ (for example, folders/1234) - organizations/ (for example, organizations/1234) The supports_under field of the associated Constraint defines whether ancestry prefixes can be used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues {
     /// List of values allowed at this resource.
     #[serde(default, rename = "allowedValues")]
@@ -78,11 +79,11 @@ pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Defines Metadata structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameterMetadata {
     /// Detailed description of what this parameter is and its use. Mutable.
     #[serde(default)]
@@ -90,7 +91,7 @@ pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameterMe
 }
 
 /// A constraint describes a way to restrict a resource''s configuration. For example, you could enforce a constraint that controls which Google Cloud services can be activated across an organization, or whether a Compute Engine instance can have serial port connections established. Constraints can be configured by the organization policy administrator to fit the needs of the organization by setting a policy that includes constraints at different locations in the organization''s resource hierarchy. Policies are inherited down the resource hierarchy from higher levels, but can also be overridden. For details about the inheritance rules, see Policy. Constraints have a default behavior determined by the constraint_default field, which is the enforcement behavior that is used in the absence of a policy being defined or inherited for the resource in question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2Constraint {
     /// Defines this constraint as being a boolean constraint.
     #[serde(default, rename = "booleanConstraint")]
@@ -123,7 +124,7 @@ pub struct GoogleCloudOrgpolicyV2Constraint {
 }
 
 /// A custom constraint defined by customers which can *only* be applied to the given resource types and organization. By creating a custom constraint, customers can apply policies of this custom constraint. *Creating a custom constraint itself does NOT apply any policy enforcement*.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2CustomConstraint {
     /// Allow or deny type. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "actionType")]
@@ -152,7 +153,7 @@ pub struct GoogleCloudOrgpolicyV2CustomConstraint {
 }
 
 /// Defines an organization policy that is used to specify constraints for configurations of Google Cloud resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2Policy {
     /// Deprecated.
     #[serde(default)]
@@ -172,7 +173,7 @@ pub struct GoogleCloudOrgpolicyV2Policy {
 }
 
 /// A constraint type is enforced or not enforced, which is configured in the PolicyRule. If customConstraintDefinition is defined, this constraint is a managed constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2ConstraintBooleanConstraint {
     /// Custom constraint definition. Defines this as a managed constraint.
     #[serde(default, rename = "customConstraintDefinition")]
@@ -181,7 +182,7 @@ pub struct GoogleCloudOrgpolicyV2ConstraintBooleanConstraint {
 }
 
 /// A constraint type that allows or disallows a list of string values, which are configured in the PolicyRule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2ConstraintListConstraint {
     /// Indicates whether values grouped into categories can be used in Policy.allowed_values and Policy.denied_values. For example, "in:Python" would match any value in the ''Python'' group.
     #[serde(default, rename = "supportsIn")]
@@ -192,7 +193,7 @@ pub struct GoogleCloudOrgpolicyV2ConstraintListConstraint {
 }
 
 /// Similar to PolicySpec but with an extra ''launch'' field for launch reference. The PolicySpec here is specific for dry-run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2AlternatePolicySpec {
     /// Reference to the launch that will be used while audit logging and to control the launch. Should be set only in the alternate policy.
     #[serde(default)]
@@ -203,7 +204,7 @@ pub struct GoogleCloudOrgpolicyV2AlternatePolicySpec {
 }
 
 /// Custom constraint definition. Defines this as a managed constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition {
     /// Allow or deny type. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "actionType")]
@@ -223,7 +224,7 @@ pub struct GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition {
 }
 
 /// Defines a Google Cloud policy specification that is used to specify constraints for configurations of Google Cloud resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2PolicySpec {
     /// An opaque tag indicating the current version of the policySpec, used for concurrency control. This field is ignored if used in a CreatePolicy request. When the policy is returned from either a GetPolicy or a ListPolicies request, this entity tag (ETag) indicates the version of the current policySpec to use when executing a read-modify-write loop. When the policy is returned from a GetEffectivePolicy request, the ETag will be unset.
     #[serde(default)]
@@ -243,7 +244,7 @@ pub struct GoogleCloudOrgpolicyV2PolicySpec {
 }
 
 /// A rule used to express this policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRule {
     /// Setting this to true means that all values are allowed. This field can be set only in policies for list constraints.
     #[serde(default, rename = "allowAll")]
@@ -266,7 +267,7 @@ pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRule {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]

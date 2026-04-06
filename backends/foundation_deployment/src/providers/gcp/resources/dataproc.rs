@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Environment details of a Saprk Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSessionSparkApplicationEnvironmentInfoResponse {
     /// Details about the Environment that the application is running in.
     #[serde(default, rename = "applicationEnvironmentInfo")]
@@ -19,7 +20,7 @@ pub struct AccessSessionSparkApplicationEnvironmentInfoResponse {
 }
 
 /// Details of a particular job associated with Spark Application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSessionSparkApplicationJobResponse {
     /// Output only. Data corresponding to a spark job.
     #[serde(default, rename = "jobData")]
@@ -27,7 +28,7 @@ pub struct AccessSessionSparkApplicationJobResponse {
 }
 
 /// A summary of Spark Application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSessionSparkApplicationResponse {
     /// Output only. High level information corresponding to an application.
     #[serde(default)]
@@ -35,7 +36,7 @@ pub struct AccessSessionSparkApplicationResponse {
 }
 
 /// Details of a query for a Spark Application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSessionSparkApplicationSqlQueryResponse {
     /// SQL Execution Data
     #[serde(default, rename = "executionData")]
@@ -43,7 +44,7 @@ pub struct AccessSessionSparkApplicationSqlQueryResponse {
 }
 
 /// SparkPlanGraph for a Spark Application execution limited to maximum 10000 clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSessionSparkApplicationSqlSparkPlanGraphResponse {
     /// SparkPlanGraph for a Spark Application execution.
     #[serde(default, rename = "sparkPlanGraph")]
@@ -51,7 +52,7 @@ pub struct AccessSessionSparkApplicationSqlSparkPlanGraphResponse {
 }
 
 /// Stage Attempt for a Stage of a Spark Application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSessionSparkApplicationStageAttemptResponse {
     /// Output only. Data corresponding to a stage.
     #[serde(default, rename = "stageData")]
@@ -59,7 +60,7 @@ pub struct AccessSessionSparkApplicationStageAttemptResponse {
 }
 
 /// RDD operation graph for a Spark Application Stage limited to maximum 10000 clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSessionSparkApplicationStageRddOperationGraphResponse {
     /// RDD operation graph for a Spark Application Stage.
     #[serde(default, rename = "rddOperationGraph")]
@@ -67,7 +68,7 @@ pub struct AccessSessionSparkApplicationStageRddOperationGraphResponse {
 }
 
 /// Environment details of a Saprk Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSparkApplicationEnvironmentInfoResponse {
     /// Details about the Environment that the application is running in.
     #[serde(default, rename = "applicationEnvironmentInfo")]
@@ -75,7 +76,7 @@ pub struct AccessSparkApplicationEnvironmentInfoResponse {
 }
 
 /// Details of a particular job associated with Spark Application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSparkApplicationJobResponse {
     /// Output only. Data corresponding to a spark job.
     #[serde(default, rename = "jobData")]
@@ -83,7 +84,7 @@ pub struct AccessSparkApplicationJobResponse {
 }
 
 /// A summary of Spark Application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSparkApplicationResponse {
     /// Output only. High level information corresponding to an application.
     #[serde(default)]
@@ -91,7 +92,7 @@ pub struct AccessSparkApplicationResponse {
 }
 
 /// Details of a query for a Spark Application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSparkApplicationSqlQueryResponse {
     /// SQL Execution Data
     #[serde(default, rename = "executionData")]
@@ -99,7 +100,7 @@ pub struct AccessSparkApplicationSqlQueryResponse {
 }
 
 /// SparkPlanGraph for a Spark Application execution limited to maximum 10000 clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSparkApplicationSqlSparkPlanGraphResponse {
     /// SparkPlanGraph for a Spark Application execution.
     #[serde(default, rename = "sparkPlanGraph")]
@@ -107,7 +108,7 @@ pub struct AccessSparkApplicationSqlSparkPlanGraphResponse {
 }
 
 /// Stage Attempt for a Stage of a Spark Application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSparkApplicationStageAttemptResponse {
     /// Output only. Data corresponding to a stage.
     #[serde(default, rename = "stageData")]
@@ -115,7 +116,7 @@ pub struct AccessSparkApplicationStageAttemptResponse {
 }
 
 /// RDD operation graph for a Spark Application Stage limited to maximum 10000 clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSparkApplicationStageRddOperationGraphResponse {
     /// RDD operation graph for a Spark Application Stage.
     #[serde(default, rename = "rddOperationGraph")]
@@ -123,7 +124,7 @@ pub struct AccessSparkApplicationStageRddOperationGraphResponse {
 }
 
 /// A request to analyze a batch workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeBatchRequest {
     /// Optional. A unique ID used to identify the request. If the service receives two AnalyzeBatchRequest (http://cloud/dataproc/docs/reference/rpc/google.cloud.dataproc.v1#google.cloud.dataproc.v1.AnalyzeBatchRequest)s with the same request_id, the second request is ignored and the Operation that corresponds to the first request created and stored in the backend is returned.Recommendation: Set this value to a UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier).The value must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). The maximum length is 40 characters.
     #[serde(default, rename = "requestId")]
@@ -134,7 +135,7 @@ pub struct AnalyzeBatchRequest {
 }
 
 /// Metadata describing the Analyze operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeOperationMetadata {
     /// Output only. name of the workload being analyzed.
     #[serde(default, rename = "analyzedWorkloadName")]
@@ -163,7 +164,7 @@ pub struct AnalyzeOperationMetadata {
 }
 
 /// Metadata describing the Batch operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchOperationMetadata {
     /// Name of the batch for the operation.
     #[serde(default)]
@@ -192,11 +193,11 @@ pub struct BatchOperationMetadata {
 }
 
 /// A request to cancel a job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelJobRequest {}
 
 /// Metadata describing the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterOperationMetadata {
     /// Output only. Child operation ids
     #[serde(default, rename = "childOperationIds")]
@@ -228,7 +229,7 @@ pub struct ClusterOperationMetadata {
 }
 
 /// A request to collect cluster diagnostic information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiagnoseClusterRequest {
     /// Optional. Time interval in which diagnosis should be carried out on the cluster.
     #[serde(default, rename = "diagnosisInterval")]
@@ -254,7 +255,7 @@ pub struct DiagnoseClusterRequest {
 }
 
 /// The location of diagnostic output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiagnoseClusterResults {
     /// Output only. The Cloud Storage URI of the diagnostic output. The output report is a plain text file with a summary of collected diagnostics.
     #[serde(default, rename = "outputUri")]
@@ -262,11 +263,11 @@ pub struct DiagnoseClusterResults {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Resources used per executor used by the application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutorResourceRequest {
     #[serde(default)]
     pub amount: ::core::option::Option<String>,
@@ -279,7 +280,7 @@ pub struct ExecutorResourceRequest {
 }
 
 /// Request message for GetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
@@ -287,7 +288,7 @@ pub struct GetIamPolicyRequest {
 }
 
 /// A request to inject credentials into a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InjectCredentialsRequest {
     /// Required. The cluster UUID.
     #[serde(default, rename = "clusterUuid")]
@@ -298,7 +299,7 @@ pub struct InjectCredentialsRequest {
 }
 
 /// A request to instantiate a workflow template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstantiateWorkflowTemplateRequest {
     /// Optional. Map from parameter names to values that should be used for those parameters. Values may not exceed 1000 characters.
     #[serde(default)]
@@ -312,7 +313,7 @@ pub struct InstantiateWorkflowTemplateRequest {
 }
 
 /// Job Operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobMetadata {
     /// Output only. The job id.
     #[serde(default, rename = "jobId")]
@@ -329,7 +330,7 @@ pub struct JobMetadata {
 }
 
 /// A response to a request to list autoscaling policies in a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAutoscalingPoliciesResponse {
     /// Output only. This token is included in the response if there are more results to fetch.
     #[serde(default, rename = "nextPageToken")]
@@ -340,7 +341,7 @@ pub struct ListAutoscalingPoliciesResponse {
 }
 
 /// A list of batch workloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBatchesResponse {
     /// Output only. The batches from the specified collection.
     #[serde(default)]
@@ -354,7 +355,7 @@ pub struct ListBatchesResponse {
 }
 
 /// The list of all clusters in a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListClustersResponse {
     /// Output only. The clusters in the project.
     #[serde(default)]
@@ -365,7 +366,7 @@ pub struct ListClustersResponse {
 }
 
 /// A list of jobs in a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListJobsResponse {
     /// Output only. Jobs list.
     #[serde(default)]
@@ -379,7 +380,7 @@ pub struct ListJobsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -393,7 +394,7 @@ pub struct ListOperationsResponse {
 }
 
 /// A list of session templates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSessionTemplatesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -404,7 +405,7 @@ pub struct ListSessionTemplatesResponse {
 }
 
 /// A list of interactive sessions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSessionsResponse {
     /// A token, which can be sent as page_token, to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -415,7 +416,7 @@ pub struct ListSessionsResponse {
 }
 
 /// A response to a request to list workflow templates in a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkflowTemplatesResponse {
     /// Output only. This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent ListWorkflowTemplatesRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -429,7 +430,7 @@ pub struct ListWorkflowTemplatesResponse {
 }
 
 /// Metadata describing the node group operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupOperationMetadata {
     /// Output only. Cluster UUID associated with the node group operation.
     #[serde(default, rename = "clusterUuid")]
@@ -458,7 +459,7 @@ pub struct NodeGroupOperationMetadata {
 }
 
 /// A request to repair a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepairClusterRequest {
     /// Optional. Cluster to be repaired
     #[serde(default)]
@@ -484,7 +485,7 @@ pub struct RepairClusterRequest {
 }
 
 /// RepairNodeGroupRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepairNodeGroupRequest {
     /// Required. Name of instances to be repaired. These instances must belong to specified node pool.
     #[serde(default, rename = "instanceNames")]
@@ -498,7 +499,7 @@ pub struct RepairNodeGroupRequest {
 }
 
 /// A request to resize a node group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResizeNodeGroupRequest {
     /// Optional. Timeout for graceful YARN decommissioning. Graceful decommissioning (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/scaling-clusters#graceful_decommissioning) allows the removal of nodes from the Compute Engine node group without interrupting jobs in progress. This timeout specifies how long to wait for jobs in progress to finish before forcefully removing nodes (and potentially interrupting jobs). Default timeout is 0 (for forceful decommission), and the maximum allowed timeout is 1 day. (see JSON representation of Duration (https://developers.google.com/protocol-buffers/docs/proto3#json)).Only supported on Dataproc image versions 1.2 and higher.
     #[serde(default, rename = "gracefulDecommissionTimeout")]
@@ -515,7 +516,7 @@ pub struct ResizeNodeGroupRequest {
 }
 
 /// ResourceInformation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceInformation {
     #[serde(default)]
     pub addresses: ::core::option::Option<::std::vec::Vec<String>>,
@@ -524,7 +525,7 @@ pub struct ResourceInformation {
 }
 
 /// List of Executors associated with a Spark Application Stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSessionSparkApplicationExecutorStageSummaryResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationExecutorStageSummaryRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -536,7 +537,7 @@ pub struct SearchSessionSparkApplicationExecutorStageSummaryResponse {
 }
 
 /// List of Executors associated with a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSessionSparkApplicationExecutorsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationExecutorsRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -547,7 +548,7 @@ pub struct SearchSessionSparkApplicationExecutorsResponse {
 }
 
 /// A list of Jobs associated with a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSessionSparkApplicationJobsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationJobsRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -558,7 +559,7 @@ pub struct SearchSessionSparkApplicationJobsResponse {
 }
 
 /// List of all queries for a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSessionSparkApplicationSqlQueriesResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationSqlQueriesRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -569,7 +570,7 @@ pub struct SearchSessionSparkApplicationSqlQueriesResponse {
 }
 
 /// List of tasks for a stage of a Spark Application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSessionSparkApplicationStageAttemptTasksResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationStageAttemptTasksRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -580,7 +581,7 @@ pub struct SearchSessionSparkApplicationStageAttemptTasksResponse {
 }
 
 /// A list of Stage Attempts for a Stage of a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSessionSparkApplicationStageAttemptsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationStageAttemptsRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -591,7 +592,7 @@ pub struct SearchSessionSparkApplicationStageAttemptsResponse {
 }
 
 /// A list of stages associated with a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSessionSparkApplicationStagesResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationStages.
     #[serde(default, rename = "nextPageToken")]
@@ -602,7 +603,7 @@ pub struct SearchSessionSparkApplicationStagesResponse {
 }
 
 /// A list of summary of Spark Applications
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSessionSparkApplicationsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSessionSparkApplicationsRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -613,7 +614,7 @@ pub struct SearchSessionSparkApplicationsResponse {
 }
 
 /// List of Executors associated with a Spark Application Stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSparkApplicationExecutorStageSummaryResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationExecutorsListRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -625,7 +626,7 @@ pub struct SearchSparkApplicationExecutorStageSummaryResponse {
 }
 
 /// List of Executors associated with a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSparkApplicationExecutorsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationExecutorsListRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -636,7 +637,7 @@ pub struct SearchSparkApplicationExecutorsResponse {
 }
 
 /// A list of Jobs associated with a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSparkApplicationJobsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationJobsRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -647,7 +648,7 @@ pub struct SearchSparkApplicationJobsResponse {
 }
 
 /// List of all queries for a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSparkApplicationSqlQueriesResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationSqlQueriesRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -658,7 +659,7 @@ pub struct SearchSparkApplicationSqlQueriesResponse {
 }
 
 /// List of tasks for a stage of a Spark Application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSparkApplicationStageAttemptTasksResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent ListSparkApplicationStageAttemptTasksRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -669,7 +670,7 @@ pub struct SearchSparkApplicationStageAttemptTasksResponse {
 }
 
 /// A list of Stage Attempts for a Stage of a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSparkApplicationStageAttemptsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent ListSparkApplicationStageAttemptsRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -680,7 +681,7 @@ pub struct SearchSparkApplicationStageAttemptsResponse {
 }
 
 /// A list of stages associated with a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSparkApplicationStagesResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationStages.
     #[serde(default, rename = "nextPageToken")]
@@ -691,7 +692,7 @@ pub struct SearchSparkApplicationStagesResponse {
 }
 
 /// A list of summary of Spark Applications
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSparkApplicationsResponse {
     /// This token is included in the response if there are more results to fetch. To fetch additional results, provide this value as the page_token in a subsequent SearchSparkApplicationsRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -702,7 +703,7 @@ pub struct SearchSparkApplicationsResponse {
 }
 
 /// Metadata describing the Session operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionOperationMetadata {
     /// The time when the operation was created.
     #[serde(default, rename = "createTime")]
@@ -731,7 +732,7 @@ pub struct SessionOperationMetadata {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -739,11 +740,11 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Spark connect configuration for an interactive session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkConnectConfig {}
 
 /// A request to start a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartClusterRequest {
     /// Optional. Specifying the cluster_uuid means the RPC will fail (with error NOT_FOUND) if a cluster with the specified UUID does not exist.
     #[serde(default, rename = "clusterUuid")]
@@ -754,7 +755,7 @@ pub struct StartClusterRequest {
 }
 
 /// A request to stop a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopClusterRequest {
     /// Optional. Specifying the cluster_uuid means the RPC will fail (with error NOT_FOUND) if a cluster with the specified UUID does not exist.
     #[serde(default, rename = "clusterUuid")]
@@ -765,7 +766,7 @@ pub struct StopClusterRequest {
 }
 
 /// A request to submit a job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubmitJobRequest {
     /// Required. The job resource.
     #[serde(default)]
@@ -776,7 +777,7 @@ pub struct SubmitJobRequest {
 }
 
 /// Consolidated summary of executors for a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SummarizeSessionSparkApplicationExecutorsResponse {
     /// Consolidated summary for active executors.
     #[serde(default, rename = "activeExecutorSummary")]
@@ -793,7 +794,7 @@ pub struct SummarizeSessionSparkApplicationExecutorsResponse {
 }
 
 /// Summary of a Spark Application jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SummarizeSessionSparkApplicationJobsResponse {
     /// Summary of a Spark Application Jobs
     #[serde(default, rename = "jobsSummary")]
@@ -801,7 +802,7 @@ pub struct SummarizeSessionSparkApplicationJobsResponse {
 }
 
 /// Summary of tasks for a Spark Application stage attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SummarizeSessionSparkApplicationStageAttemptTasksResponse {
     /// Summary of tasks for a Spark Application Stage Attempt
     #[serde(default, rename = "stageAttemptTasksSummary")]
@@ -809,7 +810,7 @@ pub struct SummarizeSessionSparkApplicationStageAttemptTasksResponse {
 }
 
 /// Summary of a Spark Application stages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SummarizeSessionSparkApplicationStagesResponse {
     /// Summary of a Spark Application Stages
     #[serde(default, rename = "stagesSummary")]
@@ -817,7 +818,7 @@ pub struct SummarizeSessionSparkApplicationStagesResponse {
 }
 
 /// Consolidated summary of executors for a Spark Application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SummarizeSparkApplicationExecutorsResponse {
     /// Consolidated summary for active executors.
     #[serde(default, rename = "activeExecutorSummary")]
@@ -834,7 +835,7 @@ pub struct SummarizeSparkApplicationExecutorsResponse {
 }
 
 /// Summary of a Spark Application jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SummarizeSparkApplicationJobsResponse {
     /// Summary of a Spark Application Jobs
     #[serde(default, rename = "jobsSummary")]
@@ -842,7 +843,7 @@ pub struct SummarizeSparkApplicationJobsResponse {
 }
 
 /// Summary of tasks for a Spark Application stage attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SummarizeSparkApplicationStageAttemptTasksResponse {
     /// Summary of tasks for a Spark Application Stage Attempt
     #[serde(default, rename = "stageAttemptTasksSummary")]
@@ -850,7 +851,7 @@ pub struct SummarizeSparkApplicationStageAttemptTasksResponse {
 }
 
 /// Summary of a Spark Application stages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SummarizeSparkApplicationStagesResponse {
     /// Summary of a Spark Application Stages
     #[serde(default, rename = "stagesSummary")]
@@ -858,7 +859,7 @@ pub struct SummarizeSparkApplicationStagesResponse {
 }
 
 /// Resources used per task created by the application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskResourceRequest {
     #[serde(default)]
     pub amount: ::core::option::Option<f64>,
@@ -867,7 +868,7 @@ pub struct TaskResourceRequest {
 }
 
 /// A request to terminate an interactive session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerminateSessionRequest {
     /// Optional. A unique ID used to identify the request. If the service receives two TerminateSessionRequest (https://cloud.google.com/dataproc/docs/reference/rpc/google.cloud.dataproc.v1#google.cloud.dataproc.v1.TerminateSessionRequest)s with the same ID, the second request is ignored.Recommendation: Set this value to a UUID (https://en.wikipedia.org/wiki/Universally_unique_identifier).The value must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), and hyphens (-). The maximum length is 40 characters.
     #[serde(default, rename = "requestId")]
@@ -875,7 +876,7 @@ pub struct TerminateSessionRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see IAM Overview (https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -883,7 +884,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -891,7 +892,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Annotatated property value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValueInfo {
     /// Annotation, comment or explanation why the property was set.
     #[serde(default)]
@@ -905,7 +906,7 @@ pub struct ValueInfo {
 }
 
 /// A Dataproc workflow template resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkflowMetadata {
     /// Output only. The name of the target cluster.
     #[serde(default, rename = "clusterName")]
@@ -952,7 +953,7 @@ pub struct WorkflowMetadata {
 }
 
 /// Write Spark Application data to internal storage systems
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteSessionSparkApplicationContextRequest {
     /// Required. Parent (Batch) resource reference.
     #[serde(default)]
@@ -963,11 +964,11 @@ pub struct WriteSessionSparkApplicationContextRequest {
 }
 
 /// Response returned as an acknowledgement of receipt of data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteSessionSparkApplicationContextResponse {}
 
 /// Write Spark Application data to internal storage systems
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteSparkApplicationContextRequest {
     /// Required. Parent (Batch) resource reference.
     #[serde(default)]
@@ -977,11 +978,11 @@ pub struct WriteSparkApplicationContextRequest {
 }
 
 /// Response returned as an acknowledgement of receipt of data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteSparkApplicationContextResponse {}
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive).The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interval {
     /// Optional. Exclusive end of the interval.If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
@@ -992,7 +993,7 @@ pub struct Interval {
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy.Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected.Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset.The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
@@ -1000,7 +1001,7 @@ pub struct GetPolicyOptions {
 }
 
 /// Describes an autoscaling policy for Dataproc cluster autoscaler.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingPolicy {
     #[serde(default, rename = "basicAlgorithm")]
     pub basic_algorithm: ::core::option::Option<BasicAutoscalingAlgorithm>,
@@ -1025,7 +1026,7 @@ pub struct AutoscalingPolicy {
 }
 
 /// A representation of a batch workload in the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Batch {
     /// Output only. The time when the batch was created.
     #[serde(default, rename = "createTime")]
@@ -1081,7 +1082,7 @@ pub struct Batch {
 }
 
 /// Describes the identifying information, config, and status of a Dataproc cluster
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cluster {
     /// Required. The cluster name, which must be unique within a project. The name must start with a lowercase letter, and can contain up to 51 lowercase letters, numbers, and hyphens. It cannot end with a hyphen. The name of a deleted cluster can be reused.
     #[serde(default, rename = "clusterName")]
@@ -1113,7 +1114,7 @@ pub struct Cluster {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1133,7 +1134,7 @@ pub struct Operation {
 }
 
 /// A representation of a session template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionTemplate {
     /// Output only. The time when the template was created.
     #[serde(default, rename = "createTime")]
@@ -1171,7 +1172,7 @@ pub struct SessionTemplate {
 }
 
 /// A representation of a session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Session {
     /// Output only. The time when the session was created.
     #[serde(default, rename = "createTime")]
@@ -1224,7 +1225,7 @@ pub struct Session {
 }
 
 /// A Dataproc workflow template resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkflowTemplate {
     /// Output only. The time template was created.
     #[serde(default, rename = "createTime")]
@@ -1262,7 +1263,7 @@ pub struct WorkflowTemplate {
 }
 
 /// The status of the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterOperationStatus {
     /// Output only. A message containing any operation metadata details.
     #[serde(default)]
@@ -1279,7 +1280,7 @@ pub struct ClusterOperationStatus {
 }
 
 /// Cluster to be repaired
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterToRepair {
     /// Required. Repair action to take on the cluster resource. // TODO: enum values: ["CLUSTER_REPAIR_ACTION_UNSPECIFIED", "REPAIR_ERROR_DUE_TO_UPDATE_CLUSTER"]
     #[serde(default, rename = "clusterRepairAction")]
@@ -1287,7 +1288,7 @@ pub struct ClusterToRepair {
 }
 
 /// indicating a list of workers of same type
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodePool {
     /// Required. A unique id of the node pool. Primary and Secondary workers can be specified using special reserved ids PRIMARY_WORKER_POOL and SECONDARY_WORKER_POOL respectively. Aux node pools can be referenced using corresponding pool id.
     #[serde(default)]
@@ -1301,7 +1302,7 @@ pub struct NodePool {
 }
 
 /// A summary of Spark Application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkApplication {
     /// Output only. High level information corresponding to an application.
     #[serde(default)]
@@ -1312,7 +1313,7 @@ pub struct SparkApplication {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources.A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role.For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).JSON example: { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 } YAML example: bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3 For a description of IAM and its features, see the IAM documentation (https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal.The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -1326,7 +1327,7 @@ pub struct Policy {
 }
 
 /// A Dataproc job resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Job {
     /// Output only. Indicates whether the job is completed. If the value is false, the job is still in progress. If true, the job is completed, and status.state field will indicate if it was successful, failed, or cancelled.
     #[serde(default)]
@@ -1397,7 +1398,7 @@ pub struct Job {
 }
 
 /// Consolidated summary about executors used by the application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsolidatedExecutorSummary {
     #[serde(default, rename = "activeTasks")]
     pub active_tasks: ::core::option::Option<i32>,
@@ -1436,7 +1437,7 @@ pub struct ConsolidatedExecutorSummary {
 }
 
 /// Data related to Jobs page summary
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobsSummary {
     /// Number of active jobs
     #[serde(default, rename = "activeJobs")]
@@ -1459,7 +1460,7 @@ pub struct JobsSummary {
 }
 
 /// Data related to tasks summary for a Spark Stage Attempt
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageAttemptTasksSummary {
     #[serde(default, rename = "applicationId")]
     pub application_id: ::core::option::Option<String>,
@@ -1482,7 +1483,7 @@ pub struct StageAttemptTasksSummary {
 }
 
 /// Data related to Stages page summary
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StagesSummary {
     #[serde(default, rename = "applicationId")]
     pub application_id: ::core::option::Option<String>,
@@ -1499,7 +1500,7 @@ pub struct StagesSummary {
 }
 
 /// The cluster operation triggered by a workflow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterOperation {
     /// Output only. Indicates the operation is done.
     #[serde(default)]
@@ -1513,7 +1514,7 @@ pub struct ClusterOperation {
 }
 
 /// The workflow graph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkflowGraph {
     /// Output only. The workflow nodes.
     #[serde(default)]
@@ -1521,7 +1522,7 @@ pub struct WorkflowGraph {
 }
 
 /// Outer message that contains the data obtained from spark listener, packaged with information that is required to process it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkWrapperObject {
     #[serde(default, rename = "appSummary")]
     pub app_summary: ::core::option::Option<AppSummary>,
@@ -1582,7 +1583,7 @@ pub struct SparkWrapperObject {
 }
 
 /// Basic algorithm for autoscaling.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasicAutoscalingAlgorithm {
     /// Optional. Duration between scaling events. A scaling period starts after the update operation from the previous event has completed.Bounds: 2m, 1d. Default: 2m.
     #[serde(default, rename = "cooldownPeriod")]
@@ -1596,7 +1597,7 @@ pub struct BasicAutoscalingAlgorithm {
 }
 
 /// Configuration for the size bounds of an instance group, including its proportional size to other groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupAutoscalingPolicyConfig {
     /// Required. Maximum number of instances for this group. Required for primary workers. Note that by default, clusters will not use secondary workers. Required for secondary workers if the minimum secondary instances is set.Primary workers - Bounds: [min_instances, ). Secondary workers - Bounds: [min_instances, ). Default: 0.
     #[serde(default, rename = "maxInstances")]
@@ -1610,7 +1611,7 @@ pub struct InstanceGroupAutoscalingPolicyConfig {
 }
 
 /// A configuration for running an Apache PySpark (https://spark.apache.org/docs/latest/api/python/getting_started/quickstart.html) batch workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PySparkBatch {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
@@ -1633,7 +1634,7 @@ pub struct PySparkBatch {
 }
 
 /// A configuration for running an Apache Spark (https://spark.apache.org/) batch workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkBatch {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
@@ -1656,7 +1657,7 @@ pub struct SparkBatch {
 }
 
 /// A configuration for running an Apache SparkR (https://spark.apache.org/docs/latest/sparkr.html) batch workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkRBatch {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
@@ -1673,7 +1674,7 @@ pub struct SparkRBatch {
 }
 
 /// A configuration for running Apache Spark SQL (https://spark.apache.org/sql/) queries as a batch workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkSqlBatch {
     /// Optional. HCFS URIs of jar files to be added to the Spark CLASSPATH.
     #[serde(default, rename = "jarFileUris")]
@@ -1687,7 +1688,7 @@ pub struct SparkSqlBatch {
 }
 
 /// Historical state information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StateHistory {
     /// Output only. The state of the batch at this point in history. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "RUNNING", "CANCELLING", "CANCELLED", "SUCCEEDED", "FAILED"]
     #[serde(default)]
@@ -1701,7 +1702,7 @@ pub struct StateHistory {
 }
 
 /// Contains cluster daemon metrics, such as HDFS and YARN stats.Beta Feature: This report is available for testing purposes only. It may be changed before final release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterMetrics {
     /// The HDFS metrics.
     #[serde(default, rename = "hdfsMetrics")]
@@ -1712,7 +1713,7 @@ pub struct ClusterMetrics {
 }
 
 /// The status of a cluster and its instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterStatus {
     /// Optional. Output only. Details of cluster''s state.
     #[serde(default)]
@@ -1729,7 +1730,7 @@ pub struct ClusterStatus {
 }
 
 /// The Dataproc cluster config for a cluster that does not directly control the underlying compute resources, such as a Dataproc-on-GKE cluster (https://cloud.google.com/dataproc/docs/guides/dpgke/dataproc-gke-overview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VirtualClusterConfig {
     /// Optional. Configuration of auxiliary services used by this cluster.
     #[serde(default, rename = "auxiliaryServicesConfig")]
@@ -1743,7 +1744,7 @@ pub struct VirtualClusterConfig {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1757,7 +1758,7 @@ pub struct Status {
 }
 
 /// Environment configuration for a workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentConfig {
     /// Optional. Execution configuration for a workload.
     #[serde(default, rename = "executionConfig")]
@@ -1768,7 +1769,7 @@ pub struct EnvironmentConfig {
 }
 
 /// Jupyter configuration for an interactive session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JupyterConfig {
     /// Optional. Display name, shown in the Jupyter kernelspec card.
     #[serde(default, rename = "displayName")]
@@ -1779,7 +1780,7 @@ pub struct JupyterConfig {
 }
 
 /// Runtime configuration for a workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeConfig {
     /// Optional. Autotuning configuration of the workload.
     #[serde(default, rename = "autotuningConfig")]
@@ -1802,7 +1803,7 @@ pub struct RuntimeConfig {
 }
 
 /// Runtime information about workload execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeInfo {
     /// Output only. Approximate workload resource usage, calculated when the workload completes (see Dataproc Serverless pricing (https://cloud.google.com/dataproc-serverless/pricing)).Note: This metric calculation may change in the future, for example, to capture cumulative workload resource consumption during workload execution (see the Dataproc Serverless release notes (https://cloud.google.com/dataproc-serverless/docs/release-notes) for announcements, changes, fixes and other Dataproc developments).
     #[serde(default, rename = "approximateUsage")]
@@ -1828,7 +1829,7 @@ pub struct RuntimeInfo {
 }
 
 /// Historical state information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionStateHistory {
     /// Output only. The state of the session at this point in the session history. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "TERMINATING", "TERMINATED", "FAILED"]
     #[serde(default)]
@@ -1842,7 +1843,7 @@ pub struct SessionStateHistory {
 }
 
 /// Encryption settings for encrypting workflow template job arguments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig {
     /// Optional. The Cloud KMS key name to use for encrypting workflow template job arguments.When this this key is provided, the following workflow template job arguments (https://cloud.google.com/dataproc/docs/concepts/workflows/use-workflows#adding_jobs_to_a_template), if present, are CMEK encrypted (https://cloud.google.com/dataproc/docs/concepts/configuring-clusters/customer-managed-encryption#use_cmek_with_workflow_template_data): FlinkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/FlinkJob) HadoopJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/HadoopJob) SparkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkJob) SparkRJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkRJob) PySparkJob args (https://cloud.google.com/dataproc/docs/reference/rest/v1/PySparkJob) SparkSqlJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/SparkSqlJob) scriptVariables and queryList.queries HiveJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/HiveJob) scriptVariables and queryList.queries PigJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/PigJob) scriptVariables and queryList.queries PrestoJob (https://cloud.google.com/dataproc/docs/reference/rest/v1/PrestoJob) scriptVariables and queryList.queries
     #[serde(default, rename = "kmsKey")]
@@ -1850,7 +1851,7 @@ pub struct GoogleCloudDataprocV1WorkflowTemplateEncryptionConfig {
 }
 
 /// A job executed by the workflow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrderedJob {
     /// Optional. Job is a Flink job.
     #[serde(default, rename = "flinkJob")]
@@ -1897,7 +1898,7 @@ pub struct OrderedJob {
 }
 
 /// A configurable parameter that replaces one or more fields in the template. Parameterizable fields: - Labels - File uris - Job properties - Job arguments - Script variables - Main class (in HadoopJob and SparkJob) - Zone (in ClusterSelector)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TemplateParameter {
     /// Optional. Brief description of the parameter. Must not exceed 1024 characters.
     #[serde(default)]
@@ -1914,7 +1915,7 @@ pub struct TemplateParameter {
 }
 
 /// Specifies workflow execution target.Either managed_cluster or cluster_selector is required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkflowTemplatePlacement {
     /// Optional. A selector that chooses target cluster for jobs based on metadata.The selector is evaluated at the time each job is submitted.
     #[serde(default, rename = "clusterSelector")]
@@ -1925,7 +1926,7 @@ pub struct WorkflowTemplatePlacement {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding.If the condition evaluates to true, then this binding applies to the current request.If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1939,7 +1940,7 @@ pub struct Binding {
 }
 
 /// Driver scheduling configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriverSchedulingConfig {
     /// Required. The amount of memory in MB the driver is requesting.
     #[serde(default, rename = "memoryMb")]
@@ -1950,7 +1951,7 @@ pub struct DriverSchedulingConfig {
 }
 
 /// Dataproc job config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobPlacement {
     /// Optional. Cluster labels to identify a cluster where the job will be submitted.
     #[serde(default, rename = "clusterLabels")]
@@ -1964,7 +1965,7 @@ pub struct JobPlacement {
 }
 
 /// Encapsulates the full scoping used to reference a job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobReference {
     /// Optional. The job ID, which must be unique within the project.The ID must contain only letters (a-z, A-Z), numbers (0-9), underscores (_), or hyphens (-). The maximum length is 100 characters.If not specified by the caller, the job ID will be provided by the server.
     #[serde(default, rename = "jobId")]
@@ -1975,7 +1976,7 @@ pub struct JobReference {
 }
 
 /// Dataproc job status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobStatus {
     /// Optional. Output only. Job state details, such as an error description if the state is ERROR.
     #[serde(default)]
@@ -1992,7 +1993,7 @@ pub struct JobStatus {
 }
 
 /// A YARN application created by a job. Application information is a subset of org.apache.hadoop.yarn.proto.YarnProtos.ApplicationReportProto.Beta Feature: This report is available for testing purposes only. It may be changed before final release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YarnApplication {
     /// Optional. The cumulative memory usage of the application for a job, measured in mb-seconds.
     #[serde(default, rename = "memoryMbSeconds")]
@@ -2015,7 +2016,7 @@ pub struct YarnApplication {
 }
 
 /// The workflow node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkflowNode {
     /// Output only. The error detail.
     #[serde(default)]
@@ -2035,7 +2036,7 @@ pub struct WorkflowNode {
 }
 
 /// AppSummary resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppSummary {
     #[serde(default, rename = "numCompletedJobs")]
     pub num_completed_jobs: ::core::option::Option<i32>,
@@ -2044,7 +2045,7 @@ pub struct AppSummary {
 }
 
 /// Details about the Environment that the application is running in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationEnvironmentInfo {
     #[serde(default, rename = "classpathEntries")]
     pub classpath_entries: ::core::option::Option<serde_json::Value>,
@@ -2063,7 +2064,7 @@ pub struct ApplicationEnvironmentInfo {
 }
 
 /// High level information corresponding to an application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationInfo {
     /// TODO: enum values: ["APPLICATION_CONTEXT_INGESTION_STATUS_UNSPECIFIED", "APPLICATION_CONTEXT_INGESTION_STATUS_COMPLETED"]
     #[serde(default, rename = "applicationContextIngestionStatus")]
@@ -2088,7 +2089,7 @@ pub struct ApplicationInfo {
 }
 
 /// Executor resources consumed by a stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutorStageSummary {
     #[serde(default, rename = "diskBytesSpilled")]
     pub disk_bytes_spilled: ::core::option::Option<String>,
@@ -2131,7 +2132,7 @@ pub struct ExecutorStageSummary {
 }
 
 /// Details about executors used by the application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutorSummary {
     #[serde(default, rename = "activeTasks")]
     pub active_tasks: ::core::option::Option<i32>,
@@ -2194,7 +2195,7 @@ pub struct ExecutorSummary {
 }
 
 /// Data corresponding to a spark job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobData {
     #[serde(default, rename = "completionTime")]
     pub completion_time: ::core::option::Option<String>,
@@ -2244,7 +2245,7 @@ pub struct JobData {
 }
 
 /// NativeBuildInfoUiData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NativeBuildInfoUiData {
     /// Optional. Build class of Native.
     #[serde(default, rename = "buildClass")]
@@ -2255,7 +2256,7 @@ pub struct NativeBuildInfoUiData {
 }
 
 /// Native SQL Execution Data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NativeSqlExecutionUiData {
     /// Optional. Description of the execution.
     #[serde(default)]
@@ -2278,7 +2279,7 @@ pub struct NativeSqlExecutionUiData {
 }
 
 /// Pool Data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PoolData {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -2287,7 +2288,7 @@ pub struct PoolData {
 }
 
 /// Process Summary
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessSummary {
     #[serde(default, rename = "addTime")]
     pub add_time: ::core::option::Option<String>,
@@ -2306,7 +2307,7 @@ pub struct ProcessSummary {
 }
 
 /// Graph representing RDD dependencies. Consists of edges and a root cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RddOperationGraph {
     #[serde(default)]
     pub edges: ::core::option::Option<::std::vec::Vec<RddOperationEdge>>,
@@ -2321,7 +2322,7 @@ pub struct RddOperationGraph {
 }
 
 /// Overall data about RDD storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RddStorageInfo {
     #[serde(default, rename = "dataDistribution")]
     pub data_distribution: ::core::option::Option<::std::vec::Vec<RddDataDistribution>>,
@@ -2344,7 +2345,7 @@ pub struct RddStorageInfo {
 }
 
 /// Represents the lifecycle and details of an Execution via Spark Connect
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkConnectExecutionInfo {
     /// Timestamp when the execution was closed.
     #[serde(default, rename = "closeTimestamp")]
@@ -2388,7 +2389,7 @@ pub struct SparkConnectExecutionInfo {
 }
 
 /// Represents session-level information for Spark Connect
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkConnectSessionInfo {
     /// Timestamp when the session finished.
     #[serde(default, rename = "finishTimestamp")]
@@ -2408,7 +2409,7 @@ pub struct SparkConnectSessionInfo {
 }
 
 /// A graph used for storing information of an executionPlan of DataFrame.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkPlanGraph {
     #[serde(default)]
     pub edges: ::core::option::Option<::std::vec::Vec<SparkPlanGraphEdge>>,
@@ -2419,7 +2420,7 @@ pub struct SparkPlanGraph {
 }
 
 /// SQL Execution Data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlExecutionUiData {
     #[serde(default, rename = "completionTime")]
     pub completion_time: ::core::option::Option<String>,
@@ -2452,7 +2453,7 @@ pub struct SqlExecutionUiData {
 }
 
 /// Data corresponding to a stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageData {
     #[serde(default, rename = "accumulatorUpdates")]
     pub accumulator_updates: ::core::option::Option<::std::vec::Vec<AccumulableInfo>>,
@@ -2525,7 +2526,7 @@ pub struct StageData {
 }
 
 /// Stream Block Data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamBlockData {
     #[serde(default)]
     pub deserialized: ::core::option::Option<bool>,
@@ -2548,7 +2549,7 @@ pub struct StreamBlockData {
 }
 
 /// Streaming
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingQueryData {
     #[serde(default, rename = "endTimestamp")]
     pub end_timestamp: ::core::option::Option<String>,
@@ -2567,7 +2568,7 @@ pub struct StreamingQueryData {
 }
 
 /// StreamingQueryProgress resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingQueryProgress {
     #[serde(default, rename = "batchDuration")]
     pub batch_duration: ::core::option::Option<String>,
@@ -2596,7 +2597,7 @@ pub struct StreamingQueryProgress {
 }
 
 /// Data corresponding to tasks created by spark.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskData {
     #[serde(default, rename = "accumulatorUpdates")]
     pub accumulator_updates: ::core::option::Option<::std::vec::Vec<AccumulableInfo>>,
@@ -2643,7 +2644,7 @@ pub struct TaskData {
 }
 
 /// Basic autoscaling configurations for Spark Standalone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkStandaloneAutoscalingConfig {
     /// Required. Timeout for Spark graceful decommissioning of spark workers. Specifies the duration to wait for spark worker to complete spark decommissioning tasks before forcefully removing workers. Only applicable to downscaling operations.Bounds: 0s, 1d.
     #[serde(default, rename = "gracefulDecommissionTimeout")]
@@ -2666,7 +2667,7 @@ pub struct SparkStandaloneAutoscalingConfig {
 }
 
 /// Basic autoscaling configurations for YARN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasicYarnAutoscalingConfig {
     /// Required. Timeout for YARN graceful decommissioning of Node Managers. Specifies the duration to wait for jobs to complete before forcefully removing workers (and potentially interrupting jobs). Only applicable to downscaling operations.Bounds: 0s, 1d.
     #[serde(default, rename = "gracefulDecommissionTimeout")]
@@ -2686,7 +2687,7 @@ pub struct BasicYarnAutoscalingConfig {
 }
 
 /// Auxiliary services configuration for a Cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuxiliaryServicesConfig {
     /// Optional. The Hive Metastore configuration for this workload.
     #[serde(default, rename = "metastoreConfig")]
@@ -2697,7 +2698,7 @@ pub struct AuxiliaryServicesConfig {
 }
 
 /// The configuration for running the Dataproc cluster on Kubernetes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KubernetesClusterConfig {
     /// Required. The configuration for running the Dataproc cluster on GKE.
     #[serde(default, rename = "gkeClusterConfig")]
@@ -2711,7 +2712,7 @@ pub struct KubernetesClusterConfig {
 }
 
 /// Execution configuration for a workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionConfig {
     /// Optional. Authentication configuration used to set the default identity for the workload execution. The config specifies the type of identity (service account or user) that will be used by workloads to access resources on the project(s).
     #[serde(default, rename = "authenticationConfig")]
@@ -2743,7 +2744,7 @@ pub struct ExecutionConfig {
 }
 
 /// Auxiliary services configuration for a workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PeripheralsConfig {
     /// Optional. Resource name of an existing Dataproc Metastore service.Example: projects/[project_id]/locations/[region]/services/[service_id]
     #[serde(default, rename = "metastoreService")]
@@ -2754,7 +2755,7 @@ pub struct PeripheralsConfig {
 }
 
 /// Autotuning configuration of the workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutotuningConfig {
     /// Optional. Scenarios for which tunings are applied.
     #[serde(default)]
@@ -2762,7 +2763,7 @@ pub struct AutotuningConfig {
 }
 
 /// Configuration for dependency repositories
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepositoryConfig {
     /// Optional. Configuration for PyPi repository.
     #[serde(default, rename = "pypiRepositoryConfig")]
@@ -2770,7 +2771,7 @@ pub struct RepositoryConfig {
 }
 
 /// Usage metrics represent approximate total resources consumed by a workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsageMetrics {
     /// Optional. DEPRECATED Accelerator type being used, if any
     #[serde(default, rename = "acceleratorType")]
@@ -2790,7 +2791,7 @@ pub struct UsageMetrics {
 }
 
 /// Information about the cohort that the workload belongs to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CohortInfo {
     /// Output only. Final cohort that was used to tune the workload.
     #[serde(default)]
@@ -2801,7 +2802,7 @@ pub struct CohortInfo {
 }
 
 /// The usage snapshot represents the resources consumed by a workload at a specified time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsageSnapshot {
     /// Optional. Accelerator type being used, if any
     #[serde(default, rename = "acceleratorType")]
@@ -2827,7 +2828,7 @@ pub struct UsageSnapshot {
 }
 
 /// Properties of the workload organized by origin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertiesInfo {
     /// Output only. Properties set by autotuning engine.
     #[serde(default, rename = "autotuningProperties")]
@@ -2835,7 +2836,7 @@ pub struct PropertiesInfo {
 }
 
 /// A Dataproc job for running Apache Flink applications on YARN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlinkJob {
     /// Optional. The arguments to pass to the driver. Do not include arguments, such as --conf, that can be set as job properties, since a collision might occur that causes an incorrect job submission.
     #[serde(default)]
@@ -2861,7 +2862,7 @@ pub struct FlinkJob {
 }
 
 /// A Dataproc job for running Apache Hadoop MapReduce (https://hadoop.apache.org/docs/current/hadoop-mapreduce-client/hadoop-mapreduce-client-core/MapReduceTutorial.html) jobs on Apache Hadoop YARN (https://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/YARN.html).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HadoopJob {
     /// Optional. HCFS URIs of archives to be extracted in the working directory of Hadoop drivers and tasks. Supported file types: .jar, .tar, .tar.gz, .tgz, or .zip.
     #[serde(default, rename = "archiveUris")]
@@ -2890,7 +2891,7 @@ pub struct HadoopJob {
 }
 
 /// A Dataproc job for running Apache Hive (https://hive.apache.org/) queries on YARN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HiveJob {
     /// Optional. Whether to continue executing queries if a query fails. The default value is false. Setting to true can be useful when executing independent parallel queries.
     #[serde(default, rename = "continueOnFailure")]
@@ -2913,7 +2914,7 @@ pub struct HiveJob {
 }
 
 /// A Dataproc job for running Apache Pig (https://pig.apache.org/) queries on YARN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PigJob {
     /// Optional. Whether to continue executing queries if a query fails. The default value is false. Setting to true can be useful when executing independent parallel queries.
     #[serde(default, rename = "continueOnFailure")]
@@ -2939,7 +2940,7 @@ pub struct PigJob {
 }
 
 /// A Dataproc job for running Presto (https://prestosql.io/) queries. IMPORTANT: The Dataproc Presto Optional Component (https://cloud.google.com/dataproc/docs/concepts/components/presto) must be enabled when the cluster is created to submit a Presto job to the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrestoJob {
     /// Optional. Presto client tags to attach to this query
     #[serde(default, rename = "clientTags")]
@@ -2965,7 +2966,7 @@ pub struct PrestoJob {
 }
 
 /// A Dataproc job for running Apache PySpark (https://spark.apache.org/docs/latest/api/python/index.html#pyspark-overview) applications on YARN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PySparkJob {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.Note: Spark applications must be deployed in cluster mode (https://spark.apache.org/docs/latest/cluster-overview.html) for correct environment propagation.
     #[serde(default, rename = "archiveUris")]
@@ -2994,7 +2995,7 @@ pub struct PySparkJob {
 }
 
 /// Job scheduling options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobScheduling {
     /// Optional. Maximum number of times per hour a driver can be restarted as a result of driver exiting with non-zero code before job is reported failed.A job might be reported as thrashing if the driver exits with a non-zero code four times within a 10-minute window.Maximum value is 10.Note: This restartable job option is not supported in Dataproc workflow templates (https://cloud.google.com/dataproc/docs/concepts/workflows/using-workflows#adding_jobs_to_a_template).
     #[serde(default, rename = "maxFailuresPerHour")]
@@ -3005,7 +3006,7 @@ pub struct JobScheduling {
 }
 
 /// A Dataproc job for running Apache Spark (https://spark.apache.org/) applications on YARN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkJob {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
@@ -3034,7 +3035,7 @@ pub struct SparkJob {
 }
 
 /// A Dataproc job for running Apache SparkR (https://spark.apache.org/docs/latest/sparkr.html) applications on YARN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkRJob {
     /// Optional. HCFS URIs of archives to be extracted into the working directory of each executor. Supported file types: .jar, .tar, .tar.gz, .tgz, and .zip.
     #[serde(default, rename = "archiveUris")]
@@ -3057,7 +3058,7 @@ pub struct SparkRJob {
 }
 
 /// A Dataproc job for running Apache Spark SQL (https://spark.apache.org/sql/) queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkSqlJob {
     /// Optional. HCFS URIs of jar files to be added to the Spark CLASSPATH.
     #[serde(default, rename = "jarFileUris")]
@@ -3080,7 +3081,7 @@ pub struct SparkSqlJob {
 }
 
 /// A Dataproc job for running Trino (https://trino.io/) queries. IMPORTANT: The Dataproc Trino Optional Component (https://cloud.google.com/dataproc/docs/concepts/components/trino) must be enabled when the cluster is created to submit a Trino job to the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrinoJob {
     /// Optional. Trino client tags to attach to this query
     #[serde(default, rename = "clientTags")]
@@ -3106,7 +3107,7 @@ pub struct TrinoJob {
 }
 
 /// Configuration for parameter validation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParameterValidation {
     /// Validation based on regular expressions.
     #[serde(default)]
@@ -3117,7 +3118,7 @@ pub struct ParameterValidation {
 }
 
 /// A selector that chooses target cluster for jobs based on metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterSelector {
     /// Required. The cluster labels. Cluster must have all labels to match.
     #[serde(default, rename = "clusterLabels")]
@@ -3128,7 +3129,7 @@ pub struct ClusterSelector {
 }
 
 /// Cluster that is managed by the workflow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedCluster {
     /// Required. The cluster name prefix. A unique cluster name will be formed by appending a random suffix.The name must contain only lower-case letters (a-z), numbers (0-9), and hyphens (-). Must begin with a letter. Cannot begin or end with hyphen. Must consist of between 2 and 35 characters.
     #[serde(default, rename = "clusterName")]
@@ -3142,7 +3143,7 @@ pub struct ManagedCluster {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec.Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -3159,7 +3160,7 @@ pub struct Expr {
 }
 
 /// Resource profile that contains information about all the resources required by executors and tasks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceProfileInfo {
     #[serde(default, rename = "executorResources")]
     pub executor_resources: ::core::option::Option<serde_json::Value>,
@@ -3170,7 +3171,7 @@ pub struct ResourceProfileInfo {
 }
 
 /// SparkRuntimeInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkRuntimeInfo {
     #[serde(default, rename = "javaHome")]
     pub java_home: ::core::option::Option<String>,
@@ -3181,7 +3182,7 @@ pub struct SparkRuntimeInfo {
 }
 
 /// Specific attempt of an application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationAttemptInfo {
     #[serde(default, rename = "appSparkVersion")]
     pub app_spark_version: ::core::option::Option<String>,
@@ -3202,7 +3203,7 @@ pub struct ApplicationAttemptInfo {
 }
 
 /// MemoryMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemoryMetrics {
     #[serde(default, rename = "totalOffHeapStorageMemory")]
     pub total_off_heap_storage_memory: ::core::option::Option<String>,
@@ -3215,7 +3216,7 @@ pub struct MemoryMetrics {
 }
 
 /// Native Build Info
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildInfo {
     /// Optional. Build key.
     #[serde(default, rename = "buildKey")]
@@ -3226,7 +3227,7 @@ pub struct BuildInfo {
 }
 
 /// Native SQL Execution Data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FallbackReason {
     /// Optional. Fallback node information.
     #[serde(default, rename = "fallbackNode")]
@@ -3237,7 +3238,7 @@ pub struct FallbackReason {
 }
 
 /// A directed edge representing dependency between two RDDs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RddOperationEdge {
     #[serde(default, rename = "fromId")]
     pub from_id: ::core::option::Option<i32>,
@@ -3246,7 +3247,7 @@ pub struct RddOperationEdge {
 }
 
 /// A grouping of nodes representing higher level constructs (stage, job etc.).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RddOperationCluster {
     #[serde(default, rename = "childClusters")]
     pub child_clusters: ::std::vec::Vec<::std::boxed::Box<RddOperationCluster>>,
@@ -3259,7 +3260,7 @@ pub struct RddOperationCluster {
 }
 
 /// Details about RDD usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RddDataDistribution {
     #[serde(default)]
     pub address: ::core::option::Option<String>,
@@ -3280,7 +3281,7 @@ pub struct RddDataDistribution {
 }
 
 /// Information about RDD partitions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RddPartitionInfo {
     #[serde(default, rename = "blockName")]
     pub block_name: ::core::option::Option<String>,
@@ -3295,7 +3296,7 @@ pub struct RddPartitionInfo {
 }
 
 /// Represents a directed edge in the spark plan tree from child to parent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkPlanGraphEdge {
     #[serde(default, rename = "fromId")]
     pub from_id: ::core::option::Option<String>,
@@ -3304,7 +3305,7 @@ pub struct SparkPlanGraphEdge {
 }
 
 /// ExecutorMetricsDistributions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutorMetricsDistributions {
     #[serde(default, rename = "diskBytesSpilled")]
     pub disk_bytes_spilled: ::core::option::Option<::std::vec::Vec<f64>>,
@@ -3341,7 +3342,7 @@ pub struct ExecutorMetricsDistributions {
 }
 
 /// Details of the speculation task when speculative execution is enabled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpeculationStageSummary {
     #[serde(default, rename = "numActiveTasks")]
     pub num_active_tasks: ::core::option::Option<i32>,
@@ -3360,7 +3361,7 @@ pub struct SpeculationStageSummary {
 }
 
 /// Stage Level Aggregated Metrics
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageMetrics {
     #[serde(default, rename = "diskBytesSpilled")]
     pub disk_bytes_spilled: ::core::option::Option<String>,
@@ -3393,7 +3394,7 @@ pub struct StageMetrics {
 }
 
 /// TaskQuantileMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskQuantileMetrics {
     #[serde(default, rename = "diskBytesSpilled")]
     pub disk_bytes_spilled: ::core::option::Option<Quantiles>,
@@ -3432,7 +3433,7 @@ pub struct TaskQuantileMetrics {
 }
 
 /// SinkProgress resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SinkProgress {
     #[serde(default)]
     pub description: ::core::option::Option<String>,
@@ -3443,7 +3444,7 @@ pub struct SinkProgress {
 }
 
 /// SourceProgress resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceProgress {
     #[serde(default)]
     pub description: ::core::option::Option<String>,
@@ -3464,7 +3465,7 @@ pub struct SourceProgress {
 }
 
 /// StateOperatorProgress resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StateOperatorProgress {
     #[serde(default, rename = "allRemovalsTimeMs")]
     pub all_removals_time_ms: ::core::option::Option<String>,
@@ -3493,7 +3494,7 @@ pub struct StateOperatorProgress {
 }
 
 /// AccumulableInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccumulableInfo {
     #[serde(default, rename = "accumullableInfoId")]
     pub accumullable_info_id: ::core::option::Option<String>,
@@ -3506,7 +3507,7 @@ pub struct AccumulableInfo {
 }
 
 /// Executor Task Metrics
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskMetrics {
     #[serde(default, rename = "diskBytesSpilled")]
     pub disk_bytes_spilled: ::core::option::Option<String>,
@@ -3539,7 +3540,7 @@ pub struct TaskMetrics {
 }
 
 /// The software configuration for this Dataproc cluster running on Kubernetes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KubernetesSoftwareConfig {
     /// The components that should be installed in this Dataproc cluster. The key must be a string from the KubernetesComponent enumeration. The value is the version of the software to be installed. At least one entry must be specified.
     #[serde(default, rename = "componentVersion")]
@@ -3550,7 +3551,7 @@ pub struct KubernetesSoftwareConfig {
 }
 
 /// Authentication configuration for a workload is used to set the default identity for the workload execution. The config specifies the type of identity (service account or user) that will be used by workloads to access resources on the project(s).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthenticationConfig {
     /// Optional. Authentication type for the user workload running in containers. // TODO: enum values: ["AUTHENTICATION_TYPE_UNSPECIFIED", "SERVICE_ACCOUNT", "END_USER_CREDENTIALS"]
     #[serde(default, rename = "userWorkloadAuthenticationType")]
@@ -3558,7 +3559,7 @@ pub struct AuthenticationConfig {
 }
 
 /// Spark History Server configuration for the workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkHistoryServerConfig {
     /// Optional. Resource name of an existing Dataproc Cluster to act as a Spark History Server for the workload.Example: projects/[project_id]/regions/[region]/clusters/[cluster_name]
     #[serde(default, rename = "dataprocCluster")]
@@ -3566,7 +3567,7 @@ pub struct SparkHistoryServerConfig {
 }
 
 /// Configuration for PyPi repository
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PyPiRepositoryConfig {
     /// Optional. The PyPi repository address. Note: This field is not available for batch workloads.
     #[serde(default, rename = "pypiRepository")]
@@ -3574,7 +3575,7 @@ pub struct PyPiRepositoryConfig {
 }
 
 /// The runtime logging config of the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingConfig {
     /// The per-package log levels for the driver. This can include "root" package name to configure rootLogger. Examples: - ''com.google = FATAL'' - ''root = INFO'' - ''org.apache = DEBUG''
     #[serde(default, rename = "driverLogLevels")]
@@ -3582,7 +3583,7 @@ pub struct LoggingConfig {
 }
 
 /// A list of queries to run on a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryList {
     /// Required. The queries to execute. You do not need to end a query expression with a semicolon. Multiple queries can be specified in one string by separating each with a semicolon. Here is an example of a Dataproc API snippet that uses a QueryList to specify a HiveJob: "hiveJob": { "queryList": { "queries": [ "query1", "query2", "query3;query4", ] } }
     #[serde(default)]
@@ -3590,7 +3591,7 @@ pub struct QueryList {
 }
 
 /// Validation based on regular expressions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegexValidation {
     /// Required. RE2 regular expressions used to validate the parameter''s value. The value must match the regex in its entirety (substring matches are not sufficient).
     #[serde(default)]
@@ -3598,7 +3599,7 @@ pub struct RegexValidation {
 }
 
 /// Validation based on a list of allowed values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValueValidation {
     /// Required. List of allowed values for the parameter.
     #[serde(default)]
@@ -3606,7 +3607,7 @@ pub struct ValueValidation {
 }
 
 /// The cluster config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterConfig {
     /// Optional. Autoscaling config for the policy associated with the cluster. Cluster does not autoscale if this field is unset.
     #[serde(default, rename = "autoscalingConfig")]
@@ -3674,7 +3675,7 @@ pub struct ClusterConfig {
 }
 
 /// A node in the RDD operation graph. Corresponds to a single RDD.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RddOperationNode {
     #[serde(default)]
     pub barrier: ::core::option::Option<bool>,
@@ -3692,7 +3693,7 @@ pub struct RddOperationNode {
 }
 
 /// ExecutorPeakMetricsDistributions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutorPeakMetricsDistributions {
     #[serde(default, rename = "executorMetrics")]
     pub executor_metrics: ::core::option::Option<::std::vec::Vec<ExecutorMetrics>>,
@@ -3701,7 +3702,7 @@ pub struct ExecutorPeakMetricsDistributions {
 }
 
 /// Metrics about the input read by the stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageInputMetrics {
     #[serde(default, rename = "bytesRead")]
     pub bytes_read: ::core::option::Option<String>,
@@ -3710,7 +3711,7 @@ pub struct StageInputMetrics {
 }
 
 /// Metrics about the output written by the stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageOutputMetrics {
     #[serde(default, rename = "bytesWritten")]
     pub bytes_written: ::core::option::Option<String>,
@@ -3719,7 +3720,7 @@ pub struct StageOutputMetrics {
 }
 
 /// Shuffle data read for the stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageShuffleReadMetrics {
     #[serde(default, rename = "bytesRead")]
     pub bytes_read: ::core::option::Option<String>,
@@ -3744,7 +3745,7 @@ pub struct StageShuffleReadMetrics {
 }
 
 /// Shuffle data written for the stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageShuffleWriteMetrics {
     #[serde(default, rename = "bytesWritten")]
     pub bytes_written: ::core::option::Option<String>,
@@ -3755,7 +3756,7 @@ pub struct StageShuffleWriteMetrics {
 }
 
 /// InputQuantileMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputQuantileMetrics {
     #[serde(default, rename = "bytesRead")]
     pub bytes_read: ::core::option::Option<Quantiles>,
@@ -3764,7 +3765,7 @@ pub struct InputQuantileMetrics {
 }
 
 /// OutputQuantileMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutputQuantileMetrics {
     #[serde(default, rename = "bytesWritten")]
     pub bytes_written: ::core::option::Option<Quantiles>,
@@ -3773,7 +3774,7 @@ pub struct OutputQuantileMetrics {
 }
 
 /// ShuffleReadQuantileMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShuffleReadQuantileMetrics {
     #[serde(default, rename = "fetchWaitTimeMillis")]
     pub fetch_wait_time_millis: ::core::option::Option<Quantiles>,
@@ -3798,7 +3799,7 @@ pub struct ShuffleReadQuantileMetrics {
 }
 
 /// ShuffleWriteQuantileMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShuffleWriteQuantileMetrics {
     #[serde(default, rename = "writeBytes")]
     pub write_bytes: ::core::option::Option<Quantiles>,
@@ -3809,7 +3810,7 @@ pub struct ShuffleWriteQuantileMetrics {
 }
 
 /// Metrics about the input data read by the task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputMetrics {
     #[serde(default, rename = "bytesRead")]
     pub bytes_read: ::core::option::Option<String>,
@@ -3818,7 +3819,7 @@ pub struct InputMetrics {
 }
 
 /// Metrics about the data written by the task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutputMetrics {
     #[serde(default, rename = "bytesWritten")]
     pub bytes_written: ::core::option::Option<String>,
@@ -3827,7 +3828,7 @@ pub struct OutputMetrics {
 }
 
 /// Shuffle data read by the task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShuffleReadMetrics {
     #[serde(default, rename = "fetchWaitTimeMillis")]
     pub fetch_wait_time_millis: ::core::option::Option<String>,
@@ -3850,7 +3851,7 @@ pub struct ShuffleReadMetrics {
 }
 
 /// Shuffle data written by task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShuffleWriteMetrics {
     #[serde(default, rename = "bytesWritten")]
     pub bytes_written: ::core::option::Option<String>,
@@ -3861,7 +3862,7 @@ pub struct ShuffleWriteMetrics {
 }
 
 /// Autoscaling Policy config associated with the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingConfig {
     /// Optional. The autoscaling policy used by the cluster.Only resource names including projectid and location (region) are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/locations/[dataproc_region]/autoscalingPolicies/[policy_id] projects/[project_id]/locations/[dataproc_region]/autoscalingPolicies/[policy_id]Note that the policy must be in the same project and Dataproc region.
     #[serde(default, rename = "policyUri")]
@@ -3869,7 +3870,7 @@ pub struct AutoscalingConfig {
 }
 
 /// Node group identification and configuration information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuxiliaryNodeGroup {
     /// Required. Node group configuration.
     #[serde(default, rename = "nodeGroup")]
@@ -3880,7 +3881,7 @@ pub struct AuxiliaryNodeGroup {
 }
 
 /// Dataproc metric config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataprocMetricConfig {
     /// Required. Metrics sources to enable.
     #[serde(default)]
@@ -3888,7 +3889,7 @@ pub struct DataprocMetricConfig {
 }
 
 /// Encryption settings for the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionConfig {
     /// Optional. The Cloud KMS key resource name to use for persistent disk encryption for all instances in the cluster. See Use CMEK with cluster data (https://cloud.google.com//dataproc/docs/concepts/configuring-clusters/customer-managed-encryption#use_cmek_with_cluster_data) for more information.
     #[serde(default, rename = "gcePdKmsKeyName")]
@@ -3899,7 +3900,7 @@ pub struct EncryptionConfig {
 }
 
 /// Endpoint config for this cluster
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointConfig {
     /// Optional. If true, enable http access to specific ports on the cluster from external sources. Defaults to false.
     #[serde(default, rename = "enableHttpPortAccess")]
@@ -3910,7 +3911,7 @@ pub struct EndpointConfig {
 }
 
 /// Common config settings for resources of Compute Engine cluster instances, applicable to all instances in the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GceClusterConfig {
     /// Optional. An optional list of Compute Engine zones where the Dataproc cluster will not be located when Auto Zone is enabled. Only one of zone_uri or auto_zone_exclude_zone_uris can be set. If both are omitted, the service will pick a zone in the cluster Compute Engine region. If auto_zone_exclude_zone_uris is set and there is more than one non-excluded zone, the service will pick one of the non-excluded zones. Otherwise, cluster creation will fail with INVALID_ARGUMENT error.A full URL, partial URI, or short name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone] projects/[project_id]/zones/[zone] [zone]
     #[serde(default, rename = "autoZoneExcludeZoneUris")]
@@ -3960,7 +3961,7 @@ pub struct GceClusterConfig {
 }
 
 /// The cluster''s GKE config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeClusterConfig {
     /// Optional. A target GKE cluster to deploy to. It must be in the same project and region as the Dataproc cluster (the GKE cluster can be zonal or regional). Format: ''projects/{project}/locations/{location}/clusters/{cluster_id}''
     #[serde(default, rename = "gkeClusterTarget")]
@@ -3974,7 +3975,7 @@ pub struct GkeClusterConfig {
 }
 
 /// Specifies an executable to run on a fully configured node and a timeout period for executable completion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeInitializationAction {
     /// Required. Cloud Storage URI of executable file.
     #[serde(default, rename = "executableFile")]
@@ -3985,7 +3986,7 @@ pub struct NodeInitializationAction {
 }
 
 /// Specifies the cluster auto-delete schedule configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LifecycleConfig {
     /// Optional. The time when cluster will be auto-deleted (see JSON representation of Timestamp (https://developers.google.com/protocol-buffers/docs/proto3#json)).
     #[serde(default, rename = "autoDeleteTime")]
@@ -4011,7 +4012,7 @@ pub struct LifecycleConfig {
 }
 
 /// Specifies a Metastore configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetastoreConfig {
     /// Required. Resource name of an existing Dataproc Metastore service.Example: projects/[project_id]/locations/[dataproc_region]/services/[service-name]
     #[serde(default, rename = "dataprocMetastoreService")]
@@ -4019,7 +4020,7 @@ pub struct MetastoreConfig {
 }
 
 /// Security related configuration, including encryption, Kerberos, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityConfig {
     /// Optional. Identity related configuration, including service account based secure multi-tenancy user mappings.
     #[serde(default, rename = "identityConfig")]
@@ -4030,7 +4031,7 @@ pub struct SecurityConfig {
 }
 
 /// Specifies the selection and config of software inside the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SoftwareConfig {
     /// Optional. The version of software inside the cluster. It must be one of the supported Dataproc Versions (https://cloud.google.com/dataproc/docs/concepts/versioning/dataproc-versions#supported-dataproc-image-versions), such as "1.2" (including a subminor version, such as "1.2.29"), or the "preview" version (https://cloud.google.com/dataproc/docs/concepts/versioning/dataproc-versions#other_versions). If unspecified, it defaults to the latest Debian version.
     #[serde(default, rename = "imageVersion")]
@@ -4044,14 +4045,14 @@ pub struct SoftwareConfig {
 }
 
 /// ExecutorMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutorMetrics {
     #[serde(default)]
     pub metrics: ::core::option::Option<serde_json::Value>,
 }
 
 /// StageShufflePushReadMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageShufflePushReadMetrics {
     #[serde(default, rename = "corruptMergedBlockChunks")]
     pub corrupt_merged_block_chunks: ::core::option::Option<String>,
@@ -4074,7 +4075,7 @@ pub struct StageShufflePushReadMetrics {
 }
 
 /// ShufflePushReadQuantileMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShufflePushReadQuantileMetrics {
     #[serde(default, rename = "corruptMergedBlockChunks")]
     pub corrupt_merged_block_chunks: ::core::option::Option<Quantiles>,
@@ -4097,7 +4098,7 @@ pub struct ShufflePushReadQuantileMetrics {
 }
 
 /// ShufflePushReadMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShufflePushReadMetrics {
     #[serde(default, rename = "corruptMergedBlockChunks")]
     pub corrupt_merged_block_chunks: ::core::option::Option<String>,
@@ -4120,7 +4121,7 @@ pub struct ShufflePushReadMetrics {
 }
 
 /// Dataproc Node Group. The Dataproc NodeGroup resource is not related to the Dataproc NodeGroupAffinity resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroup {
     /// Optional. Node group labels. Label keys must consist of from 1 to 63 characters and conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). Label values can be empty. If specified, they must consist of from 1 to 63 characters and conform to RFC 1035 (https://www.ietf.org/rfc/rfc1035.txt). The node group must have no more than 32 labels.
     #[serde(default)]
@@ -4137,7 +4138,7 @@ pub struct NodeGroup {
 }
 
 /// A Dataproc custom metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metric {
     /// Optional. Specify one or more Custom metrics (https://cloud.google.com/dataproc/docs/guides/dataproc-metrics#custom_metrics) to collect for the metric course (for the SPARK metric source (any Spark metric (https://spark.apache.org/docs/latest/monitoring.html#metrics) can be specified).Provide metrics in the following format: METRIC_SOURCE: INSTANCE:GROUP:METRIC Use camelcase as appropriate.Examples: yarn:ResourceManager:QueueMetrics:AppsCompleted spark:driver:DAGScheduler:job.allJobs sparkHistoryServer:JVM:Memory:NonHeapMemoryUsage.committed hiveserver2:JVM:Memory:NonHeapMemoryUsage.used Notes: Only the specified overridden metrics are collected for the metric source. For example, if one or more spark:executive metrics are listed as metric overrides, other SPARK metrics are not collected. The collection of the metrics for other enabled custom metric sources is unaffected. For example, if both SPARK and YARN metric sources are enabled, and overrides are provided for Spark metrics only, all YARN metrics are collected.
     #[serde(default, rename = "metricOverrides")]
@@ -4148,7 +4149,7 @@ pub struct Metric {
 }
 
 /// Confidential Instance Config for clusters using Confidential VMs (https://cloud.google.com/compute/confidential-vm/docs)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfidentialInstanceConfig {
     /// Optional. Defines whether the instance should have confidential compute enabled.
     #[serde(default, rename = "enableConfidentialCompute")]
@@ -4156,7 +4157,7 @@ pub struct ConfidentialInstanceConfig {
 }
 
 /// Node Group Affinity for clusters using sole-tenant node groups. The Dataproc NodeGroupAffinity resource is not related to the Dataproc NodeGroup resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupAffinity {
     /// Required. The URI of a sole-tenant node group resource (https://cloud.google.com/compute/docs/reference/rest/v1/nodeGroups) that the cluster will be created on.A full URL, partial URI, or node group name are valid. Examples: https://www.googleapis.com/compute/v1/projects/[project_id]/zones/[zone]/nodeGroups/node-group-1 projects/[project_id]/zones/[zone]/nodeGroups/node-group-1 node-group-1
     #[serde(default, rename = "nodeGroupUri")]
@@ -4164,7 +4165,7 @@ pub struct NodeGroupAffinity {
 }
 
 /// Reservation Affinity for consuming Zonal reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationAffinity {
     /// Optional. Type of reservation to consume // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_RESERVATION", "ANY_RESERVATION", "SPECIFIC_RESERVATION"]
     #[serde(default, rename = "consumeReservationType")]
@@ -4178,7 +4179,7 @@ pub struct ReservationAffinity {
 }
 
 /// Shielded Instance Config for clusters using Compute Engine Shielded VMs (https://cloud.google.com/security/shielded-cloud/shielded-vm).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShieldedInstanceConfig {
     /// Optional. Defines whether instances have integrity monitoring enabled.
     #[serde(default, rename = "enableIntegrityMonitoring")]
@@ -4192,7 +4193,7 @@ pub struct ShieldedInstanceConfig {
 }
 
 /// Deprecated. Used only for the deprecated beta. A full, namespace-isolated deployment target for an existing GKE cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NamespacedGkeDeploymentTarget {
     /// Optional. A namespace within the GKE cluster to deploy into.
     #[serde(default, rename = "clusterNamespace")]
@@ -4203,7 +4204,7 @@ pub struct NamespacedGkeDeploymentTarget {
 }
 
 /// GKE node pools that Dataproc workloads run on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeNodePoolTarget {
     /// Required. The target GKE node pool. Format: ''projects/{project}/locations/{location}/clusters/{cluster}/nodePools/{node_pool}''
     #[serde(default, rename = "nodePool")]
@@ -4217,7 +4218,7 @@ pub struct GkeNodePoolTarget {
 }
 
 /// Identity related configuration, including service account based secure multi-tenancy user mappings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityConfig {
     /// Required. Map of user to service account.
     #[serde(default, rename = "userServiceAccountMapping")]
@@ -4225,7 +4226,7 @@ pub struct IdentityConfig {
 }
 
 /// Specifies Kerberos related configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KerberosConfig {
     /// Optional. The admin server (IP or hostname) for the remote trusted realm in a cross realm trust relationship.
     #[serde(default, rename = "crossRealmTrustAdminServer")]
@@ -4275,7 +4276,7 @@ pub struct KerberosConfig {
 }
 
 /// Quantile metrics data related to Tasks. Units can be seconds, bytes, milliseconds, etc depending on the message type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Quantiles {
     #[serde(default)]
     pub count: ::core::option::Option<String>,
@@ -4294,7 +4295,7 @@ pub struct Quantiles {
 }
 
 /// The config settings for Compute Engine resources in an instance group, such as a master or worker group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupConfig {
     /// Optional. The Compute Engine accelerator configuration for these instances.
     #[serde(default)]
@@ -4341,7 +4342,7 @@ pub struct InstanceGroupConfig {
 }
 
 /// The configuration of a GKE node pool used by a Dataproc-on-GKE cluster (https://cloud.google.com/dataproc/docs/concepts/jobs/dataproc-gke#create-a-dataproc-on-gke-cluster).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeNodePoolConfig {
     /// Optional. The autoscaler configuration for this node pool. The autoscaler is enabled only when a valid configuration is present.
     #[serde(default)]
@@ -4355,7 +4356,7 @@ pub struct GkeNodePoolConfig {
 }
 
 /// Specifies the type and number of accelerator cards attached to the instances of an instance. See GPUs on Compute Engine (https://cloud.google.com/compute/docs/gpus/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorConfig {
     /// The number of the accelerator cards of this type exposed to this instance.
     #[serde(default, rename = "acceleratorCount")]
@@ -4366,7 +4367,7 @@ pub struct AcceleratorConfig {
 }
 
 /// Specifies the config of boot disk and attached disk options for a group of VM instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskConfig {
     /// Optional. A list of attached disk configs for a group of VM instances.
     #[serde(default, rename = "attachedDiskConfigs")]
@@ -4392,7 +4393,7 @@ pub struct DiskConfig {
 }
 
 /// Instance flexibility Policy allowing a mixture of VM shapes and provisioning models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceFlexibilityPolicy {
     /// Output only. A map of instance short name to machine type. The key is the short name of the Compute Engine instance, and the value is the full machine-type name (e.g., ''n1-standard-16''). See Machine types for more information on valid machine type strings.
     #[serde(default, rename = "instanceMachineTypes")]
@@ -4410,7 +4411,7 @@ pub struct InstanceFlexibilityPolicy {
 }
 
 /// A reference to a Compute Engine instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceReference {
     /// The unique identifier of the Compute Engine instance.
     #[serde(default, rename = "instanceId")]
@@ -4427,7 +4428,7 @@ pub struct InstanceReference {
 }
 
 /// Specifies the resources used to actively manage an instance group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedGroupConfig {
     /// Output only. The name of the Instance Group Manager for this group.
     #[serde(default, rename = "instanceGroupManagerName")]
@@ -4441,7 +4442,7 @@ pub struct ManagedGroupConfig {
 }
 
 /// Configuration to handle the startup of instances during cluster create and update process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartupConfig {
     /// Optional. The config setting to enable cluster creation/ updation to be successful only after required_registration_fraction of instances are up and running. This configuration is applicable to only secondary workers for now. The cluster will fail if required_registration_fraction of instances are not available. This will include instance creation, agent registration, and service registration (if enabled).
     #[serde(default, rename = "requiredRegistrationFraction")]
@@ -4449,7 +4450,7 @@ pub struct StartupConfig {
 }
 
 /// GkeNodePoolAutoscaling contains information the cluster autoscaler needs to adjust the size of the node pool to the current cluster usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeNodePoolAutoscalingConfig {
     /// The maximum number of nodes in the node pool. Must be &gt;= min_node_count, and must be &gt; 0. Note: Quota must be sufficient to scale up the cluster.
     #[serde(default, rename = "maxNodeCount")]
@@ -4460,7 +4461,7 @@ pub struct GkeNodePoolAutoscalingConfig {
 }
 
 /// Parameters that describe cluster nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeNodeConfig {
     /// Optional. A list of hardware accelerators (https://cloud.google.com/compute/docs/gpus) to attach to each node.
     #[serde(default)]
@@ -4486,7 +4487,7 @@ pub struct GkeNodeConfig {
 }
 
 /// Specifies the config of attached disk options for single VM instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttachedDiskConfig {
     /// Optional. Disk size in GB.
     #[serde(default, rename = "diskSizeGb")]
@@ -4503,7 +4504,7 @@ pub struct AttachedDiskConfig {
 }
 
 /// Defines machines types and a rank to which the machines types belong.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceSelection {
     /// Optional. Full machine-type names, e.g. "n1-standard-16".
     #[serde(default, rename = "machineTypes")]
@@ -4514,7 +4515,7 @@ pub struct InstanceSelection {
 }
 
 /// Defines a mapping from machine types to the number of VMs that are created with each machine type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceSelectionResult {
     /// Output only. Full machine-type names, e.g. "n1-standard-16".
     #[serde(default, rename = "machineType")]
@@ -4525,7 +4526,7 @@ pub struct InstanceSelectionResult {
 }
 
 /// Defines how Dataproc should create VMs with a mixture of provisioning models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisioningModelMix {
     /// Optional. The base capacity that will always use Standard VMs to avoid risk of more preemption than the minimum capacity you need. Dataproc will create only standard VMs until it reaches standard_capacity_base, then it will start using standard_capacity_percent_above_base to mix Spot with Standard VMs. eg. If 15 instances are requested and standard_capacity_base is 5, Dataproc will create 5 standard VMs and then start mixing spot and standard VMs for remaining 10 instances.
     #[serde(default, rename = "standardCapacityBase")]
@@ -4536,7 +4537,7 @@ pub struct ProvisioningModelMix {
 }
 
 /// A GkeNodeConfigAcceleratorConfig represents a Hardware Accelerator request for a node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeNodePoolAcceleratorConfig {
     /// The number of accelerator cards exposed to an instance.
     #[serde(default, rename = "acceleratorCount")]
@@ -4550,7 +4551,7 @@ pub struct GkeNodePoolAcceleratorConfig {
 }
 
 /// Represents a tree of spark plan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkPlanGraphCluster {
     #[serde(default)]
     pub desc: ::core::option::Option<String>,
@@ -4568,7 +4569,7 @@ pub struct SparkPlanGraphCluster {
 }
 
 /// Represents a node in the spark plan tree.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkPlanGraphNode {
     #[serde(default)]
     pub desc: ::core::option::Option<String>,
@@ -4584,7 +4585,7 @@ pub struct SparkPlanGraphNode {
 }
 
 /// Wrapper user to represent either a node or a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SparkPlanGraphNodeWrapper {
     #[serde(default)]
     pub cluster: ::core::option::Option<::std::boxed::Box<SparkPlanGraphCluster>>,
@@ -4593,7 +4594,7 @@ pub struct SparkPlanGraphNodeWrapper {
 }
 
 /// Metrics related to SQL execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlPlanMetric {
     #[serde(default, rename = "accumulatorId")]
     pub accumulator_id: ::core::option::Option<String>,

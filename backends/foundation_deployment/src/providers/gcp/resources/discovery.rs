@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// DirectoryList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DirectoryList {
     /// Indicate the version of the Discovery API used to generate this doc.
     #[serde(default, rename = "discoveryVersion")]
@@ -25,7 +26,7 @@ pub struct DirectoryList {
 }
 
 /// JsonSchema resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JsonSchema {
     /// A reference to another schema. The value of this property is the "id" of another schema.
     #[serde(default, rename = "$ref")]
@@ -96,7 +97,7 @@ pub struct JsonSchema {
 }
 
 /// RestDescription resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestDescription {
     /// Authentication information.
     #[serde(default)]
@@ -193,7 +194,7 @@ pub struct RestDescription {
 }
 
 /// RestMethod resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestMethod {
     /// The API Version of this method, as passed in via the X-Goog-Api-Version header or $apiVersion query parameter.
     #[serde(default, rename = "apiVersion")]
@@ -252,7 +253,7 @@ pub struct RestMethod {
 }
 
 /// RestResource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestResource {
     /// Whether this resource is deprecated.
     #[serde(default)]

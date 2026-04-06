@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Backup run list results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupRunsListResponse {
     /// A list of backup runs in reverse chronological order of the enqueued time.
     #[serde(default)]
@@ -25,7 +26,7 @@ pub struct BackupRunsListResponse {
 }
 
 /// Connect settings retrieval response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectSettings {
     /// SECOND_GEN: Cloud SQL database instance. EXTERNAL: A database server that is not managed by Google. This property is read-only; use the tier property in the settings object to determine the database type. // TODO: enum values: ["SQL_BACKEND_TYPE_UNSPECIFIED", "FIRST_GEN", "SECOND_GEN", "EXTERNAL"]
     #[serde(default, rename = "backendType")]
@@ -72,7 +73,7 @@ pub struct ConnectSettings {
 }
 
 /// Database list response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabasesListResponse {
     /// List of database resources in the instance.
     #[serde(default)]
@@ -83,11 +84,11 @@ pub struct DatabasesListResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The request payload used to execute SQL statements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteSqlPayload {
     /// Optional. Specifies the name of the application that is making the request. This field is used for telemetry. Only alphanumeric characters, dashes, and underscores are allowed. The maximum length is 32 characters.
     #[serde(default)]
@@ -113,7 +114,7 @@ pub struct ExecuteSqlPayload {
 }
 
 /// Flags list response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlagsListResponse {
     /// List of flags.
     #[serde(default)]
@@ -124,7 +125,7 @@ pub struct FlagsListResponse {
 }
 
 /// Ephemeral certificate creation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateEphemeralCertRequest {
     /// Optional. Access token to include in the signed certificate.
     #[serde(default)]
@@ -141,7 +142,7 @@ pub struct GenerateEphemeralCertRequest {
 }
 
 /// Ephemeral certificate creation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateEphemeralCertResponse {
     /// Generated cert
     #[serde(default, rename = "ephemeralCert")]
@@ -149,7 +150,7 @@ pub struct GenerateEphemeralCertResponse {
 }
 
 /// Request to acquire a lease for SSRS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesAcquireSsrsLeaseRequest {
     /// Contains details about the acquire SSRS lease operation.
     #[serde(default, rename = "acquireSsrsLeaseContext")]
@@ -157,7 +158,7 @@ pub struct InstancesAcquireSsrsLeaseRequest {
 }
 
 /// Database instance clone request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesCloneRequest {
     /// Required. Contains details about the clone operation.
     #[serde(default, rename = "cloneContext")]
@@ -165,7 +166,7 @@ pub struct InstancesCloneRequest {
 }
 
 /// Database demote primary instance request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesDemoteMasterRequest {
     /// Contains details about the demoteMaster operation.
     #[serde(default, rename = "demoteMasterContext")]
@@ -173,7 +174,7 @@ pub struct InstancesDemoteMasterRequest {
 }
 
 /// This request is used to demote an existing standalone instance to be a Cloud SQL read replica for an external database server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesDemoteRequest {
     /// Required. Contains details about the demote operation.
     #[serde(default, rename = "demoteContext")]
@@ -181,7 +182,7 @@ pub struct InstancesDemoteRequest {
 }
 
 /// Database instance export request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesExportRequest {
     /// Contains details about the export operation.
     #[serde(default, rename = "exportContext")]
@@ -189,7 +190,7 @@ pub struct InstancesExportRequest {
 }
 
 /// Instance failover request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesFailoverRequest {
     /// Failover Context.
     #[serde(default, rename = "failoverContext")]
@@ -197,7 +198,7 @@ pub struct InstancesFailoverRequest {
 }
 
 /// Database instance import request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesImportRequest {
     /// Contains details about the import operation.
     #[serde(default, rename = "importContext")]
@@ -205,7 +206,7 @@ pub struct InstancesImportRequest {
 }
 
 /// Instances ListEntraIdCertificates response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesListEntraIdCertificatesResponse {
     /// The sha1_fingerprint of the active certificate from certs.
     #[serde(default, rename = "activeVersion")]
@@ -219,7 +220,7 @@ pub struct InstancesListEntraIdCertificatesResponse {
 }
 
 /// Database instances list response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesListResponse {
     /// List of database instance resources.
     #[serde(default)]
@@ -236,7 +237,7 @@ pub struct InstancesListResponse {
 }
 
 /// Instances ListServerCas response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesListServerCasResponse {
     #[serde(default, rename = "activeVersion")]
     pub active_version: ::core::option::Option<String>,
@@ -249,7 +250,7 @@ pub struct InstancesListServerCasResponse {
 }
 
 /// Instances ListServerCertificates response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesListServerCertificatesResponse {
     /// The sha1_fingerprint of the active certificate from server_certs.
     #[serde(default, rename = "activeVersion")]
@@ -266,7 +267,7 @@ pub struct InstancesListServerCertificatesResponse {
 }
 
 /// Request for Pre-checks for MVU
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesPreCheckMajorVersionUpgradeRequest {
     /// Required. Contains details about the pre-check major version upgrade operation.
     #[serde(default, rename = "preCheckMajorVersionUpgradeContext")]
@@ -275,7 +276,7 @@ pub struct InstancesPreCheckMajorVersionUpgradeRequest {
 }
 
 /// Database Instance reencrypt request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesReencryptRequest {
     /// Configuration specific to backup re-encryption
     #[serde(default, rename = "backupReencryptionConfig")]
@@ -283,7 +284,7 @@ pub struct InstancesReencryptRequest {
 }
 
 /// Database instance restore backup request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesRestoreBackupRequest {
     /// The name of the backup that''s used to restore a Cloud SQL instance: Format: projects/{project-id}/backups/{backup-uid}. Only one of restore_backup_context, backup, backupdr_backup can be passed to the input.
     #[serde(default)]
@@ -304,7 +305,7 @@ pub struct InstancesRestoreBackupRequest {
 }
 
 /// Rotate Entra ID certificate request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesRotateEntraIdCertificateRequest {
     /// Optional. Contains details about the rotate server certificate operation.
     #[serde(default, rename = "rotateEntraIdCertificateContext")]
@@ -313,7 +314,7 @@ pub struct InstancesRotateEntraIdCertificateRequest {
 }
 
 /// Rotate server CA request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesRotateServerCaRequest {
     /// Contains details about the rotate server CA operation.
     #[serde(default, rename = "rotateServerCaContext")]
@@ -321,7 +322,7 @@ pub struct InstancesRotateServerCaRequest {
 }
 
 /// Rotate server certificate request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesRotateServerCertificateRequest {
     /// Optional. Contains details about the rotate server certificate operation.
     #[serde(default, rename = "rotateServerCertificateContext")]
@@ -329,7 +330,7 @@ pub struct InstancesRotateServerCertificateRequest {
 }
 
 /// Instance truncate log request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesTruncateLogRequest {
     /// Contains details about the truncate log operation.
     #[serde(default, rename = "truncateLogContext")]
@@ -337,7 +338,7 @@ pub struct InstancesTruncateLogRequest {
 }
 
 /// The response payload containing a list of the backups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupsResponse {
     /// A list of backups.
     #[serde(default)]
@@ -351,7 +352,7 @@ pub struct ListBackupsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -377,7 +378,7 @@ pub struct OperationMetadata {
 }
 
 /// Operations list response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationsListResponse {
     /// List of operation resources.
     #[serde(default)]
@@ -391,7 +392,7 @@ pub struct OperationsListResponse {
 }
 
 /// Perform disk shrink context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerformDiskShrinkContext {
     /// The target disk shrink size in GigaBytes.
     #[serde(default, rename = "targetSizeGb")]
@@ -399,7 +400,7 @@ pub struct PerformDiskShrinkContext {
 }
 
 /// The context to perform a point-in-time recovery of an instance managed by Backup and Disaster Recovery (DR) Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PointInTimeRestoreContext {
     /// Optional. The name of the allocated IP range for the internal IP Cloud SQL instance. For example: "google-managed-services-default". If you set this, then Cloud SQL creates the IP address for the cloned instance in the allocated range. This range must comply with [RFC 1035](https://tools.ietf.org/html/rfc1035) standards. Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?. Reserved for future use.
     #[serde(default, rename = "allocatedIpRange")]
@@ -434,7 +435,7 @@ pub struct PointInTimeRestoreContext {
 }
 
 /// Response for the acquire SSRS lease request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlInstancesAcquireSsrsLeaseResponse {
     /// The unique identifier for this operation.
     #[serde(default, rename = "operationId")]
@@ -442,7 +443,7 @@ pub struct SqlInstancesAcquireSsrsLeaseResponse {
 }
 
 /// Execute SQL statements response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlInstancesExecuteSqlResponse {
     /// A list of notices and warnings generated during query execution. For PostgreSQL, this includes all notices and warnings. For MySQL, this includes warnings generated by the last executed statement. To retrieve all warnings for a multi-statement query, SHOW WARNINGS must be executed after each statement.
     #[serde(default)]
@@ -459,7 +460,7 @@ pub struct SqlInstancesExecuteSqlResponse {
 }
 
 /// Instance get disk shrink config response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlInstancesGetDiskShrinkConfigResponse {
     /// This is always sql#getDiskShrinkConfig.
     #[serde(default)]
@@ -473,7 +474,7 @@ pub struct SqlInstancesGetDiskShrinkConfigResponse {
 }
 
 /// Instance get latest recovery time response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlInstancesGetLatestRecoveryTimeResponse {
     /// Timestamp, identifies the earliest recovery time of the source instance.
     #[serde(default, rename = "earliestRecoveryTime")]
@@ -487,7 +488,7 @@ pub struct SqlInstancesGetLatestRecoveryTimeResponse {
 }
 
 /// Response for the release SSRS lease request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlInstancesReleaseSsrsLeaseResponse {
     /// The unique identifier for this operation.
     #[serde(default, rename = "operationId")]
@@ -495,7 +496,7 @@ pub struct SqlInstancesReleaseSsrsLeaseResponse {
 }
 
 /// Reschedule options for maintenance windows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlInstancesRescheduleMaintenanceRequestBody {
     /// Required. The type of the reschedule the user wants.
     #[serde(default)]
@@ -503,11 +504,11 @@ pub struct SqlInstancesRescheduleMaintenanceRequestBody {
 }
 
 /// Instance reset replica size request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlInstancesResetReplicaSizeRequest {}
 
 /// Instance start external sync request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlInstancesStartExternalSyncRequest {
     /// Optional. MigrationType configures the migration to use physical files or logical dump files. If not set, then the logical dump file configuration is used. Valid values are LOGICAL or PHYSICAL. Only applicable to MySQL. // TODO: enum values: ["MIGRATION_TYPE_UNSPECIFIED", "LOGICAL", "PHYSICAL"]
     #[serde(default, rename = "migrationType")]
@@ -530,7 +531,7 @@ pub struct SqlInstancesStartExternalSyncRequest {
 }
 
 /// Instance verify external sync settings request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlInstancesVerifyExternalSyncSettingsRequest {
     /// Optional. MigrationType configures the migration to use physical files or logical dump files. If not set, then the logical dump file configuration is used. Valid values are LOGICAL or PHYSICAL. Only applicable to MySQL. // TODO: enum values: ["MIGRATION_TYPE_UNSPECIFIED", "LOGICAL", "PHYSICAL"]
     #[serde(default, rename = "migrationType")]
@@ -556,7 +557,7 @@ pub struct SqlInstancesVerifyExternalSyncSettingsRequest {
 }
 
 /// Instance verify external sync settings response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlInstancesVerifyExternalSyncSettingsResponse {
     /// List of migration violations.
     #[serde(default)]
@@ -570,7 +571,7 @@ pub struct SqlInstancesVerifyExternalSyncSettingsResponse {
 }
 
 /// SslCerts create ephemeral certificate request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCertsCreateEphemeralRequest {
     /// Access token to include in the signed certificate.
     #[serde(default)]
@@ -581,7 +582,7 @@ pub struct SslCertsCreateEphemeralRequest {
 }
 
 /// SslCerts insert request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCertsInsertRequest {
     /// User supplied name. Must be a distinct name from the other certificates for this instance.
     #[serde(default, rename = "commonName")]
@@ -589,7 +590,7 @@ pub struct SslCertsInsertRequest {
 }
 
 /// SslCert insert response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCertsInsertResponse {
     /// The new client certificate and private key.
     #[serde(default, rename = "clientCert")]
@@ -606,7 +607,7 @@ pub struct SslCertsInsertResponse {
 }
 
 /// SslCerts list response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCertsListResponse {
     /// List of client certificates for the instance.
     #[serde(default)]
@@ -617,7 +618,7 @@ pub struct SslCertsListResponse {
 }
 
 /// Tiers list response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TiersListResponse {
     /// List of tiers.
     #[serde(default)]
@@ -628,7 +629,7 @@ pub struct TiersListResponse {
 }
 
 /// User list response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsersListResponse {
     /// List of user resources in the instance.
     #[serde(default)]
@@ -642,7 +643,7 @@ pub struct UsersListResponse {
 }
 
 /// A BackupRun resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupRun {
     /// Specifies the kind of backup, PHYSICAL or DEFAULT_SNAPSHOT. // TODO: enum values: ["SQL_BACKUP_KIND_UNSPECIFIED", "SNAPSHOT", "PHYSICAL"]
     #[serde(default, rename = "backupKind")]
@@ -704,7 +705,7 @@ pub struct BackupRun {
 }
 
 /// Details of a single read pool node of a read pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectPoolNodeConfig {
     /// Output only. The DNS name of the read pool node.
     #[serde(default, rename = "dnsName")]
@@ -721,7 +722,7 @@ pub struct ConnectPoolNodeConfig {
 }
 
 /// Represents a SQL database on the Cloud SQL instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Database {
     /// The Cloud SQL charset value.
     #[serde(default)]
@@ -752,7 +753,7 @@ pub struct Database {
 }
 
 /// A flag resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Flag {
     /// Use this field if only certain integers are accepted. Can be combined with min_value and max_value to add additional values.
     #[serde(default, rename = "allowedIntValues")]
@@ -796,7 +797,7 @@ pub struct Flag {
 }
 
 /// Database instance clone context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloneContext {
     /// The name of the allocated ip range for the private ip Cloud SQL instance. For example: "google-managed-services-default". If set, the cloned instance ip will be created in the allocated range. The range name must comply with [RFC 1035](https://tools.ietf.org/html/rfc1035). Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?. Reserved for future use.
     #[serde(default, rename = "allocatedIpRange")]
@@ -837,7 +838,7 @@ pub struct CloneContext {
 }
 
 /// Database instance demote primary instance context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemoteMasterContext {
     /// This is always sql#demoteMasterContext.
     #[serde(default)]
@@ -857,7 +858,7 @@ pub struct DemoteMasterContext {
 }
 
 /// This context is used to demote an existing standalone instance to be a Cloud SQL read replica for an external database server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemoteContext {
     /// This is always sql#demoteContext.
     #[serde(default)]
@@ -868,7 +869,7 @@ pub struct DemoteContext {
 }
 
 /// Database instance failover context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FailoverContext {
     /// This is always sql#failoverContext.
     #[serde(default)]
@@ -879,7 +880,7 @@ pub struct FailoverContext {
 }
 
 /// Backup Reencryption Config
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupReencryptionConfig {
     /// Backup re-encryption limit
     #[serde(default, rename = "backupLimit")]
@@ -890,7 +891,7 @@ pub struct BackupReencryptionConfig {
 }
 
 /// Database instance restore from backup context. Backup context contains source instance id and project id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreBackupContext {
     /// The ID of the backup run to restore from.
     #[serde(default, rename = "backupRunId")]
@@ -907,7 +908,7 @@ pub struct RestoreBackupContext {
 }
 
 /// Instance rotate Entra ID certificate context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RotateEntraIdCertificateContext {
     /// Optional. This is always sql#rotateEntraIdCertificateContext.
     #[serde(default)]
@@ -918,7 +919,7 @@ pub struct RotateEntraIdCertificateContext {
 }
 
 /// Instance rotate server CA context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RotateServerCaContext {
     /// This is always sql#rotateServerCaContext.
     #[serde(default)]
@@ -929,7 +930,7 @@ pub struct RotateServerCaContext {
 }
 
 /// Instance rotate server certificate context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RotateServerCertificateContext {
     /// Optional. This is always sql#rotateServerCertificateContext.
     #[serde(default)]
@@ -940,7 +941,7 @@ pub struct RotateServerCertificateContext {
 }
 
 /// Database Instance truncate log context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TruncateLogContext {
     /// This is always sql#truncateLogContext.
     #[serde(default)]
@@ -951,7 +952,7 @@ pub struct TruncateLogContext {
 }
 
 /// A backup resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Backup {
     /// Output only. This output contains the following values: start_time: All database writes up to this time are available. end_time: Any database writes after this time aren''t available.
     #[serde(default, rename = "backupInterval")]
@@ -1025,7 +1026,7 @@ pub struct Backup {
 }
 
 /// Represents a notice or warning message from the database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Message {
     /// The full message string. For PostgreSQL, this is a formatted string that may include severity, code, and the notice/warning message. For MySQL, this contains the warning message.
     #[serde(default)]
@@ -1036,7 +1037,7 @@ pub struct Message {
 }
 
 /// The additional metadata information regarding the execution of the SQL statements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// The time taken to execute the SQL statements.
     #[serde(default, rename = "sqlStatementExecutionTime")]
@@ -1044,7 +1045,7 @@ pub struct Metadata {
 }
 
 /// QueryResult contains the result of executing a single SQL statement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryResult {
     /// List of columns included in the result. This also includes the data type of the column.
     #[serde(default)]
@@ -1064,7 +1065,7 @@ pub struct QueryResult {
 }
 
 /// Reschedule resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reschedule {
     /// Required. The type of the reschedule. // TODO: enum values: ["RESCHEDULE_TYPE_UNSPECIFIED", "IMMEDIATE", "NEXT_AVAILABLE_WINDOW", "SPECIFIC_TIME"]
     #[serde(default, rename = "rescheduleType")]
@@ -1075,7 +1076,7 @@ pub struct Reschedule {
 }
 
 /// MySQL-specific external server sync settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MySqlSyncConfig {
     /// Flags to use for the initial dump.
     #[serde(default, rename = "initialSyncFlags")]
@@ -1083,7 +1084,7 @@ pub struct MySqlSyncConfig {
 }
 
 /// The selected object that Cloud SQL migrates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalSyncSelectedObject {
     /// The name of the database that Cloud SQL migrates.
     #[serde(default)]
@@ -1091,7 +1092,7 @@ pub struct ExternalSyncSelectedObject {
 }
 
 /// External primary instance migration setting error/warning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlExternalSyncSettingError {
     /// Additional information about the error encountered.
     #[serde(default)]
@@ -1105,7 +1106,7 @@ pub struct SqlExternalSyncSettingError {
 }
 
 /// SslCertDetail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCertDetail {
     /// The public information about the cert.
     #[serde(default, rename = "certInfo")]
@@ -1116,7 +1117,7 @@ pub struct SslCertDetail {
 }
 
 /// An Operation resource. For successful operations that return an Operation resource, only the fields relevant to the operation are populated in the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// The context for acquire SSRS lease operation, if applicable.
     #[serde(default, rename = "acquireSsrsLeaseContext")]
@@ -1181,7 +1182,7 @@ pub struct Operation {
 }
 
 /// A Google Cloud SQL service tier resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tier {
     /// The maximum disk size of this tier in bytes.
     #[serde(default, rename = "DiskQuota")]
@@ -1201,7 +1202,7 @@ pub struct Tier {
 }
 
 /// A Cloud SQL user resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// Optional. Role memberships of the user
     #[serde(default, rename = "databaseRoles")]
@@ -1247,7 +1248,7 @@ pub struct User {
 }
 
 /// Represents a Sql Server database on the Cloud SQL instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerDatabaseDetails {
     /// The version of SQL Server with which the database is to be made compatible
     #[serde(default, rename = "compatibilityLevel")]
@@ -1258,7 +1259,7 @@ pub struct SqlServerDatabaseDetails {
 }
 
 /// Binary log coordinates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BinLogCoordinates {
     /// Name of the binary log file for a Cloud SQL instance.
     #[serde(default, rename = "binLogFileName")]
@@ -1272,7 +1273,7 @@ pub struct BinLogCoordinates {
 }
 
 /// Read-replica configuration for connecting to the on-premises primary instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemoteMasterConfiguration {
     /// This is always sql#demoteMasterConfiguration.
     #[serde(default)]
@@ -1283,7 +1284,7 @@ pub struct DemoteMasterConfiguration {
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
@@ -1294,7 +1295,7 @@ pub struct Interval {
 }
 
 /// A Cloud SQL instance resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseInstance {
     /// Output only. List all maintenance versions applicable on the instance
     #[serde(default, rename = "availableMaintenanceVersions")]
@@ -1453,7 +1454,7 @@ pub struct DatabaseInstance {
 }
 
 /// Contains the name and datatype of a column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Column {
     /// Name of the column.
     #[serde(default)]
@@ -1464,7 +1465,7 @@ pub struct Column {
 }
 
 /// Contains the values for a row.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Row {
     /// The values for the row.
     #[serde(default)]
@@ -1472,7 +1473,7 @@ pub struct Row {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1486,7 +1487,7 @@ pub struct Status {
 }
 
 /// Initial sync flags for certain Cloud SQL APIs. Currently used for the MySQL external server initial dump.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SyncFlags {
     /// The name of the flag.
     #[serde(default)]
@@ -1497,7 +1498,7 @@ pub struct SyncFlags {
 }
 
 /// Acquire SSRS lease context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcquireSsrsLeaseContext {
     /// Lease duration needed for SSRS setup.
     #[serde(default)]
@@ -1514,7 +1515,7 @@ pub struct AcquireSsrsLeaseContext {
 }
 
 /// An Admin API warning message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiWarning {
     /// Code to uniquely identify the warning type. // TODO: enum values: ["SQL_API_WARNING_CODE_UNSPECIFIED", "REGION_UNREACHABLE", "MAX_RESULTS_EXCEEDS_LIMIT", "COMPROMISED_CREDENTIALS", "INTERNAL_STATE_FAILURE"]
     #[serde(default)]
@@ -1528,7 +1529,7 @@ pub struct ApiWarning {
 }
 
 /// Backup context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupContext {
     /// The identifier of the backup.
     #[serde(default, rename = "backupId")]
@@ -1542,7 +1543,7 @@ pub struct BackupContext {
 }
 
 /// Database instance operation errors list wrapper.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationErrors {
     /// The list of errors encountered while processing this operation.
     #[serde(default)]
@@ -1553,7 +1554,7 @@ pub struct OperationErrors {
 }
 
 /// Database instance export context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportContext {
     /// Options for exporting BAK files (SQL Server-only)
     #[serde(default, rename = "bakExportOptions")]
@@ -1585,7 +1586,7 @@ pub struct ExportContext {
 }
 
 /// Database instance import context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportContext {
     /// Import parameters specific to SQL Server .BAK files
     #[serde(default, rename = "bakImportOptions")]
@@ -1617,7 +1618,7 @@ pub struct ImportContext {
 }
 
 /// Pre-check major version upgrade context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreCheckMajorVersionUpgradeContext {
     /// Optional. This is always sql#preCheckMajorVersionUpgradeContext.
     #[serde(default)]
@@ -1631,7 +1632,7 @@ pub struct PreCheckMajorVersionUpgradeContext {
 }
 
 /// The sub operation type based on the operation type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlSubOperationType {
     /// The type of maintenance to be performed on the instance. // TODO: enum values: ["SQL_MAINTENANCE_TYPE_UNSPECIFIED", "INSTANCE_MAINTENANCE", "REPLICA_INCLUDED_MAINTENANCE", "INSTANCE_SELF_SERVICE_MAINTENANCE", "REPLICA_INCLUDED_SELF_SERVICE_MAINTENANCE"]
     #[serde(default, rename = "maintenanceType")]
@@ -1639,7 +1640,7 @@ pub struct SqlSubOperationType {
 }
 
 /// User level password validation policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserPasswordValidationPolicy {
     /// Number of failed login attempts allowed before user get locked.
     #[serde(default, rename = "allowedFailedAttempts")]
@@ -1659,7 +1660,7 @@ pub struct UserPasswordValidationPolicy {
 }
 
 /// Represents a Sql Server user on the Cloud SQL instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerUserDetails {
     /// If the user has been disabled
     #[serde(default)]
@@ -1670,7 +1671,7 @@ pub struct SqlServerUserDetails {
 }
 
 /// Read-replica configuration specific to MySQL databases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemoteMasterMySqlReplicaConfiguration {
     /// PEM representation of the trusted CA''s x509 certificate.
     #[serde(default, rename = "caCertificate")]
@@ -1693,7 +1694,7 @@ pub struct DemoteMasterMySqlReplicaConfiguration {
 }
 
 /// Disk encryption configuration for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskEncryptionConfiguration {
     /// This is always sql#diskEncryptionConfiguration.
     #[serde(default)]
@@ -1704,7 +1705,7 @@ pub struct DiskEncryptionConfiguration {
 }
 
 /// Disk encryption status for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskEncryptionStatus {
     /// This is always sql#diskEncryptionStatus.
     #[serde(default)]
@@ -1715,7 +1716,7 @@ pub struct DiskEncryptionStatus {
 }
 
 /// Gemini instance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeminiInstanceConfig {
     /// Output only. Whether the active query is enabled.
     #[serde(default, rename = "activeQueryEnabled")]
@@ -1738,7 +1739,7 @@ pub struct GeminiInstanceConfig {
 }
 
 /// Details of a single read pool node of a read pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PoolNodeConfig {
     /// Output only. The DNS name of the read pool node.
     #[serde(default, rename = "dnsName")]
@@ -1767,7 +1768,7 @@ pub struct PoolNodeConfig {
 }
 
 /// On-premises instance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OnPremisesConfiguration {
     /// PEM representation of the trusted CA''s x509 certificate.
     #[serde(default, rename = "caCertificate")]
@@ -1805,7 +1806,7 @@ pub struct OnPremisesConfiguration {
 }
 
 /// This message wraps up the information written by out-of-disk detection job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlOutOfDiskReport {
     /// The minimum recommended increase size in GigaBytes This field is consumed by the frontend * Writers: * the proactive database wellness job for OOD. * Readers:
     #[serde(default, rename = "sqlMinRecommendedIncreaseSizeGb")]
@@ -1816,7 +1817,7 @@ pub struct SqlOutOfDiskReport {
 }
 
 /// Read-replica configuration for connecting to the primary instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicaConfiguration {
     /// Optional. Specifies if a SQL Server replica is a cascadable replica. A cascadable replica is a SQL Server cross region replica that supports replica(s) under it.
     #[serde(default, rename = "cascadableReplica")]
@@ -1833,7 +1834,7 @@ pub struct ReplicaConfiguration {
 }
 
 /// A primary instance and disaster recovery (DR) replica pair. A DR replica is a cross-region replica that you designate for failover in the event that the primary instance experiences regional failure. Applicable to MySQL and PostgreSQL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicationCluster {
     /// Output only. Read-only field that indicates whether the replica is a DR replica. This field is not set if the instance is a primary instance.
     #[serde(default, rename = "drReplica")]
@@ -1847,7 +1848,7 @@ pub struct ReplicationCluster {
 }
 
 /// Any scheduled maintenance for this instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlScheduledMaintenance {
     #[serde(default, rename = "canDefer")]
     pub can_defer: ::core::option::Option<bool>,
@@ -1863,7 +1864,7 @@ pub struct SqlScheduledMaintenance {
 }
 
 /// SslCerts Resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCert {
     /// PEM representation.
     #[serde(default)]
@@ -1895,7 +1896,7 @@ pub struct SslCert {
 }
 
 /// Database instance settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Settings {
     /// Optional. Whether the replica is in accelerated mode. This feature is in private preview and requires allowlisting to take effect.
     #[serde(default, rename = "acceleratedReplicaMode")]
@@ -2038,7 +2039,7 @@ pub struct Settings {
 }
 
 /// An available database version. It can be a major or a minor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AvailableDatabaseVersion {
     /// The database version''s display name.
     #[serde(default, rename = "displayName")]
@@ -2052,7 +2053,7 @@ pub struct AvailableDatabaseVersion {
 }
 
 /// The cell value of the table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiValue {
     /// If cell value is null, then this flag will be set to true.
     #[serde(default, rename = "nullValue")]
@@ -2063,7 +2064,7 @@ pub struct ApiValue {
 }
 
 /// Database instance operation error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationError {
     /// Identifies the specific error that occurred.
     #[serde(default)]
@@ -2077,7 +2078,7 @@ pub struct OperationError {
 }
 
 /// Structured PreCheckResponse containing message, type, and required actions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreCheckResponse {
     /// The actions that the user needs to take. Use repeated for multiple actions.
     #[serde(default, rename = "actionsRequired")]
@@ -2091,7 +2092,7 @@ pub struct PreCheckResponse {
 }
 
 /// Read-only password status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PasswordStatus {
     /// If true, user does not have login privileges.
     #[serde(default)]
@@ -2102,7 +2103,7 @@ pub struct PasswordStatus {
 }
 
 /// DNS metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsNameMapping {
     /// Output only. The connection type of the DNS name. // TODO: enum values: ["CONNECTION_TYPE_UNSPECIFIED", "PUBLIC", "PRIVATE_SERVICES_ACCESS", "PRIVATE_SERVICE_CONNECT"]
     #[serde(default, rename = "connectionType")]
@@ -2119,7 +2120,7 @@ pub struct DnsNameMapping {
 }
 
 /// Database instance IP mapping
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IpMapping {
     /// The IP address assigned.
     #[serde(default, rename = "ipAddress")]
@@ -2133,7 +2134,7 @@ pub struct IpMapping {
 }
 
 /// A list of objects that the user selects for replication from an external source instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SelectedObjects {
     /// Required. The name of the database to migrate.
     #[serde(default)]
@@ -2141,7 +2142,7 @@ pub struct SelectedObjects {
 }
 
 /// Reference to another Cloud SQL instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceReference {
     /// The name of the Cloud SQL instance being referenced. This does not include the project ID.
     #[serde(default)]
@@ -2155,7 +2156,7 @@ pub struct InstanceReference {
 }
 
 /// Read-replica configuration specific to MySQL databases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MySqlReplicaConfiguration {
     /// PEM representation of the trusted CA''s x509 certificate.
     #[serde(default, rename = "caCertificate")]
@@ -2193,7 +2194,7 @@ pub struct MySqlReplicaConfiguration {
 }
 
 /// Active Directory configuration, relevant only for Cloud SQL for SQL Server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlActiveDirectoryConfig {
     /// Optional. The secret manager key storing the administrator credential. (e.g., projects/{project}/secrets/{secret}).
     #[serde(default, rename = "adminCredentialSecretName")]
@@ -2216,7 +2217,7 @@ pub struct SqlActiveDirectoryConfig {
 }
 
 /// Specifies options for controlling advanced machine features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvancedMachineFeatures {
     /// The number of threads per physical core.
     #[serde(default, rename = "threadsPerCore")]
@@ -2224,7 +2225,7 @@ pub struct AdvancedMachineFeatures {
 }
 
 /// Database instance backup configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupConfiguration {
     /// Backup retention settings.
     #[serde(default, rename = "backupRetentionSettings")]
@@ -2262,7 +2263,7 @@ pub struct BackupConfiguration {
 }
 
 /// The managed connection pooling configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionPoolConfig {
     /// Whether managed connection pooling is enabled.
     #[serde(default, rename = "connectionPoolingEnabled")]
@@ -2276,7 +2277,7 @@ pub struct ConnectionPoolConfig {
 }
 
 /// Data cache configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataCacheConfig {
     /// Whether data cache is enabled for the instance.
     #[serde(default, rename = "dataCacheEnabled")]
@@ -2284,7 +2285,7 @@ pub struct DataCacheConfig {
 }
 
 /// Database flags for Cloud SQL instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseFlags {
     /// The name of the flag. These flags are passed at instance startup, so include both server options and system variables. Flags are specified with underscores, not hyphens. For more information, see [Configuring Database Flags](https://cloud.google.com/sql/docs/mysql/flags) in the Cloud SQL documentation.
     #[serde(default)]
@@ -2295,7 +2296,7 @@ pub struct DatabaseFlags {
 }
 
 /// Deny maintenance Periods. This specifies a date range during when all CSA rollout will be denied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DenyMaintenancePeriod {
     /// "deny maintenance period" end date. If the year of the end date is empty, the year of the start date also must be empty. In this case, it means the no maintenance interval recurs every year. The date is in format yyyy-mm-dd i.e., 2020-11-01, or mm-dd, i.e., 11-01
     #[serde(default, rename = "endDate")]
@@ -2309,7 +2310,7 @@ pub struct DenyMaintenancePeriod {
 }
 
 /// SQL Server Entra ID configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerEntraIdConfig {
     /// Optional. The application ID for the Entra ID configuration.
     #[serde(default, rename = "applicationId")]
@@ -2323,7 +2324,7 @@ pub struct SqlServerEntraIdConfig {
 }
 
 /// Config used to determine the final backup settings for the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinalBackupConfig {
     /// Whether the final backup is enabled for the instance.
     #[serde(default)]
@@ -2334,7 +2335,7 @@ pub struct FinalBackupConfig {
 }
 
 /// Insights configuration. This specifies when Cloud SQL Insights feature is enabled and optional configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsConfig {
     /// Optional. Whether enhanced query insights feature is enabled.
     #[serde(default, rename = "enhancedQueryInsightsEnabled")]
@@ -2357,7 +2358,7 @@ pub struct InsightsConfig {
 }
 
 /// IP Management configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IpConfiguration {
     /// The name of the allocated ip range for the private ip Cloud SQL instance. For example: "google-managed-services-default". If set, the instance ip will be created in the allocated range. The range name must comply with [RFC 1035](https://tools.ietf.org/html/rfc1035). Specifically, the name must be 1-63 characters long and match the regular expression [a-z]([-a-z0-9]*[a-z0-9])?.
     #[serde(default, rename = "allocatedIpRange")]
@@ -2398,7 +2399,7 @@ pub struct IpConfiguration {
 }
 
 /// Preferred location. This specifies where a Cloud SQL instance is located. Note that if the preferred location is not available, the instance will be located as close as possible within the region. Only one location may be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationPreference {
     /// The App Engine application to follow, it must be in the same region as the Cloud SQL instance. WARNING: Changing this might restart the instance.
     #[serde(default, rename = "followGaeApplication")]
@@ -2415,7 +2416,7 @@ pub struct LocationPreference {
 }
 
 /// Maintenance window. This specifies when a Cloud SQL instance is restarted for system maintenance purposes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
     /// Day of week - MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, or SUNDAY. Specify in the UTC time zone. Returned in output as an integer, 1 to 7, where 1 equals Monday.
     #[serde(default)]
@@ -2432,7 +2433,7 @@ pub struct MaintenanceWindow {
 }
 
 /// Database instance local user password validation policy. This message defines the password policy for local database users. When enabled, it enforces constraints on password complexity, length, and reuse. Keep this policy enabled to help prevent unauthorized access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PasswordValidationPolicy {
     /// The complexity of the password. // TODO: enum values: ["COMPLEXITY_UNSPECIFIED", "COMPLEXITY_DEFAULT"]
     #[serde(default)]
@@ -2458,7 +2459,7 @@ pub struct PasswordValidationPolicy {
 }
 
 /// Performance Capture configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerformanceCaptureConfig {
     /// Optional. Enable or disable the Performance Capture feature.
     #[serde(default)]
@@ -2481,7 +2482,7 @@ pub struct PerformanceCaptureConfig {
 }
 
 /// The read pool auto-scale configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadPoolAutoScaleConfig {
     /// Indicates whether read pool auto scaling supports scale in operations (removing nodes).
     #[serde(default, rename = "disableScaleIn")]
@@ -2507,7 +2508,7 @@ pub struct ReadPoolAutoScaleConfig {
 }
 
 /// SQL Server specific audit configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerAuditConfig {
     /// The name of the destination bucket (e.g., gs://mybucket).
     #[serde(default)]
@@ -2524,7 +2525,7 @@ pub struct SqlServerAuditConfig {
 }
 
 /// We currently only support backup retention by specifying the number of backups we will retain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupRetentionSettings {
     /// Depending on the value of retention_unit, this is used to determine if a backup needs to be deleted. If retention_unit is ''COUNT'', we will retain this many backups.
     #[serde(default, rename = "retainedBackups")]
@@ -2535,7 +2536,7 @@ pub struct BackupRetentionSettings {
 }
 
 /// Connection pool flags for Cloud SQL instances managed connection pool configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionPoolFlags {
     /// Required. The name of the flag.
     #[serde(default)]
@@ -2546,7 +2547,7 @@ pub struct ConnectionPoolFlags {
 }
 
 /// An entry for an Access Control list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AclEntry {
     /// The time when this access control entry expires in [RFC 3339](https://tools.ietf.org/html/rfc3339) format, for example 2012-11-15T16:19:00.094Z.
     #[serde(default, rename = "expirationTime")]
@@ -2563,7 +2564,7 @@ pub struct AclEntry {
 }
 
 /// PSC settings for a Cloud SQL instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PscConfig {
     /// Optional. The list of consumer projects that are allow-listed for PSC connections to this instance. This instance can be connected to with PSC from any network in these projects. Each consumer project in this list may be represented by a project number (numeric) or by a project id (alphanumeric).
     #[serde(default, rename = "allowedConsumerProjects")]
@@ -2586,7 +2587,7 @@ pub struct PscConfig {
 }
 
 /// Target metric for read pool auto scaling.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetMetric {
     /// The metric name to be used for auto scaling.
     #[serde(default)]
@@ -2597,7 +2598,7 @@ pub struct TargetMetric {
 }
 
 /// Settings for an automatically-setup Private Service Connect consumer endpoint that is used to connect to a Cloud SQL instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PscAutoConnectionConfig {
     /// Optional. The consumer network of this consumer endpoint. This must be a resource path that includes both the host project and the network name. For example, projects/project1/global/networks/network1. The consumer host project of this network might be different from the consumer service project.
     #[serde(default, rename = "consumerNetwork")]

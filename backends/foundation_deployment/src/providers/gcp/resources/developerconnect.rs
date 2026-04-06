@@ -8,22 +8,23 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Message for fetching an OAuth access token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchAccessTokenRequest {}
 
 /// Message for responding to getting an OAuth access token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchAccessTokenResponse {
     /// The error resulted from exchanging OAuth tokens from the service provider.
     #[serde(default, rename = "exchangeError")]
@@ -40,7 +41,7 @@ pub struct FetchAccessTokenResponse {
 }
 
 /// Response of fetching github installations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchGitHubInstallationsResponse {
     /// List of installations available to the OAuth user (for github.com) or all the installations (for GitHub enterprise).
     #[serde(default)]
@@ -48,7 +49,7 @@ pub struct FetchGitHubInstallationsResponse {
 }
 
 /// Response for fetching git refs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchGitRefsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -59,7 +60,7 @@ pub struct FetchGitRefsResponse {
 }
 
 /// Response message for FetchLinkableGitRepositories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchLinkableGitRepositoriesResponse {
     /// The git repositories that can be linked to the connection.
     #[serde(default, rename = "linkableGitRepositories")]
@@ -70,11 +71,11 @@ pub struct FetchLinkableGitRepositoriesResponse {
 }
 
 /// Message for fetching SCM read token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchReadTokenRequest {}
 
 /// Message for responding to get read token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchReadTokenResponse {
     /// Expiration timestamp. Can be empty if unknown or non-expiring.
     #[serde(default, rename = "expirationTime")]
@@ -88,11 +89,11 @@ pub struct FetchReadTokenResponse {
 }
 
 /// Message for fetching SCM read/write token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchReadWriteTokenRequest {}
 
 /// Message for responding to get read/write token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchReadWriteTokenResponse {
     /// Expiration timestamp. Can be empty if unknown or non-expiring.
     #[serde(default, rename = "expirationTime")]
@@ -106,7 +107,7 @@ pub struct FetchReadWriteTokenResponse {
 }
 
 /// Response message for FetchUserRepositories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchUserRepositoriesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -117,7 +118,7 @@ pub struct FetchUserRepositoriesResponse {
 }
 
 /// Message for responding to finishing an OAuth flow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinishOAuthResponse {
     /// The error resulted from exchanging OAuth tokens from the service provider.
     #[serde(default, rename = "exchangeError")]
@@ -125,7 +126,7 @@ pub struct FinishOAuthResponse {
 }
 
 /// Message for response to listing AccountConnectors
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountConnectorsResponse {
     /// The list of AccountConnectors
     #[serde(default, rename = "accountConnectors")]
@@ -139,7 +140,7 @@ pub struct ListAccountConnectorsResponse {
 }
 
 /// Message for response to listing Connections
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConnectionsResponse {
     /// The list of Connection
     #[serde(default)]
@@ -153,7 +154,7 @@ pub struct ListConnectionsResponse {
 }
 
 /// Response to listing DeploymentEvents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDeploymentEventsResponse {
     /// The list of DeploymentEvents.
     #[serde(default, rename = "deploymentEvents")]
@@ -164,7 +165,7 @@ pub struct ListDeploymentEventsResponse {
 }
 
 /// Message for response to listing GitRepositoryLinks
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGitRepositoryLinksResponse {
     /// The list of GitRepositoryLinks
     #[serde(default, rename = "gitRepositoryLinks")]
@@ -178,7 +179,7 @@ pub struct ListGitRepositoryLinksResponse {
 }
 
 /// Request for response to listing InsightsConfigs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInsightsConfigsResponse {
     /// The list of InsightsConfigs.
     #[serde(default, rename = "insightsConfigs")]
@@ -192,7 +193,7 @@ pub struct ListInsightsConfigsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -203,7 +204,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -217,7 +218,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Message for response to listing Users
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUsersResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -231,7 +232,7 @@ pub struct ListUsersResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -257,7 +258,7 @@ pub struct OperationMetadata {
 }
 
 /// RPC request object accepted by the ProcessBitbucketCloudWebhook RPC method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessBitbucketCloudWebhookRequest {
     /// Required. HTTP request body.
     #[serde(default)]
@@ -265,7 +266,7 @@ pub struct ProcessBitbucketCloudWebhookRequest {
 }
 
 /// RPC request object accepted by the ProcessBitbucketDataCenterWebhook RPC method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessBitbucketDataCenterWebhookRequest {
     /// Required. HTTP request body.
     #[serde(default)]
@@ -273,7 +274,7 @@ pub struct ProcessBitbucketDataCenterWebhookRequest {
 }
 
 /// RPC request object accepted by the ProcessGitHubEnterpriseWebhook RPC method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessGitHubEnterpriseWebhookRequest {
     /// Required. HTTP request body.
     #[serde(default)]
@@ -281,7 +282,7 @@ pub struct ProcessGitHubEnterpriseWebhookRequest {
 }
 
 /// RPC request object accepted by the ProcessGitLabEnterpriseWebhook RPC method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessGitLabEnterpriseWebhookRequest {
     /// Required. HTTP request body.
     #[serde(default)]
@@ -289,7 +290,7 @@ pub struct ProcessGitLabEnterpriseWebhookRequest {
 }
 
 /// RPC request object accepted by the ProcessGitLabWebhook RPC method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessGitLabWebhookRequest {
     /// Required. HTTP request body.
     #[serde(default)]
@@ -297,7 +298,7 @@ pub struct ProcessGitLabWebhookRequest {
 }
 
 /// Message for responding to starting an OAuth flow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartOAuthResponse {
     /// The authorization server URL to the OAuth flow of the service provider.
     #[serde(default, rename = "authUri")]
@@ -323,7 +324,7 @@ pub struct StartOAuthResponse {
 }
 
 /// Represents an installation of the GitHub App.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Installation {
     /// ID of the installation in GitHub.
     #[serde(default)]
@@ -337,7 +338,7 @@ pub struct Installation {
 }
 
 /// LinkableGitRepository represents a git repository that can be linked to a connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkableGitRepository {
     /// The clone uri of the repository.
     #[serde(default, rename = "cloneUri")]
@@ -345,7 +346,7 @@ pub struct LinkableGitRepository {
 }
 
 /// A user repository that can be linked to the account connector. Consists of the repo name and the git proxy URL to forward requests to this repo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserRepository {
     /// Output only. The git clone URL of the repo. For example: https://github.com/myuser/myrepo.git
     #[serde(default, rename = "cloneUri")]
@@ -359,7 +360,7 @@ pub struct UserRepository {
 }
 
 /// Message for representing an error from exchanging OAuth tokens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangeError {
     /// https://datatracker.ietf.org/doc/html/rfc6749#section-5.2 - error
     #[serde(default)]
@@ -370,7 +371,7 @@ pub struct ExchangeError {
 }
 
 /// AccountConnector encapsulates what a platform administrator needs to configure for users to connect to the service providers, which includes, among other fields, the OAuth client ID, client secret, and authorization and token endpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountConnector {
     /// Optional. Allows users to store small amounts of arbitrary data.
     #[serde(default)]
@@ -405,7 +406,7 @@ pub struct AccountConnector {
 }
 
 /// Message describing Connection object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Connection {
     /// Optional. Allows clients to store small amounts of arbitrary data.
     #[serde(default)]
@@ -474,7 +475,7 @@ pub struct Connection {
 }
 
 /// The DeploymentEvent resource represents the deployment of the artifact within the InsightsConfig resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentEvent {
     /// Output only. The artifact deployments of the DeploymentEvent. Each artifact deployment contains the artifact uri and the runtime configuration uri. For GKE, this would be all the containers images that are deployed in the pod.
     #[serde(default, rename = "artifactDeployments")]
@@ -506,7 +507,7 @@ pub struct DeploymentEvent {
 }
 
 /// Message describing the GitRepositoryLink object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitRepositoryLink {
     /// Optional. Allows clients to store small amounts of arbitrary data.
     #[serde(default)]
@@ -547,7 +548,7 @@ pub struct GitRepositoryLink {
 }
 
 /// The InsightsConfig resource is the core configuration object to capture events from your Software Development Lifecycle. It acts as the central hub for managing how Developer Connect understands your application, its runtime environments, and the artifacts deployed within them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsConfig {
     /// Optional. User specified annotations. See https://google.aip.dev/148#annotations for more details such as format and size limitations.
     #[serde(default)]
@@ -588,7 +589,7 @@ pub struct InsightsConfig {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -608,7 +609,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -628,7 +629,7 @@ pub struct Operation {
 }
 
 /// User represents a user connected to the service providers through a AccountConnector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// Output only. The timestamp when the user was created.
     #[serde(default, rename = "createTime")]
@@ -645,7 +646,7 @@ pub struct User {
 }
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
@@ -659,7 +660,7 @@ pub struct HttpBody {
 }
 
 /// Message for a customized OAuth config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomOAuthConfig {
     /// Required. Immutable. The OAuth2 authorization server URL.
     #[serde(default, rename = "authUri")]
@@ -697,7 +698,7 @@ pub struct CustomOAuthConfig {
 }
 
 /// ProviderOAuthConfig is the OAuth config for a provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProviderOAuthConfig {
     /// Required. User selected scopes to apply to the Oauth config In the event of changing scopes, user records under AccountConnector will be deleted and users will re-auth again.
     #[serde(default)]
@@ -708,7 +709,7 @@ pub struct ProviderOAuthConfig {
 }
 
 /// The proxy configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProxyConfig {
     /// Optional. Setting this to true allows the git and http proxies to perform actions on behalf of the user configured under the account connector.
     #[serde(default)]
@@ -716,7 +717,7 @@ pub struct ProxyConfig {
 }
 
 /// Configuration for connections to an instance of Bitbucket Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BitbucketCloudConfig {
     /// Required. An access token with the minimum repository, pullrequest and webhook scope access. It can either be a workspace, project or repository access token. This is needed to create webhooks. It''s recommended to use a system account to generate these credentials.
     #[serde(default, rename = "authorizerCredential")]
@@ -733,7 +734,7 @@ pub struct BitbucketCloudConfig {
 }
 
 /// Configuration for connections to an instance of Bitbucket Data Center.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BitbucketDataCenterConfig {
     /// Required. An http access token with the minimum Repository admin scope access. This is needed to create webhooks. It''s recommended to use a system account to generate these credentials.
     #[serde(default, rename = "authorizerCredential")]
@@ -759,7 +760,7 @@ pub struct BitbucketDataCenterConfig {
 }
 
 /// The crypto key configuration. This field is used by the Customer-managed encryption keys (CMEK) feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CryptoKeyConfig {
     /// Required. The name of the key which is used to encrypt/decrypt customer data. For key in Cloud KMS, the key should be in the format of projects/*/locations/*/keyRings/*/cryptoKeys/*.
     #[serde(default, rename = "keyReference")]
@@ -767,7 +768,7 @@ pub struct CryptoKeyConfig {
 }
 
 /// The git proxy configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitProxyConfig {
     /// Optional. Setting this to true allows the git proxy to be used for performing git operations on the repositories linked in the connection.
     #[serde(default)]
@@ -778,7 +779,7 @@ pub struct GitProxyConfig {
 }
 
 /// Configuration for connections to github.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitHubConfig {
     /// Optional. GitHub App installation id.
     #[serde(default, rename = "appInstallationId")]
@@ -795,7 +796,7 @@ pub struct GitHubConfig {
 }
 
 /// Configuration for connections to an instance of GitHub Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitHubEnterpriseConfig {
     /// Optional. ID of the GitHub App created from the manifest.
     #[serde(default, rename = "appId")]
@@ -833,7 +834,7 @@ pub struct GitHubEnterpriseConfig {
 }
 
 /// Configuration for connections to gitlab.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitLabConfig {
     /// Required. A GitLab personal access token with the minimum api scope access and a minimum role of maintainer. The GitLab Projects visible to this Personal Access Token will control which Projects Developer Connect has access to.
     #[serde(default, rename = "authorizerCredential")]
@@ -847,7 +848,7 @@ pub struct GitLabConfig {
 }
 
 /// Configuration for connections to an instance of GitLab Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitLabEnterpriseConfig {
     /// Required. A GitLab personal access token with the minimum api scope access and a minimum role of maintainer. The GitLab Projects visible to this Personal Access Token will control which Projects Developer Connect has access to.
     #[serde(default, rename = "authorizerCredential")]
@@ -873,7 +874,7 @@ pub struct GitLabEnterpriseConfig {
 }
 
 /// Defines the configuration for connections to an HTTP service provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenericHTTPEndpointConfig {
     /// Optional. Basic authentication with username and password.
     #[serde(default, rename = "basicAuthentication")]
@@ -893,7 +894,7 @@ pub struct GenericHTTPEndpointConfig {
 }
 
 /// Describes stage and necessary actions to be taken by the user to complete the installation. Used for GitHub and GitHub Enterprise based connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstallationState {
     /// Output only. Link to follow for next action. Empty string if the installation is already complete.
     #[serde(default, rename = "actionUri")]
@@ -907,7 +908,7 @@ pub struct InstallationState {
 }
 
 /// Configuration for connections to Secure Source Manager instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecureSourceManagerInstanceConfig {
     /// Required. Immutable. Secure Source Manager instance resource, formatted as projects/*/locations/*/instances/*
     #[serde(default)]
@@ -915,7 +916,7 @@ pub struct SecureSourceManagerInstanceConfig {
 }
 
 /// The ArtifactDeployment resource represents the deployment of the artifact within the InsightsConfig resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArtifactDeployment {
     /// Output only. The artifact alias in the deployment spec, with Tag/SHA. e.g. us-docker.pkg.dev/my-project/my-repo/image:1.0.0
     #[serde(default, rename = "artifactAlias")]
@@ -941,7 +942,7 @@ pub struct ArtifactDeployment {
 }
 
 /// The artifact config of the artifact that is deployed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArtifactConfig {
     /// Optional. Set if the artifact metadata is stored in Artifact analysis.
     #[serde(default, rename = "googleArtifactAnalysis")]
@@ -955,7 +956,7 @@ pub struct ArtifactConfig {
 }
 
 /// Projects represents the projects to track with the InsightsConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Projects {
     /// Optional. The project IDs. Format: {project}
     #[serde(default, rename = "projectIds")]
@@ -963,7 +964,7 @@ pub struct Projects {
 }
 
 /// RuntimeConfig represents the runtimes where the application is deployed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeConfig {
     /// Output only. App Hub Service.
     #[serde(default, rename = "appHubService")]
@@ -986,7 +987,7 @@ pub struct RuntimeConfig {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1000,7 +1001,7 @@ pub struct Status {
 }
 
 /// Represents an OAuth token of the account that authorized the Connection, and associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OAuthCredential {
     /// Required. A SecretManager resource containing the OAuth token that authorizes the connection. Format: projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location).
     #[serde(default, rename = "oauthTokenSecretVersion")]
@@ -1011,7 +1012,7 @@ pub struct OAuthCredential {
 }
 
 /// Represents a personal access token that authorized the Connection, and associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserCredential {
     /// Required. A SecretManager resource containing the user token that authorizes the Developer Connect connection. Format: projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/* (if regional secrets are supported in that location).
     #[serde(default, rename = "userTokenSecretVersion")]
@@ -1022,7 +1023,7 @@ pub struct UserCredential {
 }
 
 /// Basic authentication with username and password.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasicAuthentication {
     /// The password SecretManager secret version to authenticate as.
     #[serde(default, rename = "passwordSecretVersion")]
@@ -1033,7 +1034,7 @@ pub struct BasicAuthentication {
 }
 
 /// Bearer token authentication with a token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BearerTokenAuthentication {
     /// Optional. The token SecretManager secret version to authenticate as.
     #[serde(default, rename = "tokenSecretVersion")]
@@ -1041,7 +1042,7 @@ pub struct BearerTokenAuthentication {
 }
 
 /// ServiceDirectoryConfig represents Service Directory configuration for a connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceDirectoryConfig {
     /// Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.
     #[serde(default)]
@@ -1049,7 +1050,7 @@ pub struct ServiceDirectoryConfig {
 }
 
 /// Google Artifact Analysis configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleArtifactAnalysis {
     /// Required. The project id of the project where the provenance is stored.
     #[serde(default, rename = "projectId")]
@@ -1057,7 +1058,7 @@ pub struct GoogleArtifactAnalysis {
 }
 
 /// Google Artifact Registry configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleArtifactRegistry {
     /// Required. Immutable. The name of the artifact registry package.
     #[serde(default, rename = "artifactRegistryPackage")]
@@ -1068,7 +1069,7 @@ pub struct GoogleArtifactRegistry {
 }
 
 /// AppHubService represents the App Hub Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppHubService {
     /// Required. Output only. Immutable. The name of the App Hub Service. Format: projects/{project}/locations/{location}/applications/{application}/services/{service}.
     #[serde(default, rename = "apphubService")]
@@ -1082,7 +1083,7 @@ pub struct AppHubService {
 }
 
 /// AppHubWorkload represents the App Hub Workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppHubWorkload {
     /// Output only. The criticality of the App Hub Workload.
     #[serde(default)]
@@ -1096,7 +1097,7 @@ pub struct AppHubWorkload {
 }
 
 /// GKEWorkload represents the Google Kubernetes Engine runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GKEWorkload {
     /// Required. Immutable. The name of the GKE cluster. Format: projects/{project}/locations/{location}/clusters/{cluster}.
     #[serde(default)]
@@ -1107,7 +1108,7 @@ pub struct GKEWorkload {
 }
 
 /// GoogleCloudRun represents the Cloud Run runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRun {
     /// Required. Immutable. The name of the Cloud Run service. Format: projects/{project}/locations/{location}/services/{service}.
     #[serde(default, rename = "serviceUri")]

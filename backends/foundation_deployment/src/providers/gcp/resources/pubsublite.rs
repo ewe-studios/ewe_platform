@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Request for CommitCursor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitCursorRequest {
     /// The new value for the committed cursor.
     #[serde(default)]
@@ -26,11 +27,11 @@ pub struct CommitCursorRequest {
 }
 
 /// Response for CommitCursor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitCursorResponse {}
 
 /// Compute the current head cursor for a partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeHeadCursorRequest {
     /// Required. The partition for which we should compute the head cursor.
     #[serde(default)]
@@ -38,7 +39,7 @@ pub struct ComputeHeadCursorRequest {
 }
 
 /// Response containing the head cursor for the requested topic and partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeHeadCursorResponse {
     /// The head cursor.
     #[serde(default, rename = "headCursor")]
@@ -46,7 +47,7 @@ pub struct ComputeHeadCursorResponse {
 }
 
 /// Compute statistics about a range of messages in a given topic and partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeMessageStatsRequest {
     /// The exclusive end of the range. The range is empty if end_cursor &lt;= start_cursor. Specifying a start_cursor before the first message and an end_cursor after the last message will retrieve all messages.
     #[serde(default, rename = "endCursor")]
@@ -60,7 +61,7 @@ pub struct ComputeMessageStatsRequest {
 }
 
 /// Response containing stats for messages in the requested topic and partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeMessageStatsResponse {
     /// The number of quota bytes accounted to these messages.
     #[serde(default, rename = "messageBytes")]
@@ -77,7 +78,7 @@ pub struct ComputeMessageStatsResponse {
 }
 
 /// Compute the corresponding cursor for a publish or event time in a topic partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeTimeCursorRequest {
     /// Required. The partition for which we should compute the cursor.
     #[serde(default)]
@@ -88,7 +89,7 @@ pub struct ComputeTimeCursorRequest {
 }
 
 /// Response containing the cursor corresponding to a publish or event time in a topic partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeTimeCursorResponse {
     /// If present, the cursor references the first message with time greater than or equal to the specified target time. If such a message cannot be found, the cursor will be unset (i.e. cursor is not present).
     #[serde(default)]
@@ -96,11 +97,11 @@ pub struct ComputeTimeCursorResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -114,7 +115,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response for ListPartitionCursors
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPartitionCursorsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -125,7 +126,7 @@ pub struct ListPartitionCursorsResponse {
 }
 
 /// Response for ListReservationTopics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReservationTopicsResponse {
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -136,7 +137,7 @@ pub struct ListReservationTopicsResponse {
 }
 
 /// Response for ListReservations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReservationsResponse {
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -147,7 +148,7 @@ pub struct ListReservationsResponse {
 }
 
 /// Response for ListSubscriptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSubscriptionsResponse {
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -158,7 +159,7 @@ pub struct ListSubscriptionsResponse {
 }
 
 /// Response for ListTopicSubscriptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTopicSubscriptionsResponse {
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -169,7 +170,7 @@ pub struct ListTopicSubscriptionsResponse {
 }
 
 /// Response for ListTopics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTopicsResponse {
     /// A token that can be sent as page_token to retrieve the next page of results. If this field is omitted, there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -180,7 +181,7 @@ pub struct ListTopicsResponse {
 }
 
 /// Metadata for long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -197,7 +198,7 @@ pub struct OperationMetadata {
 }
 
 /// Request for SeekSubscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SeekSubscriptionRequest {
     /// Seek to a named position with respect to the message backlog. // TODO: enum values: ["NAMED_TARGET_UNSPECIFIED", "TAIL", "HEAD"]
     #[serde(default, rename = "namedTarget")]
@@ -208,11 +209,11 @@ pub struct SeekSubscriptionRequest {
 }
 
 /// Response for SeekSubscription long running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SeekSubscriptionResponse {}
 
 /// Response for GetTopicPartitions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TopicPartitions {
     /// The number of partitions in the topic.
     #[serde(default, rename = "partitionCount")]
@@ -220,7 +221,7 @@ pub struct TopicPartitions {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -240,7 +241,7 @@ pub struct Operation {
 }
 
 /// A pair of a Cursor and the partition it is for.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionCursor {
     /// The value of the cursor.
     #[serde(default)]
@@ -251,7 +252,7 @@ pub struct PartitionCursor {
 }
 
 /// Metadata about a reservation resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reservation {
     /// The name of the reservation. Structured like: projects/{project_number}/locations/{location}/reservations/{reservation_id}
     #[serde(default)]
@@ -262,7 +263,7 @@ pub struct Reservation {
 }
 
 /// Metadata about a subscription resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subscription {
     /// The settings for this subscription''s message delivery.
     #[serde(default, rename = "deliveryConfig")]
@@ -279,7 +280,7 @@ pub struct Subscription {
 }
 
 /// Metadata about a topic resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Topic {
     /// The name of the topic. Structured like: projects/{project_number}/locations/{location}/topics/{topic_id}
     #[serde(default)]
@@ -296,7 +297,7 @@ pub struct Topic {
 }
 
 /// A target publish or event time. Can be used for seeking to or retrieving the corresponding cursor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeTarget {
     /// Request the cursor of the first message with event time greater than or equal to event_time. If messages are missing an event time, the publish time is used as a fallback. As event times are user supplied, subsequent messages may have event times less than event_time and should be filtered by the client, if necessary.
     #[serde(default, rename = "eventTime")]
@@ -307,7 +308,7 @@ pub struct TimeTarget {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -321,7 +322,7 @@ pub struct Status {
 }
 
 /// A cursor that describes the position of a message within a topic partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cursor {
     /// The offset of a message within a topic partition. Must be greater than or equal 0.
     #[serde(default)]
@@ -329,7 +330,7 @@ pub struct Cursor {
 }
 
 /// The settings for a subscription''s message delivery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeliveryConfig {
     /// The DeliveryRequirement for this subscription. // TODO: enum values: ["DELIVERY_REQUIREMENT_UNSPECIFIED", "DELIVER_IMMEDIATELY", "DELIVER_AFTER_STORED"]
     #[serde(default, rename = "deliveryRequirement")]
@@ -337,7 +338,7 @@ pub struct DeliveryConfig {
 }
 
 /// Configuration for a Pub/Sub Lite subscription that writes messages to a destination. User subscriber clients must not connect to this subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportConfig {
     /// Output only. The current state of the export, which may be different to the desired state due to errors. This field is output only. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "PAUSED", "PERMISSION_DENIED", "NOT_FOUND"]
     #[serde(default, rename = "currentState")]
@@ -354,7 +355,7 @@ pub struct ExportConfig {
 }
 
 /// The settings for a topic''s partitions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionConfig {
     /// The capacity configuration.
     #[serde(default)]
@@ -368,7 +369,7 @@ pub struct PartitionConfig {
 }
 
 /// The settings for this topic''s Reservation usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationConfig {
     /// The Reservation to use for this topic''s throughput capacity. Structured like: projects/{project_number}/locations/{location}/reservations/{reservation_id}
     #[serde(default, rename = "throughputReservation")]
@@ -376,7 +377,7 @@ pub struct ReservationConfig {
 }
 
 /// The settings for a topic''s message retention.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetentionConfig {
     /// The provisioned storage, in bytes, per partition. If the number of bytes stored in any of the topic''s partitions grows beyond this value, older messages will be dropped to make room for newer ones, regardless of the value of period.
     #[serde(default, rename = "perPartitionBytes")]
@@ -387,7 +388,7 @@ pub struct RetentionConfig {
 }
 
 /// Configuration for exporting to a Pub/Sub topic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubSubConfig {
     /// The name of the Pub/Sub topic. Structured like: projects/{project_number}/topics/{topic_id}. The topic may be changed.
     #[serde(default)]
@@ -395,7 +396,7 @@ pub struct PubSubConfig {
 }
 
 /// The throughput capacity configuration for each partition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Capacity {
     /// Publish throughput capacity per partition in MiB/s. Must be &gt;= 4 and &lt;= 16.
     #[serde(default, rename = "publishMibPerSec")]

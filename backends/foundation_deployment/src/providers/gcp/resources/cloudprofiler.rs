@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// CreateProfileRequest describes a profile resource online creation request. The deployment field must be populated. The profile_type specifies the list of profile types supported by the agent. The creation call will hang until a profile of one of these types needs to be collected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateProfileRequest {
     /// Deployment details.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct CreateProfileRequest {
 }
 
 /// ListProfileResponse contains the list of collected profiles for deployments in projects which the user has permissions to view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProfilesResponse {
     /// Token to receive the next page of results. This field maybe empty if there are no more profiles to fetch.
     #[serde(default, rename = "nextPageToken")]
@@ -36,7 +37,7 @@ pub struct ListProfilesResponse {
 }
 
 /// Profile resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Profile {
     /// Deployment this profile corresponds to.
     #[serde(default)]
@@ -62,7 +63,7 @@ pub struct Profile {
 }
 
 /// Deployment contains the deployment identification information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Deployment {
     /// Labels identify the deployment within the user universe and same target. Validation regex for label names: ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$. Value for an individual label must be &lt;= 512 bytes, the total size of all label names and values must be &lt;= 1024 bytes. Label named "language" can be used to record the programming language of the profiled deployment. The standard choices for the value include "java", "go", "python", "ruby", "nodejs", "php", "dotnet". For deployments running on Google Cloud Platform, "zone" or "region" label should be present describing the deployment location. An example of a zone is "us-central1-a", an example of a region is "us-central1" or "us-central".
     #[serde(default)]

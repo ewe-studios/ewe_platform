@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The response object from ListActuations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListActuationsResponse {
     /// The list of Actuation
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct ListActuationsResponse {
 }
 
 /// Message for response to listing Deployments
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDeploymentsResponse {
     /// The list of Deployment
     #[serde(default)]
@@ -47,7 +48,7 @@ pub struct ListDeploymentsResponse {
 }
 
 /// List discovered profile Response returns discovered profiles from agents
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDiscoveredProfilesResponse {
     /// Output only. A token identifying a page of results the server should return
     #[serde(default, rename = "nextPageToken")]
@@ -61,7 +62,7 @@ pub struct ListDiscoveredProfilesResponse {
 }
 
 /// Response message for the ListEvaluations RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEvaluationsResponse {
     /// The list of evaluations.
     #[serde(default)]
@@ -75,7 +76,7 @@ pub struct ListEvaluationsResponse {
 }
 
 /// Response message for the ListExecutionResults RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExecutionResultsResponse {
     /// The versions from the specified publisher.
     #[serde(default, rename = "executionResults")]
@@ -86,7 +87,7 @@ pub struct ListExecutionResultsResponse {
 }
 
 /// Response message for the ListExecutions RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExecutionsResponse {
     /// The list of Execution.
     #[serde(default)]
@@ -100,7 +101,7 @@ pub struct ListExecutionsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -111,7 +112,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -125,7 +126,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message for the ListRules RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRulesResponse {
     /// All rules in response.
     #[serde(default)]
@@ -133,7 +134,7 @@ pub struct ListRulesResponse {
 }
 
 /// Response message for the ListScannedResources RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListScannedResourcesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -144,7 +145,7 @@ pub struct ListScannedResourcesResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -170,7 +171,7 @@ pub struct OperationMetadata {
 }
 
 /// Request message for the RunEvaluation RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunEvaluationRequest {
     /// Required. The resource being created.
     #[serde(default)]
@@ -184,7 +185,7 @@ pub struct RunEvaluationRequest {
 }
 
 /// In order to align with Infra Manager dependency, we create the same TerraformVariable message to represent a Terraform input variable, by following Infra Manager''s API documentation: https://cloud.google.com/infrastructure-manager/docs/reference/rest A Terraform input variable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerraformVariable {
     /// Optional. Input variable value.
     #[serde(default, rename = "inputValue")]
@@ -192,7 +193,7 @@ pub struct TerraformVariable {
 }
 
 /// WorkloadProfileHealth contains the detailed health check of workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadProfileHealth {
     /// The time when the health check was performed.
     #[serde(default, rename = "checkTime")]
@@ -206,7 +207,7 @@ pub struct WorkloadProfileHealth {
 }
 
 /// Request for sending the data insights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteInsightRequest {
     /// Optional. The agent version collected this data point.
     #[serde(default, rename = "agentVersion")]
@@ -220,11 +221,11 @@ pub struct WriteInsightRequest {
 }
 
 /// The response for write insights request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteInsightResponse {}
 
 /// The Actuation object represents the bootstrap state and output results of deployed infrastructure and software.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Actuation {
     /// Output only. [Output only] Actuation output
     #[serde(default, rename = "actuationOutput")]
@@ -247,7 +248,7 @@ pub struct Actuation {
 }
 
 /// The Deployment object represents user intent for deploying a specific type of workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Deployment {
     /// Output only. [Output only] Create time stamp
     #[serde(default, rename = "createTime")]
@@ -285,7 +286,7 @@ pub struct Deployment {
 }
 
 /// Workload resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadProfile {
     /// Optional. such as name, description, version. More example can be found in deployment
     #[serde(default)]
@@ -305,7 +306,7 @@ pub struct WorkloadProfile {
 }
 
 /// Represents a Workload Manager Evaluation configuration. An Evaluation defines a set of rules to be validated against a scope of Cloud resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Evaluation {
     /// Optional. The BigQuery destination for detailed evaluation results. If this field is specified, the results of each evaluation execution are exported to BigQuery.
     #[serde(default, rename = "bigQueryDestination")]
@@ -349,7 +350,7 @@ pub struct Evaluation {
 }
 
 /// The result of an execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionResult {
     /// The commands to remediate the violation.
     #[serde(default)]
@@ -378,7 +379,7 @@ pub struct ExecutionResult {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -398,7 +399,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -418,7 +419,7 @@ pub struct Operation {
 }
 
 /// A rule to be evaluated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Rule {
     /// The CAI asset type of the rule is evaluating, for joined asset types, it will be the corresponding primary asset types.
     #[serde(default, rename = "assetType")]
@@ -462,7 +463,7 @@ pub struct Rule {
 }
 
 /// A scanned resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScannedResource {
     /// Resource name.
     #[serde(default)]
@@ -473,7 +474,7 @@ pub struct ScannedResource {
 }
 
 /// Execution that represents a single run of an Evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Execution {
     /// Output only. [Output only] End time stamp.
     #[serde(default, rename = "endTime")]
@@ -517,7 +518,7 @@ pub struct Execution {
 }
 
 /// HealthCondition contains the detailed health check of each component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComponentHealth {
     /// The component of a workload.
     #[serde(default)]
@@ -537,7 +538,7 @@ pub struct ComponentHealth {
 }
 
 /// A presentation of host resource usage where the workload runs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Insight {
     /// The insights data for the agent status.
     #[serde(default, rename = "agentStatus")]
@@ -566,7 +567,7 @@ pub struct Insight {
 }
 
 /// Message for output of Actuation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActuationOutput {
     /// A link to gcs file that store build logs
     #[serde(default, rename = "actuateLogs")]
@@ -601,7 +602,7 @@ pub struct ActuationOutput {
 }
 
 /// Message for output of deployment resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentOutput {
     /// name of the resource
     #[serde(default)]
@@ -612,7 +613,7 @@ pub struct DeploymentOutput {
 }
 
 /// Message for sap system workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapSystemS4Config {
     #[serde(default, rename = "allowStoppingForUpdate")]
     pub allow_stopping_for_update: ::core::option::Option<bool>,
@@ -655,7 +656,7 @@ pub struct SapSystemS4Config {
 }
 
 /// Message for MS SQL workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerWorkload {
     /// Required. active directory details
     #[serde(default, rename = "activeDirectory")]
@@ -711,7 +712,7 @@ pub struct SqlServerWorkload {
 }
 
 /// The body of sap workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapWorkload {
     /// Output only. application component
     #[serde(default)]
@@ -731,7 +732,7 @@ pub struct SapWorkload {
 }
 
 /// BigQuery destination for evaluation results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryDestination {
     /// Optional. Determines if a new results table will be created when an Execution is created.
     #[serde(default, rename = "createNewResultsTable")]
@@ -742,7 +743,7 @@ pub struct BigQueryDestination {
 }
 
 /// Resource filter for an evaluation defining the scope of resources to be evaluated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceFilter {
     /// Filter compute engine resources.
     #[serde(default, rename = "gceInstanceFilter")]
@@ -759,7 +760,7 @@ pub struct ResourceFilter {
 }
 
 /// The lifecycle status of an Evaluation resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceStatus {
     /// State of the Evaluation resource. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "DELETING"]
     #[serde(default)]
@@ -767,7 +768,7 @@ pub struct ResourceStatus {
 }
 
 /// Command specifies the type of command to execute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Command {
     /// AgentCommand specifies a one-time executable program for the agent to run.
     #[serde(default, rename = "agentCommand")]
@@ -778,7 +779,7 @@ pub struct Command {
 }
 
 /// Resource in execution result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Resource {
     /// The name of the resource.
     #[serde(default)]
@@ -792,7 +793,7 @@ pub struct Resource {
 }
 
 /// The violation in an evaluation result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ViolationDetails {
     /// The name of the asset.
     #[serde(default)]
@@ -809,7 +810,7 @@ pub struct ViolationDetails {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -823,7 +824,7 @@ pub struct Status {
 }
 
 /// External data sources for an execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalDataSources {
     /// Required. The asset type of the external data source. This can be a supported Cloud Asset Inventory asset type (see https://cloud.google.com/asset-inventory/docs/supported-asset-types) to override the default asset type, or it can be a custom type defined by the user.
     #[serde(default, rename = "assetType")]
@@ -840,7 +841,7 @@ pub struct ExternalDataSources {
 }
 
 /// Additional information generated by an execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Notice {
     /// Output only. Message of the notice.
     #[serde(default)]
@@ -848,7 +849,7 @@ pub struct Notice {
 }
 
 /// Execution summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Summary {
     /// Output only. Number of failures.
     #[serde(default)]
@@ -862,7 +863,7 @@ pub struct Summary {
 }
 
 /// Execution result summary per rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuleExecutionResult {
     /// Execution message, if any.
     #[serde(default)]
@@ -882,7 +883,7 @@ pub struct RuleExecutionResult {
 }
 
 /// HealthCheck contains the detailed health check of a component based on asource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheck {
     /// Output only. The message of the health check.
     #[serde(default)]
@@ -902,7 +903,7 @@ pub struct HealthCheck {
 }
 
 /// The schema of agent status data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentStatus {
     /// Output only. The name of the agent.
     #[serde(default, rename = "agentName")]
@@ -948,7 +949,7 @@ pub struct AgentStatus {
 }
 
 /// A presentation of OpenShift workload insight. The schema of OpenShift workloads validation related data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OpenShiftValidation {
     /// Required. The OpenShift cluster ID (e.g. 8371bb05-7cac-4d38-82c0-0f58c4f6f936).
     #[serde(default, rename = "clusterId")]
@@ -959,7 +960,7 @@ pub struct OpenShiftValidation {
 }
 
 /// The schema of SAP system discovery data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscovery {
     /// Optional. An SAP system may run without an application layer.
     #[serde(default, rename = "applicationLayer")]
@@ -988,7 +989,7 @@ pub struct SapDiscovery {
 }
 
 /// A presentation of SAP workload insight. The schema of SAP workloads validation related data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapValidation {
     /// Required. The project_id of the cloud project that the Insight data comes from.
     #[serde(default, rename = "projectId")]
@@ -1002,7 +1003,7 @@ pub struct SapValidation {
 }
 
 /// A presentation of SQLServer workload insight. The schema of SqlServer workloads validation related data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlserverValidation {
     /// Optional. The agent version collected this data point
     #[serde(default, rename = "agentVersion")]
@@ -1020,7 +1021,7 @@ pub struct SqlserverValidation {
 }
 
 /// The schema of torso workload validation data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TorsoValidation {
     /// Required. agent_version lists the version of the agent that collected this data.
     #[serde(default, rename = "agentVersion")]
@@ -1040,7 +1041,7 @@ pub struct TorsoValidation {
 }
 
 /// Message for sap instant details
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppDetails {
     /// Optional. instance id for app
     #[serde(default, rename = "appInstanceId")]
@@ -1093,7 +1094,7 @@ pub struct AppDetails {
 }
 
 /// Message for sap instant details
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseDetails {
     /// Database service account - let custoemrs bring their own SA for database
     #[serde(default, rename = "databaseServiceAccount")]
@@ -1125,7 +1126,7 @@ pub struct DatabaseDetails {
 }
 
 /// Message for sap instant details
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationDetails {
     /// Optional. create firewall, if true, create firewall for the deployment. This field provides an option to not always create firewall for the deployment.
     #[serde(default, rename = "createCommsFirewall")]
@@ -1166,7 +1167,7 @@ pub struct LocationDetails {
 }
 
 /// Active directory details
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveDirectory {
     /// Optional. DNS IP address
     #[serde(default, rename = "dnsAddress")]
@@ -1186,7 +1187,7 @@ pub struct ActiveDirectory {
 }
 
 /// Database details
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Database {
     /// Required. disk_type
     #[serde(default, rename = "diskType")]
@@ -1224,7 +1225,7 @@ pub struct Database {
 }
 
 /// Location and networking details for configuring SQL server workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlLocationDetails {
     /// Optional. create a new DNS Zone when the field is empty, Only show for Using an existing DNS List of existing DNS Zones tf variable name: existing_dns_zone_name
     #[serde(default, rename = "dnsZone")]
@@ -1256,7 +1257,7 @@ pub struct SqlLocationDetails {
 }
 
 /// pacemaker configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pacemaker {
     /// Required. bucket location for node certificates
     #[serde(default, rename = "bucketNameNodeCertificates")]
@@ -1279,7 +1280,7 @@ pub struct Pacemaker {
 }
 
 /// The component of sap workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapComponent {
     /// Output only. All instance properties.
     #[serde(default, rename = "databaseProperties")]
@@ -1299,7 +1300,7 @@ pub struct SapComponent {
 }
 
 /// Contains the details of a product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Product {
     /// Optional. Name of the product.
     #[serde(default)]
@@ -1310,7 +1311,7 @@ pub struct Product {
 }
 
 /// A filter for matching Compute Engine instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GceInstanceFilter {
     /// If non-empty, only Compute Engine instances associated with at least one of the provided service accounts will be included in the evaluation.
     #[serde(default, rename = "serviceAccounts")]
@@ -1318,7 +1319,7 @@ pub struct GceInstanceFilter {
 }
 
 /// An AgentCommand specifies a one-time executable program for the agent to run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentCommand {
     /// The name of the agent one-time executable that will be invoked.
     #[serde(default)]
@@ -1329,7 +1330,7 @@ pub struct AgentCommand {
 }
 
 /// A ShellCommand is invoked via the agent''s command line executor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShellCommand {
     /// Arguments to be passed to the command.
     #[serde(default)]
@@ -1343,7 +1344,7 @@ pub struct ShellCommand {
 }
 
 /// The rule output of the violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuleOutput {
     /// Output only. Violation details generated by rule.
     #[serde(default)]
@@ -1354,7 +1355,7 @@ pub struct RuleOutput {
 }
 
 /// The reference to public documentation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentStatusReference {
     /// Output only. The name of the reference.
     #[serde(default)]
@@ -1365,7 +1366,7 @@ pub struct AgentStatusReference {
 }
 
 /// The status of a service (process metrics, host metrics, etc.).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentStatusServiceStatus {
     /// Output only. The configuration values for the service.
     #[serde(default, rename = "configValues")]
@@ -1391,7 +1392,7 @@ pub struct AgentStatusServiceStatus {
 }
 
 /// Message describing SAP discovery system metadata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryMetadata {
     /// Optional. Customer region string for customer''s use. Does not represent GCP region.
     #[serde(default, rename = "customerRegion")]
@@ -1408,7 +1409,7 @@ pub struct SapDiscoveryMetadata {
 }
 
 /// A set of properties describing an SAP workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryWorkloadProperties {
     /// Optional. List of SAP Products and their versions running on the system.
     #[serde(default, rename = "productVersions")]
@@ -1422,7 +1423,7 @@ pub struct SapDiscoveryWorkloadProperties {
 }
 
 /// Message describing the SAP validation metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapValidationValidationDetail {
     /// Optional. The pairs of metrics data: field name & field value.
     #[serde(default)]
@@ -1436,7 +1437,7 @@ pub struct SapValidationValidationDetail {
 }
 
 /// Message describing the Sqlserver validation metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlserverValidationValidationDetail {
     /// Required. Details wraps map that represents collected data names and values.
     #[serde(default)]
@@ -1447,7 +1448,7 @@ pub struct SqlserverValidationValidationDetail {
 }
 
 /// Database Properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseProperties {
     /// Output only. Backup properties.
     #[serde(default, rename = "backupProperties")]
@@ -1458,7 +1459,7 @@ pub struct DatabaseProperties {
 }
 
 /// The resource on GCP
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudResource {
     /// Output only. All instance properties.
     #[serde(default, rename = "instanceProperties")]
@@ -1472,7 +1473,7 @@ pub struct CloudResource {
 }
 
 /// The configuration value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentStatusConfigValue {
     /// Output only. Whether the configuration value is the default value or overridden.
     #[serde(default, rename = "isDefault")]
@@ -1486,7 +1487,7 @@ pub struct AgentStatusConfigValue {
 }
 
 /// The IAM permission status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentStatusIAMPermission {
     /// Output only. Whether the permission is granted. // TODO: enum values: ["UNSPECIFIED_STATE", "SUCCESS_STATE", "FAILURE_STATE", "ERROR_STATE"]
     #[serde(default)]
@@ -1497,7 +1498,7 @@ pub struct AgentStatusIAMPermission {
 }
 
 /// A product name and version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryWorkloadPropertiesProductVersion {
     /// Optional. Name of the product.
     #[serde(default)]
@@ -1508,7 +1509,7 @@ pub struct SapDiscoveryWorkloadPropertiesProductVersion {
 }
 
 /// A SAP software component name, version, and type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryWorkloadPropertiesSoftwareComponentProperties {
     /// Optional. The component''s minor version.
     #[serde(default, rename = "extVersion")]
@@ -1525,7 +1526,7 @@ pub struct SapDiscoveryWorkloadPropertiesSoftwareComponentProperties {
 }
 
 /// Message containing collected data names and values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlserverValidationDetails {
     /// Required. Collected data is in format.
     #[serde(default)]
@@ -1533,7 +1534,7 @@ pub struct SqlserverValidationDetails {
 }
 
 /// Backup properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupProperties {
     /// Output only. The state of the latest backup. // TODO: enum values: ["BACKUP_STATE_UNSPECIFIED", "BACKUP_STATE_SUCCESS", "BACKUP_STATE_FAILURE"]
     #[serde(default, rename = "latestBackupStatus")]
@@ -1544,7 +1545,7 @@ pub struct BackupProperties {
 }
 
 /// Instance Properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceProperties {
     /// Optional. Instance number.
     #[serde(default, rename = "instanceNumber")]
@@ -1567,7 +1568,7 @@ pub struct InstanceProperties {
 }
 
 /// SAP instance properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapInstanceProperties {
     /// Optional. Sap Instance Agent status.
     #[serde(default, rename = "agentStates")]
@@ -1578,7 +1579,7 @@ pub struct SapInstanceProperties {
 }
 
 /// Maintenance Event
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpcomingMaintenanceEvent {
     /// Optional. End time
     #[serde(default, rename = "endTime")]
@@ -1598,7 +1599,7 @@ pub struct UpcomingMaintenanceEvent {
 }
 
 /// Agent status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentStates {
     /// Optional. The available version of the agent in artifact registry.
     #[serde(default, rename = "availableVersion")]
@@ -1621,7 +1622,7 @@ pub struct AgentStates {
 }
 
 /// The state of the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceStates {
     /// Optional. Output only. The IAM permissions for the service.
     #[serde(default, rename = "iamPermissions")]
@@ -1632,7 +1633,7 @@ pub struct ServiceStates {
 }
 
 /// The IAM permission status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IAMPermission {
     /// Output only. Whether the permission is granted.
     #[serde(default)]
@@ -1643,7 +1644,7 @@ pub struct IAMPermission {
 }
 
 /// Message describing the system component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryComponent {
     /// Optional. The component is a SAP application.
     #[serde(default, rename = "applicationProperties")]
@@ -1677,7 +1678,7 @@ pub struct SapDiscoveryComponent {
 }
 
 /// A set of properties describing an SAP Application layer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryComponentApplicationProperties {
     /// Optional. Deprecated: ApplicationType now tells you whether this is ABAP or Java.
     #[serde(default)]
@@ -1706,7 +1707,7 @@ pub struct SapDiscoveryComponentApplicationProperties {
 }
 
 /// A set of properties describing an SAP Database layer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryComponentDatabaseProperties {
     /// Optional. SID of the system database.
     #[serde(default, rename = "databaseSid")]
@@ -1732,7 +1733,7 @@ pub struct SapDiscoveryComponentDatabaseProperties {
 }
 
 /// A replication site used in Disaster Recovery (DR) configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryComponentReplicationSite {
     /// Optional. The system component for the site.
     #[serde(default)]
@@ -1743,7 +1744,7 @@ pub struct SapDiscoveryComponentReplicationSite {
 }
 
 /// Message describing a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryResource {
     /// Optional. A set of properties only applying to instance type resources.
     #[serde(default, rename = "instanceProperties")]
@@ -1767,7 +1768,7 @@ pub struct SapDiscoveryResource {
 }
 
 /// A set of properties only present for an instance type resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryResourceInstanceProperties {
     /// Optional. App server instances on the host
     #[serde(default, rename = "appInstances")]
@@ -1800,7 +1801,7 @@ pub struct SapDiscoveryResourceInstanceProperties {
 }
 
 /// Fields to describe an SAP application server instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryResourceInstancePropertiesAppInstance {
     /// Optional. Instance name of the SAP application instance.
     #[serde(default)]
@@ -1811,7 +1812,7 @@ pub struct SapDiscoveryResourceInstancePropertiesAppInstance {
 }
 
 /// Disk mount on the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryResourceInstancePropertiesDiskMount {
     /// Optional. Names of the disks providing this mount point.
     #[serde(default, rename = "diskNames")]
@@ -1825,7 +1826,7 @@ pub struct SapDiscoveryResourceInstancePropertiesDiskMount {
 }
 
 /// KernelVersion encapsulates the kernel version data for the system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryResourceInstancePropertiesKernelVersion {
     /// Optional. Captures the distro-specific kernel version, the portion of the string following the first dash.
     #[serde(default, rename = "distroKernel")]
@@ -1843,7 +1844,7 @@ pub struct SapDiscoveryResourceInstancePropertiesKernelVersion {
 }
 
 /// Version is reported as Major.Minor.Build.Patch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SapDiscoveryResourceInstancePropertiesKernelVersionVersion {
     /// Optional. The build version number.
     #[serde(default)]

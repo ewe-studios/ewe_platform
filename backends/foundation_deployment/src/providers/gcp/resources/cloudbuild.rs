@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Message for creating repositoritories in batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreateRepositoriesRequest {
     /// Required. The request messages specifying the repositories to create.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct BatchCreateRepositoriesRequest {
 }
 
 /// Message for response of creating repositories in batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreateRepositoriesResponse {
     /// Repository resources created.
     #[serde(default)]
@@ -27,19 +28,19 @@ pub struct BatchCreateRepositoriesResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Represents an empty Volume source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmptyDirVolumeSource {}
 
 /// Response for fetching git refs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchGitRefsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -50,7 +51,7 @@ pub struct FetchGitRefsResponse {
 }
 
 /// Response message for FetchLinkableRepositories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchLinkableRepositoriesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -61,11 +62,11 @@ pub struct FetchLinkableRepositoriesResponse {
 }
 
 /// Message for fetching SCM read token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchReadTokenRequest {}
 
 /// Message for responding to get read token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchReadTokenResponse {
     /// Expiration timestamp. Can be empty if unknown or non-expiring.
     #[serde(default, rename = "expirationTime")]
@@ -76,11 +77,11 @@ pub struct FetchReadTokenResponse {
 }
 
 /// Message for fetching SCM read/write token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchReadWriteTokenRequest {}
 
 /// Message for responding to get read/write token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchReadWriteTokenResponse {
     /// Expiration timestamp. Can be empty if unknown or non-expiring.
     #[serde(default, rename = "expirationTime")]
@@ -91,7 +92,7 @@ pub struct FetchReadWriteTokenResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV2OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -117,7 +118,7 @@ pub struct GoogleDevtoolsCloudbuildV2OperationMetadata {
 }
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
@@ -131,7 +132,7 @@ pub struct HttpBody {
 }
 
 /// Message for response to listing Connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConnectionsResponse {
     /// The list of Connections.
     #[serde(default)]
@@ -145,7 +146,7 @@ pub struct ListConnectionsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -156,7 +157,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Message for response to listing Repositories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRepositoriesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -170,7 +171,7 @@ pub struct ListRepositoriesResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -190,7 +191,7 @@ pub struct Operation {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -216,7 +217,7 @@ pub struct OperationMetadata {
 }
 
 /// Message describing PipelineRun object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PipelineRun {
     /// User annotations. See https://google.aip.dev/128#annotations
     #[serde(default)]
@@ -308,7 +309,7 @@ pub struct PipelineRun {
 }
 
 /// PropertySpec holds information about a property in an object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertySpec {
     /// A type for the object. // TODO: enum values: ["TYPE_UNSPECIFIED", "STRING"]
     #[serde(default, rename = "type")]
@@ -316,7 +317,7 @@ pub struct PropertySpec {
 }
 
 /// Represents the custom metadata of the RunWorkflow long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunWorkflowCustomOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -342,7 +343,7 @@ pub struct RunWorkflowCustomOperationMetadata {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -353,7 +354,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -361,7 +362,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -369,7 +370,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Message for creating a Repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateRepositoryRequest {
     /// Required. The connection to contain the repository. If the request is part of a BatchCreateRepositoriesRequest, this field should be empty or match the parent specified there.
     #[serde(default)]
@@ -383,7 +384,7 @@ pub struct CreateRepositoryRequest {
 }
 
 /// A connection to a SCM like GitHub, GitHub Enterprise, Bitbucket Data Center, Bitbucket Cloud or GitLab.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Connection {
     /// Optional. Allows clients to store small amounts of arbitrary data.
     #[serde(default)]
@@ -428,7 +429,7 @@ pub struct Connection {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -448,7 +449,7 @@ pub struct Location {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -462,7 +463,7 @@ pub struct Status {
 }
 
 /// ChildStatusReference is used to point to the statuses of individual TaskRuns and Runs within this PipelineRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChildStatusReference {
     /// Name is the name of the TaskRun or Run this is referencing.
     #[serde(default)]
@@ -479,7 +480,7 @@ pub struct ChildStatusReference {
 }
 
 /// Conditions defines a readiness condition for a Knative resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV2Condition {
     /// LastTransitionTime is the last time the condition transitioned from one status to another.
     #[serde(default, rename = "lastTransitionTime")]
@@ -502,7 +503,7 @@ pub struct GoogleDevtoolsCloudbuildV2Condition {
 }
 
 /// PipelineRef can be used to refer to a specific instance of a Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PipelineRef {
     /// Optional. Name of the Pipeline.
     #[serde(default)]
@@ -516,7 +517,7 @@ pub struct PipelineRef {
 }
 
 /// PipelineSpec defines the desired state of Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PipelineSpec {
     /// List of Tasks that execute just before leaving the Pipeline i.e. either after all Tasks are finished executing successfully or after a failure which would result in ending the Pipeline.
     #[serde(default, rename = "finallyTasks")]
@@ -539,7 +540,7 @@ pub struct PipelineSpec {
 }
 
 /// Provenance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Provenance {
     /// Optional. Provenance push mode. // TODO: enum values: ["ENABLED_UNSPECIFIED", "REQUIRED", "OPTIMISTIC", "DISABLED"]
     #[serde(default)]
@@ -553,7 +554,7 @@ pub struct Provenance {
 }
 
 /// PipelineRunResult used to describe the results of a pipeline
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PipelineRunResult {
     /// Output only. Name of the TaskRun
     #[serde(default)]
@@ -564,7 +565,7 @@ pub struct PipelineRunResult {
 }
 
 /// Security configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Security {
     /// Optional. Privilege mode. // TODO: enum values: ["PRIVILEGE_MODE_UNSPECIFIED", "PRIVILEGED", "UNPRIVILEGED"]
     #[serde(default, rename = "privilegeMode")]
@@ -575,7 +576,7 @@ pub struct Security {
 }
 
 /// SkippedTask is used to describe the Tasks that were skipped due to their When Expressions evaluating to False.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkippedTask {
     /// Name is the Pipeline Task name
     #[serde(default)]
@@ -589,7 +590,7 @@ pub struct SkippedTask {
 }
 
 /// TimeoutFields allows granular specification of pipeline, task, and finally timeouts
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeoutFields {
     /// Finally sets the maximum allowed duration of this pipeline''s finally
     #[serde(default)]
@@ -603,7 +604,7 @@ pub struct TimeoutFields {
 }
 
 /// Configuration for the worker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Worker {
     /// Optional. Machine type of a worker, default is "e2-standard-2".
     #[serde(default, rename = "machineType")]
@@ -611,7 +612,7 @@ pub struct Worker {
 }
 
 /// WorkspaceBinding maps a workspace to a Volume. PipelineRef can be used to refer to a specific instance of a Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkspaceBinding {
     /// Name of the workspace.
     #[serde(default)]
@@ -625,7 +626,7 @@ pub struct WorkspaceBinding {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -642,7 +643,7 @@ pub struct Policy {
 }
 
 /// A repository associated to a parent connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Repository {
     /// Optional. Allows clients to store small amounts of arbitrary data.
     #[serde(default)]
@@ -668,7 +669,7 @@ pub struct Repository {
 }
 
 /// Configuration for connections to Bitbucket Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BitbucketCloudConfig {
     /// Required. An access token with the webhook, repository, repository:admin and pullrequest scope access. It can be either a workspace, project or repository access token. It''s recommended to use a system account to generate these credentials.
     #[serde(default, rename = "authorizerCredential")]
@@ -685,7 +686,7 @@ pub struct BitbucketCloudConfig {
 }
 
 /// Configuration for connections to Bitbucket Data Center.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BitbucketDataCenterConfig {
     /// Required. A http access token with the REPO_ADMIN scope access.
     #[serde(default, rename = "authorizerCredential")]
@@ -712,7 +713,7 @@ pub struct BitbucketDataCenterConfig {
 }
 
 /// Configuration for connections to github.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitHubConfig {
     /// Optional. GitHub App installation id.
     #[serde(default, rename = "appInstallationId")]
@@ -723,7 +724,7 @@ pub struct GitHubConfig {
 }
 
 /// Configuration for connections to an instance of GitHub Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV2GitHubEnterpriseConfig {
     /// Required. API Key used for authentication of webhook events.
     #[serde(default, rename = "apiKey")]
@@ -759,7 +760,7 @@ pub struct GoogleDevtoolsCloudbuildV2GitHubEnterpriseConfig {
 }
 
 /// Configuration for connections to gitlab.com or an instance of GitLab Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV2GitLabConfig {
     /// Required. A GitLab personal access token with the api scope access.
     #[serde(default, rename = "authorizerCredential")]
@@ -786,7 +787,7 @@ pub struct GoogleDevtoolsCloudbuildV2GitLabConfig {
 }
 
 /// Describes stage and necessary actions to be taken by the user to complete the installation. Used for GitHub and GitHub Enterprise based connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstallationState {
     /// Output only. Link to follow for next action. Empty string if the installation is already complete.
     #[serde(default, rename = "actionUri")]
@@ -800,7 +801,7 @@ pub struct InstallationState {
 }
 
 /// PipelineTask defines a task in a Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PipelineTask {
     /// Name of the task.
     #[serde(default)]
@@ -832,7 +833,7 @@ pub struct PipelineTask {
 }
 
 /// A value produced by a Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PipelineResult {
     /// Output only. Description of the result.
     #[serde(default)]
@@ -849,7 +850,7 @@ pub struct PipelineResult {
 }
 
 /// Workspaces declares a set of named workspaces that are expected to be provided by a PipelineRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PipelineWorkspaceDeclaration {
     /// Description is a human readable string describing how the workspace will be used in the Pipeline.
     #[serde(default)]
@@ -863,7 +864,7 @@ pub struct PipelineWorkspaceDeclaration {
 }
 
 /// Secret Volume Source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretVolumeSource {
     /// Name of the secret referenced by the WorkspaceBinding.
     #[serde(default, rename = "secretName")]
@@ -874,7 +875,7 @@ pub struct SecretVolumeSource {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -885,7 +886,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -899,7 +900,7 @@ pub struct Binding {
 }
 
 /// Represents an OAuth token of the account that authorized the Connection, and associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OAuthCredential {
     /// Optional. A SecretManager resource containing the OAuth token that authorizes the Cloud Build connection. Format: projects/*/secrets/*/versions/*.
     #[serde(default, rename = "oauthTokenSecretVersion")]
@@ -910,7 +911,7 @@ pub struct OAuthCredential {
 }
 
 /// Represents a personal access token that authorized the Connection, and associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserCredential {
     /// Required. A SecretManager resource containing the user token that authorizes the Cloud Build connection. Format: projects/*/secrets/*/versions/*.
     #[serde(default, rename = "userTokenSecretVersion")]
@@ -921,7 +922,7 @@ pub struct UserCredential {
 }
 
 /// ServiceDirectoryConfig represents Service Directory configuration for a connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV2ServiceDirectoryConfig {
     /// Required. The Service Directory service name. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}.
     #[serde(default)]
@@ -929,7 +930,7 @@ pub struct GoogleDevtoolsCloudbuildV2ServiceDirectoryConfig {
 }
 
 /// TaskRef can be used to refer to a specific instance of a task. PipelineRef can be used to refer to a specific instance of a Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskRef {
     /// Optional. Name of the task.
     #[serde(default)]
@@ -943,7 +944,7 @@ pub struct TaskRef {
 }
 
 /// EmbeddedTask defines a Task that is embedded in a Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmbeddedTask {
     /// User annotations. See https://google.aip.dev/128#annotations
     #[serde(default)]
@@ -954,7 +955,7 @@ pub struct EmbeddedTask {
 }
 
 /// Conditions that need to be true for the task to run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WhenExpression {
     /// Operator that represents an Input''s relationship to the values // TODO: enum values: ["EXPRESSION_OPERATOR_UNSPECIFIED", "IN", "NOT_IN"]
     #[serde(default, rename = "expressionOperator")]
@@ -968,7 +969,7 @@ pub struct WhenExpression {
 }
 
 /// WorkspacePipelineTaskBinding maps workspaces from the PipelineSpec to the workspaces declared in the Task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkspacePipelineTaskBinding {
     /// Name of the workspace as declared by the task.
     #[serde(default)]
@@ -982,7 +983,7 @@ pub struct WorkspacePipelineTaskBinding {
 }
 
 /// ResultValue holds different types of data for a single result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultValue {
     /// Value of the result if type is array.
     #[serde(default, rename = "arrayVal")]
@@ -999,7 +1000,7 @@ pub struct ResultValue {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1010,7 +1011,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1027,7 +1028,7 @@ pub struct Expr {
 }
 
 /// TaskSpec contains the Spec to instantiate a TaskRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskSpec {
     /// Description of the task.
     #[serde(default)]
@@ -1059,7 +1060,7 @@ pub struct TaskSpec {
 }
 
 /// ParamSpec defines parameters needed beyond typed inputs (such as resources). Parameter values are provided by users as inputs on a TaskRun or PipelineRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParamSpec {
     /// The default value a parameter takes if no input value is supplied
     #[serde(default)]
@@ -1076,7 +1077,7 @@ pub struct ParamSpec {
 }
 
 /// TaskResult is used to describe the results of a task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskResult {
     /// Description of the result.
     #[serde(default)]
@@ -1096,7 +1097,7 @@ pub struct TaskResult {
 }
 
 /// Sidecars run alongside the Task''s step containers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Sidecar {
     /// Arguments to the entrypoint.
     #[serde(default)]
@@ -1131,7 +1132,7 @@ pub struct Sidecar {
 }
 
 /// StepTemplate can be used as the basis for all step containers within the Task, so that the steps inherit settings on the base container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StepTemplate {
     /// Optional. List of environment variables to set in the Step. Cannot be updated.
     #[serde(default)]
@@ -1142,7 +1143,7 @@ pub struct StepTemplate {
 }
 
 /// Step embeds the Container type, which allows it to include fields not provided by Container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Step {
     /// Arguments to the entrypoint.
     #[serde(default)]
@@ -1186,7 +1187,7 @@ pub struct Step {
 }
 
 /// Volumes available to mount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VolumeSource {
     /// A temporary directory that shares a pod''s lifetime.
     #[serde(default, rename = "emptyDir")]
@@ -1197,7 +1198,7 @@ pub struct VolumeSource {
 }
 
 /// WorkspaceDeclaration is a declaration of a volume that a Task requires.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkspaceDeclaration {
     /// Description is a human readable description of this volume.
     #[serde(default)]
@@ -1217,7 +1218,7 @@ pub struct WorkspaceDeclaration {
 }
 
 /// Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Probe {
     /// Optional. Exec specifies the action to take. +optional
     #[serde(default)]
@@ -1228,7 +1229,7 @@ pub struct Probe {
 }
 
 /// Environment variable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvVar {
     /// Name of the environment variable.
     #[serde(default)]
@@ -1239,7 +1240,7 @@ pub struct EnvVar {
 }
 
 /// A reference to a remote Step, i.e. a StepAction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StepRef {
     /// Optional. Name of the step.
     #[serde(default)]
@@ -1253,7 +1254,7 @@ pub struct StepRef {
 }
 
 /// Security options the container should be run with.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityContext {
     /// Optional. AllowPrivilegeEscalation controls whether a process can gain more privileges than its parent process. This bool directly controls if the no_new_privs flag will be set on the container process. AllowPrivilegeEscalation is true always when the container is: 1) run as Privileged 2) has CAP_SYS_ADMIN Note that this field cannot be set when spec.os.name is windows. +optional
     #[serde(default, rename = "allowPrivilegeEscalation")]
@@ -1273,7 +1274,7 @@ pub struct SecurityContext {
 }
 
 /// Pod volumes to mount into the container''s filesystem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VolumeMount {
     /// Path within the container at which the volume should be mounted. Must not contain '':''.
     #[serde(default, rename = "mountPath")]
@@ -1293,7 +1294,7 @@ pub struct VolumeMount {
 }
 
 /// ExecAction describes a "run in container" action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecAction {
     /// Optional. Command is the command line to execute inside the container, the working directory for the command is root (''/'') in the container''s filesystem. The command is simply exec''d, it is not run inside a shell, so traditional shell instructions (''|'', etc) won''t work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy. +optional
     #[serde(default)]
@@ -1301,7 +1302,7 @@ pub struct ExecAction {
 }
 
 /// Param defined with name and value. PipelineRef can be used to refer to a specific instance of a Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Param {
     /// Name of the parameter.
     #[serde(default)]
@@ -1312,7 +1313,7 @@ pub struct Param {
 }
 
 /// Parameter value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParamValue {
     /// Value of the parameter if type is array.
     #[serde(default, rename = "arrayVal")]

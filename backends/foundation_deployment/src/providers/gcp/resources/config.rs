@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// AutoMigrationConfig contains the automigration configuration for a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoMigrationConfig {
     /// Optional. Whether the auto migration is enabled for the project.
     #[serde(default, rename = "autoMigrationEnabled")]
@@ -25,11 +26,11 @@ pub struct AutoMigrationConfig {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A request to delete a state file passed to a ''DeleteStatefile'' call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteStatefileRequest {
     /// Required. Lock ID of the lock file to verify that the user who is deleting the state file previously locked the Deployment.
     #[serde(default, rename = "lockId")]
@@ -37,7 +38,7 @@ pub struct DeleteStatefileRequest {
 }
 
 /// Spec for a deployment to be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentSpec {
     /// Required. The deployment to be created.
     #[serde(default)]
@@ -48,7 +49,7 @@ pub struct DeploymentSpec {
 }
 
 /// The request message for the DeprovisionDeploymentGroup method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeprovisionDeploymentGroupRequest {
     /// Optional. Policy on how resources within each deployment should be handled during deletion. This policy is applied globally to the deletion of all deployments in this group. This corresponds to the ''delete_policy'' field in DeleteDeploymentRequest. // TODO: enum values: ["DELETE_POLICY_UNSPECIFIED", "DELETE", "ABANDON"]
     #[serde(default, rename = "deletePolicy")]
@@ -59,11 +60,11 @@ pub struct DeprovisionDeploymentGroupRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// A request to export a state file passed to a ''ExportDeploymentStatefile'' call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportDeploymentStatefileRequest {
     /// Optional. If this flag is set to true, the exported deployment state file will be the draft state. This will enable the draft file to be validated before copying it over to the working state on unlock.
     #[serde(default)]
@@ -71,11 +72,11 @@ pub struct ExportDeploymentStatefileRequest {
 }
 
 /// A request to export preview results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportPreviewResultRequest {}
 
 /// A response to ExportPreviewResult call. Contains preview results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportPreviewResultResponse {
     /// Output only. Signed URLs for accessing the plan files.
     #[serde(default)]
@@ -83,11 +84,11 @@ pub struct ExportPreviewResultResponse {
 }
 
 /// A request to export a state file passed to a ''ExportRevisionStatefile'' call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportRevisionStatefileRequest {}
 
 /// Configuration for a source of an external value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalValueSource {
     /// A source from a Deployment.
     #[serde(default, rename = "deploymentSource")]
@@ -95,7 +96,7 @@ pub struct ExternalValueSource {
 }
 
 /// A request to import a state file passed to a ''ImportStatefile'' call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportStatefileRequest {
     /// Required. Lock ID of the lock file to verify that the user who is importing the state file previously locked the Deployment.
     #[serde(default, rename = "lockId")]
@@ -103,7 +104,7 @@ pub struct ImportStatefileRequest {
 }
 
 /// The response message for the ListDeploymentGroupRevisions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDeploymentGroupRevisionsResponse {
     /// The deployment group revisions from the specified collection.
     #[serde(default, rename = "deploymentGroupRevisions")]
@@ -118,7 +119,7 @@ pub struct ListDeploymentGroupRevisionsResponse {
 }
 
 /// The response message for the ListDeploymentGroups method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDeploymentGroupsResponse {
     /// The deployment groups from the specified collection.
     #[serde(default, rename = "deploymentGroups")]
@@ -132,7 +133,7 @@ pub struct ListDeploymentGroupsResponse {
 }
 
 /// ListDeploymentsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDeploymentsResponse {
     /// List of Deployments.
     #[serde(default)]
@@ -146,7 +147,7 @@ pub struct ListDeploymentsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -157,7 +158,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -171,7 +172,7 @@ pub struct ListOperationsResponse {
 }
 
 /// A response to a ListPreviews call. Contains a list of Previews.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPreviewsResponse {
     /// Token to be supplied to the next ListPreviews request via page_token to obtain the next set of results.
     #[serde(default, rename = "nextPageToken")]
@@ -185,7 +186,7 @@ pub struct ListPreviewsResponse {
 }
 
 /// A response to a ''ListResourceChanges'' call. Contains a list of ResourceChanges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListResourceChangesResponse {
     /// A token to request the next page of resources from the ''ListResourceChanges'' method. The value of an empty string means that there are no more resources to return.
     #[serde(default, rename = "nextPageToken")]
@@ -199,7 +200,7 @@ pub struct ListResourceChangesResponse {
 }
 
 /// A response to a ''ListResourceDrifts'' call. Contains a list of ResourceDrifts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListResourceDriftsResponse {
     /// A token to request the next page of resources from the ''ListResourceDrifts'' method. The value of an empty string means that there are no more resources to return.
     #[serde(default, rename = "nextPageToken")]
@@ -213,7 +214,7 @@ pub struct ListResourceDriftsResponse {
 }
 
 /// A response to a ''ListResources'' call. Contains a list of Resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListResourcesResponse {
     /// A token to request the next page of resources from the ''ListResources'' method. The value of an empty string means that there are no more resources to return.
     #[serde(default, rename = "nextPageToken")]
@@ -227,7 +228,7 @@ pub struct ListResourcesResponse {
 }
 
 /// A response to a ''ListRevisions'' call. Contains a list of Revisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRevisionsResponse {
     /// A token to request the next page of resources from the ''ListRevisions'' method. The value of an empty string means that there are no more resources to return.
     #[serde(default, rename = "nextPageToken")]
@@ -241,7 +242,7 @@ pub struct ListRevisionsResponse {
 }
 
 /// The response message for the ListTerraformVersions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTerraformVersionsResponse {
     /// Token to be supplied to the next ListTerraformVersions request via page_token to obtain the next set of results.
     #[serde(default, rename = "nextPageToken")]
@@ -255,11 +256,11 @@ pub struct ListTerraformVersionsResponse {
 }
 
 /// A request to lock a deployment passed to a ''LockDeployment'' call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LockDeploymentRequest {}
 
 /// Details about the lock which locked the deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LockInfo {
     /// Time that the lock was taken.
     #[serde(default, rename = "createTime")]
@@ -282,7 +283,7 @@ pub struct LockInfo {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -318,7 +319,7 @@ pub struct OperationMetadata {
 }
 
 /// The request message for the ProvisionDeploymentGroup method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisionDeploymentGroupRequest {
     /// Optional. The deployment specs of the deployment units to be created within the same project and location of the deployment group. The key is the unit ID, and the value is the DeploymentSpec. Provisioning will fail if a deployment_spec has a deployment_id that matches an existing deployment in the same project and location. If an existing deployment was part of the last successful revision but is no longer in the current DeploymentGroup''s deployment_units, it will be recreated if included in deployment_specs.
     #[serde(default, rename = "deploymentSpecs")]
@@ -326,7 +327,7 @@ pub struct ProvisionDeploymentGroupRequest {
 }
 
 /// CAI info of a Resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceCAIInfo {
     /// CAI resource name in the format following https://cloud.google.com/apis/design/resource_names#full_resource_name
     #[serde(default, rename = "fullResourceName")]
@@ -334,7 +335,7 @@ pub struct ResourceCAIInfo {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -345,7 +346,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Contains info about a Terraform state file
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Statefile {
     /// Output only. Cloud Storage signed URI used for downloading or uploading the state file.
     #[serde(default, rename = "signedUri")]
@@ -353,7 +354,7 @@ pub struct Statefile {
 }
 
 /// Describes a Terraform output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerraformOutput {
     /// Identifies whether Terraform has set this output as a potential sensitive value.
     #[serde(default)]
@@ -364,7 +365,7 @@ pub struct TerraformOutput {
 }
 
 /// A Terraform input variable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerraformVariable {
     /// Optional. Input variable value.
     #[serde(default, rename = "inputValue")]
@@ -372,7 +373,7 @@ pub struct TerraformVariable {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -380,7 +381,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -388,7 +389,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// A request to unlock a state file passed to a ''UnlockDeployment'' call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnlockDeploymentRequest {
     /// Required. Lock ID of the lock file to be unlocked.
     #[serde(default, rename = "lockId")]
@@ -396,7 +397,7 @@ pub struct UnlockDeploymentRequest {
 }
 
 /// Contains a signed Cloud Storage URLs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreviewResult {
     /// Output only. Plan binary signed URL
     #[serde(default, rename = "binarySignedUri")]
@@ -407,7 +408,7 @@ pub struct PreviewResult {
 }
 
 /// Configuration for a value sourced from a Deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentSource {
     /// Required. The resource name of the source Deployment to import the output from. Format: projects/{project}/locations/{location}/deployments/{deployment} The source deployment must be in the same project and location.
     #[serde(default)]
@@ -418,7 +419,7 @@ pub struct DeploymentSource {
 }
 
 /// A DeploymentGroupRevision represents a snapshot of a DeploymentGroup at a given point in time, created when a DeploymentGroup is provisioned or deprovisioned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentGroupRevision {
     /// Output only. The alternative IDs of the deployment group revision.
     #[serde(default, rename = "alternativeIds")]
@@ -435,7 +436,7 @@ pub struct DeploymentGroupRevision {
 }
 
 /// A Deployment is a group of resources and configs managed and provisioned by Infra Manager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Deployment {
     /// Optional. Arbitrary key-value metadata storage e.g. to help client tools identify deployments during automation. See https://google.aip.dev/148#annotations for details on format and size limitations.
     #[serde(default)]
@@ -512,7 +513,7 @@ pub struct Deployment {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -532,7 +533,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -552,7 +553,7 @@ pub struct Operation {
 }
 
 /// A preview represents a set of actions Infra Manager would perform to move the resources towards the desired state as specified in the configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Preview {
     /// Optional. Arbitrary key-value metadata storage e.g. to help client tools identify preview during automation. See https://google.aip.dev/148#annotations for details on format and size limitations.
     #[serde(default)]
@@ -620,7 +621,7 @@ pub struct Preview {
 }
 
 /// A resource change represents a change to a resource in the state file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceChange {
     /// Output only. The intent of the resource change. // TODO: enum values: ["INTENT_UNSPECIFIED", "CREATE", "UPDATE", "DELETE", "RECREATE", "UNCHANGED"]
     #[serde(default)]
@@ -637,7 +638,7 @@ pub struct ResourceChange {
 }
 
 /// A resource drift represents a drift to a resource in the state file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceDrift {
     /// Identifier. The name of the resource drift. Format: ''projects/{project_id}/locations/{location}/previews/{preview}/resourceDrifts/{resource_drift}''.
     #[serde(default)]
@@ -651,7 +652,7 @@ pub struct ResourceDrift {
 }
 
 /// Resource represents a Google Cloud Platform resource actuated by IM. Resources are child resources of Revisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Resource {
     /// Output only. Map of Cloud Asset Inventory (CAI) type to CAI info (e.g. CAI ID). CAI type format follows https://cloud.google.com/asset-inventory/docs/supported-asset-types
     #[serde(default, rename = "caiAssets")]
@@ -671,7 +672,7 @@ pub struct Resource {
 }
 
 /// A child resource of a Deployment generated by a ''CreateDeployment'' or ''UpdateDeployment'' call. Each Revision contains metadata pertaining to a snapshot of a particular Deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Revision {
     /// Output only. The action which created this revision // TODO: enum values: ["ACTION_UNSPECIFIED", "CREATE", "UPDATE", "DELETE"]
     #[serde(default)]
@@ -739,7 +740,7 @@ pub struct Revision {
 }
 
 /// A TerraformVersion represents the support state the corresponding Terraform version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerraformVersion {
     /// Output only. When the version is deprecated.
     #[serde(default, rename = "deprecateTime")]
@@ -759,7 +760,7 @@ pub struct TerraformVersion {
 }
 
 /// Ephemeral metadata content describing the state of a deployment operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentOperationMetadata {
     /// Outputs and artifacts from applying a deployment.
     #[serde(default, rename = "applyResults")]
@@ -776,7 +777,7 @@ pub struct DeploymentOperationMetadata {
 }
 
 /// Ephemeral metadata content describing the state of a preview operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreviewOperationMetadata {
     /// Output only. Cloud Build instance UUID associated with this preview.
     #[serde(default)]
@@ -793,7 +794,7 @@ pub struct PreviewOperationMetadata {
 }
 
 /// Operation metadata for ProvisionDeploymentGroup and DeprovisionDeploymentGroup long-running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisionDeploymentGroupOperationMetadata {
     /// Output only. Progress information for each deployment unit within the operation.
     #[serde(default, rename = "deploymentUnitProgresses")]
@@ -804,7 +805,7 @@ pub struct ProvisionDeploymentGroupOperationMetadata {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -821,7 +822,7 @@ pub struct Policy {
 }
 
 /// A DeploymentGroup is a collection of DeploymentUnits that in a DAG-like structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentGroup {
     /// Optional. Arbitrary key-value metadata storage e.g. to help client tools identify deployment group during automation. See https://google.aip.dev/148#annotations for details on format and size limitations.
     #[serde(default)]
@@ -859,7 +860,7 @@ pub struct DeploymentGroup {
 }
 
 /// A property change represents a change to a property in the state file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyChange {
     /// Output only. Representations of the object value after the actions.
     #[serde(default)]
@@ -879,7 +880,7 @@ pub struct PropertyChange {
 }
 
 /// Terraform info of a ResourceChange.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceChangeTerraformInfo {
     /// Output only. TF resource actions.
     #[serde(default)]
@@ -899,7 +900,7 @@ pub struct ResourceChangeTerraformInfo {
 }
 
 /// A property drift represents a drift to a property in the state file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyDrift {
     /// Output only. Representations of the object value after the actions.
     #[serde(default)]
@@ -919,7 +920,7 @@ pub struct PropertyDrift {
 }
 
 /// Terraform info of a ResourceChange.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceDriftTerraformInfo {
     /// Output only. The address of the drifted resource.
     #[serde(default)]
@@ -936,7 +937,7 @@ pub struct ResourceDriftTerraformInfo {
 }
 
 /// Terraform info of a Resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTerraformInfo {
     /// TF resource address that uniquely identifies this resource within this deployment.
     #[serde(default)]
@@ -950,7 +951,7 @@ pub struct ResourceTerraformInfo {
 }
 
 /// ProviderConfig contains the provider configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProviderConfig {
     /// Optional. ProviderSource specifies the source type of the provider. // TODO: enum values: ["PROVIDER_SOURCE_UNSPECIFIED", "SERVICE_MAINTAINED"]
     #[serde(default, rename = "sourceType")]
@@ -958,7 +959,7 @@ pub struct ProviderConfig {
 }
 
 /// TerraformBlueprint describes the source of a Terraform root module which describes the resources and configs to be deployed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerraformBlueprint {
     /// Optional. Map of input variable names in this blueprint to configurations for importing values from external sources.
     #[serde(default, rename = "externalValues")]
@@ -975,7 +976,7 @@ pub struct TerraformBlueprint {
 }
 
 /// Errors encountered during actuation using Terraform
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TerraformError {
     /// Output only. Original error response from underlying Google API, if available.
     #[serde(default)]
@@ -992,7 +993,7 @@ pub struct TerraformError {
 }
 
 /// Outputs and artifacts from applying a deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplyResults {
     /// Location of artifacts (e.g. logs) in Google Cloud Storage. Format: gs://{bucket}/{object}
     #[serde(default)]
@@ -1006,7 +1007,7 @@ pub struct ApplyResults {
 }
 
 /// Artifacts created by preview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreviewArtifacts {
     /// Output only. Location of artifacts in Google Cloud Storage. Format: gs://{bucket}/{object}
     #[serde(default)]
@@ -1017,7 +1018,7 @@ pub struct PreviewArtifacts {
 }
 
 /// The progress of a deployment unit provisioning or deprovisioning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentUnitProgress {
     /// Output only. The name of the deployment to be provisioned. Format: ''projects/{project}/locations/{location}/deployments/{deployment}''.
     #[serde(default)]
@@ -1043,7 +1044,7 @@ pub struct DeploymentUnitProgress {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1054,7 +1055,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1068,7 +1069,7 @@ pub struct Binding {
 }
 
 /// A DeploymentUnit is a container for a deployment and its dependencies. An existing deployment can be provided directly in the unit, or the unit can act as a placeholder to define the DAG, with the deployment specs supplied in a provisionDeploymentRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentUnit {
     /// Required. The IDs of the deployment units within the deployment group that this unit depends on.
     #[serde(default)]
@@ -1082,7 +1083,7 @@ pub struct DeploymentUnit {
 }
 
 /// A set of files in a Git repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitSource {
     /// Optional. Subdirectory inside the repository. Example: ''staging/my-package''
     #[serde(default)]
@@ -1096,7 +1097,7 @@ pub struct GitSource {
 }
 
 /// The summary of the deployment operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentOperationSummary {
     /// Output only. Location of Deployment operations artifacts in gs://{bucket}/{object} format.
     #[serde(default)]
@@ -1116,7 +1117,7 @@ pub struct DeploymentOperationSummary {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1130,7 +1131,7 @@ pub struct Status {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1141,7 +1142,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]

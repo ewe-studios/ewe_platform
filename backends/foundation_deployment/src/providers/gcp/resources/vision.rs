@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for the AddProductToProductSet method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddProductToProductSetRequest {
     /// Required. The resource name for the Product to be added to this ProductSet. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct AddProductToProductSetRequest {
 }
 
 /// Multiple async file annotation requests are batched into a single service call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AsyncBatchAnnotateFilesRequest {
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter.
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct AsyncBatchAnnotateFilesRequest {
 }
 
 /// Response to an async batch file annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AsyncBatchAnnotateFilesResponse {
     /// The list of file annotation responses, one for each request in AsyncBatchAnnotateFilesRequest.
     #[serde(default)]
@@ -41,7 +42,7 @@ pub struct AsyncBatchAnnotateFilesResponse {
 }
 
 /// Request for async image annotation for a list of images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AsyncBatchAnnotateImagesRequest {
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter.
     #[serde(default)]
@@ -58,7 +59,7 @@ pub struct AsyncBatchAnnotateImagesRequest {
 }
 
 /// Response to an async batch image annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AsyncBatchAnnotateImagesResponse {
     /// The output location and metadata from AsyncBatchAnnotateImagesRequest.
     #[serde(default, rename = "outputConfig")]
@@ -66,7 +67,7 @@ pub struct AsyncBatchAnnotateImagesResponse {
 }
 
 /// A list of requests to annotate files using the BatchAnnotateFiles API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchAnnotateFilesRequest {
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter.
     #[serde(default)]
@@ -80,7 +81,7 @@ pub struct BatchAnnotateFilesRequest {
 }
 
 /// A list of file annotation responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchAnnotateFilesResponse {
     /// The list of file annotation responses, each response corresponding to each AnnotateFileRequest in BatchAnnotateFilesRequest.
     #[serde(default)]
@@ -88,7 +89,7 @@ pub struct BatchAnnotateFilesResponse {
 }
 
 /// Multiple image annotation requests are batched into a single service call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchAnnotateImagesRequest {
     /// Optional. The labels with user-defined metadata for the request. Label keys and values can be no longer than 63 characters (Unicode codepoints), can only contain lowercase letters, numeric characters, underscores and dashes. International characters are allowed. Label values are optional. Label keys must start with a letter.
     #[serde(default)]
@@ -102,7 +103,7 @@ pub struct BatchAnnotateImagesRequest {
 }
 
 /// Response to a batch image annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchAnnotateImagesResponse {
     /// Individual responses to image annotation requests within the batch.
     #[serde(default)]
@@ -110,7 +111,7 @@ pub struct BatchAnnotateImagesResponse {
 }
 
 /// Metadata for the batch operations such as the current state. This is included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchOperationMetadata {
     /// The time when the batch request is finished and google.longrunning.Operation.done is set to true.
     #[serde(default, rename = "endTime")]
@@ -124,15 +125,15 @@ pub struct BatchOperationMetadata {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response to a single file annotation request. A file may contain one or more images, which individually have their own responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1AnnotateFileResponse {
     /// If set, represents the error message for the failed request. The responses field will not be set in this case.
     #[serde(default)]
@@ -150,7 +151,7 @@ pub struct GoogleCloudVisionV1p1beta1AnnotateFileResponse {
 }
 
 /// Response to an async batch file annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1AsyncBatchAnnotateFilesResponse {
     /// The list of file annotation responses, one for each request in AsyncBatchAnnotateFilesRequest.
     #[serde(default)]
@@ -160,7 +161,7 @@ pub struct GoogleCloudVisionV1p1beta1AsyncBatchAnnotateFilesResponse {
 }
 
 /// Contains metadata for the BatchAnnotateImages operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
@@ -174,7 +175,7 @@ pub struct GoogleCloudVisionV1p1beta1OperationMetadata {
 }
 
 /// Response to a single file annotation request. A file may contain one or more images, which individually have their own responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1AnnotateFileResponse {
     /// If set, represents the error message for the failed request. The responses field will not be set in this case.
     #[serde(default)]
@@ -192,7 +193,7 @@ pub struct GoogleCloudVisionV1p2beta1AnnotateFileResponse {
 }
 
 /// Response to an async batch file annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1AsyncBatchAnnotateFilesResponse {
     /// The list of file annotation responses, one for each request in AsyncBatchAnnotateFilesRequest.
     #[serde(default)]
@@ -202,7 +203,7 @@ pub struct GoogleCloudVisionV1p2beta1AsyncBatchAnnotateFilesResponse {
 }
 
 /// Contains metadata for the BatchAnnotateImages operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
@@ -216,7 +217,7 @@ pub struct GoogleCloudVisionV1p2beta1OperationMetadata {
 }
 
 /// Response to a single file annotation request. A file may contain one or more images, which individually have their own responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1AnnotateFileResponse {
     /// If set, represents the error message for the failed request. The responses field will not be set in this case.
     #[serde(default)]
@@ -234,7 +235,7 @@ pub struct GoogleCloudVisionV1p3beta1AnnotateFileResponse {
 }
 
 /// Response to an async batch file annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1AsyncBatchAnnotateFilesResponse {
     /// The list of file annotation responses, one for each request in AsyncBatchAnnotateFilesRequest.
     #[serde(default)]
@@ -244,7 +245,7 @@ pub struct GoogleCloudVisionV1p3beta1AsyncBatchAnnotateFilesResponse {
 }
 
 /// Metadata for the batch operations such as the current state. This is included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1BatchOperationMetadata {
     /// The time when the batch request is finished and google.longrunning.Operation.done is set to true.
     #[serde(default, rename = "endTime")]
@@ -258,7 +259,7 @@ pub struct GoogleCloudVisionV1p3beta1BatchOperationMetadata {
 }
 
 /// Response message for the ImportProductSets method. This message is returned by the google.longrunning.Operations.GetOperation method in the returned google.longrunning.Operation.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1ImportProductSetsResponse {
     /// The list of reference_images that are imported successfully.
     #[serde(default, rename = "referenceImages")]
@@ -270,7 +271,7 @@ pub struct GoogleCloudVisionV1p3beta1ImportProductSetsResponse {
 }
 
 /// Contains metadata for the BatchAnnotateImages operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
@@ -284,7 +285,7 @@ pub struct GoogleCloudVisionV1p3beta1OperationMetadata {
 }
 
 /// Response to an async batch file annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1AsyncBatchAnnotateFilesResponse {
     /// The list of file annotation responses, one for each request in AsyncBatchAnnotateFilesRequest.
     #[serde(default)]
@@ -294,7 +295,7 @@ pub struct GoogleCloudVisionV1p4beta1AsyncBatchAnnotateFilesResponse {
 }
 
 /// Response to an async batch image annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1AsyncBatchAnnotateImagesResponse {
     /// The output location and metadata from AsyncBatchAnnotateImagesRequest.
     #[serde(default, rename = "outputConfig")]
@@ -302,7 +303,7 @@ pub struct GoogleCloudVisionV1p4beta1AsyncBatchAnnotateImagesResponse {
 }
 
 /// A list of file annotation responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1BatchAnnotateFilesResponse {
     /// The list of file annotation responses, each response corresponding to each AnnotateFileRequest in BatchAnnotateFilesRequest.
     #[serde(default)]
@@ -311,7 +312,7 @@ pub struct GoogleCloudVisionV1p4beta1BatchAnnotateFilesResponse {
 }
 
 /// Metadata for the batch operations such as the current state. This is included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1BatchOperationMetadata {
     /// The time when the batch request is finished and google.longrunning.Operation.done is set to true.
     #[serde(default, rename = "endTime")]
@@ -325,7 +326,7 @@ pub struct GoogleCloudVisionV1p4beta1BatchOperationMetadata {
 }
 
 /// Response message for the ImportProductSets method. This message is returned by the google.longrunning.Operations.GetOperation method in the returned google.longrunning.Operation.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1ImportProductSetsResponse {
     /// The list of reference_images that are imported successfully.
     #[serde(default, rename = "referenceImages")]
@@ -337,7 +338,7 @@ pub struct GoogleCloudVisionV1p4beta1ImportProductSetsResponse {
 }
 
 /// Contains metadata for the BatchAnnotateImages operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
@@ -351,7 +352,7 @@ pub struct GoogleCloudVisionV1p4beta1OperationMetadata {
 }
 
 /// Request message for the ImportProductSets method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportProductSetsRequest {
     /// Required. The input content for the list of requests.
     #[serde(default, rename = "inputConfig")]
@@ -359,7 +360,7 @@ pub struct ImportProductSetsRequest {
 }
 
 /// Response message for the ImportProductSets method. This message is returned by the google.longrunning.Operations.GetOperation method in the returned google.longrunning.Operation.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportProductSetsResponse {
     /// The list of reference_images that are imported successfully.
     #[serde(default, rename = "referenceImages")]
@@ -370,7 +371,7 @@ pub struct ImportProductSetsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -384,7 +385,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message for the ListProductSets method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProductSetsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -395,7 +396,7 @@ pub struct ListProductSetsResponse {
 }
 
 /// Response message for the ListProductsInProductSet method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProductsInProductSetResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -406,7 +407,7 @@ pub struct ListProductsInProductSetResponse {
 }
 
 /// Response message for the ListProducts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProductsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -417,7 +418,7 @@ pub struct ListProductsResponse {
 }
 
 /// Response message for the ListReferenceImages method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReferenceImagesResponse {
     /// The next_page_token returned from a previous List request, if any.
     #[serde(default, rename = "nextPageToken")]
@@ -431,7 +432,7 @@ pub struct ListReferenceImagesResponse {
 }
 
 /// Contains metadata for the BatchAnnotateImages operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
@@ -445,7 +446,7 @@ pub struct OperationMetadata {
 }
 
 /// Request message for the PurgeProducts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PurgeProductsRequest {
     /// If delete_orphan_products is true, all Products that are not in any ProductSet will be deleted.
     #[serde(default, rename = "deleteOrphanProducts")]
@@ -459,7 +460,7 @@ pub struct PurgeProductsRequest {
 }
 
 /// Request message for the RemoveProductFromProductSet method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveProductFromProductSetRequest {
     /// Required. The resource name for the Product to be removed from this ProductSet. Format is: projects/PROJECT_ID/locations/LOC_ID/products/PRODUCT_ID
     #[serde(default)]
@@ -467,7 +468,7 @@ pub struct RemoveProductFromProductSetRequest {
 }
 
 /// An offline file annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AsyncAnnotateFileRequest {
     /// Required. Requested features.
     #[serde(default)]
@@ -484,7 +485,7 @@ pub struct AsyncAnnotateFileRequest {
 }
 
 /// The response for a single offline file annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AsyncAnnotateFileResponse {
     /// The output location and metadata from AsyncAnnotateFileRequest.
     #[serde(default, rename = "outputConfig")]
@@ -492,7 +493,7 @@ pub struct AsyncAnnotateFileResponse {
 }
 
 /// A request to annotate one single file, e.g. a PDF, TIFF or GIF file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnnotateFileRequest {
     /// Required. Requested features.
     #[serde(default)]
@@ -509,7 +510,7 @@ pub struct AnnotateFileRequest {
 }
 
 /// Response to a single file annotation request. A file may contain one or more images, which individually have their own responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnnotateFileResponse {
     /// If set, represents the error message for the failed request. The responses field will not be set in this case.
     #[serde(default)]
@@ -526,7 +527,7 @@ pub struct AnnotateFileResponse {
 }
 
 /// Request for performing Google Cloud Vision API tasks over a user-provided image, with user-requested features, and with context information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnnotateImageRequest {
     /// Requested features.
     #[serde(default)]
@@ -540,7 +541,7 @@ pub struct AnnotateImageRequest {
 }
 
 /// The desired input location and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1InputConfig {
     /// File content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateFiles requests. It does not work for AsyncBatchAnnotateFiles requests.
     #[serde(default)]
@@ -554,7 +555,7 @@ pub struct GoogleCloudVisionV1p1beta1InputConfig {
 }
 
 /// Response to an image annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1AnnotateImageResponse {
     /// If present, contextual information is needed to understand where this image comes from.
     #[serde(default)]
@@ -612,7 +613,7 @@ pub struct GoogleCloudVisionV1p1beta1AnnotateImageResponse {
 }
 
 /// The response for a single offline file annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1AsyncAnnotateFileResponse {
     /// The output location and metadata from AsyncAnnotateFileRequest.
     #[serde(default, rename = "outputConfig")]
@@ -620,7 +621,7 @@ pub struct GoogleCloudVisionV1p1beta1AsyncAnnotateFileResponse {
 }
 
 /// The desired input location and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1InputConfig {
     /// File content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateFiles requests. It does not work for AsyncBatchAnnotateFiles requests.
     #[serde(default)]
@@ -634,7 +635,7 @@ pub struct GoogleCloudVisionV1p2beta1InputConfig {
 }
 
 /// Response to an image annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1AnnotateImageResponse {
     /// If present, contextual information is needed to understand where this image comes from.
     #[serde(default)]
@@ -692,7 +693,7 @@ pub struct GoogleCloudVisionV1p2beta1AnnotateImageResponse {
 }
 
 /// The response for a single offline file annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1AsyncAnnotateFileResponse {
     /// The output location and metadata from AsyncAnnotateFileRequest.
     #[serde(default, rename = "outputConfig")]
@@ -700,7 +701,7 @@ pub struct GoogleCloudVisionV1p2beta1AsyncAnnotateFileResponse {
 }
 
 /// The desired input location and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1InputConfig {
     /// File content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateFiles requests. It does not work for AsyncBatchAnnotateFiles requests.
     #[serde(default)]
@@ -714,7 +715,7 @@ pub struct GoogleCloudVisionV1p3beta1InputConfig {
 }
 
 /// Response to an image annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1AnnotateImageResponse {
     /// If present, contextual information is needed to understand where this image comes from.
     #[serde(default)]
@@ -772,7 +773,7 @@ pub struct GoogleCloudVisionV1p3beta1AnnotateImageResponse {
 }
 
 /// The response for a single offline file annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1AsyncAnnotateFileResponse {
     /// The output location and metadata from AsyncAnnotateFileRequest.
     #[serde(default, rename = "outputConfig")]
@@ -780,7 +781,7 @@ pub struct GoogleCloudVisionV1p3beta1AsyncAnnotateFileResponse {
 }
 
 /// A ReferenceImage represents a product image and its associated metadata, such as bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1ReferenceImage {
     /// Optional. Bounding polygons around the areas of interest in the reference image. If this field is empty, the system will try to detect regions of interest. At most 10 bounding polygons will be used. The provided shape is converted into a non-rotated rectangle. Once converted, the small edge of the rectangle must be greater than or equal to 300 pixels. The aspect ratio must be 1:4 or less (i.e. 1:3 is ok; 1:5 is not).
     #[serde(default, rename = "boundingPolys")]
@@ -795,7 +796,7 @@ pub struct GoogleCloudVisionV1p3beta1ReferenceImage {
 }
 
 /// The response for a single offline file annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1AsyncAnnotateFileResponse {
     /// The output location and metadata from AsyncAnnotateFileRequest.
     #[serde(default, rename = "outputConfig")]
@@ -803,7 +804,7 @@ pub struct GoogleCloudVisionV1p4beta1AsyncAnnotateFileResponse {
 }
 
 /// Response to a single file annotation request. A file may contain one or more images, which individually have their own responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1AnnotateFileResponse {
     /// If set, represents the error message for the failed request. The responses field will not be set in this case.
     #[serde(default)]
@@ -821,7 +822,7 @@ pub struct GoogleCloudVisionV1p4beta1AnnotateFileResponse {
 }
 
 /// A ReferenceImage represents a product image and its associated metadata, such as bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1ReferenceImage {
     /// Optional. Bounding polygons around the areas of interest in the reference image. If this field is empty, the system will try to detect regions of interest. At most 10 bounding polygons will be used. The provided shape is converted into a non-rotated rectangle. Once converted, the small edge of the rectangle must be greater than or equal to 300 pixels. The aspect ratio must be 1:4 or less (i.e. 1:3 is ok; 1:5 is not).
     #[serde(default, rename = "boundingPolys")]
@@ -836,7 +837,7 @@ pub struct GoogleCloudVisionV1p4beta1ReferenceImage {
 }
 
 /// The input content for the ImportProductSets method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportProductSetsInputConfig {
     /// The Google Cloud Storage location for a csv file which preserves a list of ImportProductSetRequests in each line.
     #[serde(default, rename = "gcsSource")]
@@ -844,7 +845,7 @@ pub struct ImportProductSetsInputConfig {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -864,7 +865,7 @@ pub struct Operation {
 }
 
 /// A ProductSet contains Products. A ProductSet can contain a maximum of 1 million reference images. If the limit is exceeded, periodic indexing will fail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductSet {
     /// The user-provided name for this ProductSet. Must not be empty. Must be at most 4096 characters long.
     #[serde(default, rename = "displayName")]
@@ -881,7 +882,7 @@ pub struct ProductSet {
 }
 
 /// A ReferenceImage represents a product image and its associated metadata, such as bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReferenceImage {
     /// Optional. Bounding polygons around the areas of interest in the reference image. If this field is empty, the system will try to detect regions of interest. At most 10 bounding polygons will be used. The provided shape is converted into a non-rotated rectangle. Once converted, the small edge of the rectangle must be greater than or equal to 300 pixels. The aspect ratio must be 1:4 or less (i.e. 1:3 is ok; 1:5 is not).
     #[serde(default, rename = "boundingPolys")]
@@ -895,7 +896,7 @@ pub struct ReferenceImage {
 }
 
 /// Config to control which ProductSet contains the Products to be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductSetPurgeConfig {
     /// The ProductSet that contains the Products to delete. If a Product is a member of product_set_id in addition to other ProductSets, the Product will still be deleted.
     #[serde(default, rename = "productSetId")]
@@ -903,7 +904,7 @@ pub struct ProductSetPurgeConfig {
 }
 
 /// The desired output location and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutputConfig {
     /// The max number of response protos to put into each output JSON file on Google Cloud Storage. The valid range is [1, 100]. If not specified, the default value is 20. For example, for one pdf file with 100 pages, 100 response protos will be generated. If batch_size = 20, then 5 json files each containing 20 response protos will be written under the prefix gcs_destination.uri. Currently, batch_size only applies to GcsDestination, with potential future support for other output configurations.
     #[serde(default, rename = "batchSize")]
@@ -914,7 +915,7 @@ pub struct OutputConfig {
 }
 
 /// The desired input location and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputConfig {
     /// File content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateFiles requests. It does not work for AsyncBatchAnnotateFiles requests.
     #[serde(default)]
@@ -928,7 +929,7 @@ pub struct InputConfig {
 }
 
 /// Response to an image annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnnotateImageResponse {
     /// If present, contextual information is needed to understand where this image comes from.
     #[serde(default)]
@@ -976,7 +977,7 @@ pub struct AnnotateImageResponse {
 }
 
 /// The type of Google Cloud Vision API detection to perform, and the maximum number of results to return for that type. Multiple Feature objects can be specified in the features list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Feature {
     /// Maximum number of results of this type. Does not apply to TEXT_DETECTION, DOCUMENT_TEXT_DETECTION, or CROP_HINTS.
     #[serde(default, rename = "maxResults")]
@@ -990,7 +991,7 @@ pub struct Feature {
 }
 
 /// Client image to perform Google Cloud Vision API tasks over.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// Image content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateImages requests. It does not work for AsyncBatchAnnotateImages requests.
     #[serde(default)]
@@ -1001,7 +1002,7 @@ pub struct Image {
 }
 
 /// Image context and/or feature-specific parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageContext {
     /// Parameters for crop hints annotation request.
     #[serde(default, rename = "cropHintsParams")]
@@ -1024,7 +1025,7 @@ pub struct ImageContext {
 }
 
 /// The Google Cloud Storage location where the input will be read from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1GcsSource {
     /// Google Cloud Storage URI for the input file. This must only be a Google Cloud Storage object. Wildcards are not currently supported.
     #[serde(default)]
@@ -1032,7 +1033,7 @@ pub struct GoogleCloudVisionV1p1beta1GcsSource {
 }
 
 /// If an image was produced from a file (e.g. a PDF), this message gives information about the source of that image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1ImageAnnotationContext {
     /// If the file was a PDF or TIFF, this field gives the page number within the file used to produce the image.
     #[serde(default, rename = "pageNumber")]
@@ -1043,7 +1044,7 @@ pub struct GoogleCloudVisionV1p1beta1ImageAnnotationContext {
 }
 
 /// Set of crop hints that are used to generate new crops when serving images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1CropHintsAnnotation {
     /// Crop hint results.
     #[serde(default, rename = "cropHints")]
@@ -1051,7 +1052,7 @@ pub struct GoogleCloudVisionV1p1beta1CropHintsAnnotation {
 }
 
 /// A face annotation object contains the results of face detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1FaceAnnotation {
     /// Anger likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "angerLikelihood")]
@@ -1102,7 +1103,7 @@ pub struct GoogleCloudVisionV1p1beta1FaceAnnotation {
 }
 
 /// TextAnnotation contains a structured representation of OCR extracted text. The hierarchy of an OCR extracted text structure is like this: TextAnnotation -&gt; Page -&gt; Block -&gt; Paragraph -&gt; Word -&gt; Symbol Each structural component, starting from Page, may further have their own properties. Properties describe detected languages, breaks etc.. Please refer to the TextAnnotation.TextProperty message definition below for more detail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1TextAnnotation {
     /// List of pages detected by OCR.
     #[serde(default)]
@@ -1113,7 +1114,7 @@ pub struct GoogleCloudVisionV1p1beta1TextAnnotation {
 }
 
 /// Stores image properties, such as dominant colors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1ImageProperties {
     /// If present, dominant colors completed successfully.
     #[serde(default, rename = "dominantColors")]
@@ -1121,7 +1122,7 @@ pub struct GoogleCloudVisionV1p1beta1ImageProperties {
 }
 
 /// Set of detected entity features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1EntityAnnotation {
     /// Image region to which this entity belongs. Not produced for LABEL_DETECTION features.
     #[serde(default, rename = "boundingPoly")]
@@ -1153,7 +1154,7 @@ pub struct GoogleCloudVisionV1p1beta1EntityAnnotation {
 }
 
 /// Set of detected objects with bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1LocalizedObjectAnnotation {
     /// Image region to which this object belongs. This must be populated.
     #[serde(default, rename = "boundingPoly")]
@@ -1173,7 +1174,7 @@ pub struct GoogleCloudVisionV1p1beta1LocalizedObjectAnnotation {
 }
 
 /// Results for a product search request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1ProductSearchResults {
     /// Timestamp of the index which provided these results. Products added to the product set and products removed from the product set after this time are not reflected in the current results.
     #[serde(default, rename = "indexTime")]
@@ -1191,7 +1192,7 @@ pub struct GoogleCloudVisionV1p1beta1ProductSearchResults {
 }
 
 /// Set of features pertaining to the image, computed by computer vision methods over safe-search verticals (for example, adult, spoof, medical, violence).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1SafeSearchAnnotation {
     /// Represents the adult content likelihood for the image. Adult content may contain elements such as nudity, pornographic images or cartoons, or sexual activities. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
@@ -1211,7 +1212,7 @@ pub struct GoogleCloudVisionV1p1beta1SafeSearchAnnotation {
 }
 
 /// Relevant information for the image from the Internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1WebDetection {
     /// The service''s best guess as to the topic of the request image. Inferred from similar images on the open web.
     #[serde(default, rename = "bestGuessLabels")]
@@ -1240,7 +1241,7 @@ pub struct GoogleCloudVisionV1p1beta1WebDetection {
 }
 
 /// The desired output location and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1OutputConfig {
     /// The max number of response protos to put into each output JSON file on Google Cloud Storage. The valid range is [1, 100]. If not specified, the default value is 20. For example, for one pdf file with 100 pages, 100 response protos will be generated. If batch_size = 20, then 5 json files each containing 20 response protos will be written under the prefix gcs_destination.uri. Currently, batch_size only applies to GcsDestination, with potential future support for other output configurations.
     #[serde(default, rename = "batchSize")]
@@ -1251,7 +1252,7 @@ pub struct GoogleCloudVisionV1p1beta1OutputConfig {
 }
 
 /// The Google Cloud Storage location where the input will be read from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1GcsSource {
     /// Google Cloud Storage URI for the input file. This must only be a Google Cloud Storage object. Wildcards are not currently supported.
     #[serde(default)]
@@ -1259,7 +1260,7 @@ pub struct GoogleCloudVisionV1p2beta1GcsSource {
 }
 
 /// If an image was produced from a file (e.g. a PDF), this message gives information about the source of that image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1ImageAnnotationContext {
     /// If the file was a PDF or TIFF, this field gives the page number within the file used to produce the image.
     #[serde(default, rename = "pageNumber")]
@@ -1270,7 +1271,7 @@ pub struct GoogleCloudVisionV1p2beta1ImageAnnotationContext {
 }
 
 /// Set of crop hints that are used to generate new crops when serving images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1CropHintsAnnotation {
     /// Crop hint results.
     #[serde(default, rename = "cropHints")]
@@ -1278,7 +1279,7 @@ pub struct GoogleCloudVisionV1p2beta1CropHintsAnnotation {
 }
 
 /// A face annotation object contains the results of face detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1FaceAnnotation {
     /// Anger likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "angerLikelihood")]
@@ -1329,7 +1330,7 @@ pub struct GoogleCloudVisionV1p2beta1FaceAnnotation {
 }
 
 /// TextAnnotation contains a structured representation of OCR extracted text. The hierarchy of an OCR extracted text structure is like this: TextAnnotation -&gt; Page -&gt; Block -&gt; Paragraph -&gt; Word -&gt; Symbol Each structural component, starting from Page, may further have their own properties. Properties describe detected languages, breaks etc.. Please refer to the TextAnnotation.TextProperty message definition below for more detail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1TextAnnotation {
     /// List of pages detected by OCR.
     #[serde(default)]
@@ -1340,7 +1341,7 @@ pub struct GoogleCloudVisionV1p2beta1TextAnnotation {
 }
 
 /// Stores image properties, such as dominant colors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1ImageProperties {
     /// If present, dominant colors completed successfully.
     #[serde(default, rename = "dominantColors")]
@@ -1348,7 +1349,7 @@ pub struct GoogleCloudVisionV1p2beta1ImageProperties {
 }
 
 /// Set of detected entity features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1EntityAnnotation {
     /// Image region to which this entity belongs. Not produced for LABEL_DETECTION features.
     #[serde(default, rename = "boundingPoly")]
@@ -1380,7 +1381,7 @@ pub struct GoogleCloudVisionV1p2beta1EntityAnnotation {
 }
 
 /// Set of detected objects with bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1LocalizedObjectAnnotation {
     /// Image region to which this object belongs. This must be populated.
     #[serde(default, rename = "boundingPoly")]
@@ -1400,7 +1401,7 @@ pub struct GoogleCloudVisionV1p2beta1LocalizedObjectAnnotation {
 }
 
 /// Results for a product search request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1ProductSearchResults {
     /// Timestamp of the index which provided these results. Products added to the product set and products removed from the product set after this time are not reflected in the current results.
     #[serde(default, rename = "indexTime")]
@@ -1418,7 +1419,7 @@ pub struct GoogleCloudVisionV1p2beta1ProductSearchResults {
 }
 
 /// Set of features pertaining to the image, computed by computer vision methods over safe-search verticals (for example, adult, spoof, medical, violence).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1SafeSearchAnnotation {
     /// Represents the adult content likelihood for the image. Adult content may contain elements such as nudity, pornographic images or cartoons, or sexual activities. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
@@ -1438,7 +1439,7 @@ pub struct GoogleCloudVisionV1p2beta1SafeSearchAnnotation {
 }
 
 /// Relevant information for the image from the Internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1WebDetection {
     /// The service''s best guess as to the topic of the request image. Inferred from similar images on the open web.
     #[serde(default, rename = "bestGuessLabels")]
@@ -1467,7 +1468,7 @@ pub struct GoogleCloudVisionV1p2beta1WebDetection {
 }
 
 /// The desired output location and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1OutputConfig {
     /// The max number of response protos to put into each output JSON file on Google Cloud Storage. The valid range is [1, 100]. If not specified, the default value is 20. For example, for one pdf file with 100 pages, 100 response protos will be generated. If batch_size = 20, then 5 json files each containing 20 response protos will be written under the prefix gcs_destination.uri. Currently, batch_size only applies to GcsDestination, with potential future support for other output configurations.
     #[serde(default, rename = "batchSize")]
@@ -1478,7 +1479,7 @@ pub struct GoogleCloudVisionV1p2beta1OutputConfig {
 }
 
 /// The Google Cloud Storage location where the input will be read from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1GcsSource {
     /// Google Cloud Storage URI for the input file. This must only be a Google Cloud Storage object. Wildcards are not currently supported.
     #[serde(default)]
@@ -1486,7 +1487,7 @@ pub struct GoogleCloudVisionV1p3beta1GcsSource {
 }
 
 /// If an image was produced from a file (e.g. a PDF), this message gives information about the source of that image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1ImageAnnotationContext {
     /// If the file was a PDF or TIFF, this field gives the page number within the file used to produce the image.
     #[serde(default, rename = "pageNumber")]
@@ -1497,7 +1498,7 @@ pub struct GoogleCloudVisionV1p3beta1ImageAnnotationContext {
 }
 
 /// Set of crop hints that are used to generate new crops when serving images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1CropHintsAnnotation {
     /// Crop hint results.
     #[serde(default, rename = "cropHints")]
@@ -1505,7 +1506,7 @@ pub struct GoogleCloudVisionV1p3beta1CropHintsAnnotation {
 }
 
 /// A face annotation object contains the results of face detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1FaceAnnotation {
     /// Anger likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "angerLikelihood")]
@@ -1556,7 +1557,7 @@ pub struct GoogleCloudVisionV1p3beta1FaceAnnotation {
 }
 
 /// TextAnnotation contains a structured representation of OCR extracted text. The hierarchy of an OCR extracted text structure is like this: TextAnnotation -&gt; Page -&gt; Block -&gt; Paragraph -&gt; Word -&gt; Symbol Each structural component, starting from Page, may further have their own properties. Properties describe detected languages, breaks etc.. Please refer to the TextAnnotation.TextProperty message definition below for more detail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1TextAnnotation {
     /// List of pages detected by OCR.
     #[serde(default)]
@@ -1567,7 +1568,7 @@ pub struct GoogleCloudVisionV1p3beta1TextAnnotation {
 }
 
 /// Stores image properties, such as dominant colors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1ImageProperties {
     /// If present, dominant colors completed successfully.
     #[serde(default, rename = "dominantColors")]
@@ -1575,7 +1576,7 @@ pub struct GoogleCloudVisionV1p3beta1ImageProperties {
 }
 
 /// Set of detected entity features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1EntityAnnotation {
     /// Image region to which this entity belongs. Not produced for LABEL_DETECTION features.
     #[serde(default, rename = "boundingPoly")]
@@ -1607,7 +1608,7 @@ pub struct GoogleCloudVisionV1p3beta1EntityAnnotation {
 }
 
 /// Set of detected objects with bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1LocalizedObjectAnnotation {
     /// Image region to which this object belongs. This must be populated.
     #[serde(default, rename = "boundingPoly")]
@@ -1627,7 +1628,7 @@ pub struct GoogleCloudVisionV1p3beta1LocalizedObjectAnnotation {
 }
 
 /// Results for a product search request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1ProductSearchResults {
     /// Timestamp of the index which provided these results. Products added to the product set and products removed from the product set after this time are not reflected in the current results.
     #[serde(default, rename = "indexTime")]
@@ -1645,7 +1646,7 @@ pub struct GoogleCloudVisionV1p3beta1ProductSearchResults {
 }
 
 /// Set of features pertaining to the image, computed by computer vision methods over safe-search verticals (for example, adult, spoof, medical, violence).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1SafeSearchAnnotation {
     /// Represents the adult content likelihood for the image. Adult content may contain elements such as nudity, pornographic images or cartoons, or sexual activities. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
@@ -1665,7 +1666,7 @@ pub struct GoogleCloudVisionV1p3beta1SafeSearchAnnotation {
 }
 
 /// Relevant information for the image from the Internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1WebDetection {
     /// The service''s best guess as to the topic of the request image. Inferred from similar images on the open web.
     #[serde(default, rename = "bestGuessLabels")]
@@ -1694,7 +1695,7 @@ pub struct GoogleCloudVisionV1p3beta1WebDetection {
 }
 
 /// The desired output location and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1OutputConfig {
     /// The max number of response protos to put into each output JSON file on Google Cloud Storage. The valid range is [1, 100]. If not specified, the default value is 20. For example, for one pdf file with 100 pages, 100 response protos will be generated. If batch_size = 20, then 5 json files each containing 20 response protos will be written under the prefix gcs_destination.uri. Currently, batch_size only applies to GcsDestination, with potential future support for other output configurations.
     #[serde(default, rename = "batchSize")]
@@ -1705,7 +1706,7 @@ pub struct GoogleCloudVisionV1p3beta1OutputConfig {
 }
 
 /// The desired output location and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1OutputConfig {
     /// The max number of response protos to put into each output JSON file on Google Cloud Storage. The valid range is [1, 100]. If not specified, the default value is 20. For example, for one pdf file with 100 pages, 100 response protos will be generated. If batch_size = 20, then 5 json files each containing 20 response protos will be written under the prefix gcs_destination.uri. Currently, batch_size only applies to GcsDestination, with potential future support for other output configurations.
     #[serde(default, rename = "batchSize")]
@@ -1716,7 +1717,7 @@ pub struct GoogleCloudVisionV1p4beta1OutputConfig {
 }
 
 /// The desired input location and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1InputConfig {
     /// File content, represented as a stream of bytes. Note: As with all bytes fields, protobuffers use a pure binary representation, whereas JSON representations use base64. Currently, this field only works for BatchAnnotateFiles requests. It does not work for AsyncBatchAnnotateFiles requests.
     #[serde(default)]
@@ -1730,7 +1731,7 @@ pub struct GoogleCloudVisionV1p4beta1InputConfig {
 }
 
 /// Response to an image annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1AnnotateImageResponse {
     /// If present, contextual information is needed to understand where this image comes from.
     #[serde(default)]
@@ -1788,7 +1789,7 @@ pub struct GoogleCloudVisionV1p4beta1AnnotateImageResponse {
 }
 
 /// The Google Cloud Storage location for a csv file which preserves a list of ImportProductSetRequests in each line.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportProductSetsGcsSource {
     /// The Google Cloud Storage URI of the input csv file. The URI must start with gs://. The format of the input csv file should be one image per line. In each line, there are 8 columns. 1. image-uri 2. image-id 3. product-set-id 4. product-id 5. product-category 6. product-display-name 7. labels 8. bounding-poly The image-uri, product-set-id, product-id, and product-category columns are required. All other columns are optional. If the ProductSet or Product specified by the product-set-id and product-id values does not exist, then the system will create a new ProductSet or Product for the image. In this case, the product-display-name column refers to display_name, the product-category column refers to product_category, and the labels column refers to product_labels. The image-id column is optional but must be unique if provided. If it is empty, the system will automatically assign a unique id to the image. The product-display-name column is optional. If it is empty, the system sets the display_name field for the product to a space (" "). You can update the display_name later by using the API. If a Product with the specified product-id already exists, then the system ignores the product-display-name, product-category, and labels columns. The labels column (optional) is a line containing a list of comma-separated key-value pairs, in the following format: "key_1=value_1,key_2=value_2,...,key_n=value_n" The bounding-poly column (optional) identifies one region of interest from the image in the same manner as CreateReferenceImage. If you do not specify the bounding-poly column, then the system will try to detect regions of interest automatically. At most one bounding-poly column is allowed per line. If the image contains multiple regions of interest, add a line to the CSV file that includes the same product information, and the bounding-poly values for each region of interest. The bounding-poly column must contain an even number of comma-separated numbers, in the format "p1_x,p1_y,p2_x,p2_y,...,pn_x,pn_y". Use non-negative integers for absolute bounding polygons, and float values in [0, 1] for normalized bounding polygons. The system will resize the image if the image resolution is too large to process (larger than 20MP).
     #[serde(default, rename = "csvFileUri")]
@@ -1796,7 +1797,7 @@ pub struct ImportProductSetsGcsSource {
 }
 
 /// The Google Cloud Storage location where the output will be written to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsDestination {
     /// Google Cloud Storage URI prefix where the results will be stored. Results will be in JSON format and preceded by its corresponding input URI prefix. This field can either represent a gcs file prefix or gcs directory. In either case, the uri should be unique because in order to get all of the output files, you will need to do a wildcard gcs search on the uri prefix you provide. Examples: * File Prefix: gs://bucket-name/here/filenameprefix The output files will be created in gs://bucket-name/here/ and the names of the output files will begin with "filenameprefix". * Directory Prefix: gs://bucket-name/some/location/ The output files will be created in gs://bucket-name/some/location/ and the names of the output files could be anything because there was no filename prefix specified. If multiple outputs, each response is still AnnotateFileResponse, each of which contains some subset of the full list of AnnotateImageResponse. Multiple outputs can happen if, for example, the output JSON is too large and overflows into multiple sharded files.
     #[serde(default)]
@@ -1804,7 +1805,7 @@ pub struct GcsDestination {
 }
 
 /// The Google Cloud Storage location where the input will be read from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsSource {
     /// Google Cloud Storage URI for the input file. This must only be a Google Cloud Storage object. Wildcards are not currently supported.
     #[serde(default)]
@@ -1812,7 +1813,7 @@ pub struct GcsSource {
 }
 
 /// If an image was produced from a file (e.g. a PDF), this message gives information about the source of that image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageAnnotationContext {
     /// If the file was a PDF or TIFF, this field gives the page number within the file used to produce the image.
     #[serde(default, rename = "pageNumber")]
@@ -1823,7 +1824,7 @@ pub struct ImageAnnotationContext {
 }
 
 /// Set of crop hints that are used to generate new crops when serving images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CropHintsAnnotation {
     /// Crop hint results.
     #[serde(default, rename = "cropHints")]
@@ -1831,7 +1832,7 @@ pub struct CropHintsAnnotation {
 }
 
 /// A face annotation object contains the results of face detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FaceAnnotation {
     /// Anger likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "angerLikelihood")]
@@ -1881,7 +1882,7 @@ pub struct FaceAnnotation {
 }
 
 /// TextAnnotation contains a structured representation of OCR extracted text. The hierarchy of an OCR extracted text structure is like this: TextAnnotation -&gt; Page -&gt; Block -&gt; Paragraph -&gt; Word -&gt; Symbol Each structural component, starting from Page, may further have their own properties. Properties describe detected languages, breaks etc.. Please refer to the TextAnnotation.TextProperty message definition below for more detail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextAnnotation {
     /// List of pages detected by OCR.
     #[serde(default)]
@@ -1892,7 +1893,7 @@ pub struct TextAnnotation {
 }
 
 /// Stores image properties, such as dominant colors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageProperties {
     /// If present, dominant colors completed successfully.
     #[serde(default, rename = "dominantColors")]
@@ -1900,7 +1901,7 @@ pub struct ImageProperties {
 }
 
 /// Set of detected entity features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityAnnotation {
     /// Image region to which this entity belongs. Not produced for LABEL_DETECTION features.
     #[serde(default, rename = "boundingPoly")]
@@ -1932,7 +1933,7 @@ pub struct EntityAnnotation {
 }
 
 /// Set of detected objects with bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedObjectAnnotation {
     /// Image region to which this object belongs. This must be populated.
     #[serde(default, rename = "boundingPoly")]
@@ -1952,7 +1953,7 @@ pub struct LocalizedObjectAnnotation {
 }
 
 /// Results for a product search request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductSearchResults {
     /// Timestamp of the index which provided these results. Products added to the product set and products removed from the product set after this time are not reflected in the current results.
     #[serde(default, rename = "indexTime")]
@@ -1966,7 +1967,7 @@ pub struct ProductSearchResults {
 }
 
 /// Set of features pertaining to the image, computed by computer vision methods over safe-search verticals (for example, adult, spoof, medical, violence).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SafeSearchAnnotation {
     /// Represents the adult content likelihood for the image. Adult content may contain elements such as nudity, pornographic images or cartoons, or sexual activities. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
@@ -1986,7 +1987,7 @@ pub struct SafeSearchAnnotation {
 }
 
 /// Relevant information for the image from the Internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebDetection {
     /// The service''s best guess as to the topic of the request image. Inferred from similar images on the open web.
     #[serde(default, rename = "bestGuessLabels")]
@@ -2009,7 +2010,7 @@ pub struct WebDetection {
 }
 
 /// External image source (Google Cloud Storage or web URL image location).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageSource {
     /// **Use image_uri instead.** The Google Cloud Storage URI of the form gs://bucket_name/object_name. Object versioning is not supported. See [Google Cloud Storage Request URIs](https://cloud.google.com/storage/docs/reference-uris) for more info.
     #[serde(default, rename = "gcsImageUri")]
@@ -2020,7 +2021,7 @@ pub struct ImageSource {
 }
 
 /// Parameters for crop hints annotation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CropHintsParams {
     /// Aspect ratios in floats, representing the ratio of the width to the height of the image. For example, if the desired aspect ratio is 4/3, the corresponding float value should be 1.33333. If not specified, the best possible crop is returned. The number of provided aspect ratios is limited to a maximum of 16; any aspect ratios provided after the 16th are ignored.
     #[serde(default, rename = "aspectRatios")]
@@ -2028,7 +2029,7 @@ pub struct CropHintsParams {
 }
 
 /// Rectangle determined by min and max LatLng pairs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLongRect {
     /// Max lat/long pair.
     #[serde(default, rename = "maxLatLng")]
@@ -2039,7 +2040,7 @@ pub struct LatLongRect {
 }
 
 /// Parameters for a product search request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductSearchParams {
     /// The bounding polygon around the area of interest in the image. If it is not specified, system discretion will be applied.
     #[serde(default, rename = "boundingPoly")]
@@ -2056,7 +2057,7 @@ pub struct ProductSearchParams {
 }
 
 /// Parameters for text detections. This is used to control TEXT_DETECTION and DOCUMENT_TEXT_DETECTION features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextDetectionParams {
     /// A list of advanced OCR options to further fine-tune OCR behavior. Current valid values are: - legacy_layout: a heuristics layout detection algorithm, which serves as an alternative to the current ML-based layout detection algorithm. Customers can choose the best suitable layout algorithm based on their situation.
     #[serde(default, rename = "advancedOcrOptions")]
@@ -2067,7 +2068,7 @@ pub struct TextDetectionParams {
 }
 
 /// Parameters for web detection request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebDetectionParams {
     /// This field has no effect on results.
     #[serde(default, rename = "includeGeoResults")]
@@ -2075,7 +2076,7 @@ pub struct WebDetectionParams {
 }
 
 /// Single crop hint that is used to generate a new crop when serving an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1CropHint {
     /// The bounding polygon for the crop region. The coordinates of the bounding box are in the original image''s scale.
     #[serde(default, rename = "boundingPoly")]
@@ -2089,7 +2090,7 @@ pub struct GoogleCloudVisionV1p1beta1CropHint {
 }
 
 /// A face-specific landmark (for example, a face feature). Landmark positions may fall outside the bounds of the image if the face is near one or more edges of the image. Therefore it is NOT guaranteed that 0 &lt;= x &lt; width or 0 &lt;= y &lt; height.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1FaceAnnotationLandmark {
     /// Face landmark position.
     #[serde(default)]
@@ -2100,7 +2101,7 @@ pub struct GoogleCloudVisionV1p1beta1FaceAnnotationLandmark {
 }
 
 /// Detected page from OCR.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1Page {
     /// List of blocks of text, images etc on this page.
     #[serde(default)]
@@ -2120,7 +2121,7 @@ pub struct GoogleCloudVisionV1p1beta1Page {
 }
 
 /// Set of dominant colors and their corresponding scores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1DominantColorsAnnotation {
     /// RGB color values with their score and pixel fraction.
     #[serde(default)]
@@ -2128,7 +2129,7 @@ pub struct GoogleCloudVisionV1p1beta1DominantColorsAnnotation {
 }
 
 /// Detected entity location information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1LocationInfo {
     /// lat/long location coordinates.
     #[serde(default, rename = "latLng")]
@@ -2136,7 +2137,7 @@ pub struct GoogleCloudVisionV1p1beta1LocationInfo {
 }
 
 /// A Property consists of a user-supplied name/value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1Property {
     /// Name of the property.
     #[serde(default)]
@@ -2150,7 +2151,7 @@ pub struct GoogleCloudVisionV1p1beta1Property {
 }
 
 /// Information about the products similar to a single product in a query image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsGroupedResult {
     /// The bounding polygon around the product detected in the query image.
     #[serde(default, rename = "boundingPoly")]
@@ -2168,7 +2169,7 @@ pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsGroupedResult {
 }
 
 /// Label to provide extra metadata for the web detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1WebDetectionWebLabel {
     /// Label for extra metadata.
     #[serde(default)]
@@ -2179,7 +2180,7 @@ pub struct GoogleCloudVisionV1p1beta1WebDetectionWebLabel {
 }
 
 /// Metadata for web pages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1WebDetectionWebPage {
     /// Fully matching images on the page. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
@@ -2201,7 +2202,7 @@ pub struct GoogleCloudVisionV1p1beta1WebDetectionWebPage {
 }
 
 /// Entity deduced from similar images on the Internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1WebDetectionWebEntity {
     /// Canonical description of the entity, in English.
     #[serde(default)]
@@ -2215,7 +2216,7 @@ pub struct GoogleCloudVisionV1p1beta1WebDetectionWebEntity {
 }
 
 /// The Google Cloud Storage location where the output will be written to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1GcsDestination {
     /// Google Cloud Storage URI prefix where the results will be stored. Results will be in JSON format and preceded by its corresponding input URI prefix. This field can either represent a gcs file prefix or gcs directory. In either case, the uri should be unique because in order to get all of the output files, you will need to do a wildcard gcs search on the uri prefix you provide. Examples: * File Prefix: gs://bucket-name/here/filenameprefix The output files will be created in gs://bucket-name/here/ and the names of the output files will begin with "filenameprefix". * Directory Prefix: gs://bucket-name/some/location/ The output files will be created in gs://bucket-name/some/location/ and the names of the output files could be anything because there was no filename prefix specified. If multiple outputs, each response is still AnnotateFileResponse, each of which contains some subset of the full list of AnnotateImageResponse. Multiple outputs can happen if, for example, the output JSON is too large and overflows into multiple sharded files.
     #[serde(default)]
@@ -2223,7 +2224,7 @@ pub struct GoogleCloudVisionV1p1beta1GcsDestination {
 }
 
 /// Single crop hint that is used to generate a new crop when serving an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1CropHint {
     /// The bounding polygon for the crop region. The coordinates of the bounding box are in the original image''s scale.
     #[serde(default, rename = "boundingPoly")]
@@ -2237,7 +2238,7 @@ pub struct GoogleCloudVisionV1p2beta1CropHint {
 }
 
 /// A face-specific landmark (for example, a face feature). Landmark positions may fall outside the bounds of the image if the face is near one or more edges of the image. Therefore it is NOT guaranteed that 0 &lt;= x &lt; width or 0 &lt;= y &lt; height.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1FaceAnnotationLandmark {
     /// Face landmark position.
     #[serde(default)]
@@ -2248,7 +2249,7 @@ pub struct GoogleCloudVisionV1p2beta1FaceAnnotationLandmark {
 }
 
 /// Detected page from OCR.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1Page {
     /// List of blocks of text, images etc on this page.
     #[serde(default)]
@@ -2268,7 +2269,7 @@ pub struct GoogleCloudVisionV1p2beta1Page {
 }
 
 /// Set of dominant colors and their corresponding scores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1DominantColorsAnnotation {
     /// RGB color values with their score and pixel fraction.
     #[serde(default)]
@@ -2276,7 +2277,7 @@ pub struct GoogleCloudVisionV1p2beta1DominantColorsAnnotation {
 }
 
 /// Detected entity location information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1LocationInfo {
     /// lat/long location coordinates.
     #[serde(default, rename = "latLng")]
@@ -2284,7 +2285,7 @@ pub struct GoogleCloudVisionV1p2beta1LocationInfo {
 }
 
 /// A Property consists of a user-supplied name/value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1Property {
     /// Name of the property.
     #[serde(default)]
@@ -2298,7 +2299,7 @@ pub struct GoogleCloudVisionV1p2beta1Property {
 }
 
 /// Information about the products similar to a single product in a query image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsGroupedResult {
     /// The bounding polygon around the product detected in the query image.
     #[serde(default, rename = "boundingPoly")]
@@ -2316,7 +2317,7 @@ pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsGroupedResult {
 }
 
 /// Label to provide extra metadata for the web detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1WebDetectionWebLabel {
     /// Label for extra metadata.
     #[serde(default)]
@@ -2327,7 +2328,7 @@ pub struct GoogleCloudVisionV1p2beta1WebDetectionWebLabel {
 }
 
 /// Metadata for web pages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1WebDetectionWebPage {
     /// Fully matching images on the page. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
@@ -2349,7 +2350,7 @@ pub struct GoogleCloudVisionV1p2beta1WebDetectionWebPage {
 }
 
 /// Entity deduced from similar images on the Internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1WebDetectionWebEntity {
     /// Canonical description of the entity, in English.
     #[serde(default)]
@@ -2363,7 +2364,7 @@ pub struct GoogleCloudVisionV1p2beta1WebDetectionWebEntity {
 }
 
 /// The Google Cloud Storage location where the output will be written to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1GcsDestination {
     /// Google Cloud Storage URI prefix where the results will be stored. Results will be in JSON format and preceded by its corresponding input URI prefix. This field can either represent a gcs file prefix or gcs directory. In either case, the uri should be unique because in order to get all of the output files, you will need to do a wildcard gcs search on the uri prefix you provide. Examples: * File Prefix: gs://bucket-name/here/filenameprefix The output files will be created in gs://bucket-name/here/ and the names of the output files will begin with "filenameprefix". * Directory Prefix: gs://bucket-name/some/location/ The output files will be created in gs://bucket-name/some/location/ and the names of the output files could be anything because there was no filename prefix specified. If multiple outputs, each response is still AnnotateFileResponse, each of which contains some subset of the full list of AnnotateImageResponse. Multiple outputs can happen if, for example, the output JSON is too large and overflows into multiple sharded files.
     #[serde(default)]
@@ -2371,7 +2372,7 @@ pub struct GoogleCloudVisionV1p2beta1GcsDestination {
 }
 
 /// Single crop hint that is used to generate a new crop when serving an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1CropHint {
     /// The bounding polygon for the crop region. The coordinates of the bounding box are in the original image''s scale.
     #[serde(default, rename = "boundingPoly")]
@@ -2385,7 +2386,7 @@ pub struct GoogleCloudVisionV1p3beta1CropHint {
 }
 
 /// A face-specific landmark (for example, a face feature). Landmark positions may fall outside the bounds of the image if the face is near one or more edges of the image. Therefore it is NOT guaranteed that 0 &lt;= x &lt; width or 0 &lt;= y &lt; height.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1FaceAnnotationLandmark {
     /// Face landmark position.
     #[serde(default)]
@@ -2396,7 +2397,7 @@ pub struct GoogleCloudVisionV1p3beta1FaceAnnotationLandmark {
 }
 
 /// Detected page from OCR.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1Page {
     /// List of blocks of text, images etc on this page.
     #[serde(default)]
@@ -2416,7 +2417,7 @@ pub struct GoogleCloudVisionV1p3beta1Page {
 }
 
 /// Set of dominant colors and their corresponding scores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1DominantColorsAnnotation {
     /// RGB color values with their score and pixel fraction.
     #[serde(default)]
@@ -2424,7 +2425,7 @@ pub struct GoogleCloudVisionV1p3beta1DominantColorsAnnotation {
 }
 
 /// Detected entity location information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1LocationInfo {
     /// lat/long location coordinates.
     #[serde(default, rename = "latLng")]
@@ -2432,7 +2433,7 @@ pub struct GoogleCloudVisionV1p3beta1LocationInfo {
 }
 
 /// A Property consists of a user-supplied name/value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1Property {
     /// Name of the property.
     #[serde(default)]
@@ -2446,7 +2447,7 @@ pub struct GoogleCloudVisionV1p3beta1Property {
 }
 
 /// Information about the products similar to a single product in a query image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsGroupedResult {
     /// The bounding polygon around the product detected in the query image.
     #[serde(default, rename = "boundingPoly")]
@@ -2464,7 +2465,7 @@ pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsGroupedResult {
 }
 
 /// Label to provide extra metadata for the web detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1WebDetectionWebLabel {
     /// Label for extra metadata.
     #[serde(default)]
@@ -2475,7 +2476,7 @@ pub struct GoogleCloudVisionV1p3beta1WebDetectionWebLabel {
 }
 
 /// Metadata for web pages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1WebDetectionWebPage {
     /// Fully matching images on the page. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
@@ -2497,7 +2498,7 @@ pub struct GoogleCloudVisionV1p3beta1WebDetectionWebPage {
 }
 
 /// Entity deduced from similar images on the Internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1WebDetectionWebEntity {
     /// Canonical description of the entity, in English.
     #[serde(default)]
@@ -2511,7 +2512,7 @@ pub struct GoogleCloudVisionV1p3beta1WebDetectionWebEntity {
 }
 
 /// The Google Cloud Storage location where the output will be written to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1GcsDestination {
     /// Google Cloud Storage URI prefix where the results will be stored. Results will be in JSON format and preceded by its corresponding input URI prefix. This field can either represent a gcs file prefix or gcs directory. In either case, the uri should be unique because in order to get all of the output files, you will need to do a wildcard gcs search on the uri prefix you provide. Examples: * File Prefix: gs://bucket-name/here/filenameprefix The output files will be created in gs://bucket-name/here/ and the names of the output files will begin with "filenameprefix". * Directory Prefix: gs://bucket-name/some/location/ The output files will be created in gs://bucket-name/some/location/ and the names of the output files could be anything because there was no filename prefix specified. If multiple outputs, each response is still AnnotateFileResponse, each of which contains some subset of the full list of AnnotateImageResponse. Multiple outputs can happen if, for example, the output JSON is too large and overflows into multiple sharded files.
     #[serde(default)]
@@ -2519,7 +2520,7 @@ pub struct GoogleCloudVisionV1p3beta1GcsDestination {
 }
 
 /// The Google Cloud Storage location where the output will be written to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1GcsDestination {
     /// Google Cloud Storage URI prefix where the results will be stored. Results will be in JSON format and preceded by its corresponding input URI prefix. This field can either represent a gcs file prefix or gcs directory. In either case, the uri should be unique because in order to get all of the output files, you will need to do a wildcard gcs search on the uri prefix you provide. Examples: * File Prefix: gs://bucket-name/here/filenameprefix The output files will be created in gs://bucket-name/here/ and the names of the output files will begin with "filenameprefix". * Directory Prefix: gs://bucket-name/some/location/ The output files will be created in gs://bucket-name/some/location/ and the names of the output files could be anything because there was no filename prefix specified. If multiple outputs, each response is still AnnotateFileResponse, each of which contains some subset of the full list of AnnotateImageResponse. Multiple outputs can happen if, for example, the output JSON is too large and overflows into multiple sharded files.
     #[serde(default)]
@@ -2527,7 +2528,7 @@ pub struct GoogleCloudVisionV1p4beta1GcsDestination {
 }
 
 /// The Google Cloud Storage location where the input will be read from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1GcsSource {
     /// Google Cloud Storage URI for the input file. This must only be a Google Cloud Storage object. Wildcards are not currently supported.
     #[serde(default)]
@@ -2535,7 +2536,7 @@ pub struct GoogleCloudVisionV1p4beta1GcsSource {
 }
 
 /// If an image was produced from a file (e.g. a PDF), this message gives information about the source of that image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1ImageAnnotationContext {
     /// If the file was a PDF or TIFF, this field gives the page number within the file used to produce the image.
     #[serde(default, rename = "pageNumber")]
@@ -2546,7 +2547,7 @@ pub struct GoogleCloudVisionV1p4beta1ImageAnnotationContext {
 }
 
 /// Set of crop hints that are used to generate new crops when serving images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1CropHintsAnnotation {
     /// Crop hint results.
     #[serde(default, rename = "cropHints")]
@@ -2554,7 +2555,7 @@ pub struct GoogleCloudVisionV1p4beta1CropHintsAnnotation {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2568,7 +2569,7 @@ pub struct Status {
 }
 
 /// A face annotation object contains the results of face detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1FaceAnnotation {
     /// Anger likelihood. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default, rename = "angerLikelihood")]
@@ -2623,7 +2624,7 @@ pub struct GoogleCloudVisionV1p4beta1FaceAnnotation {
 }
 
 /// TextAnnotation contains a structured representation of OCR extracted text. The hierarchy of an OCR extracted text structure is like this: TextAnnotation -&gt; Page -&gt; Block -&gt; Paragraph -&gt; Word -&gt; Symbol Each structural component, starting from Page, may further have their own properties. Properties describe detected languages, breaks etc.. Please refer to the TextAnnotation.TextProperty message definition below for more detail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1TextAnnotation {
     /// List of pages detected by OCR.
     #[serde(default)]
@@ -2634,7 +2635,7 @@ pub struct GoogleCloudVisionV1p4beta1TextAnnotation {
 }
 
 /// Stores image properties, such as dominant colors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1ImageProperties {
     /// If present, dominant colors completed successfully.
     #[serde(default, rename = "dominantColors")]
@@ -2642,7 +2643,7 @@ pub struct GoogleCloudVisionV1p4beta1ImageProperties {
 }
 
 /// Set of detected entity features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1EntityAnnotation {
     /// Image region to which this entity belongs. Not produced for LABEL_DETECTION features.
     #[serde(default, rename = "boundingPoly")]
@@ -2674,7 +2675,7 @@ pub struct GoogleCloudVisionV1p4beta1EntityAnnotation {
 }
 
 /// Set of detected objects with bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1LocalizedObjectAnnotation {
     /// Image region to which this object belongs. This must be populated.
     #[serde(default, rename = "boundingPoly")]
@@ -2694,7 +2695,7 @@ pub struct GoogleCloudVisionV1p4beta1LocalizedObjectAnnotation {
 }
 
 /// Results for a product search request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1ProductSearchResults {
     /// Timestamp of the index which provided these results. Products added to the product set and products removed from the product set after this time are not reflected in the current results.
     #[serde(default, rename = "indexTime")]
@@ -2712,7 +2713,7 @@ pub struct GoogleCloudVisionV1p4beta1ProductSearchResults {
 }
 
 /// Set of features pertaining to the image, computed by computer vision methods over safe-search verticals (for example, adult, spoof, medical, violence).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1SafeSearchAnnotation {
     /// Represents the adult content likelihood for the image. Adult content may contain elements such as nudity, pornographic images or cartoons, or sexual activities. // TODO: enum values: ["UNKNOWN", "VERY_UNLIKELY", "UNLIKELY", "POSSIBLE", "LIKELY", "VERY_LIKELY"]
     #[serde(default)]
@@ -2732,7 +2733,7 @@ pub struct GoogleCloudVisionV1p4beta1SafeSearchAnnotation {
 }
 
 /// Relevant information for the image from the Internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1WebDetection {
     /// The service''s best guess as to the topic of the request image. Inferred from similar images on the open web.
     #[serde(default, rename = "bestGuessLabels")]
@@ -2761,7 +2762,7 @@ pub struct GoogleCloudVisionV1p4beta1WebDetection {
 }
 
 /// Single crop hint that is used to generate a new crop when serving an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CropHint {
     /// The bounding polygon for the crop region. The coordinates of the bounding box are in the original image''s scale.
     #[serde(default, rename = "boundingPoly")]
@@ -2775,7 +2776,7 @@ pub struct CropHint {
 }
 
 /// A face-specific landmark (for example, a face feature). Landmark positions may fall outside the bounds of the image if the face is near one or more edges of the image. Therefore it is NOT guaranteed that 0 &lt;= x &lt; width or 0 &lt;= y &lt; height.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Landmark {
     /// Face landmark position.
     #[serde(default)]
@@ -2786,7 +2787,7 @@ pub struct Landmark {
 }
 
 /// Detected page from OCR.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Page {
     /// List of blocks of text, images etc on this page.
     #[serde(default)]
@@ -2806,7 +2807,7 @@ pub struct Page {
 }
 
 /// Set of dominant colors and their corresponding scores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DominantColorsAnnotation {
     /// RGB color values with their score and pixel fraction.
     #[serde(default)]
@@ -2814,7 +2815,7 @@ pub struct DominantColorsAnnotation {
 }
 
 /// Detected entity location information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationInfo {
     /// lat/long location coordinates.
     #[serde(default, rename = "latLng")]
@@ -2822,7 +2823,7 @@ pub struct LocationInfo {
 }
 
 /// A Property consists of a user-supplied name/value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Property {
     /// Name of the property.
     #[serde(default)]
@@ -2836,7 +2837,7 @@ pub struct Property {
 }
 
 /// Information about the products similar to a single product in a query image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupedResult {
     /// The bounding polygon around the product detected in the query image.
     #[serde(default, rename = "boundingPoly")]
@@ -2850,7 +2851,7 @@ pub struct GroupedResult {
 }
 
 /// Label to provide extra metadata for the web detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebLabel {
     /// Label for extra metadata.
     #[serde(default)]
@@ -2861,7 +2862,7 @@ pub struct WebLabel {
 }
 
 /// Metadata for web pages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebPage {
     /// Fully matching images on the page. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
@@ -2881,7 +2882,7 @@ pub struct WebPage {
 }
 
 /// Entity deduced from similar images on the Internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebEntity {
     /// Canonical description of the entity, in English.
     #[serde(default)]
@@ -2895,7 +2896,7 @@ pub struct WebEntity {
 }
 
 /// A 3D position in the image, used primarily for Face detection landmarks. A valid Position must have both x and y coordinates. The position coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1Position {
     /// X coordinate.
     #[serde(default)]
@@ -2909,7 +2910,7 @@ pub struct GoogleCloudVisionV1p1beta1Position {
 }
 
 /// Logical element on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1Block {
     /// Detected block type (text, image etc) for this block. // TODO: enum values: ["UNKNOWN", "TEXT", "TABLE", "PICTURE", "RULER", "BARCODE"]
     #[serde(default, rename = "blockType")]
@@ -2929,7 +2930,7 @@ pub struct GoogleCloudVisionV1p1beta1Block {
 }
 
 /// Color information consists of RGB channels, score, and the fraction of the image that the color occupies in the image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1ColorInfo {
     /// RGB components of the color.
     #[serde(default)]
@@ -2943,7 +2944,7 @@ pub struct GoogleCloudVisionV1p1beta1ColorInfo {
 }
 
 /// Prediction for what the object in the bounding box is.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsObjectAnnotation {
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
@@ -2960,7 +2961,7 @@ pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsObjectAnnotation {
 }
 
 /// Information about a product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsResult {
     /// The resource name of the image from the product that is the closest match to the query.
     #[serde(default)]
@@ -2974,7 +2975,7 @@ pub struct GoogleCloudVisionV1p1beta1ProductSearchResultsResult {
 }
 
 /// Metadata for online images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1WebDetectionWebImage {
     /// (Deprecated) Overall relevancy score for the image.
     #[serde(default)]
@@ -2985,7 +2986,7 @@ pub struct GoogleCloudVisionV1p1beta1WebDetectionWebImage {
 }
 
 /// A 3D position in the image, used primarily for Face detection landmarks. A valid Position must have both x and y coordinates. The position coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1Position {
     /// X coordinate.
     #[serde(default)]
@@ -2999,7 +3000,7 @@ pub struct GoogleCloudVisionV1p2beta1Position {
 }
 
 /// Logical element on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1Block {
     /// Detected block type (text, image etc) for this block. // TODO: enum values: ["UNKNOWN", "TEXT", "TABLE", "PICTURE", "RULER", "BARCODE"]
     #[serde(default, rename = "blockType")]
@@ -3019,7 +3020,7 @@ pub struct GoogleCloudVisionV1p2beta1Block {
 }
 
 /// Color information consists of RGB channels, score, and the fraction of the image that the color occupies in the image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1ColorInfo {
     /// RGB components of the color.
     #[serde(default)]
@@ -3033,7 +3034,7 @@ pub struct GoogleCloudVisionV1p2beta1ColorInfo {
 }
 
 /// Prediction for what the object in the bounding box is.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsObjectAnnotation {
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
@@ -3050,7 +3051,7 @@ pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsObjectAnnotation {
 }
 
 /// Information about a product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsResult {
     /// The resource name of the image from the product that is the closest match to the query.
     #[serde(default)]
@@ -3064,7 +3065,7 @@ pub struct GoogleCloudVisionV1p2beta1ProductSearchResultsResult {
 }
 
 /// Metadata for online images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1WebDetectionWebImage {
     /// (Deprecated) Overall relevancy score for the image.
     #[serde(default)]
@@ -3075,7 +3076,7 @@ pub struct GoogleCloudVisionV1p2beta1WebDetectionWebImage {
 }
 
 /// A 3D position in the image, used primarily for Face detection landmarks. A valid Position must have both x and y coordinates. The position coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1Position {
     /// X coordinate.
     #[serde(default)]
@@ -3089,7 +3090,7 @@ pub struct GoogleCloudVisionV1p3beta1Position {
 }
 
 /// Logical element on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1Block {
     /// Detected block type (text, image etc) for this block. // TODO: enum values: ["UNKNOWN", "TEXT", "TABLE", "PICTURE", "RULER", "BARCODE"]
     #[serde(default, rename = "blockType")]
@@ -3109,7 +3110,7 @@ pub struct GoogleCloudVisionV1p3beta1Block {
 }
 
 /// Color information consists of RGB channels, score, and the fraction of the image that the color occupies in the image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1ColorInfo {
     /// RGB components of the color.
     #[serde(default)]
@@ -3123,7 +3124,7 @@ pub struct GoogleCloudVisionV1p3beta1ColorInfo {
 }
 
 /// Prediction for what the object in the bounding box is.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsObjectAnnotation {
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
@@ -3140,7 +3141,7 @@ pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsObjectAnnotation {
 }
 
 /// Information about a product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsResult {
     /// The resource name of the image from the product that is the closest match to the query.
     #[serde(default)]
@@ -3154,7 +3155,7 @@ pub struct GoogleCloudVisionV1p3beta1ProductSearchResultsResult {
 }
 
 /// Metadata for online images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1WebDetectionWebImage {
     /// (Deprecated) Overall relevancy score for the image.
     #[serde(default)]
@@ -3165,7 +3166,7 @@ pub struct GoogleCloudVisionV1p3beta1WebDetectionWebImage {
 }
 
 /// Single crop hint that is used to generate a new crop when serving an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1CropHint {
     /// The bounding polygon for the crop region. The coordinates of the bounding box are in the original image''s scale.
     #[serde(default, rename = "boundingPoly")]
@@ -3179,7 +3180,7 @@ pub struct GoogleCloudVisionV1p4beta1CropHint {
 }
 
 /// A face-specific landmark (for example, a face feature). Landmark positions may fall outside the bounds of the image if the face is near one or more edges of the image. Therefore it is NOT guaranteed that 0 &lt;= x &lt; width or 0 &lt;= y &lt; height.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1FaceAnnotationLandmark {
     /// Face landmark position.
     #[serde(default)]
@@ -3190,7 +3191,7 @@ pub struct GoogleCloudVisionV1p4beta1FaceAnnotationLandmark {
 }
 
 /// Information about a face''s identity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1FaceRecognitionResult {
     /// The Celebrity that this face was matched to.
     #[serde(default)]
@@ -3201,7 +3202,7 @@ pub struct GoogleCloudVisionV1p4beta1FaceRecognitionResult {
 }
 
 /// Detected page from OCR.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1Page {
     /// List of blocks of text, images etc on this page.
     #[serde(default)]
@@ -3221,7 +3222,7 @@ pub struct GoogleCloudVisionV1p4beta1Page {
 }
 
 /// Set of dominant colors and their corresponding scores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1DominantColorsAnnotation {
     /// RGB color values with their score and pixel fraction.
     #[serde(default)]
@@ -3229,7 +3230,7 @@ pub struct GoogleCloudVisionV1p4beta1DominantColorsAnnotation {
 }
 
 /// Detected entity location information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1LocationInfo {
     /// lat/long location coordinates.
     #[serde(default, rename = "latLng")]
@@ -3237,7 +3238,7 @@ pub struct GoogleCloudVisionV1p4beta1LocationInfo {
 }
 
 /// A Property consists of a user-supplied name/value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1Property {
     /// Name of the property.
     #[serde(default)]
@@ -3251,7 +3252,7 @@ pub struct GoogleCloudVisionV1p4beta1Property {
 }
 
 /// Information about the products similar to a single product in a query image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsGroupedResult {
     /// The bounding polygon around the product detected in the query image.
     #[serde(default, rename = "boundingPoly")]
@@ -3269,7 +3270,7 @@ pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsGroupedResult {
 }
 
 /// Label to provide extra metadata for the web detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1WebDetectionWebLabel {
     /// Label for extra metadata.
     #[serde(default)]
@@ -3280,7 +3281,7 @@ pub struct GoogleCloudVisionV1p4beta1WebDetectionWebLabel {
 }
 
 /// Metadata for web pages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1WebDetectionWebPage {
     /// Fully matching images on the page. Can include resized copies of the query image.
     #[serde(default, rename = "fullMatchingImages")]
@@ -3302,7 +3303,7 @@ pub struct GoogleCloudVisionV1p4beta1WebDetectionWebPage {
 }
 
 /// Entity deduced from similar images on the Internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1WebDetectionWebEntity {
     /// Canonical description of the entity, in English.
     #[serde(default)]
@@ -3316,7 +3317,7 @@ pub struct GoogleCloudVisionV1p4beta1WebDetectionWebEntity {
 }
 
 /// A 3D position in the image, used primarily for Face detection landmarks. A valid Position must have both x and y coordinates. The position coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Position {
     /// X coordinate.
     #[serde(default)]
@@ -3330,7 +3331,7 @@ pub struct Position {
 }
 
 /// Logical element on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Block {
     /// Detected block type (text, image etc) for this block. // TODO: enum values: ["UNKNOWN", "TEXT", "TABLE", "PICTURE", "RULER", "BARCODE"]
     #[serde(default, rename = "blockType")]
@@ -3350,7 +3351,7 @@ pub struct Block {
 }
 
 /// Color information consists of RGB channels, score, and the fraction of the image that the color occupies in the image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ColorInfo {
     /// RGB components of the color.
     #[serde(default)]
@@ -3364,7 +3365,7 @@ pub struct ColorInfo {
 }
 
 /// Prediction for what the object in the bounding box is.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectAnnotation {
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
@@ -3381,7 +3382,7 @@ pub struct ObjectAnnotation {
 }
 
 /// Information about a product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiResult {
     /// The resource name of the image from the product that is the closest match to the query.
     #[serde(default)]
@@ -3395,7 +3396,7 @@ pub struct ApiResult {
 }
 
 /// Metadata for online images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebImage {
     /// (Deprecated) Overall relevancy score for the image.
     #[serde(default)]
@@ -3406,7 +3407,7 @@ pub struct WebImage {
 }
 
 /// Structural unit of text representing a number of words in certain order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1Paragraph {
     /// The bounding box for the paragraph. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3423,7 +3424,7 @@ pub struct GoogleCloudVisionV1p1beta1Paragraph {
 }
 
 /// A Product contains ReferenceImages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1Product {
     /// User-provided metadata to be stored with this product. Must be at most 4096 characters long.
     #[serde(default)]
@@ -3444,7 +3445,7 @@ pub struct GoogleCloudVisionV1p1beta1Product {
 }
 
 /// Structural unit of text representing a number of words in certain order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1Paragraph {
     /// The bounding box for the paragraph. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3461,7 +3462,7 @@ pub struct GoogleCloudVisionV1p2beta1Paragraph {
 }
 
 /// A Product contains ReferenceImages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1Product {
     /// User-provided metadata to be stored with this product. Must be at most 4096 characters long.
     #[serde(default)]
@@ -3482,7 +3483,7 @@ pub struct GoogleCloudVisionV1p2beta1Product {
 }
 
 /// Structural unit of text representing a number of words in certain order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1Paragraph {
     /// The bounding box for the paragraph. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3499,7 +3500,7 @@ pub struct GoogleCloudVisionV1p3beta1Paragraph {
 }
 
 /// A Product contains ReferenceImages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1Product {
     /// User-provided metadata to be stored with this product. Must be at most 4096 characters long.
     #[serde(default)]
@@ -3520,7 +3521,7 @@ pub struct GoogleCloudVisionV1p3beta1Product {
 }
 
 /// A 3D position in the image, used primarily for Face detection landmarks. A valid Position must have both x and y coordinates. The position coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1Position {
     /// X coordinate.
     #[serde(default)]
@@ -3534,7 +3535,7 @@ pub struct GoogleCloudVisionV1p4beta1Position {
 }
 
 /// A Celebrity is a group of Faces with an identity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1Celebrity {
     /// The Celebrity''s description.
     #[serde(default)]
@@ -3548,7 +3549,7 @@ pub struct GoogleCloudVisionV1p4beta1Celebrity {
 }
 
 /// Logical element on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1Block {
     /// Detected block type (text, image etc) for this block. // TODO: enum values: ["UNKNOWN", "TEXT", "TABLE", "PICTURE", "RULER", "BARCODE"]
     #[serde(default, rename = "blockType")]
@@ -3568,7 +3569,7 @@ pub struct GoogleCloudVisionV1p4beta1Block {
 }
 
 /// Color information consists of RGB channels, score, and the fraction of the image that the color occupies in the image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1ColorInfo {
     /// RGB components of the color.
     #[serde(default)]
@@ -3582,7 +3583,7 @@ pub struct GoogleCloudVisionV1p4beta1ColorInfo {
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
@@ -3593,7 +3594,7 @@ pub struct LatLng {
 }
 
 /// Prediction for what the object in the bounding box is.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsObjectAnnotation {
     /// The BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
@@ -3610,7 +3611,7 @@ pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsObjectAnnotation {
 }
 
 /// Information about a product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsResult {
     /// The resource name of the image from the product that is the closest match to the query.
     #[serde(default)]
@@ -3624,7 +3625,7 @@ pub struct GoogleCloudVisionV1p4beta1ProductSearchResultsResult {
 }
 
 /// Metadata for online images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1WebDetectionWebImage {
     /// (Deprecated) Overall relevancy score for the image.
     #[serde(default)]
@@ -3635,7 +3636,7 @@ pub struct GoogleCloudVisionV1p4beta1WebDetectionWebImage {
 }
 
 /// Structural unit of text representing a number of words in certain order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Paragraph {
     /// The bounding box for the paragraph. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3652,7 +3653,7 @@ pub struct Paragraph {
 }
 
 /// A Product contains ReferenceImages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Product {
     /// User-provided metadata to be stored with this product. Must be at most 4096 characters long.
     #[serde(default)]
@@ -3672,7 +3673,7 @@ pub struct Product {
 }
 
 /// A word representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1Word {
     /// The bounding box for the word. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3689,7 +3690,7 @@ pub struct GoogleCloudVisionV1p1beta1Word {
 }
 
 /// A product label represented as a key-value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1ProductKeyValue {
     /// The key of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
@@ -3700,7 +3701,7 @@ pub struct GoogleCloudVisionV1p1beta1ProductKeyValue {
 }
 
 /// A word representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1Word {
     /// The bounding box for the word. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3717,7 +3718,7 @@ pub struct GoogleCloudVisionV1p2beta1Word {
 }
 
 /// A product label represented as a key-value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1ProductKeyValue {
     /// The key of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
@@ -3728,7 +3729,7 @@ pub struct GoogleCloudVisionV1p2beta1ProductKeyValue {
 }
 
 /// A word representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1Word {
     /// The bounding box for the word. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3745,7 +3746,7 @@ pub struct GoogleCloudVisionV1p3beta1Word {
 }
 
 /// A product label represented as a key-value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1ProductKeyValue {
     /// The key of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
@@ -3756,7 +3757,7 @@ pub struct GoogleCloudVisionV1p3beta1ProductKeyValue {
 }
 
 /// Structural unit of text representing a number of words in certain order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1Paragraph {
     /// The bounding box for the paragraph. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3773,7 +3774,7 @@ pub struct GoogleCloudVisionV1p4beta1Paragraph {
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Color {
     /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
     #[serde(default)]
@@ -3790,7 +3791,7 @@ pub struct Color {
 }
 
 /// A Product contains ReferenceImages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1Product {
     /// User-provided metadata to be stored with this product. Must be at most 4096 characters long.
     #[serde(default)]
@@ -3811,7 +3812,7 @@ pub struct GoogleCloudVisionV1p4beta1Product {
 }
 
 /// A word representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Word {
     /// The bounding box for the word. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3828,7 +3829,7 @@ pub struct Word {
 }
 
 /// A product label represented as a key-value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyValue {
     /// The key of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
@@ -3839,7 +3840,7 @@ pub struct KeyValue {
 }
 
 /// A single symbol representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1Symbol {
     /// The bounding box for the symbol. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3856,7 +3857,7 @@ pub struct GoogleCloudVisionV1p1beta1Symbol {
 }
 
 /// A single symbol representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1Symbol {
     /// The bounding box for the symbol. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3873,7 +3874,7 @@ pub struct GoogleCloudVisionV1p2beta1Symbol {
 }
 
 /// A single symbol representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1Symbol {
     /// The bounding box for the symbol. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3890,7 +3891,7 @@ pub struct GoogleCloudVisionV1p3beta1Symbol {
 }
 
 /// A word representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1Word {
     /// The bounding box for the word. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3907,7 +3908,7 @@ pub struct GoogleCloudVisionV1p4beta1Word {
 }
 
 /// A product label represented as a key-value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1ProductKeyValue {
     /// The key of the label attached to the product. Cannot be empty and cannot exceed 128 bytes.
     #[serde(default)]
@@ -3918,7 +3919,7 @@ pub struct GoogleCloudVisionV1p4beta1ProductKeyValue {
 }
 
 /// A single symbol representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Symbol {
     /// The bounding box for the symbol. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -3935,7 +3936,7 @@ pub struct Symbol {
 }
 
 /// A bounding polygon for the detected image annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
@@ -3947,7 +3948,7 @@ pub struct GoogleCloudVisionV1p1beta1BoundingPoly {
 }
 
 /// Additional information detected on the structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1TextAnnotationTextProperty {
     /// Detected start or end of a text segment.
     #[serde(default, rename = "detectedBreak")]
@@ -3961,7 +3962,7 @@ pub struct GoogleCloudVisionV1p1beta1TextAnnotationTextProperty {
 }
 
 /// A bounding polygon for the detected image annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
@@ -3973,7 +3974,7 @@ pub struct GoogleCloudVisionV1p2beta1BoundingPoly {
 }
 
 /// Additional information detected on the structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1TextAnnotationTextProperty {
     /// Detected start or end of a text segment.
     #[serde(default, rename = "detectedBreak")]
@@ -3987,7 +3988,7 @@ pub struct GoogleCloudVisionV1p2beta1TextAnnotationTextProperty {
 }
 
 /// A bounding polygon for the detected image annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
@@ -3999,7 +4000,7 @@ pub struct GoogleCloudVisionV1p3beta1BoundingPoly {
 }
 
 /// Additional information detected on the structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1TextAnnotationTextProperty {
     /// Detected start or end of a text segment.
     #[serde(default, rename = "detectedBreak")]
@@ -4013,7 +4014,7 @@ pub struct GoogleCloudVisionV1p3beta1TextAnnotationTextProperty {
 }
 
 /// A single symbol representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1Symbol {
     /// The bounding box for the symbol. The vertices are in the order of top-left, top-right, bottom-right, bottom-left. When a rotation of the bounding box is detected the rotation is represented as around the top-left corner as defined when the text is read in the ''natural'' orientation. For example: * when the text is horizontal it might look like: 0----1 | | 3----2 * when it''s rotated 180 degrees around the top-left corner it becomes: 2----3 | | 1----0 and the vertex order will still be (0, 1, 2, 3).
     #[serde(default, rename = "boundingBox")]
@@ -4030,7 +4031,7 @@ pub struct GoogleCloudVisionV1p4beta1Symbol {
 }
 
 /// A bounding polygon for the detected image annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
@@ -4041,7 +4042,7 @@ pub struct BoundingPoly {
 }
 
 /// Additional information detected on the structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextProperty {
     /// Detected start or end of a text segment.
     #[serde(default, rename = "detectedBreak")]
@@ -4052,7 +4053,7 @@ pub struct TextProperty {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
@@ -4063,7 +4064,7 @@ pub struct GoogleCloudVisionV1p1beta1NormalizedVertex {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1Vertex {
     /// X coordinate.
     #[serde(default)]
@@ -4074,7 +4075,7 @@ pub struct GoogleCloudVisionV1p1beta1Vertex {
 }
 
 /// Detected start or end of a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1TextAnnotationDetectedBreak {
     /// True if break prepends the element.
     #[serde(default, rename = "isPrefix")]
@@ -4085,7 +4086,7 @@ pub struct GoogleCloudVisionV1p1beta1TextAnnotationDetectedBreak {
 }
 
 /// Detected language for a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p1beta1TextAnnotationDetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]
@@ -4096,7 +4097,7 @@ pub struct GoogleCloudVisionV1p1beta1TextAnnotationDetectedLanguage {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
@@ -4107,7 +4108,7 @@ pub struct GoogleCloudVisionV1p2beta1NormalizedVertex {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1Vertex {
     /// X coordinate.
     #[serde(default)]
@@ -4118,7 +4119,7 @@ pub struct GoogleCloudVisionV1p2beta1Vertex {
 }
 
 /// Detected start or end of a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1TextAnnotationDetectedBreak {
     /// True if break prepends the element.
     #[serde(default, rename = "isPrefix")]
@@ -4129,7 +4130,7 @@ pub struct GoogleCloudVisionV1p2beta1TextAnnotationDetectedBreak {
 }
 
 /// Detected language for a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p2beta1TextAnnotationDetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]
@@ -4140,7 +4141,7 @@ pub struct GoogleCloudVisionV1p2beta1TextAnnotationDetectedLanguage {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
@@ -4151,7 +4152,7 @@ pub struct GoogleCloudVisionV1p3beta1NormalizedVertex {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1Vertex {
     /// X coordinate.
     #[serde(default)]
@@ -4162,7 +4163,7 @@ pub struct GoogleCloudVisionV1p3beta1Vertex {
 }
 
 /// Detected start or end of a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1TextAnnotationDetectedBreak {
     /// True if break prepends the element.
     #[serde(default, rename = "isPrefix")]
@@ -4173,7 +4174,7 @@ pub struct GoogleCloudVisionV1p3beta1TextAnnotationDetectedBreak {
 }
 
 /// Detected language for a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p3beta1TextAnnotationDetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]
@@ -4184,7 +4185,7 @@ pub struct GoogleCloudVisionV1p3beta1TextAnnotationDetectedLanguage {
 }
 
 /// A bounding polygon for the detected image annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
@@ -4196,7 +4197,7 @@ pub struct GoogleCloudVisionV1p4beta1BoundingPoly {
 }
 
 /// Additional information detected on the structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1TextAnnotationTextProperty {
     /// Detected start or end of a text segment.
     #[serde(default, rename = "detectedBreak")]
@@ -4210,7 +4211,7 @@ pub struct GoogleCloudVisionV1p4beta1TextAnnotationTextProperty {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
@@ -4221,7 +4222,7 @@ pub struct NormalizedVertex {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Vertex {
     /// X coordinate.
     #[serde(default)]
@@ -4232,7 +4233,7 @@ pub struct Vertex {
 }
 
 /// Detected start or end of a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetectedBreak {
     /// True if break prepends the element.
     #[serde(default, rename = "isPrefix")]
@@ -4243,7 +4244,7 @@ pub struct DetectedBreak {
 }
 
 /// Detected language for a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]
@@ -4254,7 +4255,7 @@ pub struct DetectedLanguage {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
@@ -4265,7 +4266,7 @@ pub struct GoogleCloudVisionV1p4beta1NormalizedVertex {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1Vertex {
     /// X coordinate.
     #[serde(default)]
@@ -4276,7 +4277,7 @@ pub struct GoogleCloudVisionV1p4beta1Vertex {
 }
 
 /// Detected start or end of a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1TextAnnotationDetectedBreak {
     /// True if break prepends the element.
     #[serde(default, rename = "isPrefix")]
@@ -4287,7 +4288,7 @@ pub struct GoogleCloudVisionV1p4beta1TextAnnotationDetectedBreak {
 }
 
 /// Detected language for a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudVisionV1p4beta1TextAnnotationDetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for ListJobs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1ListJobsResponse {
     /// Results that were accessible to the caller. Results are always in descending order of job creation date.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct GoogleCloudDatapipelinesV1ListJobsResponse {
 }
 
 /// Response message for ListPipelines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1ListPipelinesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -33,11 +34,11 @@ pub struct GoogleCloudDatapipelinesV1ListPipelinesResponse {
 }
 
 /// Request message for RunPipeline
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1RunPipelineRequest {}
 
 /// Response message for RunPipeline
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1RunPipelineResponse {
     /// Job that was created as part of RunPipeline operation.
     #[serde(default)]
@@ -45,15 +46,15 @@ pub struct GoogleCloudDatapipelinesV1RunPipelineResponse {
 }
 
 /// Request message for StopPipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1StopPipelineRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// The main pipeline entity and all the necessary metadata for launching and managing linked jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1Pipeline {
     /// Output only. Immutable. The timestamp when the pipeline was initially created. Set by the Data Pipelines service.
     #[serde(default, rename = "createTime")]
@@ -91,7 +92,7 @@ pub struct GoogleCloudDatapipelinesV1Pipeline {
 }
 
 /// Definition of the job information maintained by the pipeline. Fields in this entity are retrieved from the executor API (e.g. Dataflow API).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1Job {
     /// Output only. The time of job creation.
     #[serde(default, rename = "createTime")]
@@ -117,7 +118,7 @@ pub struct GoogleCloudDatapipelinesV1Job {
 }
 
 /// Details of the schedule the pipeline runs on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1ScheduleSpec {
     /// Output only. When the next Scheduler job is going to run.
     #[serde(default, rename = "nextJobTime")]
@@ -131,7 +132,7 @@ pub struct GoogleCloudDatapipelinesV1ScheduleSpec {
 }
 
 /// Workload details for creating the pipeline jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1Workload {
     /// Template information and additional parameters needed to launch a Dataflow job using the flex launch API.
     #[serde(default, rename = "dataflowFlexTemplateRequest")]
@@ -144,7 +145,7 @@ pub struct GoogleCloudDatapipelinesV1Workload {
 }
 
 /// Pipeline job details specific to the Dataflow API. This is encapsulated here to allow for more executors to store their specific details separately.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1DataflowJobDetails {
     /// Output only. The current number of workers used to run the jobs. Only set to a value if the job is still running.
     #[serde(default, rename = "currentWorkers")]
@@ -158,7 +159,7 @@ pub struct GoogleCloudDatapipelinesV1DataflowJobDetails {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -172,7 +173,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// A request to launch a Dataflow job from a Flex Template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest {
     /// Required. Parameter to launch a job from a Flex Template.
     #[serde(default, rename = "launchParameter")]
@@ -190,7 +191,7 @@ pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateRequest {
 }
 
 /// A request to launch a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1LaunchTemplateRequest {
     /// A Cloud Storage path to the template from which to create the job. Must be a valid Cloud Storage URL, beginning with ''gs://''.
     #[serde(default, rename = "gcsPath")]
@@ -211,7 +212,7 @@ pub struct GoogleCloudDatapipelinesV1LaunchTemplateRequest {
 }
 
 /// The version of the SDK used to run the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1SdkVersion {
     /// The support status for this SDK version. // TODO: enum values: ["UNKNOWN", "SUPPORTED", "STALE", "DEPRECATED", "UNSUPPORTED"]
     #[serde(default, rename = "sdkSupportStatus")]
@@ -225,7 +226,7 @@ pub struct GoogleCloudDatapipelinesV1SdkVersion {
 }
 
 /// Launch Flex Template parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter {
     /// Cloud Storage path to a file with a JSON-serialized ContainerSpec as content.
     #[serde(default, rename = "containerSpecGcsPath")]
@@ -252,7 +253,7 @@ pub struct GoogleCloudDatapipelinesV1LaunchFlexTemplateParameter {
 }
 
 /// Parameters to provide to the template being launched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1LaunchTemplateParameters {
     /// The runtime environment for the job.
     #[serde(default)]
@@ -272,7 +273,7 @@ pub struct GoogleCloudDatapipelinesV1LaunchTemplateParameters {
 }
 
 /// The environment values to be set at runtime for a Flex Template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1FlexTemplateRuntimeEnvironment {
     /// Additional experiment flags for the job.
     #[serde(default, rename = "additionalExperiments")]
@@ -325,7 +326,7 @@ pub struct GoogleCloudDatapipelinesV1FlexTemplateRuntimeEnvironment {
 }
 
 /// The environment values to set at runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatapipelinesV1RuntimeEnvironment {
     /// Additional experiment flags for the job.
     #[serde(default, rename = "additionalExperiments")]

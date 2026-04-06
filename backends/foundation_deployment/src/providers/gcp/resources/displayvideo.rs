@@ -8,22 +8,23 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Certificate is required to serve in any country and the existing certificate does not cover the ad''s domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicConstraintAdPolicyGlobalCertificateDomainMismatchConstraint {}
 
 /// Certificate is required to serve in any country.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicConstraintAdPolicyGlobalCertificateMissingConstraint {}
 
 /// Policy topic was constrained due to disapproval of the website for reseller purposes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicConstraintAdPolicyResellerConstraint {}
 
 /// Rule-based algorithm.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlgorithmRules {
     /// Attribution model for the algorithm. This field is only supported for allowlisted partners.
     #[serde(default, rename = "attributionModelId")]
@@ -37,7 +38,7 @@ pub struct AlgorithmRules {
 }
 
 /// Response message for AdvertiserService.AuditAdvertiser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditAdvertiserResponse {
     /// The number of individual targeting options from the following targeting types that are assigned to a line item under this advertiser. These individual targeting options count towards the limit of 4500000 ad group targeting options per advertiser. Qualifying Targeting types: * Channels, URLs, apps, and collections * Demographic * Google Audiences, including Affinity, Custom Affinity, and In-market audiences * Inventory source * Keyword * Mobile app category * User lists * Video targeting * Viewability
     #[serde(default, rename = "adGroupCriteriaCount")]
@@ -66,7 +67,7 @@ pub struct AuditAdvertiserResponse {
 }
 
 /// A request message for BulkCreateAdAssets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkCreateAdAssetsRequest {
     /// Required. Ad assets to create. Only supports assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
     #[serde(default, rename = "adAssets")]
@@ -74,7 +75,7 @@ pub struct BulkCreateAdAssetsRequest {
 }
 
 /// A response message for BulkCreateAdAssets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkCreateAdAssetsResponse {
     /// The created ad assets.
     #[serde(default, rename = "adAssets")]
@@ -82,7 +83,7 @@ pub struct BulkCreateAdAssetsResponse {
 }
 
 /// Request message for BulkEditAdGroupAssignedTargetingOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAdGroupAssignedTargetingOptionsRequest {
     /// Required. The IDs of the ad groups the assigned targeting options will belong to. A maximum of 25 ad group IDs can be specified.
     #[serde(default, rename = "adGroupIds")]
@@ -98,7 +99,7 @@ pub struct BulkEditAdGroupAssignedTargetingOptionsRequest {
 }
 
 /// Response message for BulkEditAssignedTargetingOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAdGroupAssignedTargetingOptionsResponse {
     /// Output only. The error information for each ad group that failed to update.
     #[serde(default)]
@@ -112,7 +113,7 @@ pub struct BulkEditAdGroupAssignedTargetingOptionsResponse {
 }
 
 /// Request message for BulkEditAdvertiserAssignedTargetingOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAdvertiserAssignedTargetingOptionsRequest {
     /// The assigned targeting options to create in batch, specified as a list of CreateAssignedTargetingOptionsRequest. Supported targeting types: * TARGETING_TYPE_CHANNEL * TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION * TARGETING_TYPE_OMID * TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION * TARGETING_TYPE_KEYWORD * TARGETING_TYPE_INVENTORY_MODE
     #[serde(default, rename = "createRequests")]
@@ -125,7 +126,7 @@ pub struct BulkEditAdvertiserAssignedTargetingOptionsRequest {
 }
 
 /// BulkEditAdvertiserAssignedTargetingOptionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAdvertiserAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "createdAssignedTargetingOptions")]
@@ -134,7 +135,7 @@ pub struct BulkEditAdvertiserAssignedTargetingOptionsResponse {
 }
 
 /// Request message for AssignedInventorySourceService.BulkEdit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAssignedInventorySourcesRequest {
     /// The ID of the advertiser that owns the parent inventory source group. The parent partner does not have access to these assigned inventory sources.
     #[serde(default, rename = "advertiserId")]
@@ -152,7 +153,7 @@ pub struct BulkEditAssignedInventorySourcesRequest {
 }
 
 /// Response message for AssignedInventorySourceService.BulkEdit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAssignedInventorySourcesResponse {
     /// The list of assigned inventory sources that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "assignedInventorySources")]
@@ -161,7 +162,7 @@ pub struct BulkEditAssignedInventorySourcesResponse {
 }
 
 /// Request message for AssignedLocationService.BulkEditAssignedLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAssignedLocationsRequest {
     /// The assigned locations to create in bulk, specified as a list of AssignedLocation resources.
     #[serde(default, rename = "createdAssignedLocations")]
@@ -172,7 +173,7 @@ pub struct BulkEditAssignedLocationsRequest {
 }
 
 /// BulkEditAssignedLocationsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAssignedLocationsResponse {
     /// The list of assigned locations that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "assignedLocations")]
@@ -180,7 +181,7 @@ pub struct BulkEditAssignedLocationsResponse {
 }
 
 /// Request message for BulkEditLineItemsAssignedTargetingOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAssignedTargetingOptionsRequest {
     /// The assigned targeting options to create in batch, specified as a list of CreateAssignedTargetingOptionsRequest. Supported targeting types include: * TARGETING_TYPE_AGE_RANGE * TARGETING_TYPE_APP * TARGETING_TYPE_APP_CATEGORY * TARGETING_TYPE_AUDIENCE_GROUP * TARGETING_TYPE_AUDIO_CONTENT_TYPE * TARGETING_TYPE_AUTHORIZED_SELLER_STATUS * TARGETING_TYPE_BROWSER * TARGETING_TYPE_BUSINESS_CHAIN * TARGETING_TYPE_CARRIER_AND_ISP * TARGETING_TYPE_CATEGORY * TARGETING_TYPE_CHANNEL * TARGETING_TYPE_CONTENT_DURATION * TARGETING_TYPE_CONTENT_GENRE * TARGETING_TYPE_CONTENT_INSTREAM_POSITION * TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION * TARGETING_TYPE_CONTENT_STREAM_TYPE * TARGETING_TYPE_DAY_AND_TIME * TARGETING_TYPE_DEVICE_MAKE_MODEL * TARGETING_TYPE_DEVICE_TYPE * TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION * TARGETING_TYPE_ENVIRONMENT * TARGETING_TYPE_EXCHANGE * TARGETING_TYPE_GENDER * TARGETING_TYPE_GEO_REGION * TARGETING_TYPE_HOUSEHOLD_INCOME * TARGETING_TYPE_INVENTORY_SOURCE * TARGETING_TYPE_INVENTORY_SOURCE_GROUP * TARGETING_TYPE_KEYWORD * TARGETING_TYPE_LANGUAGE * TARGETING_TYPE_NATIVE_CONTENT_POSITION * TARGETING_TYPE_NEGATIVE_KEYWORD_LIST * TARGETING_TYPE_OMID * TARGETING_TYPE_ON_SCREEN_POSITION * TARGETING_TYPE_OPERATING_SYSTEM * TARGETING_TYPE_PARENTAL_STATUS * TARGETING_TYPE_POI * TARGETING_TYPE_PROXIMITY_LOCATION_LIST * TARGETING_TYPE_REGIONAL_LOCATION_LIST * TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION * TARGETING_TYPE_SUB_EXCHANGE * TARGETING_TYPE_THIRD_PARTY_VERIFIER * TARGETING_TYPE_URL * TARGETING_TYPE_USER_REWARDED_CONTENT * TARGETING_TYPE_VIDEO_PLAYER_SIZE * TARGETING_TYPE_VIEWABILITY
     #[serde(default, rename = "createRequests")]
@@ -196,7 +197,7 @@ pub struct BulkEditAssignedTargetingOptionsRequest {
 }
 
 /// BulkEditAssignedTargetingOptionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAssignedTargetingOptionsResponse {
     /// The error information for each line item that failed to update.
     #[serde(default)]
@@ -210,7 +211,7 @@ pub struct BulkEditAssignedTargetingOptionsResponse {
 }
 
 /// Request message for BulkEditAssignedUserRoles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAssignedUserRolesRequest {
     /// The assigned user roles to create in batch, specified as a list of AssignedUserRoles.
     #[serde(default, rename = "createdAssignedUserRoles")]
@@ -221,7 +222,7 @@ pub struct BulkEditAssignedUserRolesRequest {
 }
 
 /// BulkEditAssignedUserRolesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAssignedUserRolesResponse {
     /// The list of assigned user roles that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "createdAssignedUserRoles")]
@@ -229,7 +230,7 @@ pub struct BulkEditAssignedUserRolesResponse {
 }
 
 /// Request message for NegativeKeywordService.BulkEditNegativeKeywords.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditNegativeKeywordsRequest {
     /// The negative keywords to create in batch, specified as a list of NegativeKeywords.
     #[serde(default, rename = "createdNegativeKeywords")]
@@ -240,7 +241,7 @@ pub struct BulkEditNegativeKeywordsRequest {
 }
 
 /// Response message for NegativeKeywordService.BulkEditNegativeKeywords.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditNegativeKeywordsResponse {
     /// The list of negative keywords that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "negativeKeywords")]
@@ -248,7 +249,7 @@ pub struct BulkEditNegativeKeywordsResponse {
 }
 
 /// Request message for BulkEditPartnerAssignedTargetingOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditPartnerAssignedTargetingOptionsRequest {
     /// The assigned targeting options to create in batch, specified as a list of CreateAssignedTargetingOptionsRequest. Supported targeting types: * TARGETING_TYPE_CHANNEL
     #[serde(default, rename = "createRequests")]
@@ -261,7 +262,7 @@ pub struct BulkEditPartnerAssignedTargetingOptionsRequest {
 }
 
 /// BulkEditPartnerAssignedTargetingOptionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditPartnerAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options that have been successfully created. This list will be absent if empty.
     #[serde(default, rename = "createdAssignedTargetingOptions")]
@@ -270,7 +271,7 @@ pub struct BulkEditPartnerAssignedTargetingOptionsResponse {
 }
 
 /// Request message for SiteService.BulkEditSites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditSitesRequest {
     /// The ID of the advertiser that owns the parent channel.
     #[serde(default, rename = "advertiserId")]
@@ -287,7 +288,7 @@ pub struct BulkEditSitesRequest {
 }
 
 /// Response message for SiteService.BulkEditSites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditSitesResponse {
     /// The list of sites that have been successfully created. This list will be absent if empty.
     #[serde(default)]
@@ -295,7 +296,7 @@ pub struct BulkEditSitesResponse {
 }
 
 /// BulkListAdGroupAssignedTargetingOptionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkListAdGroupAssignedTargetingOptionsResponse {
     /// The list of wrapper objects, each providing an assigned targeting option and the ad group it is assigned to. This list will be absent if empty.
     #[serde(default, rename = "adGroupAssignedTargetingOptions")]
@@ -307,7 +308,7 @@ pub struct BulkListAdGroupAssignedTargetingOptionsResponse {
 }
 
 /// BulkListAdvertiserAssignedTargetingOptionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkListAdvertiserAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options. This list will be absent if empty.
     #[serde(default, rename = "assignedTargetingOptions")]
@@ -319,7 +320,7 @@ pub struct BulkListAdvertiserAssignedTargetingOptionsResponse {
 }
 
 /// BulkListAssignedTargetingOptionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkListAssignedTargetingOptionsResponse {
     /// The list of wrapper objects, each providing an assigned targeting option and the line item it is assigned to. This list will be absent if empty.
     #[serde(default, rename = "lineItemAssignedTargetingOptions")]
@@ -331,7 +332,7 @@ pub struct BulkListAssignedTargetingOptionsResponse {
 }
 
 /// Request message for LineItemService.BulkUpdateLineItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkUpdateLineItemsRequest {
     /// Required. IDs of line items to update.
     #[serde(default, rename = "lineItemIds")]
@@ -345,7 +346,7 @@ pub struct BulkUpdateLineItemsRequest {
 }
 
 /// Response message for LineItemService.BulkUpdateLineItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkUpdateLineItemsResponse {
     /// Errors returned by line items that failed to update.
     #[serde(default)]
@@ -362,7 +363,7 @@ pub struct BulkUpdateLineItemsResponse {
 }
 
 /// A request message for CreateAdAsset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAdAssetRequest {
     /// Required. The ad asset to create. Only supports assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
     #[serde(default, rename = "adAsset")]
@@ -370,7 +371,7 @@ pub struct CreateAdAssetRequest {
 }
 
 /// A request message for CreateAsset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAssetRequest {
     /// Required. The filename of the asset, including the file extension. The filename must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default)]
@@ -378,7 +379,7 @@ pub struct CreateAssetRequest {
 }
 
 /// A response message for CreateAsset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAssetResponse {
     /// The uploaded asset, if successful.
     #[serde(default)]
@@ -386,7 +387,7 @@ pub struct CreateAssetResponse {
 }
 
 /// Request message for [SdfDownloadTaskService.CreateSdfDownloadTask].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateSdfDownloadTaskRequest {
     /// The ID of the advertiser to download SDF for.
     #[serde(default, rename = "advertiserId")]
@@ -409,7 +410,7 @@ pub struct CreateSdfDownloadTaskRequest {
 }
 
 /// Request message for LineItemService.DuplicateLineItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DuplicateLineItemRequest {
     /// Whether this line item will serve European Union political ads. If contains_eu_political_ads has been set to DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING in the parent advertiser, then this field will be assigned DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING if not otherwise specified. This field can then be updated using the UI, API, or Structured Data Files. This field must be assigned when creating a new line item. Otherwise, **the advertisers.lineItems.create request will fail**. // TODO: enum values: ["EU_POLITICAL_ADVERTISING_STATUS_UNKNOWN", "CONTAINS_EU_POLITICAL_ADVERTISING", "DOES_NOT_CONTAIN_EU_POLITICAL_ADVERTISING"]
     #[serde(default, rename = "containsEuPoliticalAds")]
@@ -420,7 +421,7 @@ pub struct DuplicateLineItemRequest {
 }
 
 /// DuplicateLineItemResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DuplicateLineItemResponse {
     /// The ID of the created line item.
     #[serde(default, rename = "duplicateLineItemId")]
@@ -428,7 +429,7 @@ pub struct DuplicateLineItemResponse {
 }
 
 /// Request message for FirstAndThirdPartyAudienceService.EditCustomerMatchMembers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EditCustomerMatchMembersRequest {
     /// Input only. A list of contact information to define the members to be added.
     #[serde(default, rename = "addedContactInfoList")]
@@ -448,7 +449,7 @@ pub struct EditCustomerMatchMembersRequest {
 }
 
 /// The response of FirstAndThirdPartyAudienceService.EditCustomerMatchMembers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EditCustomerMatchMembersResponse {
     /// Required. The ID of the updated Customer Match FirstPartyAndPartnerAudience.
     #[serde(default, rename = "firstPartyAndPartnerAudienceId")]
@@ -456,7 +457,7 @@ pub struct EditCustomerMatchMembersResponse {
 }
 
 /// Request message for GuaranteedOrderService.EditGuaranteedOrderReadAccessors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EditGuaranteedOrderReadAccessorsRequest {
     /// The advertisers to add as read accessors to the guaranteed order.
     #[serde(default, rename = "addedAdvertisers")]
@@ -473,7 +474,7 @@ pub struct EditGuaranteedOrderReadAccessorsRequest {
 }
 
 /// EditGuaranteedOrderReadAccessorsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EditGuaranteedOrderReadAccessorsResponse {
     /// Whether all advertisers of read_write_partner_id have read access to the guaranteed order.
     #[serde(default, rename = "readAccessInherited")]
@@ -484,7 +485,7 @@ pub struct EditGuaranteedOrderReadAccessorsResponse {
 }
 
 /// Request message for InventorySourceService.EditInventorySourceReadWriteAccessors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EditInventorySourceReadWriteAccessorsRequest {
     /// The advertisers to add or remove from the list of advertisers that have read/write access to the inventory source. This change will remove an existing partner read/write accessor.
     #[serde(default, rename = "advertisersUpdate")]
@@ -499,11 +500,11 @@ pub struct EditInventorySourceReadWriteAccessorsRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// A single Floodlight group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightGroup {
     /// The Active View video viewability metric configuration for the Floodlight group.
     #[serde(default, rename = "activeViewConfig")]
@@ -529,7 +530,7 @@ pub struct FloodlightGroup {
 }
 
 /// Media resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBytestreamMedia {
     /// Name of the media resource.
     #[serde(default, rename = "resourceName")]
@@ -537,7 +538,7 @@ pub struct GoogleBytestreamMedia {
 }
 
 /// A response message for ListAdAssets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdAssetsResponse {
     /// The list of ad assets. The list will only contain assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO. This list will be absent if empty.
     #[serde(default, rename = "adAssets")]
@@ -548,7 +549,7 @@ pub struct ListAdAssetsResponse {
 }
 
 /// ListAdGroupAdsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdGroupAdsResponse {
     /// The list of ads. This list will be absent if empty.
     #[serde(default, rename = "adGroupAds")]
@@ -559,7 +560,7 @@ pub struct ListAdGroupAdsResponse {
 }
 
 /// Response message for ListAdGroupAssignedTargetingOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdGroupAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options. This list will be absent if empty.
     #[serde(default, rename = "assignedTargetingOptions")]
@@ -571,7 +572,7 @@ pub struct ListAdGroupAssignedTargetingOptionsResponse {
 }
 
 /// ListAdGroupsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdGroupsResponse {
     /// The list of ad groups. This list will be absent if empty.
     #[serde(default, rename = "adGroups")]
@@ -582,7 +583,7 @@ pub struct ListAdGroupsResponse {
 }
 
 /// Response message for ListAdvertiserAssignedTargetingOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdvertiserAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options. This list will be absent if empty.
     #[serde(default, rename = "assignedTargetingOptions")]
@@ -594,7 +595,7 @@ pub struct ListAdvertiserAssignedTargetingOptionsResponse {
 }
 
 /// ListAdvertisersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdvertisersResponse {
     /// The list of advertisers. This list will be absent if empty.
     #[serde(default)]
@@ -605,7 +606,7 @@ pub struct ListAdvertisersResponse {
 }
 
 /// Response message for AssignedInventorySourceService.ListAssignedInventorySources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAssignedInventorySourcesResponse {
     /// The list of assigned inventory sources. This list will be absent if empty.
     #[serde(default, rename = "assignedInventorySources")]
@@ -617,7 +618,7 @@ pub struct ListAssignedInventorySourcesResponse {
 }
 
 /// Response message for AssignedLocationService.ListAssignedLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAssignedLocationsResponse {
     /// The list of assigned locations. This list will be absent if empty.
     #[serde(default, rename = "assignedLocations")]
@@ -628,7 +629,7 @@ pub struct ListAssignedLocationsResponse {
 }
 
 /// ListCampaignsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCampaignsResponse {
     /// The list of campaigns. This list will be absent if empty.
     #[serde(default)]
@@ -639,7 +640,7 @@ pub struct ListCampaignsResponse {
 }
 
 /// ListChannelsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListChannelsResponse {
     /// The list of channels. This list will be absent if empty.
     #[serde(default)]
@@ -650,7 +651,7 @@ pub struct ListChannelsResponse {
 }
 
 /// ListCombinedAudiencesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCombinedAudiencesResponse {
     /// The list of combined audiences. This list will be absent if empty.
     #[serde(default, rename = "combinedAudiences")]
@@ -661,7 +662,7 @@ pub struct ListCombinedAudiencesResponse {
 }
 
 /// ListCreativesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCreativesResponse {
     /// The list of creatives. This list will be absent if empty.
     #[serde(default)]
@@ -672,7 +673,7 @@ pub struct ListCreativesResponse {
 }
 
 /// ListCustomBiddingAlgorithmRulesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCustomBiddingAlgorithmRulesResponse {
     /// The list of CustomBiddingAlgorithmRules resources. This list will be absent if empty.
     #[serde(default, rename = "customBiddingRules")]
@@ -683,7 +684,7 @@ pub struct ListCustomBiddingAlgorithmRulesResponse {
 }
 
 /// ListCustomBiddingAlgorithmsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCustomBiddingAlgorithmsResponse {
     /// The list of custom bidding algorithms. This list will be absent if empty.
     #[serde(default, rename = "customBiddingAlgorithms")]
@@ -694,7 +695,7 @@ pub struct ListCustomBiddingAlgorithmsResponse {
 }
 
 /// ListCustomBiddingScriptsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCustomBiddingScriptsResponse {
     /// The list of custom bidding scripts. This list will be absent if empty.
     #[serde(default, rename = "customBiddingScripts")]
@@ -705,7 +706,7 @@ pub struct ListCustomBiddingScriptsResponse {
 }
 
 /// ListCustomListsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCustomListsResponse {
     /// The list of custom lists. This list will be absent if empty.
     #[serde(default, rename = "customLists")]
@@ -716,7 +717,7 @@ pub struct ListCustomListsResponse {
 }
 
 /// ListFirstPartyAndPartnerAudiencesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFirstPartyAndPartnerAudiencesResponse {
     /// The list of first party and partner audiences. Audience size properties will not be included. This list will be absent if empty.
     #[serde(default, rename = "firstPartyAndPartnerAudiences")]
@@ -728,7 +729,7 @@ pub struct ListFirstPartyAndPartnerAudiencesResponse {
 }
 
 /// ListFloodlightActivitiesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFloodlightActivitiesResponse {
     /// The list of Floodlight activities. This list will be absent if empty.
     #[serde(default, rename = "floodlightActivities")]
@@ -739,7 +740,7 @@ pub struct ListFloodlightActivitiesResponse {
 }
 
 /// ListGoogleAudiencesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGoogleAudiencesResponse {
     /// The list of Google audiences. This list will be absent if empty.
     #[serde(default, rename = "googleAudiences")]
@@ -750,7 +751,7 @@ pub struct ListGoogleAudiencesResponse {
 }
 
 /// ListGuaranteedOrdersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGuaranteedOrdersResponse {
     /// The list of guaranteed orders. This list will be absent if empty.
     #[serde(default, rename = "guaranteedOrders")]
@@ -761,7 +762,7 @@ pub struct ListGuaranteedOrdersResponse {
 }
 
 /// ListInsertionOrdersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInsertionOrdersResponse {
     /// The list of insertion orders. This list will be absent if empty.
     #[serde(default, rename = "insertionOrders")]
@@ -772,7 +773,7 @@ pub struct ListInsertionOrdersResponse {
 }
 
 /// Response message for InventorySourceGroupService.ListInventorySourceGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInventorySourceGroupsResponse {
     /// The list of inventory source groups. This list will be absent if empty.
     #[serde(default, rename = "inventorySourceGroups")]
@@ -783,7 +784,7 @@ pub struct ListInventorySourceGroupsResponse {
 }
 
 /// ListInventorySourcesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInventorySourcesResponse {
     /// The list of inventory sources. This list will be absent if empty.
     #[serde(default, rename = "inventorySources")]
@@ -794,7 +795,7 @@ pub struct ListInventorySourcesResponse {
 }
 
 /// ListInvoicesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInvoicesResponse {
     /// The list of invoices. This list will be absent if empty.
     #[serde(default)]
@@ -805,7 +806,7 @@ pub struct ListInvoicesResponse {
 }
 
 /// Response message for ListLineItemAssignedTargetingOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLineItemAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options. This list will be absent if empty.
     #[serde(default, rename = "assignedTargetingOptions")]
@@ -817,7 +818,7 @@ pub struct ListLineItemAssignedTargetingOptionsResponse {
 }
 
 /// ListLineItemsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLineItemsResponse {
     /// The list of line items. This list will be absent if empty.
     #[serde(default, rename = "lineItems")]
@@ -828,7 +829,7 @@ pub struct ListLineItemsResponse {
 }
 
 /// ListLocationListsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationListsResponse {
     /// The list of location lists. This list will be absent if empty.
     #[serde(default, rename = "locationLists")]
@@ -839,7 +840,7 @@ pub struct ListLocationListsResponse {
 }
 
 /// Response message for NegativeKeywordListService.ListNegativeKeywordLists.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNegativeKeywordListsResponse {
     /// The list of negative keyword lists. This list will be absent if empty.
     #[serde(default, rename = "negativeKeywordLists")]
@@ -850,7 +851,7 @@ pub struct ListNegativeKeywordListsResponse {
 }
 
 /// Response message for NegativeKeywordService.ListNegativeKeywords.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNegativeKeywordsResponse {
     /// The list of negative keywords. This list will be absent if empty.
     #[serde(default, rename = "negativeKeywords")]
@@ -861,7 +862,7 @@ pub struct ListNegativeKeywordsResponse {
 }
 
 /// ListPartnerAssignedTargetingOptionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPartnerAssignedTargetingOptionsResponse {
     /// The list of assigned targeting options. This list will be absent if empty.
     #[serde(default, rename = "assignedTargetingOptions")]
@@ -873,7 +874,7 @@ pub struct ListPartnerAssignedTargetingOptionsResponse {
 }
 
 /// ListPartnersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPartnersResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListPartners method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -884,7 +885,7 @@ pub struct ListPartnersResponse {
 }
 
 /// Response message for SiteService.ListSites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSitesResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListSites method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -895,7 +896,7 @@ pub struct ListSitesResponse {
 }
 
 /// Response message for ListTargetingOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTargetingOptionsResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListTargetingOptions method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -906,7 +907,7 @@ pub struct ListTargetingOptionsResponse {
 }
 
 /// ListUsersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUsersResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListUsers method to retrieve the next page of results. This token will be absent if there are no more results to return.
     #[serde(default, rename = "nextPageToken")]
@@ -917,7 +918,7 @@ pub struct ListUsersResponse {
 }
 
 /// Response message for YoutubeAssetAssociationService.ListYoutubeAssetAssociations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListYoutubeAssetAssociationsResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to ListYoutubeAssetAssociations method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -929,7 +930,7 @@ pub struct ListYoutubeAssetAssociationsResponse {
 }
 
 /// LookupInvoiceCurrencyResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupInvoiceCurrencyResponse {
     /// Currency used by the advertiser in ISO 4217 format.
     #[serde(default, rename = "currencyCode")]
@@ -937,7 +938,7 @@ pub struct LookupInvoiceCurrencyResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -957,7 +958,7 @@ pub struct Operation {
 }
 
 /// Request message for NegativeKeywordService.ReplaceNegativeKeywords.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceNegativeKeywordsRequest {
     /// The negative keywords that will replace the existing keywords in the negative keyword list, specified as a list of NegativeKeywords.
     #[serde(default, rename = "newNegativeKeywords")]
@@ -965,7 +966,7 @@ pub struct ReplaceNegativeKeywordsRequest {
 }
 
 /// Response message for NegativeKeywordService.ReplaceNegativeKeywords.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceNegativeKeywordsResponse {
     /// The full list of negative keywords now present in the negative keyword list.
     #[serde(default, rename = "negativeKeywords")]
@@ -973,7 +974,7 @@ pub struct ReplaceNegativeKeywordsResponse {
 }
 
 /// Request message for SiteService.ReplaceSites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceSitesRequest {
     /// The ID of the advertiser that owns the parent channel.
     #[serde(default, rename = "advertiserId")]
@@ -987,7 +988,7 @@ pub struct ReplaceSitesRequest {
 }
 
 /// Response message for SiteService.ReplaceSites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceSitesResponse {
     /// The list of sites in the channel after replacing.
     #[serde(default)]
@@ -995,7 +996,7 @@ pub struct ReplaceSitesResponse {
 }
 
 /// Type for the response returned by SdfDownloadTaskService.CreateSdfDownloadTask.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SdfDownloadTask {
     /// A resource name to be used in media.download to Download the prepared files. Resource names have the format download/sdfdownloadtasks/media/{media_id}. media_id will be made available by the long running operation service once the task status is done.
     #[serde(default, rename = "resourceName")]
@@ -1003,7 +1004,7 @@ pub struct SdfDownloadTask {
 }
 
 /// Type for the metadata returned by SdfDownloadTaskService.CreateSdfDownloadTask.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SdfDownloadTaskMetadata {
     /// The time when the operation was created.
     #[serde(default, rename = "createTime")]
@@ -1017,7 +1018,7 @@ pub struct SdfDownloadTaskMetadata {
 }
 
 /// Request message for SearchTargetingOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchTargetingOptionsRequest {
     /// Required. The Advertiser this request is being made in the context of.
     #[serde(default, rename = "advertiserId")]
@@ -1040,7 +1041,7 @@ pub struct SearchTargetingOptionsRequest {
 }
 
 /// Response message for SearchTargetingOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchTargetingOptionsResponse {
     /// A token to retrieve the next page of results. Pass this value in the page_token field in the subsequent call to SearchTargetingOptions method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -1051,7 +1052,7 @@ pub struct SearchTargetingOptionsResponse {
 }
 
 /// A request message for UploadAdAsset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadAdAssetRequest {
     /// Required. The type of the ad asset. Only AD_ASSET_TYPE_IMAGE is supported. // TODO: enum values: ["AD_ASSET_TYPE_UNSPECIFIED", "AD_ASSET_TYPE_IMAGE", "AD_ASSET_TYPE_YOUTUBE_VIDEO"]
     #[serde(default, rename = "adAssetType")]
@@ -1062,7 +1063,7 @@ pub struct UploadAdAssetRequest {
 }
 
 /// A response message for UploadAdAsset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadAdAssetResponse {
     /// The created ad asset.
     #[serde(default, rename = "adAsset")]
@@ -1070,7 +1071,7 @@ pub struct UploadAdAssetResponse {
 }
 
 /// A ruleset consisting of a list of rules and how to aggregate the resulting values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlgorithmRulesRuleset {
     /// How to aggregate values of evaluated rules. // TODO: enum values: ["RULE_AGGREGATION_TYPE_UNSPECIFIED", "SUM_OF_VALUES", "PRODUCT_OF_VALUES", "MAXIMUM_VALUE"]
     #[serde(default, rename = "aggregationType")]
@@ -1084,7 +1085,7 @@ pub struct AlgorithmRulesRuleset {
 }
 
 /// A request listing which assigned targeting options of a given targeting type should be created and added.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAssignedTargetingOptionsRequest {
     /// Required. The assigned targeting options to create and add.
     #[serde(default, rename = "assignedTargetingOptions")]
@@ -1096,7 +1097,7 @@ pub struct CreateAssignedTargetingOptionsRequest {
 }
 
 /// A request listing which assigned targeting options of a given targeting type should be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteAssignedTargetingOptionsRequest {
     /// Required. The assigned targeting option IDs to delete.
     #[serde(default, rename = "assignedTargetingOptionIds")]
@@ -1107,7 +1108,7 @@ pub struct DeleteAssignedTargetingOptionsRequest {
 }
 
 /// Wrapper object associating an AssignedTargetingOption resource and the ad group it is assigned to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdGroupAssignedTargetingOption {
     /// The ID of the ad group the assigned targeting option is assigned to.
     #[serde(default, rename = "adGroupId")]
@@ -1118,7 +1119,7 @@ pub struct AdGroupAssignedTargetingOption {
 }
 
 /// Wrapper object associating an assigned_targeting_option resource and the line item it is assigned to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineItemAssignedTargetingOption {
     /// The assigned targeting option resource.
     #[serde(default, rename = "assignedTargetingOption")]
@@ -1129,7 +1130,7 @@ pub struct LineItemAssignedTargetingOption {
 }
 
 /// A filtering option that filters entities by their entity IDs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdFilter {
     /// YouTube Ads to download by ID. All IDs must belong to the same Advertiser or Partner specified in CreateSdfDownloadTaskRequest.
     #[serde(default, rename = "adGroupAdIds")]
@@ -1158,7 +1159,7 @@ pub struct IdFilter {
 }
 
 /// A filtering option for filtering on Inventory Source entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySourceFilter {
     /// Inventory Sources to download by ID. All IDs must belong to the same Advertiser or Partner specified in CreateSdfDownloadTaskRequest. Leave empty to download all Inventory Sources for the selected Advertiser or Partner.
     #[serde(default, rename = "inventorySourceIds")]
@@ -1166,7 +1167,7 @@ pub struct InventorySourceFilter {
 }
 
 /// A filtering option that filters on selected file types belonging to a chosen set of filter entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParentEntityFilter {
     /// Required. File types that will be returned.
     #[serde(default, rename = "fileType")]
@@ -1180,7 +1181,7 @@ pub struct ParentEntityFilter {
 }
 
 /// Update to the list of advertisers with read/write access to the inventory source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EditInventorySourceReadWriteAccessorsRequestAdvertisersUpdate {
     /// The advertisers to add.
     #[serde(default, rename = "addedAdvertisers")]
@@ -1191,7 +1192,7 @@ pub struct EditInventorySourceReadWriteAccessorsRequestAdvertisersUpdate {
 }
 
 /// Configuration for custom Active View video viewability metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveViewVideoViewabilityMetricConfig {
     /// Required. The display name of the custom metric.
     #[serde(default, rename = "displayName")]
@@ -1211,7 +1212,7 @@ pub struct ActiveViewVideoViewabilityMetricConfig {
 }
 
 /// Specifies how many days into the past to look when determining whether to record a conversion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookbackWindow {
     /// Lookback window, in days, from the last time a given user clicked on one of your ads.
     #[serde(default, rename = "clickDays")]
@@ -1222,7 +1223,7 @@ pub struct LookbackWindow {
 }
 
 /// A single ad associated with an ad group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdGroupAd {
     /// Output only. The unique ID of the ad. Assigned by the system.
     #[serde(default, rename = "adGroupAdId")]
@@ -1290,7 +1291,7 @@ pub struct AdGroupAd {
 }
 
 /// A single ad group associated with a line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdGroup {
     /// Required. Immutable. The format of the ads in the ad group. // TODO: enum values: ["AD_GROUP_FORMAT_UNSPECIFIED", "AD_GROUP_FORMAT_IN_STREAM", "AD_GROUP_FORMAT_VIDEO_DISCOVERY", "AD_GROUP_FORMAT_BUMPER", "AD_GROUP_FORMAT_NON_SKIPPABLE_IN_STREAM", "AD_GROUP_FORMAT_AUDIO", "AD_GROUP_FORMAT_RESPONSIVE", "AD_GROUP_FORMAT_REACH", "AD_GROUP_FORMAT_MASTHEAD", "AD_GROUP_FORMAT_DEMAND_GEN"]
     #[serde(default, rename = "adGroupFormat")]
@@ -1328,7 +1329,7 @@ pub struct AdGroup {
 }
 
 /// A single advertiser in Display & Video 360 (DV360).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Advertiser {
     /// Required. Immutable. Ad server related settings of the advertiser.
     #[serde(default, rename = "adServerConfig")]
@@ -1378,7 +1379,7 @@ pub struct Advertiser {
 }
 
 /// An assignment between a targetable inventory source and an inventory source group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssignedInventorySource {
     /// Output only. The unique ID of the assigned inventory source. The ID is only unique within a given inventory source group. It may be reused in other contexts.
     #[serde(default, rename = "assignedInventorySourceId")]
@@ -1392,7 +1393,7 @@ pub struct AssignedInventorySource {
 }
 
 /// An assignment between a location list and a relevant targeting option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssignedLocation {
     /// Output only. The unique ID of the assigned location. The ID is only unique within a location list. It may be reused in other contexts.
     #[serde(default, rename = "assignedLocationId")]
@@ -1406,7 +1407,7 @@ pub struct AssignedLocation {
 }
 
 /// A single campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Campaign {
     /// Output only. The unique ID of the advertiser the campaign belongs to.
     #[serde(default, rename = "advertiserId")]
@@ -1441,7 +1442,7 @@ pub struct Campaign {
 }
 
 /// A single channel. Channels are custom groups of related websites and apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Channel {
     /// The ID of the advertiser that owns the channel.
     #[serde(default, rename = "advertiserId")]
@@ -1467,7 +1468,7 @@ pub struct Channel {
 }
 
 /// Describes a combined audience resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CombinedAudience {
     /// Output only. The unique ID of the combined audience. Assigned by the system.
     #[serde(default, rename = "combinedAudienceId")]
@@ -1481,7 +1482,7 @@ pub struct CombinedAudience {
 }
 
 /// A single Creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Creative {
     /// Optional. Additional dimensions. Applicable when creative_type is one of: * CREATIVE_TYPE_STANDARD * CREATIVE_TYPE_EXPANDABLE * CREATIVE_TYPE_NATIVE * CREATIVE_TYPE_NATIVE_SITE_SQUARE * CREATIVE_TYPE_LIGHTBOX * CREATIVE_TYPE_PUBLISHER_HOSTED If this field is specified, width_pixels and height_pixels are both required and must be greater than or equal to 0.
     #[serde(default, rename = "additionalDimensions")]
@@ -1627,7 +1628,7 @@ pub struct Creative {
 }
 
 /// A single custom bidding algorithm rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomBiddingAlgorithmRules {
     /// Output only. Whether the rules resource is currently being used for scoring by the parent algorithm.
     #[serde(default)]
@@ -1656,7 +1657,7 @@ pub struct CustomBiddingAlgorithmRules {
 }
 
 /// A single custom bidding algorithm.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomBiddingAlgorithm {
     /// Immutable. The unique ID of the advertiser that owns the custom bidding algorithm.
     #[serde(default, rename = "advertiserId")]
@@ -1691,7 +1692,7 @@ pub struct CustomBiddingAlgorithm {
 }
 
 /// A single custom bidding script.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomBiddingScript {
     /// Output only. Whether the script is currently being used for scoring by the parent algorithm.
     #[serde(default)]
@@ -1720,7 +1721,7 @@ pub struct CustomBiddingScript {
 }
 
 /// Describes a custom list entity, such as a custom affinity or custom intent audience list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomList {
     /// Output only. The unique ID of the custom list. Assigned by the system.
     #[serde(default, rename = "customListId")]
@@ -1734,7 +1735,7 @@ pub struct CustomList {
 }
 
 /// Describes a first or partner audience list used for targeting. First party audiences are created via usage of client data. Partner audiences are provided by Third Party data providers and can only be licensed to customers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirstPartyAndPartnerAudience {
     /// Output only. The estimated audience size for the Display network in the past month. If the size is less than 1000, the number will be hidden and 0 will be returned due to privacy reasons. Otherwise, the number will be rounded off to two significant digits. Only returned in GET request.
     #[serde(default, rename = "activeDisplayAudienceSize")]
@@ -1793,7 +1794,7 @@ pub struct FirstPartyAndPartnerAudience {
 }
 
 /// A single Floodlight activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloodlightActivity {
     /// Output only. IDs of the advertisers that have access to the parent Floodlight group. Only advertisers under the provided partner ID will be listed in this field.
     #[serde(default, rename = "advertiserIds")]
@@ -1822,7 +1823,7 @@ pub struct FloodlightActivity {
 }
 
 /// Describes a Google audience resource. Includes Google audience lists.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAudience {
     /// Output only. The display name of the Google audience. .
     #[serde(default, rename = "displayName")]
@@ -1839,7 +1840,7 @@ pub struct GoogleAudience {
 }
 
 /// A guaranteed order. Guaranteed orders are parent entity of guaranteed inventory sources. When creating a guaranteed inventory source, a guaranteed order ID must be assigned to the inventory source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuaranteedOrder {
     /// Output only. The ID of default advertiser of the guaranteed order. The default advertiser is either the read_write_advertiser_id or, if that is not set, the first advertiser listed in read_advertiser_ids. Otherwise, there is no default advertiser.
     #[serde(default, rename = "defaultAdvertiserId")]
@@ -1886,7 +1887,7 @@ pub struct GuaranteedOrder {
 }
 
 /// A single insertion order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertionOrder {
     /// Output only. The unique ID of the advertiser the insertion order belongs to.
     #[serde(default, rename = "advertiserId")]
@@ -1942,7 +1943,7 @@ pub struct InsertionOrder {
 }
 
 /// A collection of targetable inventory sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySourceGroup {
     /// Required. The display name of the inventory source group. Must be UTF-8 encoded with a maximum size of 240 bytes.
     #[serde(default, rename = "displayName")]
@@ -1956,7 +1957,7 @@ pub struct InventorySourceGroup {
 }
 
 /// An inventory source. Next ID: 22
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySource {
     /// Whether the inventory source has a guaranteed or non-guaranteed delivery. // TODO: enum values: ["INVENTORY_SOURCE_COMMITMENT_UNSPECIFIED", "INVENTORY_SOURCE_COMMITMENT_GUARANTEED", "INVENTORY_SOURCE_COMMITMENT_NON_GUARANTEED"]
     #[serde(default)]
@@ -2018,7 +2019,7 @@ pub struct InventorySource {
 }
 
 /// A single invoice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Invoice {
     /// The budget grouping ID for this invoice. This field will only be set if the invoice level of the corresponding billing profile was set to "Budget invoice grouping ID".
     #[serde(default, rename = "budgetInvoiceGroupingId")]
@@ -2083,7 +2084,7 @@ pub struct Invoice {
 }
 
 /// A single line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineItem {
     /// Output only. The unique ID of the advertiser the line item belongs to.
     #[serde(default, rename = "advertiserId")]
@@ -2169,7 +2170,7 @@ pub struct LineItem {
 }
 
 /// A list of locations used for targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationList {
     /// Required. Immutable. The unique ID of the advertiser the location list belongs to.
     #[serde(default, rename = "advertiserId")]
@@ -2189,7 +2190,7 @@ pub struct LocationList {
 }
 
 /// A list of negative keywords used for targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NegativeKeywordList {
     /// Output only. The unique ID of the advertiser the negative keyword list belongs to.
     #[serde(default, rename = "advertiserId")]
@@ -2209,7 +2210,7 @@ pub struct NegativeKeywordList {
 }
 
 /// A single partner in Display & Video 360 (DV360).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Partner {
     /// Ad server related settings of the partner.
     #[serde(default, rename = "adServerConfig")]
@@ -2244,7 +2245,7 @@ pub struct Partner {
 }
 
 /// A single user in Display & Video 360.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// The assigned user roles. Required in CreateUser. Output only in UpdateUser. Can only be updated through BulkEditAssignedUserRoles.
     #[serde(default, rename = "assignedUserRoles")]
@@ -2267,7 +2268,7 @@ pub struct User {
 }
 
 /// An association between a resource and a YouTube asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAssetAssociation {
     /// Required. The YouTube asset associated with the resource.
     #[serde(default, rename = "linkedYoutubeAsset")]
@@ -2281,7 +2282,7 @@ pub struct YoutubeAssetAssociation {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2295,7 +2296,7 @@ pub struct Status {
 }
 
 /// A negatively targeted keyword that belongs to a negative keyword list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NegativeKeyword {
     /// Required. Immutable. The negatively targeted keyword, for example car insurance. Must be UTF-8 encoded with a maximum size of 255 bytes. Maximum number of characters is 80. Maximum number of words is 10. Valid characters are restricted to ASCII characters only. The only URL-escaping permitted is for representing whitespace between words. Leading or trailing whitespace is ignored.
     #[serde(default, rename = "keywordValue")]
@@ -2306,7 +2307,7 @@ pub struct NegativeKeyword {
 }
 
 /// A single site. Sites are apps or websites belonging to a channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Site {
     /// Output only. The resource name of the site.
     #[serde(default)]
@@ -2317,7 +2318,7 @@ pub struct Site {
 }
 
 /// Search terms for Business Chain targeting options. At least one of the field should be populated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BusinessChainSearchTerms {
     /// The search query for the desired business chain. The query must be the full name of the business, e.g. "KFC", "mercedes-benz".
     #[serde(default, rename = "businessChainQuery")]
@@ -2328,7 +2329,7 @@ pub struct BusinessChainSearchTerms {
 }
 
 /// Search terms for geo region targeting options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeoRegionSearchTerms {
     /// The search query for the desired geo region. The query can be a prefix, e.g. "New Yor", "Seattle", "USA", etc.
     #[serde(default, rename = "geoRegionQuery")]
@@ -2336,7 +2337,7 @@ pub struct GeoRegionSearchTerms {
 }
 
 /// Search terms for POI targeting options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PoiSearchTerms {
     /// The search query for the desired POI name, street address, or coordinate of the desired POI. The query can be a prefix, e.g. "Times squar", "40.7505045,-73.99562", "315 W 44th St", etc.
     #[serde(default, rename = "poiQuery")]
@@ -2344,7 +2345,7 @@ pub struct PoiSearchTerms {
 }
 
 /// Represents a single targeting option, which is a targetable concept in DV360.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetingOption {
     /// Age range details.
     #[serde(default, rename = "ageRangeDetails")]
@@ -2467,7 +2468,7 @@ pub struct TargetingOption {
 }
 
 /// A single ad asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdAsset {
     /// Output only. The ID of the ad asset. Referred to as the asset ID when assigned to an ad.
     #[serde(default, rename = "adAssetId")]
@@ -2487,7 +2488,7 @@ pub struct AdAsset {
 }
 
 /// Set of conditions. The return value of the rule is either: * The return value for single met condition or * The defined default return value if no conditions are met.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlgorithmRulesRule {
     /// List of conditions in this rule. The criteria among conditions should be mutually exclusive.
     #[serde(default)]
@@ -2498,7 +2499,7 @@ pub struct AlgorithmRulesRule {
 }
 
 /// A single assigned targeting option, which defines the state of a targeting option for an entity with targeting settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssignedTargetingOption {
     /// Age range details. This field will be populated when the targeting_type is TARGETING_TYPE_AGE_RANGE.
     #[serde(default, rename = "ageRangeDetails")]
@@ -2691,7 +2692,7 @@ pub struct AssignedTargetingOption {
 }
 
 /// A single ad policy associated with an ad group ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicy {
     /// The policy approval status of an ad, indicating the approval decision. // TODO: enum values: ["AD_POLICY_APPROVAL_STATUS_UNKNOWN", "DISAPPROVED", "APPROVED_LIMITED", "APPROVED", "AREA_OF_INTEREST_ONLY"]
     #[serde(default, rename = "adPolicyApprovalStatus")]
@@ -2705,7 +2706,7 @@ pub struct AdPolicy {
 }
 
 /// Additional URLs related to the ad, including beacons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdUrl {
     /// The type of the Ad URL. // TODO: enum values: ["AD_URL_TYPE_UNSPECIFIED", "AD_URL_TYPE_BEACON_IMPRESSION", "AD_URL_TYPE_BEACON_EXPANDABLE_DCM_IMPRESSION", "AD_URL_TYPE_BEACON_CLICK", "AD_URL_TYPE_BEACON_SKIP"]
     #[serde(default, rename = "type")]
@@ -2716,7 +2717,7 @@ pub struct AdUrl {
 }
 
 /// Details for an audio ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudioAd {
     /// The webpage address that appears with the ad.
     #[serde(default, rename = "displayUrl")]
@@ -2733,7 +2734,7 @@ pub struct AudioAd {
 }
 
 /// Details for a bumper ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BumperAd {
     /// Common ad attributes.
     #[serde(default, rename = "commonInStreamAttribute")]
@@ -2741,7 +2742,7 @@ pub struct BumperAd {
 }
 
 /// Details on the DCM tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DcmTrackingInfo {
     /// Required. The DCM creative id.
     #[serde(default, rename = "creativeId")]
@@ -2755,7 +2756,7 @@ pub struct DcmTrackingInfo {
 }
 
 /// Details for a Demand Gen carousel ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemandGenCarouselAd {
     /// Required. The business name shown on the ad.
     #[serde(default, rename = "businessName")]
@@ -2790,7 +2791,7 @@ pub struct DemandGenCarouselAd {
 }
 
 /// Details for a Demand Gen image ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemandGenImageAd {
     /// Required. The business name shown on the ad.
     #[serde(default, rename = "businessName")]
@@ -2837,7 +2838,7 @@ pub struct DemandGenImageAd {
 }
 
 /// Details for a Demand Gen product ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemandGenProductAd {
     /// Required. The business name shown on the ad.
     #[serde(default, rename = "businessName")]
@@ -2878,7 +2879,7 @@ pub struct DemandGenProductAd {
 }
 
 /// Details for a Demand Gen video ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemandGenVideoAd {
     /// Required. The business name shown on the ad.
     #[serde(default, rename = "businessName")]
@@ -2931,7 +2932,7 @@ pub struct DemandGenVideoAd {
 }
 
 /// The ad sourced from a DV360 creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisplayVideoSourceAd {
     /// The ID of the source creative.
     #[serde(default, rename = "creativeId")]
@@ -2939,7 +2940,7 @@ pub struct DisplayVideoSourceAd {
 }
 
 /// Details for an in-stream ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InStreamAd {
     /// Common ad attributes.
     #[serde(default, rename = "commonInStreamAttribute")]
@@ -2950,7 +2951,7 @@ pub struct InStreamAd {
 }
 
 /// Details for a Masthead Ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MastheadAd {
     /// The duration of time the video will autoplay.
     #[serde(default, rename = "autoplayVideoDuration")]
@@ -2988,7 +2989,7 @@ pub struct MastheadAd {
 }
 
 /// Details for a non-skippable ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NonSkippableAd {
     /// Common ad attributes.
     #[serde(default, rename = "commonInStreamAttribute")]
@@ -2999,7 +3000,7 @@ pub struct NonSkippableAd {
 }
 
 /// Details for a video discovery ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoDiscoveryAd {
     /// First text line for the ad.
     #[serde(default)]
@@ -3019,7 +3020,7 @@ pub struct VideoDiscoveryAd {
 }
 
 /// Details for a video performance ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoPerformanceAd {
     /// The list of text assets shown on the call-to-action button.
     #[serde(default, rename = "actionButtonLabels")]
@@ -3060,7 +3061,7 @@ pub struct VideoPerformanceAd {
 }
 
 /// The inventory control of the ad group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdGroupInventoryControl {
     /// The inventory strategy. // TODO: enum values: ["AD_GROUP_INVENTORY_STRATEGY_UNSPECIFIED", "AD_GROUP_INVENTORY_STRATEGY_ALL_GOOGLE_AND_DISPLAY_NETWORK_INVENTORY", "AD_GROUP_INVENTORY_STRATEGY_ALL_GOOGLE_INVENTORY"]
     #[serde(default, rename = "adGroupInventoryStrategy")]
@@ -3071,7 +3072,7 @@ pub struct AdGroupInventoryControl {
 }
 
 /// The details of product feed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductFeedData {
     /// Whether the product feed has opted-out of showing products.
     #[serde(default, rename = "isFeedDisabled")]
@@ -3085,7 +3086,7 @@ pub struct ProductFeedData {
 }
 
 /// Ad server related settings of an advertiser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserAdServerConfig {
     /// The configuration for advertisers that use both Campaign Manager 360 (CM360) and third-party ad servers.
     #[serde(default, rename = "cmHybridConfig")]
@@ -3096,7 +3097,7 @@ pub struct AdvertiserAdServerConfig {
 }
 
 /// Billing related settings of an advertiser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserBillingConfig {
     /// Required. The ID of a billing profile assigned to the advertiser.
     #[serde(default, rename = "billingProfileId")]
@@ -3104,7 +3105,7 @@ pub struct AdvertiserBillingConfig {
 }
 
 /// Creatives related settings of an advertiser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserCreativeConfig {
     /// Whether or not the advertiser is enabled for dynamic creatives.
     #[serde(default, rename = "dynamicCreativeEnabled")]
@@ -3121,7 +3122,7 @@ pub struct AdvertiserCreativeConfig {
 }
 
 /// Settings that control how advertiser related data may be accessed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserDataAccessConfig {
     /// Structured Data Files (SDF) settings for the advertiser. If not specified, the SDF settings of the parent partner are used.
     #[serde(default, rename = "sdfConfig")]
@@ -3129,7 +3130,7 @@ pub struct AdvertiserDataAccessConfig {
 }
 
 /// General settings of an advertiser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserGeneralConfig {
     /// Required. Immutable. Advertiser''s currency in ISO 4217 format. Accepted codes and the currencies they represent are: Currency Code : Currency Name * ARS : Argentine Peso * AUD : Australian Dollar * BRL : Brazilian Real * CAD : Canadian Dollar * CHF : Swiss Franc * CLP : Chilean Peso * CNY : Chinese Yuan * COP : Colombian Peso * CZK : Czech Koruna * DKK : Danish Krone * EGP : Egyption Pound * EUR : Euro * GBP : British Pound * HKD : Hong Kong Dollar * HUF : Hungarian Forint * IDR : Indonesian Rupiah * ILS : Israeli Shekel * INR : Indian Rupee * JPY : Japanese Yen * KRW : South Korean Won * MXN : Mexican Pesos * MYR : Malaysian Ringgit * NGN : Nigerian Naira * NOK : Norwegian Krone * NZD : New Zealand Dollar * PEN : Peruvian Nuevo Sol * PLN : Polish Zloty * RON : New Romanian Leu * RUB : Russian Ruble * SEK : Swedish Krona * TRY : Turkish Lira * TWD : New Taiwan Dollar * USD : US Dollar * ZAR : South African Rand
     #[serde(default, rename = "currencyCode")]
@@ -3143,7 +3144,7 @@ pub struct AdvertiserGeneralConfig {
 }
 
 /// Targeting settings related to ad serving of an advertiser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserTargetingConfig {
     /// Whether or not connected TV devices are exempt from viewability targeting for all video line items under the advertiser.
     #[serde(default, rename = "exemptTvFromViewabilityTargeting")]
@@ -3151,7 +3152,7 @@ pub struct AdvertiserTargetingConfig {
 }
 
 /// Settings that control how the campaign budget is allocated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CampaignBudget {
     /// Required. The total amount the linked insertion order segments can budget. The amount is in micros. Must be greater than 0. For example, 500000000 represents 500 standard units of the currency.
     #[serde(default, rename = "budgetAmountMicros")]
@@ -3183,7 +3184,7 @@ pub struct CampaignBudget {
 }
 
 /// Settings that track the planned spend and duration of a campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CampaignFlight {
     /// Required. The dates that the campaign is expected to run. They are resolved relative to the parent advertiser''s time zone. * The dates specified here will not affect serving. They are used to generate alerts and warnings. For example, if the flight date of any child insertion order is outside the range of these dates, the user interface will show a warning. * start_date is required and must be the current date or later. * end_date is optional. If specified, it must be the start_date or later. * Any specified date must be before the year 2037.
     #[serde(default, rename = "plannedDates")]
@@ -3194,7 +3195,7 @@ pub struct CampaignFlight {
 }
 
 /// Settings that control the goal of a campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CampaignGoal {
     /// Required. The type of the campaign goal. // TODO: enum values: ["CAMPAIGN_GOAL_TYPE_UNSPECIFIED", "CAMPAIGN_GOAL_TYPE_APP_INSTALL", "CAMPAIGN_GOAL_TYPE_BRAND_AWARENESS", "CAMPAIGN_GOAL_TYPE_OFFLINE_ACTION", "CAMPAIGN_GOAL_TYPE_ONLINE_ACTION"]
     #[serde(default, rename = "campaignGoalType")]
@@ -3205,7 +3206,7 @@ pub struct CampaignGoal {
 }
 
 /// Asset association for the creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetAssociation {
     /// Optional. The associated asset.
     #[serde(default)]
@@ -3216,7 +3217,7 @@ pub struct AssetAssociation {
 }
 
 /// A Campaign Manager 360 tracking ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CmTrackingAd {
     /// Optional. The ad ID of the campaign manager 360 tracking Ad.
     #[serde(default, rename = "cmAdId")]
@@ -3230,7 +3231,7 @@ pub struct CmTrackingAd {
 }
 
 /// Counter event of the creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CounterEvent {
     /// Required. The name of the counter event.
     #[serde(default)]
@@ -3241,7 +3242,7 @@ pub struct CounterEvent {
 }
 
 /// Exit event of the creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExitEvent {
     /// Optional. The name of the click tag of the exit event. The name must be unique within one creative. Leave it empty or unset for creatives containing image assets only.
     #[serde(default)]
@@ -3258,7 +3259,7 @@ pub struct ExitEvent {
 }
 
 /// OBA Icon for a Creative
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObaIcon {
     /// Required. The click tracking URL of the OBA icon. Only URLs of the following domains are allowed: * https://info.evidon.com * https://l.betrad.com
     #[serde(default, rename = "clickTrackingUrl")]
@@ -3287,7 +3288,7 @@ pub struct ObaIcon {
 }
 
 /// The length an audio or a video has been played.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudioVideoOffset {
     /// Optional. The offset in percentage of the audio or video duration.
     #[serde(default)]
@@ -3298,7 +3299,7 @@ pub struct AudioVideoOffset {
 }
 
 /// Review statuses for the creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReviewStatusInfo {
     /// Represents the basic approval needed for a creative to begin serving. Summary of creative_and_landing_page_review_status and content_and_policy_review_status. // TODO: enum values: ["APPROVAL_STATUS_UNSPECIFIED", "APPROVAL_STATUS_PENDING_NOT_SERVABLE", "APPROVAL_STATUS_PENDING_SERVABLE", "APPROVAL_STATUS_APPROVED_SERVABLE", "APPROVAL_STATUS_REJECTED_NOT_SERVABLE"]
     #[serde(default, rename = "approvalStatus")]
@@ -3315,7 +3316,7 @@ pub struct ReviewStatusInfo {
 }
 
 /// Tracking URLs from third parties to track interactions with an audio or a video creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyUrl {
     /// Optional. The type of interaction needs to be tracked by the tracking URL // TODO: enum values: ["THIRD_PARTY_URL_TYPE_UNSPECIFIED", "THIRD_PARTY_URL_TYPE_IMPRESSION", "THIRD_PARTY_URL_TYPE_CLICK_TRACKING", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_START", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_FIRST_QUARTILE", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_MIDPOINT", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_THIRD_QUARTILE", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_COMPLETE", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_MUTE", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_PAUSE", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_REWIND", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_FULLSCREEN", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_STOP", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_CUSTOM", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_SKIP", "THIRD_PARTY_URL_TYPE_AUDIO_VIDEO_PROGRESS"]
     #[serde(default, rename = "type")]
@@ -3326,7 +3327,7 @@ pub struct ThirdPartyUrl {
 }
 
 /// Timer event of the creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimerEvent {
     /// Required. The name of the timer event.
     #[serde(default)]
@@ -3337,7 +3338,7 @@ pub struct TimerEvent {
 }
 
 /// Represents information about the transcoded audio or video file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Transcode {
     /// Optional. The bit rate for the audio stream of the transcoded video, or the bit rate for the transcoded audio, in kilobits per second.
     #[serde(default, rename = "audioBitRateKbps")]
@@ -3369,7 +3370,7 @@ pub struct Transcode {
 }
 
 /// A creative identifier provided by a registry that is unique across all platforms. This is part of the VAST 4.0 standard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UniversalAdId {
     /// Optional. The unique creative identifier.
     #[serde(default)]
@@ -3380,7 +3381,7 @@ pub struct UniversalAdId {
 }
 
 /// An error message for a CustomBiddingAlgorithmRules resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomBiddingAlgorithmRulesError {
     /// The type of error. // TODO: enum values: ["ERROR_CODE_UNSPECIFIED", "SYNTAX_ERROR", "CONSTRAINT_VIOLATION_ERROR", "INTERNAL_ERROR"]
     #[serde(default, rename = "errorCode")]
@@ -3388,7 +3389,7 @@ pub struct CustomBiddingAlgorithmRulesError {
 }
 
 /// The reference to the uploaded AlgorithmRules file. Retrieve the location to upload new AlgorithmRules file to using customBiddingAlgorithms.uploadRules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomBiddingAlgorithmRulesRef {
     /// A resource name to be used in media.download to download the rules files. Or media.upload to upload the rules files. Resource names have the format customBiddingAlgorithms/{custom_bidding_algorithm_id}/rulesRef/{ref_id}.
     #[serde(default, rename = "resourceName")]
@@ -3396,7 +3397,7 @@ pub struct CustomBiddingAlgorithmRulesRef {
 }
 
 /// The details of a custom bidding algorithm model for a single shared advertiser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomBiddingModelDetails {
     /// The unique ID of the relevant advertiser.
     #[serde(default, rename = "advertiserId")]
@@ -3410,7 +3411,7 @@ pub struct CustomBiddingModelDetails {
 }
 
 /// An error message for a custom bidding script.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScriptError {
     /// The column number in the script where the error was thrown.
     #[serde(default)]
@@ -3427,7 +3428,7 @@ pub struct ScriptError {
 }
 
 /// The reference to the uploaded custom bidding script file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomBiddingScriptRef {
     /// A resource name to be used in media.download to Download the script files. Or media.upload to Upload the script files. Resource names have the format customBiddingAlgorithms/{custom_bidding_algorithm_id}/scriptRef/{ref_id}.
     #[serde(default, rename = "resourceName")]
@@ -3435,7 +3436,7 @@ pub struct CustomBiddingScriptRef {
 }
 
 /// Wrapper message for a list of contact information defining Customer Match audience members.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactInfoList {
     /// Input only. The consent setting for the users in contact_infos. Leaving this field unset indicates that consent is not specified. If ad_user_data or ad_personalization fields are set to CONSENT_STATUS_DENIED, the request will return an error.
     #[serde(default)]
@@ -3446,7 +3447,7 @@ pub struct ContactInfoList {
 }
 
 /// Wrapper message for a list of mobile device IDs defining Customer Match audience members.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileDeviceIdList {
     /// Input only. The consent setting for the users in mobile_device_ids. Leaving this field unset indicates that consent is not specified. If ad_user_data or ad_personalization fields are set to CONSENT_STATUS_DENIED, the request will return an error.
     #[serde(default)]
@@ -3457,7 +3458,7 @@ pub struct MobileDeviceIdList {
 }
 
 /// Settings that control the whether remarketing is enabled for the given identified advertiser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemarketingConfig {
     /// Output only. The ID of the advertiser.
     #[serde(default, rename = "advertiserId")]
@@ -3468,7 +3469,7 @@ pub struct RemarketingConfig {
 }
 
 /// The status settings of the guaranteed order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuaranteedOrderStatus {
     /// Output only. The configuration status of the guaranteed order. Acceptable values are PENDING and COMPLETED. A guaranteed order must be configured (fill in the required fields, choose creatives, and select a default campaign) before it can serve. Currently the configuration action can only be performed via UI. // TODO: enum values: ["GUARANTEED_ORDER_CONFIG_STATUS_UNSPECIFIED", "PENDING", "COMPLETED"]
     #[serde(default, rename = "configStatus")]
@@ -3482,7 +3483,7 @@ pub struct GuaranteedOrderStatus {
 }
 
 /// Settings that control how insertion order budget is allocated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertionOrderBudget {
     /// Optional. The type of automation used to manage bid and budget for the insertion order. If this field is unspecified in creation, the value defaults to INSERTION_ORDER_AUTOMATION_TYPE_NONE. // TODO: enum values: ["INSERTION_ORDER_AUTOMATION_TYPE_UNSPECIFIED", "INSERTION_ORDER_AUTOMATION_TYPE_BUDGET", "INSERTION_ORDER_AUTOMATION_TYPE_NONE", "INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET"]
     #[serde(default, rename = "automationType")]
@@ -3496,7 +3497,7 @@ pub struct InsertionOrderBudget {
 }
 
 /// Settings that control the key performance indicator, or KPI, of an insertion order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Kpi {
     /// Optional. Custom Bidding Algorithm ID associated with KPI_CUSTOM_IMPRESSION_VALUE_OVER_COST. This field is ignored if the proper KPI is not selected.
     #[serde(default, rename = "kpiAlgorithmId")]
@@ -3516,7 +3517,7 @@ pub struct Kpi {
 }
 
 /// Creative requirements configuration for the inventory source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeConfig {
     /// The type of creative that can be assigned to the inventory source. Only the following types are supported: * CREATIVE_TYPE_STANDARD * CREATIVE_TYPE_VIDEO // TODO: enum values: ["CREATIVE_TYPE_UNSPECIFIED", "CREATIVE_TYPE_STANDARD", "CREATIVE_TYPE_EXPANDABLE", "CREATIVE_TYPE_VIDEO", "CREATIVE_TYPE_NATIVE", "CREATIVE_TYPE_TEMPLATED_APP_INSTALL", "CREATIVE_TYPE_NATIVE_SITE_SQUARE", "CREATIVE_TYPE_TEMPLATED_APP_INSTALL_INTERSTITIAL", "CREATIVE_TYPE_LIGHTBOX", "CREATIVE_TYPE_NATIVE_APP_INSTALL", "CREATIVE_TYPE_NATIVE_APP_INSTALL_SQUARE", "CREATIVE_TYPE_AUDIO", "CREATIVE_TYPE_PUBLISHER_HOSTED", "CREATIVE_TYPE_NATIVE_VIDEO", "CREATIVE_TYPE_TEMPLATED_APP_INSTALL_VIDEO", "CREATIVE_TYPE_ASSET_BASED_CREATIVE"]
     #[serde(default, rename = "creativeType")]
@@ -3530,7 +3531,7 @@ pub struct CreativeConfig {
 }
 
 /// The rate related settings of the inventory source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RateDetails {
     /// The rate type. Acceptable values are INVENTORY_SOURCE_RATE_TYPE_CPM_FIXED, INVENTORY_SOURCE_RATE_TYPE_CPM_FLOOR, and INVENTORY_SOURCE_RATE_TYPE_CPD. // TODO: enum values: ["INVENTORY_SOURCE_RATE_TYPE_UNSPECIFIED", "INVENTORY_SOURCE_RATE_TYPE_CPM_FIXED", "INVENTORY_SOURCE_RATE_TYPE_CPM_FLOOR", "INVENTORY_SOURCE_RATE_TYPE_CPD", "INVENTORY_SOURCE_RATE_TYPE_CPH", "INVENTORY_SOURCE_RATE_TYPE_FLAT"]
     #[serde(default, rename = "inventorySourceRateType")]
@@ -3547,7 +3548,7 @@ pub struct RateDetails {
 }
 
 /// The partner or advertisers with access to the inventory source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySourceAccessors {
     /// The advertisers with access to the inventory source. All advertisers must belong to the same partner.
     #[serde(default)]
@@ -3558,7 +3559,7 @@ pub struct InventorySourceAccessors {
 }
 
 /// The status related settings of the inventory source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySourceStatus {
     /// Output only. The configuration status of the inventory source. Only applicable for guaranteed inventory sources. Acceptable values are INVENTORY_SOURCE_CONFIG_STATUS_PENDING and INVENTORY_SOURCE_CONFIG_STATUS_COMPLETED. An inventory source must be configured (fill in the required fields, choose creatives, and select a default campaign) before it can serve. // TODO: enum values: ["INVENTORY_SOURCE_CONFIG_STATUS_UNSPECIFIED", "INVENTORY_SOURCE_CONFIG_STATUS_PENDING", "INVENTORY_SOURCE_CONFIG_STATUS_COMPLETED"]
     #[serde(default, rename = "configStatus")]
@@ -3578,7 +3579,7 @@ pub struct InventorySourceStatus {
 }
 
 /// A time range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeRange {
     /// Required. The upper bound of a time range, inclusive.
     #[serde(default, rename = "endTime")]
@@ -3589,7 +3590,7 @@ pub struct TimeRange {
 }
 
 /// Summarized information of an individual campaign budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BudgetSummary {
     /// Corresponds to the external_budget_id of a campaign budget. If the value is not set in the campaign budget, this field will be empty.
     #[serde(default, rename = "externalBudgetId")]
@@ -3609,7 +3610,7 @@ pub struct BudgetSummary {
 }
 
 /// Settings that control the bid strategy. Bid strategy determines the bid price.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BiddingStrategy {
     /// A bid strategy used by Demand Gen resources. It can only be used for a Demand Gen line item or ad group entity.
     #[serde(default, rename = "demandGenBid")]
@@ -3629,7 +3630,7 @@ pub struct BiddingStrategy {
 }
 
 /// Settings that control how budget is allocated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineItemBudget {
     /// Required. The type of the budget allocation. LINE_ITEM_BUDGET_ALLOCATION_TYPE_AUTOMATIC is only applicable when automatic budget allocation is enabled for the parent insertion order. For demand gen line items, budget allocation type must be LINE_ITEM_BUDGET_ALLOCATION_TYPE_FIXED. Demand Gen line items do not support other budget allocation types. // TODO: enum values: ["LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNSPECIFIED", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_AUTOMATIC", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_FIXED", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNLIMITED"]
     #[serde(default, rename = "budgetAllocationType")]
@@ -3643,7 +3644,7 @@ pub struct LineItemBudget {
 }
 
 /// Settings that control how conversions are counted. All post-click conversions will be counted. A percentage value can be set for post-view conversions counting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConversionCountingConfig {
     /// The Floodlight activity configs used to track conversions. The number of conversions counted is the sum of all of the conversions counted by all of the Floodlight activity IDs specified in this field. This field can''t be updated if a custom bidding algorithm is assigned to the line item. If you set this field and assign a custom bidding algorithm in the same request, the floodlight activities must match the ones used by the custom bidding algorithm.
     #[serde(default, rename = "floodlightActivityConfigs")]
@@ -3658,7 +3659,7 @@ pub struct ConversionCountingConfig {
 }
 
 /// Settings for Demand Gen line items.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemandGenSettings {
     /// Optional. Immutable. Whether location and language targeting can be set at the line item level. Otherwise, relevant targeting types must be assigned directly to the ad groups.
     #[serde(default, rename = "geoLanguageTargetingEnabled")]
@@ -3672,7 +3673,7 @@ pub struct DemandGenSettings {
 }
 
 /// Settings that control the active duration of a line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineItemFlight {
     /// The flight start and end dates of the line item. They are resolved relative to the parent advertiser''s time zone. * Required when flight_date_type is LINE_ITEM_FLIGHT_DATE_TYPE_CUSTOM. Output only otherwise. * When creating a new flight, both start_date and end_date must be in the future. * An existing flight with a start_date in the past has a mutable end_date but an immutable start_date. * end_date must be the start_date or later, both before the year 2037.
     #[serde(default, rename = "dateRange")]
@@ -3683,7 +3684,7 @@ pub struct LineItemFlight {
 }
 
 /// Integration details of an entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntegrationDetails {
     /// Additional details of the entry in string format. Must be UTF-8 encoded with a length of no more than 1000 characters.
     #[serde(default)]
@@ -3694,7 +3695,7 @@ pub struct IntegrationDetails {
 }
 
 /// A mobile app promoted by a mobile app install line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileApp {
     /// Required. The ID of the app provided by the platform store. Android apps are identified by the bundle ID used by Android''s Play store, such as com.google.android.gm. iOS apps are identified by a nine-digit app ID used by Apple''s App store, such as 422689480.
     #[serde(default, rename = "appId")]
@@ -3711,7 +3712,7 @@ pub struct MobileApp {
 }
 
 /// Settings that control the rate at which a budget is spent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pacing {
     /// Maximum number of impressions to serve every day. Applicable when the budget is impression based. Must be greater than 0.
     #[serde(default, rename = "dailyMaxImpressions")]
@@ -3728,7 +3729,7 @@ pub struct Pacing {
 }
 
 /// Settings that control a partner cost. A partner cost is any type of expense involved in running a campaign, other than the costs of purchasing impressions (which is called the media cost) and using third-party audience segment data (data fee). Some examples of partner costs include the fees for using DV360, a third-party ad server, or a third-party ad serving verification service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartnerCost {
     /// Required. The type of the partner cost. // TODO: enum values: ["PARTNER_COST_TYPE_UNSPECIFIED", "PARTNER_COST_TYPE_ADLOOX", "PARTNER_COST_TYPE_ADLOOX_PREBID", "PARTNER_COST_TYPE_ADSAFE", "PARTNER_COST_TYPE_ADXPOSE", "PARTNER_COST_TYPE_AGGREGATE_KNOWLEDGE", "PARTNER_COST_TYPE_AGENCY_TRADING_DESK", "PARTNER_COST_TYPE_DV360_FEE", "PARTNER_COST_TYPE_COMSCORE_VCE", "PARTNER_COST_TYPE_DATA_MANAGEMENT_PLATFORM", "PARTNER_COST_TYPE_DEFAULT", "PARTNER_COST_TYPE_DOUBLE_VERIFY", "PARTNER_COST_TYPE_DOUBLE_VERIFY_PREBID", "PARTNER_COST_TYPE_EVIDON", "PARTNER_COST_TYPE_INTEGRAL_AD_SCIENCE_VIDEO", "PARTNER_COST_TYPE_INTEGRAL_AD_SCIENCE_PREBID", "PARTNER_COST_TYPE_MEDIA_COST_DATA", "PARTNER_COST_TYPE_MOAT_VIDEO", "PARTNER_COST_TYPE_NIELSEN_DAR", "PARTNER_COST_TYPE_SHOP_LOCAL", "PARTNER_COST_TYPE_TERACENT", "PARTNER_COST_TYPE_THIRD_PARTY_AD_SERVER", "PARTNER_COST_TYPE_TRUST_METRICS", "PARTNER_COST_TYPE_VIZU", "PARTNER_COST_TYPE_CUSTOM_FEE_1", "PARTNER_COST_TYPE_CUSTOM_FEE_2", "PARTNER_COST_TYPE_CUSTOM_FEE_3", "PARTNER_COST_TYPE_CUSTOM_FEE_4", "PARTNER_COST_TYPE_CUSTOM_FEE_5", "PARTNER_COST_TYPE_SCIBIDS_FEE"]
     #[serde(default, rename = "costType")]
@@ -3748,7 +3749,7 @@ pub struct PartnerCost {
 }
 
 /// Settings that control how partner revenue is calculated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartnerRevenueModel {
     /// Required. The markup amount of the partner revenue model. Must be greater than or equal to 0. * When the markup_type is set to be PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM, this field represents the CPM markup in micros of advertiser''s currency. For example, 1500000 represents 1.5 standard units of the currency. * When the markup_type is set to be PARTNER_REVENUE_MODEL_MARKUP_TYPE_MEDIA_COST_MARKUP, this field represents the media cost percent markup in millis. For example, 100 represents 0.1% (decimal 0.001). * When the markup_type is set to be PARTNER_REVENUE_MODEL_MARKUP_TYPE_TOTAL_MEDIA_COST_MARKUP, this field represents the total media cost percent markup in millis. For example, 100 represents 0.1% (decimal 0.001).
     #[serde(default, rename = "markupAmount")]
@@ -3759,7 +3760,7 @@ pub struct PartnerRevenueModel {
 }
 
 /// Settings that control the [optimized targeting](//support.google.com/displayvideo/answer/12060859) settings of the line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetingExpansionConfig {
     /// Output only. Magnitude of expansion for eligible first-party user lists under this ad group. This field only applies to YouTube and Partners line item and ad group resources. // TODO: enum values: ["UNKNOWN", "NO_REACH", "LEAST_REACH", "MID_REACH", "MOST_REACH"]
     #[serde(default, rename = "audienceExpansionLevel")]
@@ -3776,7 +3777,7 @@ pub struct TargetingExpansionConfig {
 }
 
 /// Settings for YouTube and Partners line items.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAndPartnersSettings {
     /// Output only. The kind of content on which the YouTube and Partners ads will be shown. *Warning*: This field will be removed in the near future. Use effective_content_category instead. // TODO: enum values: ["YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_UNSPECIFIED", "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_STANDARD", "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_EXPANDED", "YOUTUBE_AND_PARTNERS_CONTENT_CATEGORY_LIMITED"]
     #[serde(default, rename = "contentCategory")]
@@ -3814,7 +3815,7 @@ pub struct YoutubeAndPartnersSettings {
 }
 
 /// Ad server related settings of a partner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartnerAdServerConfig {
     /// Measurement settings of a partner.
     #[serde(default, rename = "measurementConfig")]
@@ -3822,7 +3823,7 @@ pub struct PartnerAdServerConfig {
 }
 
 /// Billing related settings of a partner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartnerBillingConfig {
     /// The ID of a partner default billing profile.
     #[serde(default, rename = "billingProfileId")]
@@ -3830,7 +3831,7 @@ pub struct PartnerBillingConfig {
 }
 
 /// Settings that control how partner related data may be accessed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartnerDataAccessConfig {
     /// Structured Data Files (SDF) settings for the partner. The SDF configuration for the partner.
     #[serde(default, rename = "sdfConfig")]
@@ -3838,7 +3839,7 @@ pub struct PartnerDataAccessConfig {
 }
 
 /// Settings that control which exchanges are enabled for a partner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangeConfig {
     /// All enabled exchanges in the partner. Duplicate enabled exchanges will be ignored.
     #[serde(default, rename = "enabledExchanges")]
@@ -3846,7 +3847,7 @@ pub struct ExchangeConfig {
 }
 
 /// General settings of a partner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartnerGeneralConfig {
     /// Immutable. Partner''s currency in ISO 4217 format.
     #[serde(default, rename = "currencyCode")]
@@ -3857,7 +3858,7 @@ pub struct PartnerGeneralConfig {
 }
 
 /// A single assigned user role, which defines a user''s authorized interaction with a specified partner or advertiser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssignedUserRole {
     /// The ID of the advertiser that the assigend user role applies to.
     #[serde(default, rename = "advertiserId")]
@@ -3874,7 +3875,7 @@ pub struct AssignedUserRole {
 }
 
 /// A YouTube asset linked to a resource in a YoutubeAssetAssociation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAssetAssociationLinkedYouTubeAsset {
     /// An affiliate location asset filter. This can be set only when youtube_asset_type is YOUTUBE_ASSET_TYPE_AFFILIATE_LOCATION.
     #[serde(default, rename = "affiliateLocationAssetFilter")]
@@ -3889,7 +3890,7 @@ pub struct YoutubeAssetAssociationLinkedYouTubeAsset {
 }
 
 /// Represents a targetable age range. This will be populated in the age_range_details field when targeting_type is TARGETING_TYPE_AGE_RANGE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgeRangeTargetingOptionDetails {
     /// Output only. The age range of an audience. // TODO: enum values: ["AGE_RANGE_UNSPECIFIED", "AGE_RANGE_18_24", "AGE_RANGE_25_34", "AGE_RANGE_35_44", "AGE_RANGE_45_54", "AGE_RANGE_55_64", "AGE_RANGE_65_PLUS", "AGE_RANGE_UNKNOWN", "AGE_RANGE_18_20", "AGE_RANGE_21_24", "AGE_RANGE_25_29", "AGE_RANGE_30_34", "AGE_RANGE_35_39", "AGE_RANGE_40_44", "AGE_RANGE_45_49", "AGE_RANGE_50_54", "AGE_RANGE_55_59", "AGE_RANGE_60_64"]
     #[serde(default, rename = "ageRange")]
@@ -3897,7 +3898,7 @@ pub struct AgeRangeTargetingOptionDetails {
 }
 
 /// Represents a targetable collection of apps. A collection lets you target dynamic groups of related apps that are maintained by the platform, for example All Apps/Google Play/Games. This will be populated in the app_category_details field when targeting_type is TARGETING_TYPE_APP_CATEGORY.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppCategoryTargetingOptionDetails {
     /// Output only. The name of the app collection.
     #[serde(default, rename = "displayName")]
@@ -3905,7 +3906,7 @@ pub struct AppCategoryTargetingOptionDetails {
 }
 
 /// Represents a targetable audio content type. This will be populated in the audio_content_type_details field when targeting_type is TARGETING_TYPE_AUDIO_CONTENT_TYPE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudioContentTypeTargetingOptionDetails {
     /// Output only. The audio content type. // TODO: enum values: ["AUDIO_CONTENT_TYPE_UNSPECIFIED", "AUDIO_CONTENT_TYPE_UNKNOWN", "AUDIO_CONTENT_TYPE_MUSIC", "AUDIO_CONTENT_TYPE_BROADCAST", "AUDIO_CONTENT_TYPE_PODCAST"]
     #[serde(default, rename = "audioContentType")]
@@ -3913,7 +3914,7 @@ pub struct AudioContentTypeTargetingOptionDetails {
 }
 
 /// Represents a targetable authorized seller status. This will be populated in the authorized_seller_status_details field when targeting_type is TARGETING_TYPE_AUTHORIZED_SELLER_STATUS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizedSellerStatusTargetingOptionDetails {
     /// Output only. The authorized seller status. // TODO: enum values: ["AUTHORIZED_SELLER_STATUS_UNSPECIFIED", "AUTHORIZED_SELLER_STATUS_AUTHORIZED_DIRECT_SELLERS_ONLY", "AUTHORIZED_SELLER_STATUS_AUTHORIZED_AND_NON_PARTICIPATING_PUBLISHERS"]
     #[serde(default, rename = "authorizedSellerStatus")]
@@ -3921,7 +3922,7 @@ pub struct AuthorizedSellerStatusTargetingOptionDetails {
 }
 
 /// Represents a targetable browser. This will be populated in the browser_details field when targeting_type is TARGETING_TYPE_BROWSER.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BrowserTargetingOptionDetails {
     /// Output only. The display name of the browser.
     #[serde(default, rename = "displayName")]
@@ -3929,7 +3930,7 @@ pub struct BrowserTargetingOptionDetails {
 }
 
 /// Represents a targetable business chain within a geo region. This will be populated in the business_chain_details field when targeting_type is TARGETING_TYPE_BUSINESS_CHAIN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BusinessChainTargetingOptionDetails {
     /// Output only. The display name of the business chain, e.g. "KFC", "Chase Bank".
     #[serde(default, rename = "businessChain")]
@@ -3943,7 +3944,7 @@ pub struct BusinessChainTargetingOptionDetails {
 }
 
 /// Represents a targetable carrier or ISP. This will be populated in the carrier_and_isp_details field of a TargetingOption when targeting_type is TARGETING_TYPE_CARRIER_AND_ISP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CarrierAndIspTargetingOptionDetails {
     /// Output only. The display name of the carrier or ISP.
     #[serde(default, rename = "displayName")]
@@ -3954,7 +3955,7 @@ pub struct CarrierAndIspTargetingOptionDetails {
 }
 
 /// Represents a targetable category. This will be populated in the category_details field of a TargetingOption when targeting_type is TARGETING_TYPE_CATEGORY.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CategoryTargetingOptionDetails {
     /// Output only. The display name of the category.
     #[serde(default, rename = "displayName")]
@@ -3962,7 +3963,7 @@ pub struct CategoryTargetingOptionDetails {
 }
 
 /// Represents a targetable content duration. This will be populated in the content_duration_details field when targeting_type is TARGETING_TYPE_CONTENT_DURATION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentDurationTargetingOptionDetails {
     /// Output only. The content duration. // TODO: enum values: ["CONTENT_DURATION_UNSPECIFIED", "CONTENT_DURATION_UNKNOWN", "CONTENT_DURATION_0_TO_1_MIN", "CONTENT_DURATION_1_TO_5_MIN", "CONTENT_DURATION_5_TO_15_MIN", "CONTENT_DURATION_15_TO_30_MIN", "CONTENT_DURATION_30_TO_60_MIN", "CONTENT_DURATION_OVER_60_MIN"]
     #[serde(default, rename = "contentDuration")]
@@ -3970,7 +3971,7 @@ pub struct ContentDurationTargetingOptionDetails {
 }
 
 /// Represents a targetable content genre. This will be populated in the content_genre_details field when targeting_type is TARGETING_TYPE_CONTENT_GENRE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentGenreTargetingOptionDetails {
     /// Output only. The display name of the content genre
     #[serde(default, rename = "displayName")]
@@ -3978,7 +3979,7 @@ pub struct ContentGenreTargetingOptionDetails {
 }
 
 /// Represents a targetable content instream position, which could be used by video and audio ads. This will be populated in the content_instream_position_details field when targeting_type is TARGETING_TYPE_CONTENT_INSTREAM_POSITION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentInstreamPositionTargetingOptionDetails {
     /// Output only. The content instream position. // TODO: enum values: ["CONTENT_INSTREAM_POSITION_UNSPECIFIED", "CONTENT_INSTREAM_POSITION_PRE_ROLL", "CONTENT_INSTREAM_POSITION_MID_ROLL", "CONTENT_INSTREAM_POSITION_POST_ROLL", "CONTENT_INSTREAM_POSITION_UNKNOWN"]
     #[serde(default, rename = "contentInstreamPosition")]
@@ -3986,7 +3987,7 @@ pub struct ContentInstreamPositionTargetingOptionDetails {
 }
 
 /// Represents a targetable content outstream position, which could be used by display and video ads. This will be populated in the content_outstream_position_details field when targeting_type is TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentOutstreamPositionTargetingOptionDetails {
     /// Output only. The content outstream position. // TODO: enum values: ["CONTENT_OUTSTREAM_POSITION_UNSPECIFIED", "CONTENT_OUTSTREAM_POSITION_UNKNOWN", "CONTENT_OUTSTREAM_POSITION_IN_ARTICLE", "CONTENT_OUTSTREAM_POSITION_IN_BANNER", "CONTENT_OUTSTREAM_POSITION_IN_FEED", "CONTENT_OUTSTREAM_POSITION_INTERSTITIAL"]
     #[serde(default, rename = "contentOutstreamPosition")]
@@ -3994,7 +3995,7 @@ pub struct ContentOutstreamPositionTargetingOptionDetails {
 }
 
 /// Represents a targetable content stream type. This will be populated in the content_stream_type_details field when targeting_type is TARGETING_TYPE_CONTENT_STREAM_TYPE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentStreamTypeTargetingOptionDetails {
     /// Output only. The content stream type. // TODO: enum values: ["CONTENT_STREAM_TYPE_UNSPECIFIED", "CONTENT_LIVE_STREAM", "CONTENT_ON_DEMAND"]
     #[serde(default, rename = "contentStreamType")]
@@ -4002,7 +4003,7 @@ pub struct ContentStreamTypeTargetingOptionDetails {
 }
 
 /// Represents a targetable content theme. This will be populated in the content_theme_details field of the TargetingOption when targeting_type is TARGETING_TYPE_CONTENT_THEME_EXCLUSION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentThemeTargetingOptionDetails {
     /// Output only. An enum for the DV360 content theme content classifier. // TODO: enum values: ["CONTENT_THEME_UNSPECIFIED", "CONTENT_THEME_FIGHTING_VIDEO_GAMES", "CONTENT_THEME_MATURE_GAMES", "CONTENT_THEME_NOT_YET_DETERMINED_HEALTH_SOURCES", "CONTENT_THEME_NOT_YET_DETERMINED_NEWS_SOURCES", "CONTENT_THEME_POLITICS", "CONTENT_THEME_RECENT_NEWS", "CONTENT_THEME_RELIGION", "CONTENT_THEME_UNPLEASANT_HEALTH_CONTENT", "CONTENT_THEME_UNPLEASANT_NEWS"]
     #[serde(default, rename = "contentTheme")]
@@ -4010,7 +4011,7 @@ pub struct ContentThemeTargetingOptionDetails {
 }
 
 /// Represents a targetable device make and model. This will be populated in the device_make_model_details field of a TargetingOption when targeting_type is TARGETING_TYPE_DEVICE_MAKE_MODEL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceMakeModelTargetingOptionDetails {
     /// Output only. The display name of the device make and model.
     #[serde(default, rename = "displayName")]
@@ -4018,7 +4019,7 @@ pub struct DeviceMakeModelTargetingOptionDetails {
 }
 
 /// Represents a targetable device type. This will be populated in the device_type_details field of a TargetingOption when targeting_type is TARGETING_TYPE_DEVICE_TYPE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceTypeTargetingOptionDetails {
     /// Output only. The device type that is used to be targeted. // TODO: enum values: ["DEVICE_TYPE_UNSPECIFIED", "DEVICE_TYPE_COMPUTER", "DEVICE_TYPE_CONNECTED_TV", "DEVICE_TYPE_SMART_PHONE", "DEVICE_TYPE_TABLET", "DEVICE_TYPE_CONNECTED_DEVICE"]
     #[serde(default, rename = "deviceType")]
@@ -4026,7 +4027,7 @@ pub struct DeviceTypeTargetingOptionDetails {
 }
 
 /// Represents a targetable digital content label rating tier. This will be populated in the digital_content_label_details field of the TargetingOption when targeting_type is TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalContentLabelTargetingOptionDetails {
     /// Output only. An enum for the content label brand safety tiers. // TODO: enum values: ["CONTENT_RATING_TIER_UNSPECIFIED", "CONTENT_RATING_TIER_UNRATED", "CONTENT_RATING_TIER_GENERAL", "CONTENT_RATING_TIER_PARENTAL_GUIDANCE", "CONTENT_RATING_TIER_TEENS", "CONTENT_RATING_TIER_MATURE", "CONTENT_RATING_TIER_FAMILIES"]
     #[serde(default, rename = "contentRatingTier")]
@@ -4034,7 +4035,7 @@ pub struct DigitalContentLabelTargetingOptionDetails {
 }
 
 /// Represents a targetable environment. This will be populated in the environment_details field of a TargetingOption when targeting_type is TARGETING_TYPE_ENVIRONMENT.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentTargetingOptionDetails {
     /// Output only. The serving environment. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "ENVIRONMENT_WEB_OPTIMIZED", "ENVIRONMENT_WEB_NOT_OPTIMIZED", "ENVIRONMENT_APP"]
     #[serde(default)]
@@ -4042,7 +4043,7 @@ pub struct EnvironmentTargetingOptionDetails {
 }
 
 /// Represents a targetable exchange. This will be populated in the exchange_details field of a TargetingOption when targeting_type is TARGETING_TYPE_EXCHANGE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangeTargetingOptionDetails {
     /// Output only. The type of exchange. // TODO: enum values: ["EXCHANGE_UNSPECIFIED", "EXCHANGE_GOOGLE_AD_MANAGER", "EXCHANGE_APPNEXUS", "EXCHANGE_BRIGHTROLL", "EXCHANGE_ADFORM", "EXCHANGE_ADMETA", "EXCHANGE_ADMIXER", "EXCHANGE_ADSMOGO", "EXCHANGE_ADSWIZZ", "EXCHANGE_BIDSWITCH", "EXCHANGE_BRIGHTROLL_DISPLAY", "EXCHANGE_CADREON", "EXCHANGE_DAILYMOTION", "EXCHANGE_FIVE", "EXCHANGE_FLUCT", "EXCHANGE_FREEWHEEL", "EXCHANGE_GENIEE", "EXCHANGE_GUMGUM", "EXCHANGE_IMOBILE", "EXCHANGE_IBILLBOARD", "EXCHANGE_IMPROVE_DIGITAL", "EXCHANGE_INDEX", "EXCHANGE_KARGO", "EXCHANGE_MICROAD", "EXCHANGE_MOPUB", "EXCHANGE_NEND", "EXCHANGE_ONE_BY_AOL_DISPLAY", "EXCHANGE_ONE_BY_AOL_MOBILE", "EXCHANGE_ONE_BY_AOL_VIDEO", "EXCHANGE_OOYALA", "EXCHANGE_OPENX", "EXCHANGE_PERMODO", "EXCHANGE_PLATFORMONE", "EXCHANGE_PLATFORMID", "EXCHANGE_PUBMATIC", "EXCHANGE_PULSEPOINT", "EXCHANGE_REVENUEMAX", "EXCHANGE_RUBICON", "EXCHANGE_SMARTCLIP", "EXCHANGE_SMARTRTB", "EXCHANGE_SMARTSTREAMTV", "EXCHANGE_SOVRN", "EXCHANGE_SPOTXCHANGE", "EXCHANGE_STROER", "EXCHANGE_TEADSTV", "EXCHANGE_TELARIA", "EXCHANGE_TVN", "EXCHANGE_UNITED", "EXCHANGE_YIELDLAB", "EXCHANGE_YIELDMO", "EXCHANGE_UNRULYX", "EXCHANGE_OPEN8", "EXCHANGE_TRITON", "EXCHANGE_TRIPLELIFT", "EXCHANGE_TABOOLA", "EXCHANGE_INMOBI", "EXCHANGE_SMAATO", "EXCHANGE_AJA", "EXCHANGE_SUPERSHIP", "EXCHANGE_NEXSTAR_DIGITAL", "EXCHANGE_WAZE", "EXCHANGE_SOUNDCAST", "EXCHANGE_SHARETHROUGH", "EXCHANGE_FYBER", "EXCHANGE_RED_FOR_PUBLISHERS", "EXCHANGE_MEDIANET", "EXCHANGE_TAPJOY", "EXCHANGE_VISTAR", "EXCHANGE_DAX", "EXCHANGE_JCD", "EXCHANGE_PLACE_EXCHANGE", "EXCHANGE_APPLOVIN", "EXCHANGE_CONNATIX", "EXCHANGE_RESET_DIGITAL", "EXCHANGE_HIVESTACK", "EXCHANGE_DRAX", "EXCHANGE_APPLOVIN_GBID", "EXCHANGE_FYBER_GBID", "EXCHANGE_UNITY_GBID", "EXCHANGE_CHARTBOOST_GBID", "EXCHANGE_ADMOST_GBID", "EXCHANGE_TOPON_GBID", "EXCHANGE_NETFLIX", "EXCHANGE_CORE", "EXCHANGE_COMMERCE_GRID", "EXCHANGE_SPOTIFY", "EXCHANGE_TUBI", "EXCHANGE_SNAP", "EXCHANGE_CADENT"]
     #[serde(default)]
@@ -4050,7 +4051,7 @@ pub struct ExchangeTargetingOptionDetails {
 }
 
 /// Represents a targetable gender. This will be populated in the gender_details field of a TargetingOption when targeting_type is TARGETING_TYPE_GENDER.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenderTargetingOptionDetails {
     /// Output only. The gender of an audience. // TODO: enum values: ["GENDER_UNSPECIFIED", "GENDER_MALE", "GENDER_FEMALE", "GENDER_UNKNOWN"]
     #[serde(default)]
@@ -4058,7 +4059,7 @@ pub struct GenderTargetingOptionDetails {
 }
 
 /// Represents a targetable geographic region. This will be populated in the geo_region_details field when targeting_type is TARGETING_TYPE_GEO_REGION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeoRegionTargetingOptionDetails {
     /// Output only. The display name of the geographic region (e.g., "Ontario, Canada").
     #[serde(default, rename = "displayName")]
@@ -4069,7 +4070,7 @@ pub struct GeoRegionTargetingOptionDetails {
 }
 
 /// Represents a targetable household income. This will be populated in the household_income_details field of a TargetingOption when targeting_type is TARGETING_TYPE_HOUSEHOLD_INCOME.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HouseholdIncomeTargetingOptionDetails {
     /// Output only. The household income of an audience. // TODO: enum values: ["HOUSEHOLD_INCOME_UNSPECIFIED", "HOUSEHOLD_INCOME_UNKNOWN", "HOUSEHOLD_INCOME_LOWER_50_PERCENT", "HOUSEHOLD_INCOME_TOP_41_TO_50_PERCENT", "HOUSEHOLD_INCOME_TOP_31_TO_40_PERCENT", "HOUSEHOLD_INCOME_TOP_21_TO_30_PERCENT", "HOUSEHOLD_INCOME_TOP_11_TO_20_PERCENT", "HOUSEHOLD_INCOME_TOP_10_PERCENT"]
     #[serde(default, rename = "householdIncome")]
@@ -4077,7 +4078,7 @@ pub struct HouseholdIncomeTargetingOptionDetails {
 }
 
 /// Represents a targetable language. This will be populated in the language_details field when targeting_type is TARGETING_TYPE_LANGUAGE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageTargetingOptionDetails {
     /// Output only. The display name of the language (e.g., "French").
     #[serde(default, rename = "displayName")]
@@ -4085,7 +4086,7 @@ pub struct LanguageTargetingOptionDetails {
 }
 
 /// Represents a targetable native content position. This will be populated in the native_content_position_details field when targeting_type is TARGETING_TYPE_NATIVE_CONTENT_POSITION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NativeContentPositionTargetingOptionDetails {
     /// Output only. The content position. // TODO: enum values: ["NATIVE_CONTENT_POSITION_UNSPECIFIED", "NATIVE_CONTENT_POSITION_UNKNOWN", "NATIVE_CONTENT_POSITION_IN_ARTICLE", "NATIVE_CONTENT_POSITION_IN_FEED", "NATIVE_CONTENT_POSITION_PERIPHERAL", "NATIVE_CONTENT_POSITION_RECOMMENDATION"]
     #[serde(default, rename = "contentPosition")]
@@ -4093,7 +4094,7 @@ pub struct NativeContentPositionTargetingOptionDetails {
 }
 
 /// Represents a targetable Open Measurement enabled inventory type. This will be populated in the omid_details field when targeting_type is TARGETING_TYPE_OMID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OmidTargetingOptionDetails {
     /// Output only. The type of Open Measurement enabled inventory. // TODO: enum values: ["OMID_UNSPECIFIED", "OMID_FOR_MOBILE_DISPLAY_ADS"]
     #[serde(default)]
@@ -4101,7 +4102,7 @@ pub struct OmidTargetingOptionDetails {
 }
 
 /// Represents a targetable on screen position, which could be used by display and video ads. This will be populated in the on_screen_position_details field when targeting_type is TARGETING_TYPE_ON_SCREEN_POSITION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OnScreenPositionTargetingOptionDetails {
     /// Output only. The on screen position. // TODO: enum values: ["ON_SCREEN_POSITION_UNSPECIFIED", "ON_SCREEN_POSITION_UNKNOWN", "ON_SCREEN_POSITION_ABOVE_THE_FOLD", "ON_SCREEN_POSITION_BELOW_THE_FOLD"]
     #[serde(default, rename = "onScreenPosition")]
@@ -4109,7 +4110,7 @@ pub struct OnScreenPositionTargetingOptionDetails {
 }
 
 /// Represents a targetable operating system. This will be populated in the operating_system_details field of a TargetingOption when targeting_type is TARGETING_TYPE_OPERATING_SYSTEM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperatingSystemTargetingOptionDetails {
     /// Output only. The display name of the operating system.
     #[serde(default, rename = "displayName")]
@@ -4117,7 +4118,7 @@ pub struct OperatingSystemTargetingOptionDetails {
 }
 
 /// Represents a targetable parental status. This will be populated in the parental_status_details field of a TargetingOption when targeting_type is TARGETING_TYPE_PARENTAL_STATUS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParentalStatusTargetingOptionDetails {
     /// Output only. The parental status of an audience. // TODO: enum values: ["PARENTAL_STATUS_UNSPECIFIED", "PARENTAL_STATUS_PARENT", "PARENTAL_STATUS_NOT_A_PARENT", "PARENTAL_STATUS_UNKNOWN"]
     #[serde(default, rename = "parentalStatus")]
@@ -4125,7 +4126,7 @@ pub struct ParentalStatusTargetingOptionDetails {
 }
 
 /// Represents a targetable point of interest(POI). This will be populated in the poi_details field when targeting_type is TARGETING_TYPE_POI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PoiTargetingOptionDetails {
     /// Output only. The display name of a POI(e.g. "Times Square", "Space Needle"), followed by its full address if available.
     #[serde(default, rename = "displayName")]
@@ -4139,7 +4140,7 @@ pub struct PoiTargetingOptionDetails {
 }
 
 /// Represents a targetable sensitive category. This will be populated in the sensitive_category_details field of the TargetingOption when targeting_type is TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SensitiveCategoryTargetingOptionDetails {
     /// Output only. An enum for the DV360 Sensitive category content classifier. // TODO: enum values: ["SENSITIVE_CATEGORY_UNSPECIFIED", "SENSITIVE_CATEGORY_ADULT", "SENSITIVE_CATEGORY_DEROGATORY", "SENSITIVE_CATEGORY_DOWNLOADS_SHARING", "SENSITIVE_CATEGORY_WEAPONS", "SENSITIVE_CATEGORY_GAMBLING", "SENSITIVE_CATEGORY_VIOLENCE", "SENSITIVE_CATEGORY_SUGGESTIVE", "SENSITIVE_CATEGORY_PROFANITY", "SENSITIVE_CATEGORY_ALCOHOL", "SENSITIVE_CATEGORY_DRUGS", "SENSITIVE_CATEGORY_TOBACCO", "SENSITIVE_CATEGORY_POLITICS", "SENSITIVE_CATEGORY_RELIGION", "SENSITIVE_CATEGORY_TRAGEDY", "SENSITIVE_CATEGORY_TRANSPORTATION_ACCIDENTS", "SENSITIVE_CATEGORY_SENSITIVE_SOCIAL_ISSUES", "SENSITIVE_CATEGORY_SHOCKING", "SENSITIVE_CATEGORY_EMBEDDED_VIDEO", "SENSITIVE_CATEGORY_LIVE_STREAMING_VIDEO"]
     #[serde(default, rename = "sensitiveCategory")]
@@ -4147,7 +4148,7 @@ pub struct SensitiveCategoryTargetingOptionDetails {
 }
 
 /// Represents a targetable sub-exchange. This will be populated in the sub_exchange_details field of a TargetingOption when targeting_type is TARGETING_TYPE_SUB_EXCHANGE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubExchangeTargetingOptionDetails {
     /// Output only. The display name of the sub-exchange.
     #[serde(default, rename = "displayName")]
@@ -4155,7 +4156,7 @@ pub struct SubExchangeTargetingOptionDetails {
 }
 
 /// Represents a targetable user rewarded content status for video ads only. This will be populated in the user_rewarded_content_details field when targeting_type is TARGETING_TYPE_USER_REWARDED_CONTENT.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserRewardedContentTargetingOptionDetails {
     /// Output only. User rewarded content status for video ads. // TODO: enum values: ["USER_REWARDED_CONTENT_UNSPECIFIED", "USER_REWARDED_CONTENT_USER_REWARDED", "USER_REWARDED_CONTENT_NOT_USER_REWARDED"]
     #[serde(default, rename = "userRewardedContent")]
@@ -4163,7 +4164,7 @@ pub struct UserRewardedContentTargetingOptionDetails {
 }
 
 /// Represents a targetable video player size. This will be populated in the video_player_size_details field when targeting_type is TARGETING_TYPE_VIDEO_PLAYER_SIZE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoPlayerSizeTargetingOptionDetails {
     /// Output only. The video player size. // TODO: enum values: ["VIDEO_PLAYER_SIZE_UNSPECIFIED", "VIDEO_PLAYER_SIZE_SMALL", "VIDEO_PLAYER_SIZE_LARGE", "VIDEO_PLAYER_SIZE_HD", "VIDEO_PLAYER_SIZE_UNKNOWN"]
     #[serde(default, rename = "videoPlayerSize")]
@@ -4171,7 +4172,7 @@ pub struct VideoPlayerSizeTargetingOptionDetails {
 }
 
 /// Represents a targetable viewability. This will be populated in the viewability_details field of a TargetingOption when targeting_type is TARGETING_TYPE_VIEWABILITY.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ViewabilityTargetingOptionDetails {
     /// Output only. The predicted viewability percentage. // TODO: enum values: ["VIEWABILITY_UNSPECIFIED", "VIEWABILITY_10_PERCENT_OR_MORE", "VIEWABILITY_20_PERCENT_OR_MORE", "VIEWABILITY_30_PERCENT_OR_MORE", "VIEWABILITY_40_PERCENT_OR_MORE", "VIEWABILITY_50_PERCENT_OR_MORE", "VIEWABILITY_60_PERCENT_OR_MORE", "VIEWABILITY_70_PERCENT_OR_MORE", "VIEWABILITY_80_PERCENT_OR_MORE", "VIEWABILITY_90_PERCENT_OR_MORE"]
     #[serde(default)]
@@ -4179,7 +4180,7 @@ pub struct ViewabilityTargetingOptionDetails {
 }
 
 /// Data for a YouTube video ad asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeVideoAsset {
     /// Required. The YouTube video id of the asset. This is the 11 char string value used in the YouTube video URL.
     #[serde(default, rename = "youtubeVideoId")]
@@ -4187,7 +4188,7 @@ pub struct YoutubeVideoAsset {
 }
 
 /// Set of signal comparisons. Equivalent of an if statement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlgorithmRulesRuleCondition {
     /// The value returned if the signalComparisons condition evaluates to TRUE.
     #[serde(default, rename = "returnValue")]
@@ -4198,7 +4199,7 @@ pub struct AlgorithmRulesRuleCondition {
 }
 
 /// Represents a targetable age range. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_AGE_RANGE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgeRangeAssignedTargetingOptionDetails {
     /// Required. The age range of an audience. We only support targeting a continuous age range of an audience. Thus, the age range represented in this field can be 1) targeted solely, or, 2) part of a larger continuous age range. The reach of a continuous age range targeting can be expanded by also targeting an audience of an unknown age. // TODO: enum values: ["AGE_RANGE_UNSPECIFIED", "AGE_RANGE_18_24", "AGE_RANGE_25_34", "AGE_RANGE_35_44", "AGE_RANGE_45_54", "AGE_RANGE_55_64", "AGE_RANGE_65_PLUS", "AGE_RANGE_UNKNOWN", "AGE_RANGE_18_20", "AGE_RANGE_21_24", "AGE_RANGE_25_29", "AGE_RANGE_30_34", "AGE_RANGE_35_39", "AGE_RANGE_40_44", "AGE_RANGE_45_49", "AGE_RANGE_50_54", "AGE_RANGE_55_59", "AGE_RANGE_60_64"]
     #[serde(default, rename = "ageRange")]
@@ -4206,7 +4207,7 @@ pub struct AgeRangeAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned app category targeting option. This will be populated in the app_category_details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_APP_CATEGORY.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppCategoryAssignedTargetingOptionDetails {
     /// Output only. The display name of the app category.
     #[serde(default, rename = "displayName")]
@@ -4220,7 +4221,7 @@ pub struct AppCategoryAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned app targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_APP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppAssignedTargetingOptionDetails {
     /// Required. The ID of the app. Android''s Play store app uses bundle ID, for example com.google.android.gm. Apple''s App store app ID uses 9 digit string, for example 422689480.
     #[serde(default, rename = "appId")]
@@ -4237,7 +4238,7 @@ pub struct AppAssignedTargetingOptionDetails {
 }
 
 /// Assigned audience group targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_AUDIENCE_GROUP. The relation between each group is UNION, except for excluded_first_and_third_party_audience_group and excluded_google_audience_group, of which COMPLEMENT is used as an INTERSECTION with other groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudienceGroupAssignedTargetingOptionDetails {
     /// Optional. The first party and partner audience ids and recencies of the excluded first party and partner audience group. Used for negative targeting. The COMPLEMENT of the UNION of this group and other excluded audience groups is used as an INTERSECTION to any positive audience targeting. All items are logically ‘OR’ of each other.
     #[serde(default, rename = "excludedFirstPartyAndPartnerAudienceGroup")]
@@ -4262,7 +4263,7 @@ pub struct AudienceGroupAssignedTargetingOptionDetails {
 }
 
 /// Details for audio content type assigned targeting option. This will be populated in the audio_content_type_details field when targeting_type is TARGETING_TYPE_AUDIO_CONTENT_TYPE. Explicitly targeting all options is not supported. Remove all audio content type targeting options to achieve this effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudioContentTypeAssignedTargetingOptionDetails {
     /// Required. The audio content type. // TODO: enum values: ["AUDIO_CONTENT_TYPE_UNSPECIFIED", "AUDIO_CONTENT_TYPE_UNKNOWN", "AUDIO_CONTENT_TYPE_MUSIC", "AUDIO_CONTENT_TYPE_BROADCAST", "AUDIO_CONTENT_TYPE_PODCAST"]
     #[serde(default, rename = "audioContentType")]
@@ -4270,7 +4271,7 @@ pub struct AudioContentTypeAssignedTargetingOptionDetails {
 }
 
 /// Represents an assigned authorized seller status. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_AUTHORIZED_SELLER_STATUS. If a resource does not have an TARGETING_TYPE_AUTHORIZED_SELLER_STATUS assigned targeting option, it is using the "Authorized Direct Sellers and Resellers" option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizedSellerStatusAssignedTargetingOptionDetails {
     /// Output only. The authorized seller status to target. // TODO: enum values: ["AUTHORIZED_SELLER_STATUS_UNSPECIFIED", "AUTHORIZED_SELLER_STATUS_AUTHORIZED_DIRECT_SELLERS_ONLY", "AUTHORIZED_SELLER_STATUS_AUTHORIZED_AND_NON_PARTICIPATING_PUBLISHERS"]
     #[serde(default, rename = "authorizedSellerStatus")]
@@ -4281,7 +4282,7 @@ pub struct AuthorizedSellerStatusAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned browser targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_BROWSER.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BrowserAssignedTargetingOptionDetails {
     /// Output only. The display name of the browser.
     #[serde(default, rename = "displayName")]
@@ -4295,7 +4296,7 @@ pub struct BrowserAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned Business chain targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_BUSINESS_CHAIN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BusinessChainAssignedTargetingOptionDetails {
     /// Output only. The display name of a business chain, e.g. "KFC", "Chase Bank".
     #[serde(default, rename = "displayName")]
@@ -4312,7 +4313,7 @@ pub struct BusinessChainAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned carrier and ISP targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_CARRIER_AND_ISP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CarrierAndIspAssignedTargetingOptionDetails {
     /// Output only. The display name of the carrier or ISP.
     #[serde(default, rename = "displayName")]
@@ -4326,7 +4327,7 @@ pub struct CarrierAndIspAssignedTargetingOptionDetails {
 }
 
 /// Assigned category targeting option details. This will be populated in the category_details field when targeting_type is TARGETING_TYPE_CATEGORY.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CategoryAssignedTargetingOptionDetails {
     /// Output only. The display name of the category.
     #[serde(default, rename = "displayName")]
@@ -4340,7 +4341,7 @@ pub struct CategoryAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned channel targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_CHANNEL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelAssignedTargetingOptionDetails {
     /// Required. ID of the channel. Should refer to the channel ID field on a [Partner-owned channel](partners.channels#Channel.FIELDS.channel_id) or [advertiser-owned channel](advertisers.channels#Channel.FIELDS.channel_id) resource.
     #[serde(default, rename = "channelId")]
@@ -4351,7 +4352,7 @@ pub struct ChannelAssignedTargetingOptionDetails {
 }
 
 /// Details for content duration assigned targeting option. This will be populated in the content_duration_details field when targeting_type is TARGETING_TYPE_CONTENT_DURATION. Explicitly targeting all options is not supported. Remove all content duration targeting options to achieve this effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentDurationAssignedTargetingOptionDetails {
     /// Output only. The content duration. // TODO: enum values: ["CONTENT_DURATION_UNSPECIFIED", "CONTENT_DURATION_UNKNOWN", "CONTENT_DURATION_0_TO_1_MIN", "CONTENT_DURATION_1_TO_5_MIN", "CONTENT_DURATION_5_TO_15_MIN", "CONTENT_DURATION_15_TO_30_MIN", "CONTENT_DURATION_30_TO_60_MIN", "CONTENT_DURATION_OVER_60_MIN"]
     #[serde(default, rename = "contentDuration")]
@@ -4362,7 +4363,7 @@ pub struct ContentDurationAssignedTargetingOptionDetails {
 }
 
 /// Details for content genre assigned targeting option. This will be populated in the content_genre_details field when targeting_type is TARGETING_TYPE_CONTENT_GENRE. Explicitly targeting all options is not supported. Remove all content genre targeting options to achieve this effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentGenreAssignedTargetingOptionDetails {
     /// Output only. The display name of the content genre.
     #[serde(default, rename = "displayName")]
@@ -4376,7 +4377,7 @@ pub struct ContentGenreAssignedTargetingOptionDetails {
 }
 
 /// Assigned content instream position targeting option details. This will be populated in the content_instream_position_details field when targeting_type is TARGETING_TYPE_CONTENT_INSTREAM_POSITION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentInstreamPositionAssignedTargetingOptionDetails {
     /// Output only. The ad type to target. Only applicable to insertion order targeting and new line items supporting the specified ad type will inherit this targeting option by default. Possible values are: * AD_TYPE_VIDEO, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_VIDEO_DEFAULT. * AD_TYPE_AUDIO, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_AUDIO_DEFAULT. // TODO: enum values: ["AD_TYPE_UNSPECIFIED", "AD_TYPE_DISPLAY", "AD_TYPE_VIDEO", "AD_TYPE_AUDIO"]
     #[serde(default, rename = "adType")]
@@ -4387,7 +4388,7 @@ pub struct ContentInstreamPositionAssignedTargetingOptionDetails {
 }
 
 /// Assigned content outstream position targeting option details. This will be populated in the content_outstream_position_details field when targeting_type is TARGETING_TYPE_CONTENT_OUTSTREAM_POSITION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentOutstreamPositionAssignedTargetingOptionDetails {
     /// Output only. The ad type to target. Only applicable to insertion order targeting and new line items supporting the specified ad type will inherit this targeting option by default. Possible values are: * AD_TYPE_DISPLAY, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_DISPLAY_DEFAULT. * AD_TYPE_VIDEO, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_VIDEO_DEFAULT. // TODO: enum values: ["AD_TYPE_UNSPECIFIED", "AD_TYPE_DISPLAY", "AD_TYPE_VIDEO", "AD_TYPE_AUDIO"]
     #[serde(default, rename = "adType")]
@@ -4398,7 +4399,7 @@ pub struct ContentOutstreamPositionAssignedTargetingOptionDetails {
 }
 
 /// Details for content stream type assigned targeting option. This will be populated in the content_stream_type_details field when targeting_type is TARGETING_TYPE_CONTENT_STREAM_TYPE. Explicitly targeting all options is not supported. Remove all content stream type targeting options to achieve this effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentStreamTypeAssignedTargetingOptionDetails {
     /// Output only. The content stream type. // TODO: enum values: ["CONTENT_STREAM_TYPE_UNSPECIFIED", "CONTENT_LIVE_STREAM", "CONTENT_ON_DEMAND"]
     #[serde(default, rename = "contentStreamType")]
@@ -4409,7 +4410,7 @@ pub struct ContentStreamTypeAssignedTargetingOptionDetails {
 }
 
 /// Targeting details for content theme. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_CONTENT_THEME_EXCLUSION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentThemeAssignedTargetingOptionDetails {
     /// Output only. An enum for the DV360 content theme classifier. // TODO: enum values: ["CONTENT_THEME_UNSPECIFIED", "CONTENT_THEME_FIGHTING_VIDEO_GAMES", "CONTENT_THEME_MATURE_GAMES", "CONTENT_THEME_NOT_YET_DETERMINED_HEALTH_SOURCES", "CONTENT_THEME_NOT_YET_DETERMINED_NEWS_SOURCES", "CONTENT_THEME_POLITICS", "CONTENT_THEME_RECENT_NEWS", "CONTENT_THEME_RELIGION", "CONTENT_THEME_UNPLEASANT_HEALTH_CONTENT", "CONTENT_THEME_UNPLEASANT_NEWS"]
     #[serde(default, rename = "contentTheme")]
@@ -4423,7 +4424,7 @@ pub struct ContentThemeAssignedTargetingOptionDetails {
 }
 
 /// Representation of a segment of time defined on a specific day of the week and with a start and end time. The time represented by start_hour must be before the time represented by end_hour.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DayAndTimeAssignedTargetingOptionDetails {
     /// Required. The day of the week for this day and time targeting setting. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
@@ -4440,7 +4441,7 @@ pub struct DayAndTimeAssignedTargetingOptionDetails {
 }
 
 /// Assigned device make and model targeting option details. This will be populated in the device_make_model_details field when targeting_type is TARGETING_TYPE_DEVICE_MAKE_MODEL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceMakeModelAssignedTargetingOptionDetails {
     /// Output only. The display name of the device make and model.
     #[serde(default, rename = "displayName")]
@@ -4454,7 +4455,7 @@ pub struct DeviceMakeModelAssignedTargetingOptionDetails {
 }
 
 /// Targeting details for device type. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_DEVICE_TYPE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceTypeAssignedTargetingOptionDetails {
     /// Required. The display name of the device type. // TODO: enum values: ["DEVICE_TYPE_UNSPECIFIED", "DEVICE_TYPE_COMPUTER", "DEVICE_TYPE_CONNECTED_TV", "DEVICE_TYPE_SMART_PHONE", "DEVICE_TYPE_TABLET", "DEVICE_TYPE_CONNECTED_DEVICE"]
     #[serde(default, rename = "deviceType")]
@@ -4465,7 +4466,7 @@ pub struct DeviceTypeAssignedTargetingOptionDetails {
 }
 
 /// Targeting details for digital content label. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DigitalContentLabelAssignedTargetingOptionDetails {
     /// Required. The display name of the digital content label rating tier to be EXCLUDED. // TODO: enum values: ["CONTENT_RATING_TIER_UNSPECIFIED", "CONTENT_RATING_TIER_UNRATED", "CONTENT_RATING_TIER_GENERAL", "CONTENT_RATING_TIER_PARENTAL_GUIDANCE", "CONTENT_RATING_TIER_TEENS", "CONTENT_RATING_TIER_MATURE", "CONTENT_RATING_TIER_FAMILIES"]
     #[serde(default, rename = "excludedContentRatingTier")]
@@ -4473,7 +4474,7 @@ pub struct DigitalContentLabelAssignedTargetingOptionDetails {
 }
 
 /// Assigned environment targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_ENVIRONMENT.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentAssignedTargetingOptionDetails {
     /// Required. The serving environment. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "ENVIRONMENT_WEB_OPTIMIZED", "ENVIRONMENT_WEB_NOT_OPTIMIZED", "ENVIRONMENT_APP"]
     #[serde(default)]
@@ -4481,7 +4482,7 @@ pub struct EnvironmentAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned exchange targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_EXCHANGE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangeAssignedTargetingOptionDetails {
     /// Required. The enum value for the exchange. // TODO: enum values: ["EXCHANGE_UNSPECIFIED", "EXCHANGE_GOOGLE_AD_MANAGER", "EXCHANGE_APPNEXUS", "EXCHANGE_BRIGHTROLL", "EXCHANGE_ADFORM", "EXCHANGE_ADMETA", "EXCHANGE_ADMIXER", "EXCHANGE_ADSMOGO", "EXCHANGE_ADSWIZZ", "EXCHANGE_BIDSWITCH", "EXCHANGE_BRIGHTROLL_DISPLAY", "EXCHANGE_CADREON", "EXCHANGE_DAILYMOTION", "EXCHANGE_FIVE", "EXCHANGE_FLUCT", "EXCHANGE_FREEWHEEL", "EXCHANGE_GENIEE", "EXCHANGE_GUMGUM", "EXCHANGE_IMOBILE", "EXCHANGE_IBILLBOARD", "EXCHANGE_IMPROVE_DIGITAL", "EXCHANGE_INDEX", "EXCHANGE_KARGO", "EXCHANGE_MICROAD", "EXCHANGE_MOPUB", "EXCHANGE_NEND", "EXCHANGE_ONE_BY_AOL_DISPLAY", "EXCHANGE_ONE_BY_AOL_MOBILE", "EXCHANGE_ONE_BY_AOL_VIDEO", "EXCHANGE_OOYALA", "EXCHANGE_OPENX", "EXCHANGE_PERMODO", "EXCHANGE_PLATFORMONE", "EXCHANGE_PLATFORMID", "EXCHANGE_PUBMATIC", "EXCHANGE_PULSEPOINT", "EXCHANGE_REVENUEMAX", "EXCHANGE_RUBICON", "EXCHANGE_SMARTCLIP", "EXCHANGE_SMARTRTB", "EXCHANGE_SMARTSTREAMTV", "EXCHANGE_SOVRN", "EXCHANGE_SPOTXCHANGE", "EXCHANGE_STROER", "EXCHANGE_TEADSTV", "EXCHANGE_TELARIA", "EXCHANGE_TVN", "EXCHANGE_UNITED", "EXCHANGE_YIELDLAB", "EXCHANGE_YIELDMO", "EXCHANGE_UNRULYX", "EXCHANGE_OPEN8", "EXCHANGE_TRITON", "EXCHANGE_TRIPLELIFT", "EXCHANGE_TABOOLA", "EXCHANGE_INMOBI", "EXCHANGE_SMAATO", "EXCHANGE_AJA", "EXCHANGE_SUPERSHIP", "EXCHANGE_NEXSTAR_DIGITAL", "EXCHANGE_WAZE", "EXCHANGE_SOUNDCAST", "EXCHANGE_SHARETHROUGH", "EXCHANGE_FYBER", "EXCHANGE_RED_FOR_PUBLISHERS", "EXCHANGE_MEDIANET", "EXCHANGE_TAPJOY", "EXCHANGE_VISTAR", "EXCHANGE_DAX", "EXCHANGE_JCD", "EXCHANGE_PLACE_EXCHANGE", "EXCHANGE_APPLOVIN", "EXCHANGE_CONNATIX", "EXCHANGE_RESET_DIGITAL", "EXCHANGE_HIVESTACK", "EXCHANGE_DRAX", "EXCHANGE_APPLOVIN_GBID", "EXCHANGE_FYBER_GBID", "EXCHANGE_UNITY_GBID", "EXCHANGE_CHARTBOOST_GBID", "EXCHANGE_ADMOST_GBID", "EXCHANGE_TOPON_GBID", "EXCHANGE_NETFLIX", "EXCHANGE_CORE", "EXCHANGE_COMMERCE_GRID", "EXCHANGE_SPOTIFY", "EXCHANGE_TUBI", "EXCHANGE_SNAP", "EXCHANGE_CADENT"]
     #[serde(default)]
@@ -4489,7 +4490,7 @@ pub struct ExchangeAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned gender targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_GENDER.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenderAssignedTargetingOptionDetails {
     /// Required. The gender of the audience. // TODO: enum values: ["GENDER_UNSPECIFIED", "GENDER_MALE", "GENDER_FEMALE", "GENDER_UNKNOWN"]
     #[serde(default)]
@@ -4497,7 +4498,7 @@ pub struct GenderAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned geographic region targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_GEO_REGION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeoRegionAssignedTargetingOptionDetails {
     /// Output only. The display name of the geographic region (e.g., "Ontario, Canada").
     #[serde(default, rename = "displayName")]
@@ -4514,7 +4515,7 @@ pub struct GeoRegionAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned household income targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_HOUSEHOLD_INCOME.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HouseholdIncomeAssignedTargetingOptionDetails {
     /// Required. The household income of the audience. // TODO: enum values: ["HOUSEHOLD_INCOME_UNSPECIFIED", "HOUSEHOLD_INCOME_UNKNOWN", "HOUSEHOLD_INCOME_LOWER_50_PERCENT", "HOUSEHOLD_INCOME_TOP_41_TO_50_PERCENT", "HOUSEHOLD_INCOME_TOP_31_TO_40_PERCENT", "HOUSEHOLD_INCOME_TOP_21_TO_30_PERCENT", "HOUSEHOLD_INCOME_TOP_11_TO_20_PERCENT", "HOUSEHOLD_INCOME_TOP_10_PERCENT"]
     #[serde(default, rename = "householdIncome")]
@@ -4522,7 +4523,7 @@ pub struct HouseholdIncomeAssignedTargetingOptionDetails {
 }
 
 /// Targeting details for inventory source. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_INVENTORY_SOURCE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySourceAssignedTargetingOptionDetails {
     /// Required. ID of the inventory source. Should refer to the inventory_source_id field of an InventorySource resource.
     #[serde(default, rename = "inventorySourceId")]
@@ -4530,7 +4531,7 @@ pub struct InventorySourceAssignedTargetingOptionDetails {
 }
 
 /// Targeting details for inventory source group. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_INVENTORY_SOURCE_GROUP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySourceGroupAssignedTargetingOptionDetails {
     /// Required. ID of the inventory source group. Should refer to the inventory_source_group_id field of an InventorySourceGroup resource.
     #[serde(default, rename = "inventorySourceGroupId")]
@@ -4538,7 +4539,7 @@ pub struct InventorySourceGroupAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned keyword targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_KEYWORD.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeywordAssignedTargetingOptionDetails {
     /// Optional. The policy names to exempt the keyword from. This field is only applicable for Demand Gen keywords, which are positively targeted.
     #[serde(default, rename = "exemptedPolicyNames")]
@@ -4552,7 +4553,7 @@ pub struct KeywordAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned language targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_LANGUAGE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageAssignedTargetingOptionDetails {
     /// Output only. The display name of the language (e.g., "French").
     #[serde(default, rename = "displayName")]
@@ -4566,7 +4567,7 @@ pub struct LanguageAssignedTargetingOptionDetails {
 }
 
 /// Details for native content position assigned targeting option. This will be populated in the native_content_position_details field when targeting_type is TARGETING_TYPE_NATIVE_CONTENT_POSITION. Explicitly targeting all options is not supported. Remove all native content position targeting options to achieve this effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NativeContentPositionAssignedTargetingOptionDetails {
     /// Required. The content position. // TODO: enum values: ["NATIVE_CONTENT_POSITION_UNSPECIFIED", "NATIVE_CONTENT_POSITION_UNKNOWN", "NATIVE_CONTENT_POSITION_IN_ARTICLE", "NATIVE_CONTENT_POSITION_IN_FEED", "NATIVE_CONTENT_POSITION_PERIPHERAL", "NATIVE_CONTENT_POSITION_RECOMMENDATION"]
     #[serde(default, rename = "contentPosition")]
@@ -4574,7 +4575,7 @@ pub struct NativeContentPositionAssignedTargetingOptionDetails {
 }
 
 /// Targeting details for negative keyword list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_NEGATIVE_KEYWORD_LIST.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NegativeKeywordListAssignedTargetingOptionDetails {
     /// Required. ID of the negative keyword list. Should refer to the negative_keyword_list_id field of a NegativeKeywordList resource.
     #[serde(default, rename = "negativeKeywordListId")]
@@ -4582,7 +4583,7 @@ pub struct NegativeKeywordListAssignedTargetingOptionDetails {
 }
 
 /// Represents a targetable Open Measurement enabled inventory type. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_OMID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OmidAssignedTargetingOptionDetails {
     /// Required. The type of Open Measurement enabled inventory. // TODO: enum values: ["OMID_UNSPECIFIED", "OMID_FOR_MOBILE_DISPLAY_ADS"]
     #[serde(default)]
@@ -4590,7 +4591,7 @@ pub struct OmidAssignedTargetingOptionDetails {
 }
 
 /// On screen position targeting option details. This will be populated in the on_screen_position_details field when targeting_type is TARGETING_TYPE_ON_SCREEN_POSITION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OnScreenPositionAssignedTargetingOptionDetails {
     /// Output only. The ad type to target. Only applicable to insertion order targeting and new line items supporting the specified ad type will inherit this targeting option by default. Possible values are: * AD_TYPE_DISPLAY, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_DISPLAY_DEFAULT. * AD_TYPE_VIDEO, the setting will be inherited by new line item when line_item_type is LINE_ITEM_TYPE_VIDEO_DEFAULT. // TODO: enum values: ["AD_TYPE_UNSPECIFIED", "AD_TYPE_DISPLAY", "AD_TYPE_VIDEO", "AD_TYPE_AUDIO"]
     #[serde(default, rename = "adType")]
@@ -4604,7 +4605,7 @@ pub struct OnScreenPositionAssignedTargetingOptionDetails {
 }
 
 /// Assigned operating system targeting option details. This will be populated in the operating_system_details field when targeting_type is TARGETING_TYPE_OPERATING_SYSTEM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperatingSystemAssignedTargetingOptionDetails {
     /// Output only. The display name of the operating system.
     #[serde(default, rename = "displayName")]
@@ -4618,7 +4619,7 @@ pub struct OperatingSystemAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned parental status targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_PARENTAL_STATUS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParentalStatusAssignedTargetingOptionDetails {
     /// Required. The parental status of the audience. // TODO: enum values: ["PARENTAL_STATUS_UNSPECIFIED", "PARENTAL_STATUS_PARENT", "PARENTAL_STATUS_NOT_A_PARENT", "PARENTAL_STATUS_UNKNOWN"]
     #[serde(default, rename = "parentalStatus")]
@@ -4626,7 +4627,7 @@ pub struct ParentalStatusAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned POI targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_POI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PoiAssignedTargetingOptionDetails {
     /// Output only. The display name of a POI, e.g. "Times Square", "Space Needle", followed by its full address if available.
     #[serde(default, rename = "displayName")]
@@ -4649,7 +4650,7 @@ pub struct PoiAssignedTargetingOptionDetails {
 }
 
 /// Targeting details for proximity location list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_PROXIMITY_LOCATION_LIST.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProximityLocationListAssignedTargetingOptionDetails {
     /// Required. ID of the proximity location list. Should refer to the location_list_id field of a LocationList resource whose type is TARGETING_LOCATION_TYPE_PROXIMITY.
     #[serde(default, rename = "proximityLocationListId")]
@@ -4663,7 +4664,7 @@ pub struct ProximityLocationListAssignedTargetingOptionDetails {
 }
 
 /// Targeting details for regional location list. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_REGIONAL_LOCATION_LIST.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalLocationListAssignedTargetingOptionDetails {
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
@@ -4674,7 +4675,7 @@ pub struct RegionalLocationListAssignedTargetingOptionDetails {
 }
 
 /// Targeting details for sensitive category. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SensitiveCategoryAssignedTargetingOptionDetails {
     /// Required. An enum for the DV360 Sensitive category content classified to be EXCLUDED. // TODO: enum values: ["SENSITIVE_CATEGORY_UNSPECIFIED", "SENSITIVE_CATEGORY_ADULT", "SENSITIVE_CATEGORY_DEROGATORY", "SENSITIVE_CATEGORY_DOWNLOADS_SHARING", "SENSITIVE_CATEGORY_WEAPONS", "SENSITIVE_CATEGORY_GAMBLING", "SENSITIVE_CATEGORY_VIOLENCE", "SENSITIVE_CATEGORY_SUGGESTIVE", "SENSITIVE_CATEGORY_PROFANITY", "SENSITIVE_CATEGORY_ALCOHOL", "SENSITIVE_CATEGORY_DRUGS", "SENSITIVE_CATEGORY_TOBACCO", "SENSITIVE_CATEGORY_POLITICS", "SENSITIVE_CATEGORY_RELIGION", "SENSITIVE_CATEGORY_TRAGEDY", "SENSITIVE_CATEGORY_TRANSPORTATION_ACCIDENTS", "SENSITIVE_CATEGORY_SENSITIVE_SOCIAL_ISSUES", "SENSITIVE_CATEGORY_SHOCKING", "SENSITIVE_CATEGORY_EMBEDDED_VIDEO", "SENSITIVE_CATEGORY_LIVE_STREAMING_VIDEO"]
     #[serde(default, rename = "excludedSensitiveCategory")]
@@ -4682,7 +4683,7 @@ pub struct SensitiveCategoryAssignedTargetingOptionDetails {
 }
 
 /// Details for session position assigned targeting option. This will be populated in the session_position_details field when targeting_type is TARGETING_TYPE_SESSION_POSITION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionPositionAssignedTargetingOptionDetails {
     /// The position where the ad will show in a session. // TODO: enum values: ["SESSION_POSITION_UNSPECIFIED", "SESSION_POSITION_FIRST_IMPRESSION"]
     #[serde(default, rename = "sessionPosition")]
@@ -4690,7 +4691,7 @@ pub struct SessionPositionAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned sub-exchange targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_SUB_EXCHANGE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubExchangeAssignedTargetingOptionDetails {
     /// Required. The targeting_option_id of a TargetingOption of type TARGETING_TYPE_SUB_EXCHANGE.
     #[serde(default, rename = "targetingOptionId")]
@@ -4698,7 +4699,7 @@ pub struct SubExchangeAssignedTargetingOptionDetails {
 }
 
 /// Assigned third party verifier targeting option details. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_THIRD_PARTY_VERIFIER.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyVerifierAssignedTargetingOptionDetails {
     /// Third party brand verifier -- Scope3 (previously known as Adloox).
     #[serde(default)]
@@ -4712,7 +4713,7 @@ pub struct ThirdPartyVerifierAssignedTargetingOptionDetails {
 }
 
 /// Details for assigned URL targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlAssignedTargetingOptionDetails {
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
@@ -4723,7 +4724,7 @@ pub struct UrlAssignedTargetingOptionDetails {
 }
 
 /// User rewarded content targeting option details. This will be populated in the user_rewarded_content_details field when targeting_type is TARGETING_TYPE_USER_REWARDED_CONTENT.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserRewardedContentAssignedTargetingOptionDetails {
     /// Required. The targeting_option_id field when targeting_type is TARGETING_TYPE_USER_REWARDED_CONTENT.
     #[serde(default, rename = "targetingOptionId")]
@@ -4734,7 +4735,7 @@ pub struct UserRewardedContentAssignedTargetingOptionDetails {
 }
 
 /// Video player size targeting option details. This will be populated in the video_player_size_details field when targeting_type is TARGETING_TYPE_VIDEO_PLAYER_SIZE. Explicitly targeting all options is not supported. Remove all video player size targeting options to achieve this effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoPlayerSizeAssignedTargetingOptionDetails {
     /// Required. The video player size. // TODO: enum values: ["VIDEO_PLAYER_SIZE_UNSPECIFIED", "VIDEO_PLAYER_SIZE_SMALL", "VIDEO_PLAYER_SIZE_LARGE", "VIDEO_PLAYER_SIZE_HD", "VIDEO_PLAYER_SIZE_UNKNOWN"]
     #[serde(default, rename = "videoPlayerSize")]
@@ -4742,7 +4743,7 @@ pub struct VideoPlayerSizeAssignedTargetingOptionDetails {
 }
 
 /// Assigned viewability targeting option details. This will be populated in the viewability_details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_VIEWABILITY.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ViewabilityAssignedTargetingOptionDetails {
     /// Required. The predicted viewability percentage. // TODO: enum values: ["VIEWABILITY_UNSPECIFIED", "VIEWABILITY_10_PERCENT_OR_MORE", "VIEWABILITY_20_PERCENT_OR_MORE", "VIEWABILITY_30_PERCENT_OR_MORE", "VIEWABILITY_40_PERCENT_OR_MORE", "VIEWABILITY_50_PERCENT_OR_MORE", "VIEWABILITY_60_PERCENT_OR_MORE", "VIEWABILITY_70_PERCENT_OR_MORE", "VIEWABILITY_80_PERCENT_OR_MORE", "VIEWABILITY_90_PERCENT_OR_MORE"]
     #[serde(default)]
@@ -4750,7 +4751,7 @@ pub struct ViewabilityAssignedTargetingOptionDetails {
 }
 
 /// Details for YouTube channel assigned targeting option. This will be populated in the youtube_channel_details field when targeting_type is TARGETING_TYPE_YOUTUBE_CHANNEL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeChannelAssignedTargetingOptionDetails {
     /// The YouTube uploader channel id or the channel code of a YouTube channel.
     #[serde(default, rename = "channelId")]
@@ -4761,7 +4762,7 @@ pub struct YoutubeChannelAssignedTargetingOptionDetails {
 }
 
 /// Details for YouTube video assigned targeting option. This will be populated in the youtube_video_details field when targeting_type is TARGETING_TYPE_YOUTUBE_VIDEO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeVideoAssignedTargetingOptionDetails {
     /// Indicates if this option is being negatively targeted.
     #[serde(default)]
@@ -4772,7 +4773,7 @@ pub struct YoutubeVideoAssignedTargetingOptionDetails {
 }
 
 /// An entry describing how an ad has been identified as relating to an ad policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEntry {
     /// Information on how to appeal the policy decision.
     #[serde(default, rename = "appealInfo")]
@@ -4807,7 +4808,7 @@ pub struct AdPolicyTopicEntry {
 }
 
 /// Details for a Demand Gen carousel card.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CarouselCard {
     /// Required. The call-to-action button shown on the card. Must use 10 characters or less.
     #[serde(default, rename = "callToAction")]
@@ -4833,7 +4834,7 @@ pub struct CarouselCard {
 }
 
 /// Common attributes for in-stream, non-skippable and bumper ads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommonInStreamAttribute {
     /// The text on the call-to-action button.
     #[serde(default, rename = "actionButtonLabel")]
@@ -4859,7 +4860,7 @@ pub struct CommonInStreamAttribute {
 }
 
 /// The inventory control of the ad group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SelectedInventories {
     /// Whether the ad group is opted-in to Discover inventory.
     #[serde(default, rename = "allowDiscover")]
@@ -4882,7 +4883,7 @@ pub struct SelectedInventories {
 }
 
 /// A dimension used to match products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductMatchDimension {
     /// The custom label to match all the products with the label.
     #[serde(default, rename = "customLabel")]
@@ -4893,7 +4894,7 @@ pub struct ProductMatchDimension {
 }
 
 /// Settings for advertisers that use both Campaign Manager 360 (CM360) and third-party ad servers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CmHybridConfig {
     /// Required. Immutable. Account ID of the CM360 Floodlight configuration linked with the DV360 advertiser.
     #[serde(default, rename = "cmAccountId")]
@@ -4919,7 +4920,7 @@ pub struct CmHybridConfig {
 }
 
 /// Settings for advertisers that use third-party ad servers only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyOnlyConfig {
     /// Whether or not order ID reporting for pixels is enabled. This value cannot be changed once set to true.
     #[serde(default, rename = "pixelOrderIdReportingEnabled")]
@@ -4927,7 +4928,7 @@ pub struct ThirdPartyOnlyConfig {
 }
 
 /// Structured Data Files (SDF) settings of an advertiser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserSdfConfig {
     /// Whether or not this advertiser overrides the SDF configuration of its parent partner. By default, an advertiser inherits the SDF configuration from the parent partner. To override the partner configuration, set this field to true and provide the new configuration in sdfConfig.
     #[serde(default, rename = "overridePartnerSdfConfig")]
@@ -4938,7 +4939,7 @@ pub struct AdvertiserSdfConfig {
 }
 
 /// Settings specific to the Mediaocean Prisma tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrismaConfig {
     /// Required. Relevant client, product, and estimate codes from the Mediaocean Prisma tool.
     #[serde(default, rename = "prismaCpeCode")]
@@ -4952,7 +4953,7 @@ pub struct PrismaConfig {
 }
 
 /// Settings that control the performance goal of a campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerformanceGoal {
     /// The goal amount, in micros of the advertiser''s currency. Applicable when performance_goal_type is one of: * PERFORMANCE_GOAL_TYPE_CPM * PERFORMANCE_GOAL_TYPE_CPC * PERFORMANCE_GOAL_TYPE_CPA * PERFORMANCE_GOAL_TYPE_CPIAVC * PERFORMANCE_GOAL_TYPE_VCPM For example 1500000 represents 1.5 standard units of the currency.
     #[serde(default, rename = "performanceGoalAmountMicros")]
@@ -4969,7 +4970,7 @@ pub struct PerformanceGoal {
 }
 
 /// A single asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Asset {
     /// The asset content. For uploaded assets, the content is the serving path.
     #[serde(default)]
@@ -4980,7 +4981,7 @@ pub struct Asset {
 }
 
 /// Exchange review status for the creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangeReviewStatus {
     /// The exchange reviewing the creative. // TODO: enum values: ["EXCHANGE_UNSPECIFIED", "EXCHANGE_GOOGLE_AD_MANAGER", "EXCHANGE_APPNEXUS", "EXCHANGE_BRIGHTROLL", "EXCHANGE_ADFORM", "EXCHANGE_ADMETA", "EXCHANGE_ADMIXER", "EXCHANGE_ADSMOGO", "EXCHANGE_ADSWIZZ", "EXCHANGE_BIDSWITCH", "EXCHANGE_BRIGHTROLL_DISPLAY", "EXCHANGE_CADREON", "EXCHANGE_DAILYMOTION", "EXCHANGE_FIVE", "EXCHANGE_FLUCT", "EXCHANGE_FREEWHEEL", "EXCHANGE_GENIEE", "EXCHANGE_GUMGUM", "EXCHANGE_IMOBILE", "EXCHANGE_IBILLBOARD", "EXCHANGE_IMPROVE_DIGITAL", "EXCHANGE_INDEX", "EXCHANGE_KARGO", "EXCHANGE_MICROAD", "EXCHANGE_MOPUB", "EXCHANGE_NEND", "EXCHANGE_ONE_BY_AOL_DISPLAY", "EXCHANGE_ONE_BY_AOL_MOBILE", "EXCHANGE_ONE_BY_AOL_VIDEO", "EXCHANGE_OOYALA", "EXCHANGE_OPENX", "EXCHANGE_PERMODO", "EXCHANGE_PLATFORMONE", "EXCHANGE_PLATFORMID", "EXCHANGE_PUBMATIC", "EXCHANGE_PULSEPOINT", "EXCHANGE_REVENUEMAX", "EXCHANGE_RUBICON", "EXCHANGE_SMARTCLIP", "EXCHANGE_SMARTRTB", "EXCHANGE_SMARTSTREAMTV", "EXCHANGE_SOVRN", "EXCHANGE_SPOTXCHANGE", "EXCHANGE_STROER", "EXCHANGE_TEADSTV", "EXCHANGE_TELARIA", "EXCHANGE_TVN", "EXCHANGE_UNITED", "EXCHANGE_YIELDLAB", "EXCHANGE_YIELDMO", "EXCHANGE_UNRULYX", "EXCHANGE_OPEN8", "EXCHANGE_TRITON", "EXCHANGE_TRIPLELIFT", "EXCHANGE_TABOOLA", "EXCHANGE_INMOBI", "EXCHANGE_SMAATO", "EXCHANGE_AJA", "EXCHANGE_SUPERSHIP", "EXCHANGE_NEXSTAR_DIGITAL", "EXCHANGE_WAZE", "EXCHANGE_SOUNDCAST", "EXCHANGE_SHARETHROUGH", "EXCHANGE_FYBER", "EXCHANGE_RED_FOR_PUBLISHERS", "EXCHANGE_MEDIANET", "EXCHANGE_TAPJOY", "EXCHANGE_VISTAR", "EXCHANGE_DAX", "EXCHANGE_JCD", "EXCHANGE_PLACE_EXCHANGE", "EXCHANGE_APPLOVIN", "EXCHANGE_CONNATIX", "EXCHANGE_RESET_DIGITAL", "EXCHANGE_HIVESTACK", "EXCHANGE_DRAX", "EXCHANGE_APPLOVIN_GBID", "EXCHANGE_FYBER_GBID", "EXCHANGE_UNITY_GBID", "EXCHANGE_CHARTBOOST_GBID", "EXCHANGE_ADMOST_GBID", "EXCHANGE_TOPON_GBID", "EXCHANGE_NETFLIX", "EXCHANGE_CORE", "EXCHANGE_COMMERCE_GRID", "EXCHANGE_SPOTIFY", "EXCHANGE_TUBI", "EXCHANGE_SNAP", "EXCHANGE_CADENT"]
     #[serde(default)]
@@ -4991,7 +4992,7 @@ pub struct ExchangeReviewStatus {
 }
 
 /// Contact information defining a Customer Match audience member.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactInfo {
     /// Country code of the member. Must also be set with the following fields: * hashed_first_name * hashed_last_name * zip_codes
     #[serde(default, rename = "countryCode")]
@@ -5014,7 +5015,7 @@ pub struct ContactInfo {
 }
 
 /// User consent status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Consent {
     /// Represents consent for ad personalization. // TODO: enum values: ["CONSENT_STATUS_UNSPECIFIED", "CONSENT_STATUS_GRANTED", "CONSENT_STATUS_DENIED"]
     #[serde(default, rename = "adPersonalization")]
@@ -5025,7 +5026,7 @@ pub struct Consent {
 }
 
 /// Settings that control the budget of a single budget segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertionOrderBudgetSegment {
     /// Required. The budget amount the insertion order will spend for the given date_range. The amount is in micros. Must be greater than 0. For example, 500000000 represents 500 standard units of the currency.
     #[serde(default, rename = "budgetAmountMicros")]
@@ -5042,7 +5043,7 @@ pub struct InsertionOrderBudgetSegment {
 }
 
 /// The configuration for display creatives.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySourceDisplayCreativeConfig {
     /// The size requirements for display creatives that can be assigned to the inventory source.
     #[serde(default, rename = "creativeSize")]
@@ -5050,7 +5051,7 @@ pub struct InventorySourceDisplayCreativeConfig {
 }
 
 /// The configuration for video creatives.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySourceVideoCreativeConfig {
     /// The duration requirements for the video creatives that can be assigned to the inventory source.
     #[serde(default)]
@@ -5058,7 +5059,7 @@ pub struct InventorySourceVideoCreativeConfig {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -5072,7 +5073,7 @@ pub struct Money {
 }
 
 /// The advertisers with access to the inventory source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySourceAccessorsAdvertiserAccessors {
     /// The IDs of the advertisers.
     #[serde(default, rename = "advertiserIds")]
@@ -5080,7 +5081,7 @@ pub struct InventorySourceAccessorsAdvertiserAccessors {
 }
 
 /// The partner with access to the inventory source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySourceAccessorsPartnerAccessor {
     /// The ID of the partner.
     #[serde(default, rename = "partnerId")]
@@ -5088,7 +5089,7 @@ pub struct InventorySourceAccessorsPartnerAccessor {
 }
 
 /// Settings that control the bid strategy for Demand Gen resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemandGenBiddingStrategy {
     /// Output only. If AG doesn''t set value for tCPA or tROAS, line item bidding value will be the effective_bidding_value, if the bidding strategy type is not tCPA or tROAS, effective_bidding_value is always 0. For line item, it will be the same as the value field.
     #[serde(default, rename = "effectiveBiddingValue")]
@@ -5105,7 +5106,7 @@ pub struct DemandGenBiddingStrategy {
 }
 
 /// A strategy that uses a fixed bidding price.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FixedBidStrategy {
     /// The fixed bid amount, in micros of the advertiser''s currency. For insertion order entity, bid_amount_micros should be set as 0. For line item entity, bid_amount_micros must be greater than or equal to billable unit of the given currency and smaller than or equal to the upper limit 1000000000. For example, 1500000 represents 1.5 standard units of the currency.
     #[serde(default, rename = "bidAmountMicros")]
@@ -5113,7 +5114,7 @@ pub struct FixedBidStrategy {
 }
 
 /// A strategy that automatically adjusts the bid to optimize a specified performance goal while spending the full budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaximizeSpendBidStrategy {
     /// The ID of the Custom Bidding Algorithm used by this strategy. Only applicable when performance_goal_type is set to BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO. Assigning a custom bidding algorithm that uses floodlight activities not identified in floodlightActivityConfigs will return an error.
     #[serde(default, rename = "customBiddingAlgorithmId")]
@@ -5130,7 +5131,7 @@ pub struct MaximizeSpendBidStrategy {
 }
 
 /// A strategy that automatically adjusts the bid to meet or beat a specified performance goal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerformanceGoalBidStrategy {
     /// The ID of the Custom Bidding Algorithm used by this strategy. Only applicable when performance_goal_type is set to BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CUSTOM_ALGO. Assigning a custom bidding algorithm that uses floodlight activities not identified in floodlightActivityConfigs will return an error.
     #[serde(default, rename = "customBiddingAlgorithmId")]
@@ -5147,7 +5148,7 @@ pub struct PerformanceGoalBidStrategy {
 }
 
 /// Settings that control the bid strategy for YouTube and Partners resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAndPartnersBiddingStrategy {
     /// Output only. Source of the effective target CPA value for ad group. // TODO: enum values: ["BIDDING_SOURCE_UNSPECIFIED", "BIDDING_SOURCE_LINE_ITEM", "BIDDING_SOURCE_AD_GROUP"]
     #[serde(default, rename = "adGroupEffectiveTargetCpaSource")]
@@ -5164,7 +5165,7 @@ pub struct YoutubeAndPartnersBiddingStrategy {
 }
 
 /// Settings that control the behavior of a single Floodlight activity config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrackingFloodlightActivityConfig {
     /// Required. The ID of the Floodlight activity.
     #[serde(default, rename = "floodlightActivityId")]
@@ -5178,7 +5179,7 @@ pub struct TrackingFloodlightActivityConfig {
 }
 
 /// Settings that control what YouTube related inventories the YouTube and Partners line item will target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAndPartnersInventorySourceConfig {
     /// Optional. Whether to target inventory in video apps available with Google TV.
     #[serde(default, rename = "includeGoogleTv")]
@@ -5192,7 +5193,7 @@ pub struct YoutubeAndPartnersInventorySourceConfig {
 }
 
 /// Setting that controls the average number of times the ads will show to the same person over a certain period of time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetFrequency {
     /// The target number of times, on average, the ads will be shown to the same person in the timespan dictated by time_unit and time_unit_count.
     #[serde(default, rename = "targetCount")]
@@ -5206,7 +5207,7 @@ pub struct TargetFrequency {
 }
 
 /// Settings that control what third-party vendors are measuring specific line item metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyMeasurementConfigs {
     /// Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * THIRD_PARTY_VENDOR_DYNATA * THIRD_PARTY_VENDOR_KANTAR * THIRD_PARTY_VENDOR_INTAGE * THIRD_PARTY_VENDOR_NIELSEN * THIRD_PARTY_VENDOR_MACROMILL
     #[serde(default, rename = "brandLiftVendorConfigs")]
@@ -5224,7 +5225,7 @@ pub struct ThirdPartyMeasurementConfigs {
 }
 
 /// The video ad inventory control used in certain YouTube line item types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoAdInventoryControl {
     /// Optional. Whether ads can serve as in-feed format.
     #[serde(default, rename = "allowInFeed")]
@@ -5238,7 +5239,7 @@ pub struct VideoAdInventoryControl {
 }
 
 /// Settings related to VideoAdSequence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoAdSequenceSettings {
     /// The minimum time interval before the same user sees this sequence again. // TODO: enum values: ["VIDEO_AD_SEQUENCE_MINIMUM_DURATION_UNSPECIFIED", "VIDEO_AD_SEQUENCE_MINIMUM_DURATION_WEEK", "VIDEO_AD_SEQUENCE_MINIMUM_DURATION_MONTH"]
     #[serde(default, rename = "minimumDuration")]
@@ -5249,7 +5250,7 @@ pub struct VideoAdSequenceSettings {
 }
 
 /// Settings that control the number of times a user may be shown with the same ad during a given time period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FrequencyCap {
     /// The maximum number of times a user may be shown the same ad during this period. Must be greater than 0. Required when unlimited is false and max_views is not set.
     #[serde(default, rename = "maxImpressions")]
@@ -5269,7 +5270,7 @@ pub struct FrequencyCap {
 }
 
 /// Measurement settings of a partner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MeasurementConfig {
     /// Whether or not to report DV360 cost to CM360.
     #[serde(default, rename = "dv360ToCmCostReportingEnabled")]
@@ -5280,7 +5281,7 @@ pub struct MeasurementConfig {
 }
 
 /// An enabled exchange in the partner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangeConfigEnabledExchange {
     /// The enabled exchange. // TODO: enum values: ["EXCHANGE_UNSPECIFIED", "EXCHANGE_GOOGLE_AD_MANAGER", "EXCHANGE_APPNEXUS", "EXCHANGE_BRIGHTROLL", "EXCHANGE_ADFORM", "EXCHANGE_ADMETA", "EXCHANGE_ADMIXER", "EXCHANGE_ADSMOGO", "EXCHANGE_ADSWIZZ", "EXCHANGE_BIDSWITCH", "EXCHANGE_BRIGHTROLL_DISPLAY", "EXCHANGE_CADREON", "EXCHANGE_DAILYMOTION", "EXCHANGE_FIVE", "EXCHANGE_FLUCT", "EXCHANGE_FREEWHEEL", "EXCHANGE_GENIEE", "EXCHANGE_GUMGUM", "EXCHANGE_IMOBILE", "EXCHANGE_IBILLBOARD", "EXCHANGE_IMPROVE_DIGITAL", "EXCHANGE_INDEX", "EXCHANGE_KARGO", "EXCHANGE_MICROAD", "EXCHANGE_MOPUB", "EXCHANGE_NEND", "EXCHANGE_ONE_BY_AOL_DISPLAY", "EXCHANGE_ONE_BY_AOL_MOBILE", "EXCHANGE_ONE_BY_AOL_VIDEO", "EXCHANGE_OOYALA", "EXCHANGE_OPENX", "EXCHANGE_PERMODO", "EXCHANGE_PLATFORMONE", "EXCHANGE_PLATFORMID", "EXCHANGE_PUBMATIC", "EXCHANGE_PULSEPOINT", "EXCHANGE_REVENUEMAX", "EXCHANGE_RUBICON", "EXCHANGE_SMARTCLIP", "EXCHANGE_SMARTRTB", "EXCHANGE_SMARTSTREAMTV", "EXCHANGE_SOVRN", "EXCHANGE_SPOTXCHANGE", "EXCHANGE_STROER", "EXCHANGE_TEADSTV", "EXCHANGE_TELARIA", "EXCHANGE_TVN", "EXCHANGE_UNITED", "EXCHANGE_YIELDLAB", "EXCHANGE_YIELDMO", "EXCHANGE_UNRULYX", "EXCHANGE_OPEN8", "EXCHANGE_TRITON", "EXCHANGE_TRIPLELIFT", "EXCHANGE_TABOOLA", "EXCHANGE_INMOBI", "EXCHANGE_SMAATO", "EXCHANGE_AJA", "EXCHANGE_SUPERSHIP", "EXCHANGE_NEXSTAR_DIGITAL", "EXCHANGE_WAZE", "EXCHANGE_SOUNDCAST", "EXCHANGE_SHARETHROUGH", "EXCHANGE_FYBER", "EXCHANGE_RED_FOR_PUBLISHERS", "EXCHANGE_MEDIANET", "EXCHANGE_TAPJOY", "EXCHANGE_VISTAR", "EXCHANGE_DAX", "EXCHANGE_JCD", "EXCHANGE_PLACE_EXCHANGE", "EXCHANGE_APPLOVIN", "EXCHANGE_CONNATIX", "EXCHANGE_RESET_DIGITAL", "EXCHANGE_HIVESTACK", "EXCHANGE_DRAX", "EXCHANGE_APPLOVIN_GBID", "EXCHANGE_FYBER_GBID", "EXCHANGE_UNITY_GBID", "EXCHANGE_CHARTBOOST_GBID", "EXCHANGE_ADMOST_GBID", "EXCHANGE_TOPON_GBID", "EXCHANGE_NETFLIX", "EXCHANGE_CORE", "EXCHANGE_COMMERCE_GRID", "EXCHANGE_SPOTIFY", "EXCHANGE_TUBI", "EXCHANGE_SNAP", "EXCHANGE_CADENT"]
     #[serde(default)]
@@ -5297,7 +5298,7 @@ pub struct ExchangeConfigEnabledExchange {
 }
 
 /// An asset filter that matches eligible affiliate location assets for serving.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAssetAssociationAffiliateLocationAssetFilter {
     /// Optional. The matching function that determines how the affiliate location asset filter matches affiliate location assets. This field is required and can only be set for if affiliate_location_matching_type is SELECTED_CHAINS.
     #[serde(default, rename = "affiliateLocationMatchingFunction")]
@@ -5313,7 +5314,7 @@ pub struct YoutubeAssetAssociationAffiliateLocationAssetFilter {
 }
 
 /// An asset filter that matches eligible location assets for serving.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAssetAssociationLocationAssetFilter {
     /// Output only. The ID of the asset set that matches the location assets eligible for serving.
     #[serde(default, rename = "assetSetId")]
@@ -5328,7 +5329,7 @@ pub struct YoutubeAssetAssociationLocationAssetFilter {
 }
 
 /// A sitelink asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAssetAssociationSitelinkAsset {
     /// Required. ID of the sitelink asset.
     #[serde(default, rename = "assetId")]
@@ -5336,7 +5337,7 @@ pub struct YoutubeAssetAssociationSitelinkAsset {
 }
 
 /// Adjusted value of the signal used for rule evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlgorithmRulesSignalValue {
     /// Signal based on active views. Only TIME_ON_SCREEN is supported. This field is only supported for allowlisted partners. // TODO: enum values: ["ACTIVE_VIEW_SIGNAL_UNSPECIFIED", "ACTIVE_VIEW_VIEWED", "AUDIBLE", "VIDEO_COMPLETED", "TIME_ON_SCREEN", "VIDEO_PLAYER_SIZE", "COMPLETED_IN_VIEW_AUDIBLE"]
     #[serde(default, rename = "activeViewSignal")]
@@ -5351,7 +5352,7 @@ pub struct AlgorithmRulesSignalValue {
 }
 
 /// A single comparison. The comparison compares the signal to the comparisonValue. The comparison of siteId==123 is represented with the following field values: * signal has an impressionSignal of SITE_ID. * comparisonOperator is set to EQUAL. * comparisonValue is set to 123.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlgorithmRulesSignalComparison {
     /// Operator used to compare the two values. In the resulting experession, the signal will be the first value and the comparisonValue will be the second. // TODO: enum values: ["COMPARISON_OPERATOR_UNSPECIFIED", "EQUAL", "GREATER_THAN", "LESS_THAN", "GREATER_THAN_OR_EQUAL_TO", "LESS_THAN_OR_EQUAL_TO", "LIST_CONTAINS"]
     #[serde(default, rename = "comparisonOperator")]
@@ -5365,7 +5366,7 @@ pub struct AlgorithmRulesSignalComparison {
 }
 
 /// Details of first party and partner audience group. All first party and partner audience targeting settings are logically ‘OR’ of each other.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirstPartyAndPartnerAudienceGroup {
     /// Required. All first party and partner audience targeting settings in first party and partner audience group. Repeated settings with the same id are not allowed.
     #[serde(default)]
@@ -5374,7 +5375,7 @@ pub struct FirstPartyAndPartnerAudienceGroup {
 }
 
 /// Details of Google audience group. All Google audience targeting settings are logically ‘OR’ of each other.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAudienceGroup {
     /// Required. All Google audience targeting settings in Google audience group. Repeated settings with the same id will be ignored.
     #[serde(default)]
@@ -5382,7 +5383,7 @@ pub struct GoogleAudienceGroup {
 }
 
 /// Details of combined audience group. All combined audience targeting settings are logically ‘OR’ of each other.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CombinedAudienceGroup {
     /// Required. All combined audience targeting settings in combined audience group. Repeated settings with the same id will be ignored. The number of combined audience settings should be no more than five, error will be thrown otherwise.
     #[serde(default)]
@@ -5390,7 +5391,7 @@ pub struct CombinedAudienceGroup {
 }
 
 /// Details of custom list group. All custom list targeting settings are logically ‘OR’ of each other.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomListGroup {
     /// Required. All custom list targeting settings in custom list group. Repeated settings with the same id will be ignored.
     #[serde(default)]
@@ -5398,7 +5399,7 @@ pub struct CustomListGroup {
 }
 
 /// Details of Scope3 (previously known as Adloox) brand safety settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Adloox {
     /// Optional. Adult and Explicit Sexual Content [GARM](https://wfanet.org/leadership/garm/about-garm) risk ranges to exclude. // TODO: enum values: ["GARM_RISK_EXCLUSION_UNSPECIFIED", "GARM_RISK_EXCLUSION_FLOOR", "GARM_RISK_EXCLUSION_HIGH", "GARM_RISK_EXCLUSION_MEDIUM", "GARM_RISK_EXCLUSION_LOW"]
     #[serde(default, rename = "adultExplicitSexualContent")]
@@ -5455,7 +5456,7 @@ pub struct Adloox {
 }
 
 /// Details of DoubleVerify settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleVerify {
     /// Avoid bidding on apps with the star ratings.
     #[serde(default, rename = "appStarRating")]
@@ -5481,7 +5482,7 @@ pub struct DoubleVerify {
 }
 
 /// Details of Integral Ad Science settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntegralAdScience {
     /// The custom segment ID provided by Integral Ad Science. The ID must be between 1000001 and 1999999 or 3000001 and 3999999, inclusive.
     #[serde(default, rename = "customSegmentId")]
@@ -5531,7 +5532,7 @@ pub struct IntegralAdScience {
 }
 
 /// Information on how to appeal a policy decision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicAppealInfo {
     /// Only available when appeal_type is APPEAL_FORM.
     #[serde(default, rename = "appealFormLink")]
@@ -5542,7 +5543,7 @@ pub struct AdPolicyTopicAppealInfo {
 }
 
 /// Details on ad serving constraints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicConstraint {
     /// Countries where the resource''s domain is not covered by the certificates associated with it.
     #[serde(default, rename = "certificateDomainMismatchCountryList")]
@@ -5571,7 +5572,7 @@ pub struct AdPolicyTopicConstraint {
 }
 
 /// Evidence information used in the policy decision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidence {
     /// Counterfeit enforcement that caused a policy violation.
     #[serde(default)]
@@ -5609,7 +5610,7 @@ pub struct AdPolicyTopicEvidence {
 }
 
 /// Meta data of an image asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageAsset {
     /// Required. The unique ID of the asset.
     #[serde(default, rename = "assetId")]
@@ -5626,7 +5627,7 @@ pub struct ImageAsset {
 }
 
 /// Details of a YouTube video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeVideoDetails {
     /// Output only. The YouTube video ID which can be searched on YouTube webpage.
     #[serde(default)]
@@ -5640,7 +5641,7 @@ pub struct YoutubeVideoDetails {
 }
 
 /// The key and value of a custom label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomLabel {
     /// The key of the label. // TODO: enum values: ["CUSTOM_LABEL_KEY_UNSPECIFIED", "CUSTOM_LABEL_KEY_0", "CUSTOM_LABEL_KEY_1", "CUSTOM_LABEL_KEY_2", "CUSTOM_LABEL_KEY_3", "CUSTOM_LABEL_KEY_4"]
     #[serde(default)]
@@ -5651,7 +5652,7 @@ pub struct CustomLabel {
 }
 
 /// Structured Data File (SDF) related settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SdfConfig {
     /// An administrator email address to which the SDF processing status reports will be sent.
     #[serde(default, rename = "adminEmail")]
@@ -5662,7 +5663,7 @@ pub struct SdfConfig {
 }
 
 /// Google Payments Center supports searching and filtering on the component fields of this code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrismaCpeCode {
     /// The Prisma client code.
     #[serde(default, rename = "prismaClientCode")]
@@ -5676,7 +5677,7 @@ pub struct PrismaCpeCode {
 }
 
 /// A date range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateRange {
     /// The upper bound of the date range, inclusive. Must specify a positive value for year, month, and day.
     #[serde(default, rename = "endDate")]
@@ -5687,7 +5688,7 @@ pub struct DateRange {
 }
 
 /// Settings that control how third-party measurement vendors are configured.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyVendorConfig {
     /// The ID used by the platform of the third-party vendor to identify the line item.
     #[serde(default, rename = "placementId")]
@@ -5698,7 +5699,7 @@ pub struct ThirdPartyVendorConfig {
 }
 
 /// The detail of a single step in a VideoAdSequence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoAdSequenceStep {
     /// The ID of the corresponding ad group of the step.
     #[serde(default, rename = "adGroupId")]
@@ -5715,7 +5716,7 @@ pub struct VideoAdSequenceStep {
 }
 
 /// The matching function for an affiliate location asset filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationMatchingFunction {
     /// Optional. The selected affiliate location chain IDs. This field is required if affiliate_location_matching_type is SELECTED_CHAINS.
     #[serde(default)]
@@ -5725,7 +5726,7 @@ pub struct YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationM
 }
 
 /// The matching function for a location asset filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction {
     /// Optional. The business name to match with. This field is optional and can only be set if location_matching_type is FILTER.
     #[serde(default)]
@@ -5739,7 +5740,7 @@ pub struct YoutubeAssetAssociationLocationAssetFilterLocationMatchingFunction {
 }
 
 /// The rule to score impressions based on Floodlight conversion events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlgorithmRulesFloodlightActivityConversionSignal {
     /// Required. The type of conversions to be used in impression value computation, for example, post-click conversions. // TODO: enum values: ["CONVERSION_COUNTING_UNSPECIFIED", "ALL_CONVERSIONS", "POST_CLICK", "POST_VIEW"]
     #[serde(default, rename = "conversionCounting")]
@@ -5753,7 +5754,7 @@ pub struct AlgorithmRulesFloodlightActivityConversionSignal {
 }
 
 /// A value to compare the signal to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlgorithmRulesComparisonValue {
     /// Boolean value.
     #[serde(default, rename = "boolValue")]
@@ -5800,7 +5801,7 @@ pub struct AlgorithmRulesComparisonValue {
 }
 
 /// Signal used to evaluate rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlgorithmRulesSignal {
     /// Signal based on active views. This field is only supported for allowlisted partners. // TODO: enum values: ["ACTIVE_VIEW_SIGNAL_UNSPECIFIED", "ACTIVE_VIEW_VIEWED", "AUDIBLE", "VIDEO_COMPLETED", "TIME_ON_SCREEN", "VIDEO_PLAYER_SIZE", "COMPLETED_IN_VIEW_AUDIBLE"]
     #[serde(default, rename = "activeViewSignal")]
@@ -5814,7 +5815,7 @@ pub struct AlgorithmRulesSignal {
 }
 
 /// Details of first party and partner audience targeting setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirstPartyAndPartnerAudienceTargetingSetting {
     /// Required. First party and partner audience id of the first party and partner audience targeting setting. This id is first_party_and_partner_audience_id.
     #[serde(default, rename = "firstPartyAndPartnerAudienceId")]
@@ -5825,7 +5826,7 @@ pub struct FirstPartyAndPartnerAudienceTargetingSetting {
 }
 
 /// Details of Google audience targeting setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAudienceTargetingSetting {
     /// Required. Google audience id of the Google audience targeting setting. This id is google_audience_id.
     #[serde(default, rename = "googleAudienceId")]
@@ -5833,7 +5834,7 @@ pub struct GoogleAudienceTargetingSetting {
 }
 
 /// Details of combined audience targeting setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CombinedAudienceTargetingSetting {
     /// Required. Combined audience id of combined audience targeting setting. This id is combined_audience_id.
     #[serde(default, rename = "combinedAudienceId")]
@@ -5841,7 +5842,7 @@ pub struct CombinedAudienceTargetingSetting {
 }
 
 /// Details of custom list targeting setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomListTargetingSetting {
     /// Required. Custom id of custom list targeting setting. This id is custom_list_id.
     #[serde(default, rename = "customListId")]
@@ -5849,7 +5850,7 @@ pub struct CustomListTargetingSetting {
 }
 
 /// Details of DoubleVerify star ratings settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleVerifyAppStarRating {
     /// Avoid bidding on apps with insufficient star ratings.
     #[serde(default, rename = "avoidInsufficientStarRating")]
@@ -5860,7 +5861,7 @@ pub struct DoubleVerifyAppStarRating {
 }
 
 /// Settings for brand safety controls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleVerifyBrandSafetyCategories {
     /// Unknown or unrateable.
     #[serde(default, rename = "avoidUnknownBrandSafetyCategory")]
@@ -5874,7 +5875,7 @@ pub struct DoubleVerifyBrandSafetyCategories {
 }
 
 /// Details of DoubleVerify display viewability settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleVerifyDisplayViewability {
     /// Target web and app inventory to maximize IAB viewable rate. // TODO: enum values: ["IAB_VIEWED_RATE_UNSPECIFIED", "IAB_VIEWED_RATE_80_PERCENT_HIGHER", "IAB_VIEWED_RATE_75_PERCENT_HIGHER", "IAB_VIEWED_RATE_70_PERCENT_HIGHER", "IAB_VIEWED_RATE_65_PERCENT_HIGHER", "IAB_VIEWED_RATE_60_PERCENT_HIGHER", "IAB_VIEWED_RATE_55_PERCENT_HIGHER", "IAB_VIEWED_RATE_50_PERCENT_HIGHER", "IAB_VIEWED_RATE_40_PERCENT_HIGHER", "IAB_VIEWED_RATE_30_PERCENT_HIGHER"]
     #[serde(default)]
@@ -5885,7 +5886,7 @@ pub struct DoubleVerifyDisplayViewability {
 }
 
 /// DoubleVerify Fraud & Invalid Traffic settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleVerifyFraudInvalidTraffic {
     /// Insufficient Historical Fraud & IVT Stats.
     #[serde(default, rename = "avoidInsufficientOption")]
@@ -5896,7 +5897,7 @@ pub struct DoubleVerifyFraudInvalidTraffic {
 }
 
 /// Details of DoubleVerify video viewability settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleVerifyVideoViewability {
     /// Target inventory to maximize impressions with 400x300 or greater player size. // TODO: enum values: ["PLAYER_SIZE_400X300_UNSPECIFIED", "PLAYER_SIZE_400X300_95", "PLAYER_SIZE_400X300_70", "PLAYER_SIZE_400X300_25", "PLAYER_SIZE_400X300_5"]
     #[serde(default, rename = "playerImpressionRate")]
@@ -5910,7 +5911,7 @@ pub struct DoubleVerifyVideoViewability {
 }
 
 /// A list of countries where the ad cannot serve due to policy constraints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicConstraintAdPolicyCountryConstraintList {
     /// Countries where the ad cannot serve.
     #[serde(default)]
@@ -5918,7 +5919,7 @@ pub struct AdPolicyTopicConstraintAdPolicyCountryConstraintList {
 }
 
 /// Details on the counterfeit enforcement that caused a policy violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceCounterfeit {
     /// The content or product owners that made a complaint.
     #[serde(default)]
@@ -5926,7 +5927,7 @@ pub struct AdPolicyTopicEvidenceCounterfeit {
 }
 
 /// Details on a mismatch between destination URL types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceDestinationMismatch {
     /// The set of URLs that do not match. The list can include single or multiple uri types. Example 1: [DISPLAY_URL, FINAL_URL] means ad display URL does not match with the ad final URL. Example 2: [FINAL_URL] means ad final URL did not match the crawled url, which is also considered as destination mismatch.
     #[serde(default, rename = "uriTypes")]
@@ -5934,7 +5935,7 @@ pub struct AdPolicyTopicEvidenceDestinationMismatch {
 }
 
 /// Details for on HTTP or DNS errors related to the ad destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceDestinationNotWorking {
     /// The device where visiting the URL resulted in the error. // TODO: enum values: ["AD_POLICY_TOPIC_EVIDENCE_DESTINATION_NOT_WORKING_DEVICE_TYPE_UNKNOWN", "DESKTOP", "ANDROID", "IOS"]
     #[serde(default)]
@@ -5954,7 +5955,7 @@ pub struct AdPolicyTopicEvidenceDestinationNotWorking {
 }
 
 /// A list of destination text that violated the policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceDestinationTextList {
     /// Destination text that caused the policy finding.
     #[serde(default, rename = "destinationTexts")]
@@ -5962,7 +5963,7 @@ pub struct AdPolicyTopicEvidenceDestinationTextList {
 }
 
 /// Legal related regulation enforcement, either from DMCA or local legal regulation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceLegalRemoval {
     /// The type of complaint causing the legal removal. // TODO: enum values: ["AD_POLICY_TOPIC_EVIDENCE_LEGAL_REMOVAL_COMPLAINT_TYPE_UNKNOWN", "COPYRIGHT", "COURT_ORDER", "LOCAL_LEGAL"]
     #[serde(default, rename = "complaintType")]
@@ -5982,7 +5983,7 @@ pub struct AdPolicyTopicEvidenceLegalRemoval {
 }
 
 /// Trust & Safety (T&S) proactive enforcement for policies meant to address regional requirements. This is considered a Google-owned investigation instead of a regulation notice since it''s proactive T&S enforcement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceRegionalRequirements {
     /// List of regional requirements.
     #[serde(default, rename = "regionalRequirementsEntries")]
@@ -5992,7 +5993,7 @@ pub struct AdPolicyTopicEvidenceRegionalRequirements {
 }
 
 /// A list of fragments of text that violated the policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceTextList {
     /// The fragments of text from the resource that caused the policy finding.
     #[serde(default)]
@@ -6000,7 +6001,7 @@ pub struct AdPolicyTopicEvidenceTextList {
 }
 
 /// Trademark terms that caused a policy violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceTrademark {
     /// Countries where the policy violation is relevant.
     #[serde(default, rename = "countryRestrictions")]
@@ -6014,7 +6015,7 @@ pub struct AdPolicyTopicEvidenceTrademark {
 }
 
 /// A list of websites that violated the policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceWebsiteList {
     /// Websites that caused the policy finding.
     #[serde(default)]
@@ -6022,7 +6023,7 @@ pub struct AdPolicyTopicEvidenceWebsiteList {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -6036,7 +6037,7 @@ pub struct Date {
 }
 
 /// A chain of affiliate locations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationChain {
     /// Required. ID of the affiliate location chain.
     #[serde(default, rename = "chainId")]
@@ -6044,7 +6045,7 @@ pub struct YoutubeAssetAssociationAffiliateLocationAssetFilterAffiliateLocationC
 }
 
 /// Dimensions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dimensions {
     /// The height in pixels.
     #[serde(default, rename = "heightPixels")]
@@ -6055,7 +6056,7 @@ pub struct Dimensions {
 }
 
 /// Representation of time defined by day of the week and hour of the day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DayAndTime {
     /// Required. Day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
@@ -6069,7 +6070,7 @@ pub struct DayAndTime {
 }
 
 /// DMCA complaint details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceLegalRemovalDmca {
     /// The entity who made the legal complaint.
     #[serde(default)]
@@ -6077,7 +6078,7 @@ pub struct AdPolicyTopicEvidenceLegalRemovalDmca {
 }
 
 /// Local legal regulation details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceLegalRemovalLocalLegal {
     /// Type of law for the legal notice.
     #[serde(default, rename = "lawType")]
@@ -6085,7 +6086,7 @@ pub struct AdPolicyTopicEvidenceLegalRemovalLocalLegal {
 }
 
 /// Policy level regional legal violation details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry {
     /// The countries restricted due to the legal policy.
     #[serde(default, rename = "countryRestrictions")]
@@ -6096,7 +6097,7 @@ pub struct AdPolicyTopicEvidenceRegionalRequirementsRegionalRequirementsEntry {
 }
 
 /// Represents a country restriction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdPolicyCriterionRestriction {
     /// The country criterion id.
     #[serde(default, rename = "countryCriterionId")]

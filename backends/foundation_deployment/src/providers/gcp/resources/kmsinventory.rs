@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for KeyDashboardService.ListCryptoKeys.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsInventoryV1ListCryptoKeysResponse {
     /// The list of CryptoKeys.
     #[serde(default, rename = "cryptoKeys")]
@@ -22,7 +23,7 @@ pub struct GoogleCloudKmsInventoryV1ListCryptoKeysResponse {
 }
 
 /// Aggregate information about the resources protected by a Cloud KMS key in the same Cloud organization/project as the key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsInventoryV1ProtectedResourcesSummary {
     /// The number of resources protected by the key grouped by Cloud product.
     #[serde(default, rename = "cloudProducts")]
@@ -48,7 +49,7 @@ pub struct GoogleCloudKmsInventoryV1ProtectedResourcesSummary {
 }
 
 /// Response message for KeyTrackingService.SearchProtectedResources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -60,7 +61,7 @@ pub struct GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse {
 }
 
 /// A CryptoKey represents a logical key that can be used for cryptographic operations. A CryptoKey is made up of zero or more versions, which represent the actual key material used in cryptographic operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsV1CryptoKey {
     /// Output only. The time at which this CryptoKey was created.
     #[serde(default, rename = "createTime")]
@@ -102,7 +103,7 @@ pub struct GoogleCloudKmsV1CryptoKey {
 }
 
 /// A warning message that indicates potential problems with the response data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsInventoryV1Warning {
     /// The literal message providing context and details about the warnings.
     #[serde(default, rename = "displayMessage")]
@@ -113,7 +114,7 @@ pub struct GoogleCloudKmsInventoryV1Warning {
 }
 
 /// Metadata about a resource protected by a Cloud KMS key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsInventoryV1ProtectedResource {
     /// The Cloud product that owns the resource. Example: compute
     #[serde(default, rename = "cloudProduct")]
@@ -148,7 +149,7 @@ pub struct GoogleCloudKmsInventoryV1ProtectedResource {
 }
 
 /// A KeyAccessJustificationsPolicy specifies zero or more allowed AccessReason values for encrypt, decrypt, and sign operations on a CryptoKey or KeyAccessJustificationsPolicyConfig (the default Key Access Justifications policy).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsV1KeyAccessJustificationsPolicy {
     /// The list of allowed reasons for access to a CryptoKey. Note that empty allowed_access_reasons has a different meaning depending on where this message appears. If this is under KeyAccessJustificationsPolicyConfig, it means allow-all. If this is under CryptoKey, it means deny-all.
     #[serde(default, rename = "allowedAccessReasons")]
@@ -156,7 +157,7 @@ pub struct GoogleCloudKmsV1KeyAccessJustificationsPolicy {
 }
 
 /// A CryptoKeyVersion represents an individual cryptographic key, and the associated key material. An ENABLED version can be used for cryptographic operations. For security reasons, the raw cryptographic key material represented by a CryptoKeyVersion can never be viewed or exported. It can only be used to encrypt, decrypt, or sign data when an authorized user or application invokes Cloud KMS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsV1CryptoKeyVersion {
     /// Output only. The CryptoKeyVersionAlgorithm that this CryptoKeyVersion supports. // TODO: enum values: ["CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED", "GOOGLE_SYMMETRIC_ENCRYPTION", "AES_128_GCM", "AES_256_GCM", "AES_128_CBC", "AES_256_CBC", "AES_128_CTR", "AES_256_CTR", "RSA_SIGN_PSS_2048_SHA256", "RSA_SIGN_PSS_3072_SHA256", "RSA_SIGN_PSS_4096_SHA256", "RSA_SIGN_PSS_4096_SHA512", "RSA_SIGN_PKCS1_2048_SHA256", "RSA_SIGN_PKCS1_3072_SHA256", "RSA_SIGN_PKCS1_4096_SHA256", "RSA_SIGN_PKCS1_4096_SHA512", "RSA_SIGN_RAW_PKCS1_2048", "RSA_SIGN_RAW_PKCS1_3072", "RSA_SIGN_RAW_PKCS1_4096", "RSA_DECRYPT_OAEP_2048_SHA256", "RSA_DECRYPT_OAEP_3072_SHA256", "RSA_DECRYPT_OAEP_4096_SHA256", "RSA_DECRYPT_OAEP_4096_SHA512", "RSA_DECRYPT_OAEP_2048_SHA1", "RSA_DECRYPT_OAEP_3072_SHA1", "RSA_DECRYPT_OAEP_4096_SHA1", "EC_SIGN_P256_SHA256", "EC_SIGN_P384_SHA384", "EC_SIGN_SECP256K1_SHA256", "EC_SIGN_ED25519", "HMAC_SHA256", "HMAC_SHA1", "HMAC_SHA384", "HMAC_SHA512", "HMAC_SHA224", "EXTERNAL_SYMMETRIC_ENCRYPTION", "ML_KEM_768", "ML_KEM_1024", "KEM_XWING", "PQ_SIGN_ML_DSA_44", "PQ_SIGN_ML_DSA_65", "PQ_SIGN_ML_DSA_87", "PQ_SIGN_SLH_DSA_SHA2_128S", "PQ_SIGN_HASH_SLH_DSA_SHA2_128S_SHA256", "PQ_SIGN_ML_DSA_44_EXTERNAL_MU", "PQ_SIGN_ML_DSA_65_EXTERNAL_MU", "PQ_SIGN_ML_DSA_87_EXTERNAL_MU"]
     #[serde(default)]
@@ -210,7 +211,7 @@ pub struct GoogleCloudKmsV1CryptoKeyVersion {
 }
 
 /// A CryptoKeyVersionTemplate specifies the properties to use when creating a new CryptoKeyVersion, either manually with CreateCryptoKeyVersion or automatically as a result of auto-rotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsV1CryptoKeyVersionTemplate {
     /// Required. Algorithm to use when creating a CryptoKeyVersion based on this template. For backwards compatibility, GOOGLE_SYMMETRIC_ENCRYPTION is implied if both this field is omitted and CryptoKey.purpose is ENCRYPT_DECRYPT. // TODO: enum values: ["CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED", "GOOGLE_SYMMETRIC_ENCRYPTION", "AES_128_GCM", "AES_256_GCM", "AES_128_CBC", "AES_256_CBC", "AES_128_CTR", "AES_256_CTR", "RSA_SIGN_PSS_2048_SHA256", "RSA_SIGN_PSS_3072_SHA256", "RSA_SIGN_PSS_4096_SHA256", "RSA_SIGN_PSS_4096_SHA512", "RSA_SIGN_PKCS1_2048_SHA256", "RSA_SIGN_PKCS1_3072_SHA256", "RSA_SIGN_PKCS1_4096_SHA256", "RSA_SIGN_PKCS1_4096_SHA512", "RSA_SIGN_RAW_PKCS1_2048", "RSA_SIGN_RAW_PKCS1_3072", "RSA_SIGN_RAW_PKCS1_4096", "RSA_DECRYPT_OAEP_2048_SHA256", "RSA_DECRYPT_OAEP_3072_SHA256", "RSA_DECRYPT_OAEP_4096_SHA256", "RSA_DECRYPT_OAEP_4096_SHA512", "RSA_DECRYPT_OAEP_2048_SHA1", "RSA_DECRYPT_OAEP_3072_SHA1", "RSA_DECRYPT_OAEP_4096_SHA1", "EC_SIGN_P256_SHA256", "EC_SIGN_P384_SHA384", "EC_SIGN_SECP256K1_SHA256", "EC_SIGN_ED25519", "HMAC_SHA256", "HMAC_SHA1", "HMAC_SHA384", "HMAC_SHA512", "HMAC_SHA224", "EXTERNAL_SYMMETRIC_ENCRYPTION", "ML_KEM_768", "ML_KEM_1024", "KEM_XWING", "PQ_SIGN_ML_DSA_44", "PQ_SIGN_ML_DSA_65", "PQ_SIGN_ML_DSA_87", "PQ_SIGN_SLH_DSA_SHA2_128S", "PQ_SIGN_HASH_SLH_DSA_SHA2_128S_SHA256", "PQ_SIGN_ML_DSA_44_EXTERNAL_MU", "PQ_SIGN_ML_DSA_65_EXTERNAL_MU", "PQ_SIGN_ML_DSA_87_EXTERNAL_MU"]
     #[serde(default)]
@@ -221,7 +222,7 @@ pub struct GoogleCloudKmsV1CryptoKeyVersionTemplate {
 }
 
 /// Contains an HSM-generated attestation about a key operation. For more information, see [Verifying attestations] (https://cloud.google.com/kms/docs/attest-key).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsV1KeyOperationAttestation {
     /// Output only. The certificate chains needed to validate the attestation
     #[serde(default, rename = "certChains")]
@@ -236,7 +237,7 @@ pub struct GoogleCloudKmsV1KeyOperationAttestation {
 }
 
 /// ExternalProtectionLevelOptions stores a group of additional fields for configuring a CryptoKeyVersion that are specific to the EXTERNAL protection level and EXTERNAL_VPC protection levels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsV1ExternalProtectionLevelOptions {
     /// The path to the external key material on the EKM when using EkmConnection e.g., "v0/my/key". Set this field instead of external_key_uri when using an EkmConnection.
     #[serde(default, rename = "ekmConnectionKeyPath")]
@@ -247,7 +248,7 @@ pub struct GoogleCloudKmsV1ExternalProtectionLevelOptions {
 }
 
 /// Certificate chains needed to verify the attestation. Certificates in chains are PEM-encoded and are ordered based on https://tools.ietf.org/html/rfc5246#section-7.4.2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudKmsV1KeyOperationAttestationCertificateChains {
     /// Cavium certificate chain corresponding to the attestation.
     #[serde(default, rename = "caviumCerts")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Payload for grade update requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddOnAttachmentStudentSubmission {
     /// Student grade on this attachment. If unset, no grade was set.
     #[serde(default, rename = "pointsEarned")]
@@ -25,7 +26,7 @@ pub struct AddOnAttachmentStudentSubmission {
 }
 
 /// Attachment-relevant metadata for Classroom add-ons in the context of a specific post.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddOnContext {
     /// Immutable. Identifier of the course.
     #[serde(default, rename = "courseId")]
@@ -48,11 +49,11 @@ pub struct AddOnContext {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Grading period settings that include all the individual grading periods in a course.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GradingPeriodSettings {
     /// Supports toggling the application of grading periods on existing stream items. Once set, this value is persisted meaning that it does not need to be set in every request to update GradingPeriodSettings. If not previously set, the default is False.
     #[serde(default, rename = "applyToExistingCoursework")]
@@ -63,7 +64,7 @@ pub struct GradingPeriodSettings {
 }
 
 /// Response when listing add-on attachments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAddOnAttachmentsResponse {
     /// Attachments under the given post.
     #[serde(default, rename = "addOnAttachments")]
@@ -74,7 +75,7 @@ pub struct ListAddOnAttachmentsResponse {
 }
 
 /// Response when listing course work.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAnnouncementsResponse {
     /// Announcement items that match the request.
     #[serde(default)]
@@ -85,7 +86,7 @@ pub struct ListAnnouncementsResponse {
 }
 
 /// Response when listing course aliases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCourseAliasesResponse {
     /// The course aliases.
     #[serde(default)]
@@ -96,7 +97,7 @@ pub struct ListCourseAliasesResponse {
 }
 
 /// Response when listing course work material.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCourseWorkMaterialResponse {
     /// Course work material items that match the request.
     #[serde(default, rename = "courseWorkMaterial")]
@@ -107,7 +108,7 @@ pub struct ListCourseWorkMaterialResponse {
 }
 
 /// Response when listing course work.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCourseWorkResponse {
     /// Course work items that match the request.
     #[serde(default, rename = "courseWork")]
@@ -118,7 +119,7 @@ pub struct ListCourseWorkResponse {
 }
 
 /// Response when listing courses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCoursesResponse {
     /// Courses that match the list request.
     #[serde(default)]
@@ -129,7 +130,7 @@ pub struct ListCoursesResponse {
 }
 
 /// Response when listing guardian invitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGuardianInvitationsResponse {
     /// Guardian invitations that matched the list request.
     #[serde(default, rename = "guardianInvitations")]
@@ -140,7 +141,7 @@ pub struct ListGuardianInvitationsResponse {
 }
 
 /// Response when listing guardians.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGuardiansResponse {
     /// Guardians on this page of results that met the criteria specified in the request.
     #[serde(default)]
@@ -151,7 +152,7 @@ pub struct ListGuardiansResponse {
 }
 
 /// Response when listing invitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInvitationsResponse {
     /// Invitations that match the list request.
     #[serde(default)]
@@ -162,7 +163,7 @@ pub struct ListInvitationsResponse {
 }
 
 /// Response when listing rubrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRubricsResponse {
     /// Token identifying the next page of results to return. If empty, no further results are available.
     #[serde(default, rename = "nextPageToken")]
@@ -173,7 +174,7 @@ pub struct ListRubricsResponse {
 }
 
 /// Response when listing students in a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListStudentGroupMembersResponse {
     /// Token identifying the next page of results to return. If empty, no further results are available.
     #[serde(default, rename = "nextPageToken")]
@@ -184,7 +185,7 @@ pub struct ListStudentGroupMembersResponse {
 }
 
 /// Response when listing student groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListStudentGroupsResponse {
     /// Token identifying the next page of results to return. If empty, no further results are available.
     #[serde(default, rename = "nextPageToken")]
@@ -195,7 +196,7 @@ pub struct ListStudentGroupsResponse {
 }
 
 /// Response when listing student submissions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListStudentSubmissionsResponse {
     /// Token identifying the next page of results to return. If empty, no further results are available.
     #[serde(default, rename = "nextPageToken")]
@@ -206,7 +207,7 @@ pub struct ListStudentSubmissionsResponse {
 }
 
 /// Response when listing students.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListStudentsResponse {
     /// Token identifying the next page of results to return. If empty, no further results are available.
     #[serde(default, rename = "nextPageToken")]
@@ -217,7 +218,7 @@ pub struct ListStudentsResponse {
 }
 
 /// Response when listing teachers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTeachersResponse {
     /// Token identifying the next page of results to return. If empty, no further results are available.
     #[serde(default, rename = "nextPageToken")]
@@ -228,7 +229,7 @@ pub struct ListTeachersResponse {
 }
 
 /// Response when listing topics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTopicResponse {
     /// Token identifying the next page of results to return. If empty, no further results are available.
     #[serde(default, rename = "nextPageToken")]
@@ -239,7 +240,7 @@ pub struct ListTopicResponse {
 }
 
 /// Request to modify assignee mode and options of an announcement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyAnnouncementAssigneesRequest {
     /// Mode of the announcement describing whether it is accessible by all students or specified individual students. // TODO: enum values: ["ASSIGNEE_MODE_UNSPECIFIED", "ALL_STUDENTS", "INDIVIDUAL_STUDENTS"]
     #[serde(default, rename = "assigneeMode")]
@@ -250,7 +251,7 @@ pub struct ModifyAnnouncementAssigneesRequest {
 }
 
 /// Request to modify the attachments of a student submission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyAttachmentsRequest {
     /// Attachments to add. A student submission may not have more than 20 attachments. Form attachments are not supported.
     #[serde(default, rename = "addAttachments")]
@@ -258,7 +259,7 @@ pub struct ModifyAttachmentsRequest {
 }
 
 /// Request to modify assignee mode and options of a coursework.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyCourseWorkAssigneesRequest {
     /// Mode of the coursework describing whether it will be assigned to all students or specified individual students. // TODO: enum values: ["ASSIGNEE_MODE_UNSPECIFIED", "ALL_STUDENTS", "INDIVIDUAL_STUDENTS"]
     #[serde(default, rename = "assigneeMode")]
@@ -269,11 +270,11 @@ pub struct ModifyCourseWorkAssigneesRequest {
 }
 
 /// Request to reclaim a student submission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReclaimStudentSubmissionRequest {}
 
 /// An instruction to Classroom to send notifications from the feed to the provided destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Registration {
     /// The Cloud Pub/Sub topic that notifications are to be sent to.
     #[serde(default, rename = "cloudPubsubTopic")]
@@ -290,11 +291,11 @@ pub struct Registration {
 }
 
 /// Request to return a student submission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReturnStudentSubmissionRequest {}
 
 /// A rubric grade set for the student submission. There is at most one entry per rubric criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RubricGrade {
     /// Optional. Criterion ID.
     #[serde(default, rename = "criterionId")]
@@ -308,15 +309,15 @@ pub struct RubricGrade {
 }
 
 /// Role-specific context if the requesting user is a teacher.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeacherContext {}
 
 /// Request to turn in a student submission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TurnInStudentSubmissionRequest {}
 
 /// Role-specific context if the requesting user is a student.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StudentContext {
     /// Requesting user''s submission id to be used for grade passback and to identify the student when showing student work to the teacher. This is set exactly when supportsStudentWork is true.
     #[serde(default, rename = "submissionId")]
@@ -324,7 +325,7 @@ pub struct StudentContext {
 }
 
 /// An individual grading period. Grading periods must not have overlapping date ranges and must be listed in chronological order. For example, if the end_date of a grading period is 2024-01-25, then the start_date of the next grading period must be 2024-01-26 or later. Each grading period must have a unique title within a course.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GradingPeriod {
     /// Required. End date, in UTC, of the grading period. Inclusive.
     #[serde(default, rename = "endDate")]
@@ -341,7 +342,7 @@ pub struct GradingPeriod {
 }
 
 /// An add-on attachment on a post.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddOnAttachment {
     /// Output only. Identifiers of attachments that were previous copies of this attachment. If the attachment was previously copied by virtue of its parent post being copied, this enumerates the identifiers of attachments that were its previous copies in ascending chronological order of copy.
     #[serde(default, rename = "copyHistory")]
@@ -382,7 +383,7 @@ pub struct AddOnAttachment {
 }
 
 /// Announcement created by a teacher for students of the course
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Announcement {
     /// Absolute link to this announcement in the Classroom web UI. This is only populated if state is PUBLISHED. Read-only.
     #[serde(default, rename = "alternateLink")]
@@ -423,7 +424,7 @@ pub struct Announcement {
 }
 
 /// Alternative identifier for a course. An alias uniquely identifies a course. It must be unique within one of the following scopes: * domain: A domain-scoped alias is visible to all users within the alias creator''s domain and can be created only by a domain admin. A domain-scoped alias is often used when a course has an identifier external to Classroom. * project: A project-scoped alias is visible to any request from an application using the Developer Console project ID that created the alias and can be created by any project. A project-scoped alias is often used when an application has alternative identifiers. A random value can also be used to avoid duplicate courses in the event of transmission failures, as retrying a request will return ALREADY_EXISTS if a previous one has succeeded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CourseAlias {
     /// Alias string. The format of the string indicates the desired alias scoping. * d: indicates a domain-scoped alias. Example: d:math_101 * p: indicates a project-scoped alias. Example: p:abc123 This field has a maximum length of 256 characters.
     #[serde(default)]
@@ -431,7 +432,7 @@ pub struct CourseAlias {
 }
 
 /// Course work material created by a teacher for students of the course
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CourseWorkMaterial {
     /// Absolute link to this course work material in the Classroom web UI. This is only populated if state is PUBLISHED. Read-only.
     #[serde(default, rename = "alternateLink")]
@@ -478,7 +479,7 @@ pub struct CourseWorkMaterial {
 }
 
 /// Course work created by a teacher for students of the course.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CourseWork {
     /// Absolute link to this course work in the Classroom web UI. This is only populated if state is PUBLISHED. Read-only.
     #[serde(default, rename = "alternateLink")]
@@ -555,7 +556,7 @@ pub struct CourseWork {
 }
 
 /// A Course in Classroom.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Course {
     /// Absolute link to this course in the Classroom web UI. Read-only.
     #[serde(default, rename = "alternateLink")]
@@ -620,7 +621,7 @@ pub struct Course {
 }
 
 /// An invitation to become the guardian of a specified user, sent to a specified email address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuardianInvitation {
     /// The time that this invitation was created. Read-only.
     #[serde(default, rename = "creationTime")]
@@ -640,7 +641,7 @@ pub struct GuardianInvitation {
 }
 
 /// Association between a student and a guardian of that student. The guardian may receive information about the student''s course work.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Guardian {
     /// Identifier for the guardian.
     #[serde(default, rename = "guardianId")]
@@ -657,7 +658,7 @@ pub struct Guardian {
 }
 
 /// An invitation to join a course.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Invitation {
     /// Identifier of the course to invite the user to.
     #[serde(default, rename = "courseId")]
@@ -674,7 +675,7 @@ pub struct Invitation {
 }
 
 /// The rubric of the course work. A rubric is a scoring guide used to evaluate student work and give feedback. For further details, see [Rubrics structure and known limitations](/classroom/rubrics/limitations).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Rubric {
     /// Identifier of the course. Read-only.
     #[serde(default, rename = "courseId")]
@@ -700,7 +701,7 @@ pub struct Rubric {
 }
 
 /// A student member in a student group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StudentGroupMember {
     /// The identifier of the course.
     #[serde(default, rename = "courseId")]
@@ -714,7 +715,7 @@ pub struct StudentGroupMember {
 }
 
 /// A student group in a course.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StudentGroup {
     /// The identifier of the course.
     #[serde(default, rename = "courseId")]
@@ -728,7 +729,7 @@ pub struct StudentGroup {
 }
 
 /// Student submission for course work. StudentSubmission items are generated when a CourseWork item is created. Student submissions that have never been accessed (i.e. with state = NEW) may not have a creation time or update time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StudentSubmission {
     /// Absolute link to the submission in the Classroom web UI. Read-only.
     #[serde(default, rename = "alternateLink")]
@@ -790,7 +791,7 @@ pub struct StudentSubmission {
 }
 
 /// Student in a course.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Student {
     /// Identifier of the course. Read-only.
     #[serde(default, rename = "courseId")]
@@ -807,7 +808,7 @@ pub struct Student {
 }
 
 /// Teacher of a course.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Teacher {
     /// Identifier of the course. Read-only.
     #[serde(default, rename = "courseId")]
@@ -821,7 +822,7 @@ pub struct Teacher {
 }
 
 /// Topic created by a teacher for the course
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Topic {
     /// Identifier of the course. Read-only.
     #[serde(default, rename = "courseId")]
@@ -838,7 +839,7 @@ pub struct Topic {
 }
 
 /// Contains fields to add or remove students from a course work or announcement where the assigneeMode is set to INDIVIDUAL_STUDENTS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyIndividualStudentsOptions {
     /// IDs of students to be added as having access to this coursework/announcement.
     #[serde(default, rename = "addStudentIds")]
@@ -849,7 +850,7 @@ pub struct ModifyIndividualStudentsOptions {
 }
 
 /// A reference to a Cloud Pub/Sub topic. To register for notifications, the owner of the topic must grant classroom-notifications@system.gserviceaccount.com the projects.topics.publish permission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudPubsubTopic {
     /// The name field of a Cloud Pub/Sub [Topic](https://cloud.google.com/pubsub/docs/reference/rest/v1/projects.topics#Topic).
     #[serde(default, rename = "topicName")]
@@ -857,7 +858,7 @@ pub struct CloudPubsubTopic {
 }
 
 /// A class of notifications that an application can register to receive. For example: "all roster changes for a domain".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Feed {
     /// Information about a Feed with a feed_type of COURSE_ROSTER_CHANGES. This field must be specified if feed_type is COURSE_ROSTER_CHANGES.
     #[serde(default, rename = "courseRosterChangesInfo")]
@@ -871,7 +872,7 @@ pub struct Feed {
 }
 
 /// Identifier of a previous copy of a given attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CopyHistory {
     /// Immutable. Identifier of the attachment.
     #[serde(default, rename = "attachmentId")]
@@ -888,7 +889,7 @@ pub struct CopyHistory {
 }
 
 /// URI to be iframed after being populated with query parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmbedUri {
     /// Required. URI to be iframed after being populated with query parameters. This must be a valid UTF-8 string containing between 1 and 1800 characters.
     #[serde(default)]
@@ -896,7 +897,7 @@ pub struct EmbedUri {
 }
 
 /// Additional details for assignments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Assignment {
     /// Drive folder where attachments from student submissions are placed. This is only populated for course teachers and administrators.
     #[serde(default, rename = "studentWorkFolder")]
@@ -904,7 +905,7 @@ pub struct Assignment {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -918,7 +919,7 @@ pub struct Date {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -935,7 +936,7 @@ pub struct TimeOfDay {
 }
 
 /// Assignee details about a coursework/announcement. This field is set if and only if assigneeMode is INDIVIDUAL_STUDENTS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IndividualStudentsOptions {
     /// Identifiers for the students that have access to the coursework/announcement.
     #[serde(default, rename = "studentIds")]
@@ -943,7 +944,7 @@ pub struct IndividualStudentsOptions {
 }
 
 /// Material attached to course work. When creating attachments, setting the form, gem, or notebook field is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Material {
     /// Google Drive file material.
     #[serde(default, rename = "driveFile")]
@@ -966,7 +967,7 @@ pub struct Material {
 }
 
 /// Additional details for multiple-choice questions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultipleChoiceQuestion {
     /// Possible choices.
     #[serde(default)]
@@ -974,7 +975,7 @@ pub struct MultipleChoiceQuestion {
 }
 
 /// A set of materials that appears on the "About" page of the course. These materials might include a syllabus, schedule, or other background information relating to the course as a whole.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CourseMaterialSet {
     /// Materials attached to this set.
     #[serde(default)]
@@ -985,7 +986,7 @@ pub struct CourseMaterialSet {
 }
 
 /// The gradebook settings for a course. See the [help center article](https://support.google.com/edu/classroom/answer/9184995) for details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GradebookSettings {
     /// Indicates how the overall grade is calculated. // TODO: enum values: ["CALCULATION_TYPE_UNSPECIFIED", "TOTAL_POINTS", "WEIGHTED_CATEGORIES"]
     #[serde(default, rename = "calculationType")]
@@ -999,7 +1000,7 @@ pub struct GradebookSettings {
 }
 
 /// A rubric criterion. Each criterion is a dimension on which performance is rated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Criterion {
     /// The description of the criterion.
     #[serde(default)]
@@ -1016,7 +1017,7 @@ pub struct Criterion {
 }
 
 /// Student work for an assignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssignmentSubmission {
     /// Attachments added by the student. Drive files that correspond to materials with a share mode of STUDENT_COPY may not exist yet if the student has not accessed the assignment in Classroom. Some attachment metadata is only populated if the requesting user has permission to access it. Identifier and alternate_link fields are always available, but others (for example, title) may not be.
     #[serde(default)]
@@ -1024,7 +1025,7 @@ pub struct AssignmentSubmission {
 }
 
 /// Student work for a multiple-choice question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultipleChoiceSubmission {
     /// Student''s select choice.
     #[serde(default)]
@@ -1032,7 +1033,7 @@ pub struct MultipleChoiceSubmission {
 }
 
 /// Student work for a short answer question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShortAnswerSubmission {
     /// Student response to a short-answer question.
     #[serde(default)]
@@ -1040,7 +1041,7 @@ pub struct ShortAnswerSubmission {
 }
 
 /// The history of the submission. This currently includes state and grade histories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubmissionHistory {
     /// The grade history information of the submission, if present.
     #[serde(default, rename = "gradeHistory")]
@@ -1051,7 +1052,7 @@ pub struct SubmissionHistory {
 }
 
 /// Global information for a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserProfile {
     /// Email address of the user. Must request https://www.googleapis.com/auth/classroom.profile.emails scope for this field to be populated in a response body. Read-only.
     #[serde(default, rename = "emailAddress")]
@@ -1074,7 +1075,7 @@ pub struct UserProfile {
 }
 
 /// Information about a Feed with a feed_type of COURSE_ROSTER_CHANGES.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CourseRosterChangesInfo {
     /// The course_id of the course to subscribe to roster changes for.
     #[serde(default, rename = "courseId")]
@@ -1082,7 +1083,7 @@ pub struct CourseRosterChangesInfo {
 }
 
 /// Information about a Feed with a feed_type of COURSE_WORK_CHANGES.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CourseWorkChangesInfo {
     /// The course_id of the course to subscribe to work changes for.
     #[serde(default, rename = "courseId")]
@@ -1090,7 +1091,7 @@ pub struct CourseWorkChangesInfo {
 }
 
 /// Representation of a Google Drive folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveFolder {
     /// URL that can be used to access the Drive folder. Read-only.
     #[serde(default, rename = "alternateLink")]
@@ -1104,7 +1105,7 @@ pub struct DriveFolder {
 }
 
 /// Drive file that is used as material for course work.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SharedDriveFile {
     /// Drive file details.
     #[serde(default, rename = "driveFile")]
@@ -1115,7 +1116,7 @@ pub struct SharedDriveFile {
 }
 
 /// Gemini Gem link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeminiGem {
     /// Gems resource id.
     #[serde(default)]
@@ -1129,7 +1130,7 @@ pub struct GeminiGem {
 }
 
 /// NotebookLM Notebook link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotebookLmNotebook {
     /// Notebook resource id.
     #[serde(default)]
@@ -1143,7 +1144,7 @@ pub struct NotebookLmNotebook {
 }
 
 /// A material attached to a course as part of a material set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CourseMaterial {
     /// Google Drive file attachment.
     #[serde(default, rename = "driveFile")]
@@ -1160,7 +1161,7 @@ pub struct CourseMaterial {
 }
 
 /// Details for a grade category in a course. Coursework may have zero or one grade category, and the category may be used in computing the overall grade. See the [help center article](https://support.google.com/edu/classroom/answer/9184995) for details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GradeCategory {
     /// Default value of denominator. Only applicable when grade calculation type is TOTAL_POINTS.
     #[serde(default, rename = "defaultGradeDenominator")]
@@ -1177,7 +1178,7 @@ pub struct GradeCategory {
 }
 
 /// A level of the criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Level {
     /// The description of the level.
     #[serde(default)]
@@ -1194,7 +1195,7 @@ pub struct Level {
 }
 
 /// Attachment added to student assignment work. When creating attachments, setting the form field is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attachment {
     /// Google Drive file attachment.
     #[serde(default, rename = "driveFile")]
@@ -1211,7 +1212,7 @@ pub struct Attachment {
 }
 
 /// The history of each grade on this submission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GradeHistory {
     /// The teacher who made the grade change.
     #[serde(default, rename = "actorUserId")]
@@ -1231,7 +1232,7 @@ pub struct GradeHistory {
 }
 
 /// The history of each state this submission has been in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StateHistory {
     /// The teacher or student who made the change.
     #[serde(default, rename = "actorUserId")]
@@ -1245,7 +1246,7 @@ pub struct StateHistory {
 }
 
 /// Details of the user''s name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Name {
     /// The user''s last name. Read-only.
     #[serde(default, rename = "familyName")]
@@ -1259,7 +1260,7 @@ pub struct Name {
 }
 
 /// Global user permission description.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlobalPermission {
     /// Permission value. // TODO: enum values: ["PERMISSION_UNSPECIFIED", "CREATE_COURSE"]
     #[serde(default)]
@@ -1267,7 +1268,7 @@ pub struct GlobalPermission {
 }
 
 /// Representation of a Google Drive file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveFile {
     /// URL that can be used to access the Drive item. Read-only.
     #[serde(default, rename = "alternateLink")]
@@ -1284,7 +1285,7 @@ pub struct DriveFile {
 }
 
 /// Google Forms item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Form {
     /// URL of the form.
     #[serde(default, rename = "formUrl")]
@@ -1301,7 +1302,7 @@ pub struct Form {
 }
 
 /// URL item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Link {
     /// URL of a thumbnail image of the target URL. Read-only.
     #[serde(default, rename = "thumbnailUrl")]
@@ -1315,7 +1316,7 @@ pub struct Link {
 }
 
 /// YouTube video item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YouTubeVideo {
     /// URL that can be used to view the YouTube video. Read-only.
     #[serde(default, rename = "alternateLink")]

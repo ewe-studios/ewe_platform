@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Additional details for an ANR crash.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ANR {
     /// The stack trace of the ANR crash. Optional.
     #[serde(default, rename = "stackTrace")]
@@ -19,19 +20,19 @@ pub struct ANR {
 }
 
 /// Test Loops are tests that can be launched by the app itself, determining when to run by listening for an intent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidTestLoop {}
 
 /// There was an issue with the assets in this test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetIssue {}
 
 /// A suggestion to use deep links for a Robo run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AvailableDeepLinks {}
 
 /// The request must provide up to a maximum of 5000 samples to be created; a larger sample size will cause an INVALID_ARGUMENT error
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreatePerfSamplesRequest {
     /// The set of PerfSamples to create should not include existing timestamps
     #[serde(default, rename = "perfSamples")]
@@ -39,14 +40,14 @@ pub struct BatchCreatePerfSamplesRequest {
 }
 
 /// BatchCreatePerfSamplesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreatePerfSamplesResponse {
     #[serde(default, rename = "perfSamples")]
     pub perf_samples: ::core::option::Option<::std::vec::Vec<PerfSample>>,
 }
 
 /// A warning that Robo encountered a screen that was mostly blank; this may indicate a problem with the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlankScreen {
     /// The screen id of the element
     #[serde(default, rename = "screenId")]
@@ -54,7 +55,7 @@ pub struct BlankScreen {
 }
 
 /// Crash dialog was detected during the test execution
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrashDialogError {
     /// The name of the package that caused the dialog.
     #[serde(default, rename = "crashPackage")]
@@ -62,15 +63,15 @@ pub struct CrashDialogError {
 }
 
 /// A notification that Robo detected a splash screen provided by app (vs. Android OS splash screen).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetectedAppSplashScreen {}
 
 /// A warning that device ran out of memory
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceOutOfMemory {}
 
 /// Additional details about encountered login screens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncounteredLoginScreen {
     /// Number of encountered distinct login screens.
     #[serde(default, rename = "distinctScreens")]
@@ -81,7 +82,7 @@ pub struct EncounteredLoginScreen {
 }
 
 /// Additional details about encountered screens with elements that are not Android UI widgets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncounteredNonAndroidUiWidgetScreen {
     /// Number of encountered distinct screens with non Android UI widgets.
     #[serde(default, rename = "distinctScreens")]
@@ -92,11 +93,11 @@ pub struct EncounteredNonAndroidUiWidgetScreen {
 }
 
 /// Failed to install the App.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FailedToInstall {}
 
 /// Additional details for a fatal exception.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FatalException {
     /// The stack trace of the fatal exception. Optional.
     #[serde(default, rename = "stackTrace")]
@@ -104,7 +105,7 @@ pub struct FatalException {
 }
 
 /// Additional details of in-app purchases encountered during the crawl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InAppPurchasesFound {
     /// The total number of in-app purchases flows explored: how many times the robo tries to buy a SKU.
     #[serde(default, rename = "inAppPurchasesFlowsExplored")]
@@ -115,11 +116,11 @@ pub struct InAppPurchasesFound {
 }
 
 /// A warning that Robo did not crawl potentially important parts of the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsufficientCoverage {}
 
 /// Additional details for an iOS app crash.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosAppCrashed {
     /// The stack trace, if one is available. Optional.
     #[serde(default, rename = "stackTrace")]
@@ -127,15 +128,15 @@ pub struct IosAppCrashed {
 }
 
 /// A Robo test for an iOS application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosRoboTest {}
 
 /// Failed to find the launcher activity of an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LauncherActivityNotFound {}
 
 /// Response message for EnvironmentService.ListEnvironments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEnvironmentsResponse {
     /// Environments. Always set.
     #[serde(default)]
@@ -155,7 +156,7 @@ pub struct ListEnvironmentsResponse {
 }
 
 /// ListExecutionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExecutionsResponse {
     /// Executions. Always set.
     #[serde(default)]
@@ -166,7 +167,7 @@ pub struct ListExecutionsResponse {
 }
 
 /// Response message for HistoryService.List
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHistoriesResponse {
     /// Histories.
     #[serde(default)]
@@ -177,7 +178,7 @@ pub struct ListHistoriesResponse {
 }
 
 /// ListPerfSampleSeriesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPerfSampleSeriesResponse {
     /// The resulting PerfSampleSeries sorted by id
     #[serde(default, rename = "perfSampleSeries")]
@@ -185,7 +186,7 @@ pub struct ListPerfSampleSeriesResponse {
 }
 
 /// ListPerfSamplesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPerfSamplesResponse {
     /// Optional, returned if result size exceeds the page size specified in the request (or the default page size, 500, if unspecified). It indicates the last sample timestamp to be used as page_token in subsequent request
     #[serde(default, rename = "nextPageToken")]
@@ -195,7 +196,7 @@ pub struct ListPerfSamplesResponse {
 }
 
 /// ListScreenshotClustersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListScreenshotClustersResponse {
     /// The set of clusters associated with an execution Always set
     #[serde(default)]
@@ -203,7 +204,7 @@ pub struct ListScreenshotClustersResponse {
 }
 
 /// Response message for AccessibilityService.ListStepAccessibilityClusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListStepAccessibilityClustersResponse {
     /// A sequence of accessibility suggestions, grouped into clusters. Within the sequence, clusters that belong to the same SuggestionCategory should be adjacent. Within each category, clusters should be ordered by their SuggestionPriority (ERRORs first). The categories should be ordered by their highest priority cluster.
     #[serde(default)]
@@ -214,7 +215,7 @@ pub struct ListStepAccessibilityClustersResponse {
 }
 
 /// A response containing the thumbnails in a step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListStepThumbnailsResponse {
     /// A continuation token to resume the query at the next item. If set, indicates that there are more thumbnails to read, by calling list again with this value in the page_token field.
     #[serde(default, rename = "nextPageToken")]
@@ -225,7 +226,7 @@ pub struct ListStepThumbnailsResponse {
 }
 
 /// Response message for StepService.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListStepsResponse {
     /// A continuation token to resume the query at the next item. If set, indicates that there are more steps to read, by calling list again with this value in the page_token field.
     #[serde(default, rename = "nextPageToken")]
@@ -236,7 +237,7 @@ pub struct ListStepsResponse {
 }
 
 /// Response message for StepService.ListTestCases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTestCasesResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
@@ -246,15 +247,15 @@ pub struct ListTestCasesResponse {
 }
 
 /// A warning that there were issues in logcat collection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogcatCollectionError {}
 
 /// One dimension of the matrix of different runs of a step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MatrixDimensionDefinition {}
 
 /// Additional details for a native crash.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NativeCrash {
     /// The stack trace of the native crash. Optional.
     #[serde(default, rename = "stackTrace")]
@@ -262,7 +263,7 @@ pub struct NativeCrash {
 }
 
 /// Additional details for a non-sdk API usage violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NonSdkApiUsageViolation {
     /// Signatures of a subset of those hidden API''s.
     #[serde(default, rename = "apiSignatures")]
@@ -273,7 +274,7 @@ pub struct NonSdkApiUsageViolation {
 }
 
 /// Contains a summary and examples of non-sdk API usage violations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NonSdkApiUsageViolationReport {
     /// Examples of the detected API usages.
     #[serde(default, rename = "exampleApis")]
@@ -290,7 +291,7 @@ pub struct NonSdkApiUsageViolationReport {
 }
 
 /// A warning that Robo encountered a screen that has overlapping clickable elements; this may indicate a potential UI issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OverlappingUIElements {
     /// Resource names of the overlapping screen elements
     #[serde(default, rename = "resourceName")]
@@ -301,7 +302,7 @@ pub struct OverlappingUIElements {
 }
 
 /// A summary of perf metrics collected and performance environment info
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerfMetricsSummary {
     #[serde(default, rename = "appStartTime")]
     pub app_start_time: ::core::option::Option<AppStartTime>,
@@ -329,11 +330,11 @@ pub struct PerfMetricsSummary {
 }
 
 /// A notification that Robo signed in with Google.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerformedGoogleLogin {}
 
 /// A notification that Robo performed some monkey actions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerformedMonkeyActions {
     /// The total number of monkey actions performed during the crawl.
     #[serde(default, rename = "totalActions")]
@@ -341,7 +342,7 @@ pub struct PerformedMonkeyActions {
 }
 
 /// Per-project settings for the Tool Results service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectSettings {
     /// The name of the Google Cloud Storage bucket to which results are written. By default, this is unset. In update request: optional In response: optional
     #[serde(default, rename = "defaultBucket")]
@@ -352,7 +353,7 @@ pub struct ProjectSettings {
 }
 
 /// Request message for StepService.PublishXunitXmlFiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublishXunitXmlFilesRequest {
     /// URI of the Xunit XML files to publish. The maximum size of the file this reference is pointing to is 50MB. Required.
     #[serde(default, rename = "xunitXmlFiles")]
@@ -360,7 +361,7 @@ pub struct PublishXunitXmlFilesRequest {
 }
 
 /// Execution stats for a user-provided Robo script.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoboScriptExecution {
     /// The number of Robo script actions executed successfully.
     #[serde(default, rename = "successfulActions")]
@@ -371,7 +372,7 @@ pub struct RoboScriptExecution {
 }
 
 /// User provided intent failed to resolve to an activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartActivityNotFound {
     #[serde(default)]
     pub action: ::core::option::Option<String>,
@@ -380,11 +381,11 @@ pub struct StartActivityNotFound {
 }
 
 /// Lightweight summary of a step within this execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StepSummary {}
 
 /// A warning that the screen hierarchy is deeper than the recommended threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UIElementTooDeep {
     /// The depth of the screen element
     #[serde(default)]
@@ -398,11 +399,11 @@ pub struct UIElementTooDeep {
 }
 
 /// Default unspecified warning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnspecifiedWarning {}
 
 /// Additional details of an unused robodirective.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnusedRoboDirective {
     /// The name of the resource that was unused.
     #[serde(default, rename = "resourceName")]
@@ -410,7 +411,7 @@ pub struct UnusedRoboDirective {
 }
 
 /// Additional details of a used Robo directive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsedRoboDirective {
     /// The name of the resource that was used.
     #[serde(default, rename = "resourceName")]
@@ -418,7 +419,7 @@ pub struct UsedRoboDirective {
 }
 
 /// Additional details of a used Robo directive with an ignore action. Note: This is a different scenario than unused directive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsedRoboIgnoreDirective {
     /// The name of the resource that was ignored.
     #[serde(default, rename = "resourceName")]
@@ -426,7 +427,7 @@ pub struct UsedRoboIgnoreDirective {
 }
 
 /// An Environment represents the set of test runs (Steps) from the parent Execution that are configured with the same set of dimensions (Model, Version, Locale, and Orientation). Multiple such runs occur particularly because of features like sharding (splitting up a test suite to run in parallel across devices) and reruns (running a test multiple times to check for different outcomes).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Environment {
     /// Output only. The time when the Environment status was set to complete. This value will be set automatically when state transitions to COMPLETE.
     #[serde(default, rename = "completionTime")]
@@ -464,7 +465,7 @@ pub struct Environment {
 }
 
 /// An Execution represents a collection of Steps. For instance, it could represent: - a mobile test executed across a range of device configurations - a jenkins job with a build step followed by a test step The maximum size of an execution message is 1 MiB. An Execution can be updated until its state is set to COMPLETE at which point it becomes immutable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Execution {
     /// The time when the Execution status transitioned to COMPLETE. This value will be set automatically when state transitions to COMPLETE. - In response: set if the execution state is COMPLETE. - In create/update request: never set
     #[serde(default, rename = "completionTime")]
@@ -493,7 +494,7 @@ pub struct Execution {
 }
 
 /// A History represents a sorted list of Executions ordered by the start_timestamp_millis field (descending). It can be used to group all the Executions of a continuous build. Note that the ordering only operates on one-dimension. If a repository has multiple branches, it means that multiple histories will need to be used in order to order Executions per branch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct History {
     /// A short human-readable (plain text) name to display in the UI. Maximum of 100 characters. - In response: present if set during create. - In create request: optional
     #[serde(default, rename = "displayName")]
@@ -510,7 +511,7 @@ pub struct History {
 }
 
 /// Resource representing a collection of performance samples (or data points)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerfSampleSeries {
     /// Basic series represented by a line chart
     #[serde(default, rename = "basicPerfSampleSeries")]
@@ -533,7 +534,7 @@ pub struct PerfSampleSeries {
 }
 
 /// Resource representing a single performance measure or data point
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerfSample {
     /// Timestamp of collection.
     #[serde(default, rename = "sampleTime")]
@@ -544,7 +545,7 @@ pub struct PerfSample {
 }
 
 /// ScreenshotCluster resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScreenshotCluster {
     /// A string that describes the activity of every screen in the cluster.
     #[serde(default)]
@@ -561,7 +562,7 @@ pub struct ScreenshotCluster {
 }
 
 /// A set of similar suggestions that we suspect are closely related. This proto and most of the nested protos are branched from foxandcrown.prelaunchreport.service.SuggestionClusterProto, replacing PLR''s dependencies with FTL''s.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestionClusterProto {
     /// Category in which these types of suggestions should appear. Always set. // TODO: enum values: ["unknownCategory", "contentLabeling", "touchTargetSize", "lowContrast", "implementation"]
     #[serde(default)]
@@ -572,7 +573,7 @@ pub struct SuggestionClusterProto {
 }
 
 /// An image, with a link to the main image and a thumbnail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// An error explaining why the thumbnail could not be rendered.
     #[serde(default)]
@@ -589,7 +590,7 @@ pub struct Image {
 }
 
 /// A Step represents a single operation performed as part of Execution. A step can be used to represent the execution of a tool ( for example a test runner execution or an execution of a compiler). Steps can overlap (for instance two steps might have the same start time if some operations are done in parallel). Here is an example, let''s consider that we have a continuous build is executing a test runner for each iteration. The workflow would look like: - user creates a Execution with id 1 - user creates a TestExecutionStep with id 100 for Execution 1 - user update TestExecutionStep with id 100 to add a raw xml log + the service parses the xml logs and returns a TestExecutionStep with updated TestResult(s). - user update the status of TestExecutionStep with id 100 to COMPLETE A Step can be updated until its state is set to COMPLETE at which points it becomes immutable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Step {
     /// The time when the step status was set to complete. This value will be set automatically when state transitions to COMPLETE. - In response: set if the execution state is COMPLETE. - In create/update request: never set
     #[serde(default, rename = "completionTime")]
@@ -639,7 +640,7 @@ pub struct Step {
 }
 
 /// TestCase resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestCase {
     /// The elapsed run time of the test case. Required.
     #[serde(default, rename = "elapsedTime")]
@@ -671,7 +672,7 @@ pub struct TestCase {
 }
 
 /// A non-sdk API and examples of it being called along with other metadata See https://developer.android.com/distribute/best-practices/develop/restrictions-non-sdk-interfaces
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NonSdkApi {
     /// The signature of the Non-SDK API
     #[serde(default, rename = "apiSignature")]
@@ -691,7 +692,7 @@ pub struct NonSdkApi {
 }
 
 /// AppStartTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppStartTime {
     /// Optional. The time from app start to reaching the developer-reported "fully drawn" time. This is only stored if the app includes a call to Activity.reportFullyDrawn(). See https://developer.android.com/topic/performance/launch-time.html#time-full
     #[serde(default, rename = "fullyDrawnTime")]
@@ -702,7 +703,7 @@ pub struct AppStartTime {
 }
 
 /// Graphics statistics for the App. The information is collected from ''adb shell dumpsys graphicsstats''. For more info see: https://developer.android.com/training/testing/performance.html Statistics will only be present for API 23+.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GraphicsStats {
     /// Histogram of frame render times. There should be 154 buckets ranging from [5ms, 6ms) to [4950ms, infinity)
     #[serde(default)]
@@ -743,7 +744,7 @@ pub struct GraphicsStats {
 }
 
 /// Encapsulates performance environment info
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerfEnvironment {
     /// CPU related environment info
     #[serde(default, rename = "cpuInfo")]
@@ -754,7 +755,7 @@ pub struct PerfEnvironment {
 }
 
 /// EnvironmentDimensionValueEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentDimensionValueEntry {
     #[serde(default)]
     pub key: ::core::option::Option<String>,
@@ -763,7 +764,7 @@ pub struct EnvironmentDimensionValueEntry {
 }
 
 /// The storage for test results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultsStorage {
     /// The root directory for test results.
     #[serde(default, rename = "resultsStoragePath")]
@@ -774,7 +775,7 @@ pub struct ResultsStorage {
 }
 
 /// Result summary for a shard in an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShardSummary {
     /// Summaries of the steps belonging to the shard. With flaky_test_attempts enabled from TestExecutionService, more than one run (Step) can present. And the runs will be sorted by multistep_number.
     #[serde(default)]
@@ -785,7 +786,7 @@ pub struct ShardSummary {
 }
 
 /// The details about how to run the execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Specification {
     /// An Android mobile test execution specification.
     #[serde(default, rename = "androidTest")]
@@ -796,7 +797,7 @@ pub struct Specification {
 }
 
 /// Encapsulates the metadata for basic sample series represented by a line chart
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasicPerfSampleSeries {
     /// TODO: enum values: ["perfMetricTypeUnspecified", "memory", "cpu", "network", "graphics"]
     #[serde(default, rename = "perfMetricType")]
@@ -810,7 +811,7 @@ pub struct BasicPerfSampleSeries {
 }
 
 /// Screen resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Screen {
     /// File reference of the png file. Required.
     #[serde(default, rename = "fileReference")]
@@ -827,7 +828,7 @@ pub struct Screen {
 }
 
 /// SuggestionProto resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestionProto {
     /// Reference to a help center article concerning this type of suggestion. Always set.
     #[serde(default, rename = "helpUrl")]
@@ -862,7 +863,7 @@ pub struct SuggestionProto {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -876,7 +877,7 @@ pub struct Status {
 }
 
 /// A single thumbnail, with its size and format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Thumbnail {
     /// The thumbnail''s content type, i.e. "image/png". Always set.
     #[serde(default, rename = "contentType")]
@@ -893,7 +894,7 @@ pub struct Thumbnail {
 }
 
 /// StepDimensionValueEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StepDimensionValueEntry {
     #[serde(default)]
     pub key: ::core::option::Option<String>,
@@ -902,7 +903,7 @@ pub struct StepDimensionValueEntry {
 }
 
 /// StepLabelsEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StepLabelsEntry {
     #[serde(default)]
     pub key: ::core::option::Option<String>,
@@ -911,7 +912,7 @@ pub struct StepLabelsEntry {
 }
 
 /// Details when multiple steps are run with the same configuration as a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiStep {
     /// Unique int given to each step. Ranges from 0(inclusive) to total number of steps(exclusive). The primary step is 0.
     #[serde(default, rename = "multistepNumber")]
@@ -925,7 +926,7 @@ pub struct MultiStep {
 }
 
 /// A step that represents running tests. It accepts ant-junit xml files which will be parsed into structured test results by the service. Xml file paths are updated in order to append more files, however they can''t be deleted. Users can also add test results manually by using the test_result field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestExecutionStep {
     /// Issues observed during the test execution. For example, if the mobile app under test crashed during the test, the error message and the stack trace content can be recorded here to assist debugging. - In response: present if set by create or update - In create/update request: optional
     #[serde(default, rename = "testIssues")]
@@ -942,7 +943,7 @@ pub struct TestExecutionStep {
 }
 
 /// Generic tool step to be used for binaries we do not explicitly support. For example: running cp to copy artifacts from one location to another.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolExecutionStep {
     /// A Tool execution. - In response: present if set by create/update request - In create/update request: optional
     #[serde(default, rename = "toolExecution")]
@@ -950,7 +951,7 @@ pub struct ToolExecutionStep {
 }
 
 /// Non-SDK API insights (to address debugging solutions).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NonSdkApiInsight {
     /// Optional sample stack traces, for which this insight applies (there should be at least one).
     #[serde(default, rename = "exampleTraceMessages")]
@@ -967,7 +968,7 @@ pub struct NonSdkApiInsight {
 }
 
 /// GraphicsStatsBucket resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GraphicsStatsBucket {
     /// Number of frames in the bucket.
     #[serde(default, rename = "frameCount")]
@@ -978,7 +979,7 @@ pub struct GraphicsStatsBucket {
 }
 
 /// CPUInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CPUInfo {
     /// description of the device processor ie ''1.8 GHz hexa core 64-bit ARMv8-A''
     #[serde(default, rename = "cpuProcessor")]
@@ -992,7 +993,7 @@ pub struct CPUInfo {
 }
 
 /// MemoryInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemoryInfo {
     /// Maximum memory that can be allocated to the process in KiB
     #[serde(default, rename = "memoryCapInKibibyte")]
@@ -1003,7 +1004,7 @@ pub struct MemoryInfo {
 }
 
 /// Merged test result for environment. If the environment has only one step (no reruns or shards), then the merged result is the same as the step result. If the environment has multiple shards and/or reruns, then the results of shards and reruns that belong to the same environment are merged into one environment result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MergedResult {
     /// Outcome of the resource
     #[serde(default)]
@@ -1017,7 +1018,7 @@ pub struct MergedResult {
 }
 
 /// An Android mobile test specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidTest {
     /// Information about the application under test.
     #[serde(default, rename = "androidAppInfo")]
@@ -1037,7 +1038,7 @@ pub struct AndroidTest {
 }
 
 /// A iOS mobile test specification
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosTest {
     /// Information about the application under test.
     #[serde(default, rename = "iosAppInfo")]
@@ -1057,7 +1058,7 @@ pub struct IosTest {
 }
 
 /// IMPORTANT: It is unsafe to accept this message from an untrusted source, since it''s trivial for an attacker to forge serialized messages that don''t fulfill the type''s safety contract -- for example, it could contain attacker controlled script. A system which receives a SafeHtmlProto implicitly trusts the producer of the SafeHtmlProto. So, it''s generally safe to return this message in RPC responses, but generally unsafe to accept it in RPC requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SafeHtmlProto {
     /// IMPORTANT: Never set or read this field, even from tests, it is private. See documentation at the top of .proto file for programming language packages with which to create or read this message.
     #[serde(default, rename = "privateDoNotAccessOrElseSafeHtmlWrappedValue")]
@@ -1065,7 +1066,7 @@ pub struct SafeHtmlProto {
 }
 
 /// A rectangular region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionProto {
     /// The height, in pixels. Always set.
     #[serde(default, rename = "heightPx")]
@@ -1082,7 +1083,7 @@ pub struct RegionProto {
 }
 
 /// Stores rollup test status of multiple steps that were run as a group and outcome of each individual step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrimaryStep {
     /// Step Id and outcome of each individual step.
     #[serde(default, rename = "individualOutcome")]
@@ -1093,7 +1094,7 @@ pub struct PrimaryStep {
 }
 
 /// An issue detected occurring during a test execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIssue {
     /// Category of issue. Required. // TODO: enum values: ["unspecifiedCategory", "common", "robo"]
     #[serde(default)]
@@ -1116,7 +1117,7 @@ pub struct TestIssue {
 }
 
 /// Testing timing break down to know phases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestTiming {
     /// How long it took to run the test process. - In response: present if previously set. - In create/update request: optional
     #[serde(default, rename = "testProcessDuration")]
@@ -1124,7 +1125,7 @@ pub struct TestTiming {
 }
 
 /// An execution of an arbitrary tool. It could be a test runner or a tool copying artifacts or deploying code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolExecution {
     /// The full tokenized command line including the program name (equivalent to argv in a C program). - In response: present if set by create request - In create request: optional - In update request: never set
     #[serde(default, rename = "commandLineArguments")]
@@ -1141,7 +1142,7 @@ pub struct ToolExecution {
 }
 
 /// This insight indicates that the hidden API usage originates from a Google-provided library. Users need not take any action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PendingGoogleUpdateInsight {
     /// The name of the Google-provided library with the non-SDK API dependency.
     #[serde(default, rename = "nameOfGoogleLibrary")]
@@ -1149,7 +1150,7 @@ pub struct PendingGoogleUpdateInsight {
 }
 
 /// This insight is a recommendation to upgrade a given library to the specified version, in order to avoid dependencies on non-SDK APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeInsight {
     /// The name of the package to be upgraded.
     #[serde(default, rename = "packageName")]
@@ -1160,7 +1161,7 @@ pub struct UpgradeInsight {
 }
 
 /// Interprets a result so that humans and machines can act on it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Outcome {
     /// More information about a FAILURE outcome. Returns INVALID_ARGUMENT if this field is set but the summary is not FAILURE. Optional
     #[serde(default, rename = "failureDetail")]
@@ -1180,7 +1181,7 @@ pub struct Outcome {
 }
 
 /// A summary of a test suite result either parsed from XML or uploaded directly by a user. Note: the API related comments are for StepService only. This message is also being used in ExecutionService in a read only mode for the corresponding step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestSuiteOverview {
     /// Elapsed time of test suite.
     #[serde(default, rename = "elapsedTime")]
@@ -1209,7 +1210,7 @@ pub struct TestSuiteOverview {
 }
 
 /// Android app information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidAppInfo {
     /// The name of the app. Optional
     #[serde(default)]
@@ -1226,7 +1227,7 @@ pub struct AndroidAppInfo {
 }
 
 /// A test of an Android application that can control an Android component independently of its normal lifecycle. See for more information on types of Android tests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidInstrumentationTest {
     /// The java package for the test to be executed. Required
     #[serde(default, rename = "testPackageId")]
@@ -1243,7 +1244,7 @@ pub struct AndroidInstrumentationTest {
 }
 
 /// A test of an android application that explores the application on a virtual or physical Android device, finding culprits and crashes as it goes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidRoboTest {
     /// The initial activity that should be used to start the app. Optional
     #[serde(default, rename = "appInitialActivity")]
@@ -1263,7 +1264,7 @@ pub struct AndroidRoboTest {
 }
 
 /// iOS app information
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosAppInfo {
     /// The name of the app. Required
     #[serde(default)]
@@ -1271,7 +1272,7 @@ pub struct IosAppInfo {
 }
 
 /// A game loop test of an iOS application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosTestLoop {
     /// Bundle ID of the app.
     #[serde(default, rename = "bundleId")]
@@ -1279,7 +1280,7 @@ pub struct IosTestLoop {
 }
 
 /// A test of an iOS application that uses the XCTest framework.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosXcTest {
     /// Bundle ID of the app.
     #[serde(default, rename = "bundleId")]
@@ -1290,7 +1291,7 @@ pub struct IosXcTest {
 }
 
 /// Step Id and outcome of each individual step that was run as a group with other steps with the same configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IndividualOutcome {
     /// Unique int given to each step. Ranges from 0(inclusive) to total number of steps(exclusive). The primary step is 0.
     #[serde(default, rename = "multistepNumber")]
@@ -1306,7 +1307,7 @@ pub struct IndividualOutcome {
 }
 
 /// A stacktrace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StackTrace {
     /// The stack trace message. Required
     #[serde(default)]
@@ -1314,7 +1315,7 @@ pub struct StackTrace {
 }
 
 ///  Any contains an arbitrary serialized protocol buffer message along with a URL that describes the type of the serialized message. Protobuf library provides support to pack/unpack Any values in the form of utility functions or additional generated methods of the Any type. Example 1: Pack and unpack a message in C++. Foo foo = ...; Any any; any.PackFrom(foo); ... if (any.UnpackTo(&foo)) { ... } Example 2: Pack and unpack a message in Java. Foo foo = ...; Any any = Any.pack(foo); ... if (any.is(Foo.class)) { foo = any.unpack(Foo.class); } Example 3: Pack and unpack a message in Python. foo = Foo(...) any = Any() any.Pack(foo) ... if any.Is(Foo.DESCRIPTOR): any.Unpack(foo) ... Example 4: Pack and unpack a message in Go foo := &pb.Foo{...} any, err := ptypes.MarshalAny(foo) ... foo := &pb.Foo{} if err := ptypes.UnmarshalAny(any, foo); err != nil { ... } The pack methods provided by protobuf library will by default use ''type.googleapis.com/full.type.name'' as the type URL and the unpack methods only use the fully qualified type name after the last ''/'' in the type URL, for example "foo.bar.com/x/y.z" will yield type name "y.z". # JSON The JSON representation of an Any value uses the regular representation of the deserialized, embedded message, with an additional field @type which contains the type URL. Example: package google.profile; message Person { string first_name = 1; string last_name = 2; } { "@type": "type.googleapis.com/google.profile.Person", "firstName": , "lastName": } If the embedded message type is well-known and has a custom JSON representation, that representation will be embedded adding a field value which holds the custom JSON in addition to the @type field. Example (for message google.protobuf.Duration): { "@type": "type.googleapis.com/google.protobuf.Duration", "value": "1.212s" }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Any {
     /// A URL/resource name that uniquely identifies the type of the serialized protocol buffer message. This string must contain at least one "/" character. The last segment of the URL''s path must represent the fully qualified name of the type (as in path/google.protobuf.Duration). The name should be in a canonical form (e.g., leading "." is not accepted). In practice, teams usually precompile into the binary all types that they expect it to use in the context of Any. However, for URLs which use the scheme http, https, or no scheme, one can optionally set up a type server that maps type URLs to message definitions as follows: * If no scheme is provided, https is assumed. * An HTTP GET on the URL must yield a google.protobuf.Type value in binary format, or produce an error. * Applications are allowed to cache lookup results based on the URL, or have them precompiled into a binary to avoid any lookup. Therefore, binary compatibility needs to be preserved on changes to types. (Use versioned type names to manage breaking changes.) Note: this functionality is not currently available in the official protobuf release, and it is not used for type URLs beginning with type.googleapis.com. Schemes other than http, https (or the empty scheme) might be used with implementation specific semantics.
     #[serde(default, rename = "typeUrl")]
@@ -1325,7 +1326,7 @@ pub struct Any {
 }
 
 /// Exit code from a tool execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolExitCode {
     /// Tool execution exit code. A value of 0 means that the execution was successful. - In response: always set - In create/update request: always set
     #[serde(default)]
@@ -1333,7 +1334,7 @@ pub struct ToolExitCode {
 }
 
 /// A reference to a ToolExecution output file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolOutputReference {
     /// The creation time of the file. - In response: present if set by create/update request - In create/update request: optional
     #[serde(default, rename = "creationTime")]
@@ -1347,7 +1348,7 @@ pub struct ToolOutputReference {
 }
 
 /// Details for an outcome with a FAILURE outcome summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FailureDetail {
     /// If the failure was severe because the system (app) under test crashed.
     #[serde(default)]
@@ -1373,7 +1374,7 @@ pub struct FailureDetail {
 }
 
 /// Details for an outcome with an INCONCLUSIVE outcome summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InconclusiveDetail {
     /// If the end user aborted the test execution before a pass or fail could be determined. For example, the user pressed ctrl-c which sent a kill signal to the test runner while the test was running.
     #[serde(default, rename = "abortedByUser")]
@@ -1387,7 +1388,7 @@ pub struct InconclusiveDetail {
 }
 
 /// Details for an outcome with a SKIPPED outcome summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkippedDetail {
     /// If the App doesn''t support the specific API level.
     #[serde(default, rename = "incompatibleAppVersion")]
@@ -1404,7 +1405,7 @@ pub struct SkippedDetail {
 }
 
 /// Details for an outcome with a SUCCESS outcome summary. LINT.IfChange
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuccessDetail {
     /// If a native process other than the app crashed.
     #[serde(default, rename = "otherNativeCrash")]
@@ -1412,7 +1413,7 @@ pub struct SuccessDetail {
 }
 
 ///  A Duration represents a signed, fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". It is related to Timestamp in that the difference between two Timestamp values is a Duration and it can be added or subtracted from a Timestamp. Range is approximately +-10,000 years.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Duration {
     /// Signed fractions of a second at nanosecond resolution of the span of time. Durations less than one second are represented with a 0 seconds field and a positive or negative nanos field. For durations of one second or more, a non-zero value for the nanos field must be of the same sign as the seconds field. Must be from -999,999,999 to +999,999,999 inclusive.
     #[serde(default)]
@@ -1423,7 +1424,7 @@ pub struct Duration {
 }
 
 /// A Timestamp represents a point in time independent of any time zone or local calendar, encoded as a count of seconds and fractions of seconds at nanosecond resolution. The count is relative to an epoch at UTC midnight on January 1, 1970, in the proleptic Gregorian calendar which extends the Gregorian calendar backwards to year one. All minutes are 60 seconds long. Leap seconds are "smeared" so that no leap second table is needed for interpretation, using a [24-hour linear smear](https://developers.google.com/time/smear). The range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z. By restricting to that range, we ensure that we can convert to and from [RFC 3339](https://www.ietf.org/rfc/rfc3339.txt) date strings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Timestamp {
     /// Non-negative fractions of a second at nanosecond resolution. Negative second values with fractions must still have non-negative nanos values that count forward in time. Must be from 0 to 999,999,999 inclusive.
     #[serde(default)]
@@ -1434,7 +1435,7 @@ pub struct Timestamp {
 }
 
 /// A reference to a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileReference {
     /// The URI of a file stored in Google Cloud Storage. For example: http://storage.googleapis.com/mybucket/path/to/test.xml or in Cloud Storage URI format: gs://mybucket/path/to/test.xml with version-specific info, gs://mybucket/path/to/test.xml#1360383693690000 An INVALID_ARGUMENT error will be returned if the URI format is not supported. - In response: always set - In create/update request: always set
     #[serde(default, rename = "fileUri")]
@@ -1442,7 +1443,7 @@ pub struct FileReference {
 }
 
 /// A reference to a test case. Test case references are canonically ordered lexicographically by these three factors: * First, by test_suite_name. * Second, by class_name. * Third, by name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestCaseReference {
     /// The name of the class.
     #[serde(default, rename = "className")]

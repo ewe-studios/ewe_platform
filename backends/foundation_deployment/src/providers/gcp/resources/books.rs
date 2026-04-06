@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Annotations resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Annotations {
     /// A list of annotations.
     #[serde(default)]
@@ -28,7 +29,7 @@ pub struct Annotations {
 }
 
 /// AnnotationsSummary resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnnotationsSummary {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
@@ -37,7 +38,7 @@ pub struct AnnotationsSummary {
 }
 
 /// Annotationsdata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Annotationsdata {
     /// A list of Annotation Data.
     #[serde(default)]
@@ -54,7 +55,7 @@ pub struct Annotationsdata {
 }
 
 /// BooksAnnotationsRange resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BooksAnnotationsRange {
     /// The offset from the ending position.
     #[serde(default, rename = "endOffset")]
@@ -71,7 +72,7 @@ pub struct BooksAnnotationsRange {
 }
 
 /// BooksCloudloadingResource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BooksCloudloadingResource {
     #[serde(default)]
     pub author: ::core::option::Option<String>,
@@ -84,14 +85,14 @@ pub struct BooksCloudloadingResource {
 }
 
 /// BooksVolumesRecommendedRateResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BooksVolumesRecommendedRateResponse {
     #[serde(default)]
     pub consistency_token: ::core::option::Option<String>,
 }
 
 /// Bookshelves resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Bookshelves {
     /// A list of bookshelves.
     #[serde(default)]
@@ -102,7 +103,7 @@ pub struct Bookshelves {
 }
 
 /// Category resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Category {
     /// A list of onboarding categories.
     #[serde(default)]
@@ -113,7 +114,7 @@ pub struct Category {
 }
 
 /// DictionaryAnnotationdata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DictionaryAnnotationdata {
     /// The type of annotation this data is for.
     #[serde(default, rename = "annotationType")]
@@ -145,7 +146,7 @@ pub struct DictionaryAnnotationdata {
 }
 
 /// Discoveryclusters resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Discoveryclusters {
     #[serde(default)]
     pub clusters: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
@@ -157,7 +158,7 @@ pub struct Discoveryclusters {
 }
 
 /// DownloadAccesses resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadAccesses {
     /// A list of download access responses.
     #[serde(default, rename = "downloadAccessList")]
@@ -168,11 +169,11 @@ pub struct DownloadAccesses {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// FamilyInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FamilyInfo {
     /// Resource type.
     #[serde(default)]
@@ -183,7 +184,7 @@ pub struct FamilyInfo {
 }
 
 /// Layersummaries resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Layersummaries {
     /// A list of layer summary items.
     #[serde(default)]
@@ -197,7 +198,7 @@ pub struct Layersummaries {
 }
 
 /// Metadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// A list of offline dictionary metadata.
     #[serde(default)]
@@ -208,7 +209,7 @@ pub struct Metadata {
 }
 
 /// Notification resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Notification {
     #[serde(default)]
     pub body: ::core::option::Option<String>,
@@ -247,7 +248,7 @@ pub struct Notification {
 }
 
 /// Offers resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Offers {
     /// A list of offers.
     #[serde(default)]
@@ -258,7 +259,7 @@ pub struct Offers {
 }
 
 /// ReadingPosition resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadingPosition {
     /// Position in an EPUB as a CFI.
     #[serde(default, rename = "epubCfiPosition")]
@@ -284,7 +285,7 @@ pub struct ReadingPosition {
 }
 
 /// RequestAccessData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestAccessData {
     /// A concurrent access response.
     #[serde(default, rename = "concurrentAccess")]
@@ -298,7 +299,7 @@ pub struct RequestAccessData {
 }
 
 /// Review resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Review {
     /// Author of this review.
     #[serde(default)]
@@ -333,7 +334,7 @@ pub struct Review {
 }
 
 /// Series resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Series {
     /// Resource type.
     #[serde(default)]
@@ -343,7 +344,7 @@ pub struct Series {
 }
 
 /// Seriesmembership resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Seriesmembership {
     /// Resorce type.
     #[serde(default)]
@@ -355,7 +356,7 @@ pub struct Seriesmembership {
 }
 
 /// Usersettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Usersettings {
     /// Resource type.
     #[serde(default)]
@@ -368,7 +369,7 @@ pub struct Usersettings {
 }
 
 /// Volume2 resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Volume2 {
     /// A list of volumes.
     #[serde(default)]
@@ -381,7 +382,7 @@ pub struct Volume2 {
 }
 
 /// Volumeannotations resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Volumeannotations {
     /// A list of volume annotations.
     #[serde(default)]
@@ -401,7 +402,7 @@ pub struct Volumeannotations {
 }
 
 /// Volumes resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Volumes {
     /// A list of volumes.
     #[serde(default)]
@@ -415,7 +416,7 @@ pub struct Volumes {
 }
 
 /// Volumeseriesinfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Volumeseriesinfo {
     /// The display number string. This should be used only for display purposes and the actual sequence should be inferred from the below orderNumber.
     #[serde(default, rename = "bookDisplayNumber")]
@@ -431,7 +432,7 @@ pub struct Volumeseriesinfo {
 }
 
 /// Annotation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Annotation {
     /// Anchor text after excerpt. For requests, if the user bookmarked a screen that has no flowing text on it, then this field should be empty.
     #[serde(default, rename = "afterSelectedText")]
@@ -486,7 +487,7 @@ pub struct Annotation {
 }
 
 /// GeoAnnotationdata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeoAnnotationdata {
     /// The type of annotation this data is for.
     #[serde(default, rename = "annotationType")]
@@ -518,7 +519,7 @@ pub struct GeoAnnotationdata {
 }
 
 /// Bookshelf resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Bookshelf {
     /// Whether this bookshelf is PUBLIC or PRIVATE.
     #[serde(default)]
@@ -553,7 +554,7 @@ pub struct Bookshelf {
 }
 
 /// Dictlayerdata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dictlayerdata {
     #[serde(default)]
     pub common: ::core::option::Option<serde_json::Value>,
@@ -564,7 +565,7 @@ pub struct Dictlayerdata {
 }
 
 /// Layersummary resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Layersummary {
     /// The number of annotations for this layer.
     #[serde(default, rename = "annotationCount")]
@@ -608,7 +609,7 @@ pub struct Layersummary {
 }
 
 /// ConcurrentAccessRestriction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConcurrentAccessRestriction {
     /// Whether access is granted for this (user, device, volume).
     #[serde(default, rename = "deviceAllowed")]
@@ -646,7 +647,7 @@ pub struct ConcurrentAccessRestriction {
 }
 
 /// DownloadAccessRestriction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadAccessRestriction {
     /// If restricted, whether access is granted for this (user, device, volume).
     #[serde(default, rename = "deviceAllowed")]
@@ -687,7 +688,7 @@ pub struct DownloadAccessRestriction {
 }
 
 /// Volumeannotation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Volumeannotation {
     /// The annotation data id for this volume annotation.
     #[serde(default, rename = "annotationDataId")]
@@ -734,7 +735,7 @@ pub struct Volumeannotation {
 }
 
 /// Volume resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Volume {
     /// Any information about a volume related to reading or obtaining that volume text. This information can depend on country (books may be public domain in one country but not in another, e.g.).
     #[serde(default, rename = "accessInfo")]
@@ -772,7 +773,7 @@ pub struct Volume {
 }
 
 /// Geolayerdata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Geolayerdata {
     #[serde(default)]
     pub common: ::core::option::Option<serde_json::Value>,

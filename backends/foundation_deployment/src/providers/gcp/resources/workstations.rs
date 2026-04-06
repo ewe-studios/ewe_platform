@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Request message for GenerateAccessToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateAccessTokenRequest {
     /// Desired expiration time of the access token. This value must be at most 24 hours in the future. If a value is not specified, the token''s expiration time will be set to a default value of 1 hour in the future.
     #[serde(default, rename = "expireTime")]
@@ -29,7 +30,7 @@ pub struct GenerateAccessTokenRequest {
 }
 
 /// Response message for GenerateAccessToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateAccessTokenResponse {
     /// The generated bearer access token. To use this token, include it in an Authorization header of an HTTP request sent to the associated workstation''s hostname—for example, Authorization: Bearer .
     #[serde(default, rename = "accessToken")]
@@ -40,11 +41,11 @@ pub struct GenerateAccessTokenResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -55,7 +56,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -69,7 +70,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message for ListUsableWorkstationConfigs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUsableWorkstationConfigsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -83,7 +84,7 @@ pub struct ListUsableWorkstationConfigsResponse {
 }
 
 /// Response message for ListUsableWorkstations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUsableWorkstationsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -97,7 +98,7 @@ pub struct ListUsableWorkstationsResponse {
 }
 
 /// Response message for ListWorkstationClusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkstationClustersResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -111,7 +112,7 @@ pub struct ListWorkstationClustersResponse {
 }
 
 /// Response message for ListWorkstationConfigs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkstationConfigsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -125,7 +126,7 @@ pub struct ListWorkstationConfigsResponse {
 }
 
 /// Response message for ListWorkstations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkstationsResponse {
     /// Optional. Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -139,7 +140,7 @@ pub struct ListWorkstationsResponse {
 }
 
 /// Metadata for long-running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -165,7 +166,7 @@ pub struct OperationMetadata {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -176,7 +177,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for StartWorkstation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartWorkstationRequest {
     /// Optional. If set, the workstation starts using the boost configuration with the specified ID.
     #[serde(default, rename = "boostConfig")]
@@ -190,7 +191,7 @@ pub struct StartWorkstationRequest {
 }
 
 /// Request message for StopWorkstation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopWorkstationRequest {
     /// Optional. If set, the request will be rejected if the latest version of the workstation on the server does not have this ETag.
     #[serde(default)]
@@ -201,7 +202,7 @@ pub struct StopWorkstationRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -209,7 +210,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -217,7 +218,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -237,7 +238,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -257,7 +258,7 @@ pub struct Operation {
 }
 
 /// A workstation cluster resource in the Cloud Workstations API. Defines a group of workstations in a particular region and the VPC network they''re attached to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkstationCluster {
     /// Optional. Client-specified annotations.
     #[serde(default)]
@@ -319,7 +320,7 @@ pub struct WorkstationCluster {
 }
 
 /// A workstation configuration resource in the Cloud Workstations API. Workstation configurations act as templates for workstations. The workstation configuration defines details such as the workstation virtual machine (VM) instance type, persistent storage, container image defining environment, which IDE or Code Editor to use, and more. Administrators and platform teams can also use [Identity and Access Management (IAM)](https://cloud.google.com/iam/docs/overview) rules to grant access to teams or to individual developers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkstationConfig {
     /// Optional. A list of PortRanges specifying single ports or ranges of ports that are externally accessible in the workstation. Allowed ports must be one of 22, 80, or within range 1024-65535. If not specified defaults to ports 22, 80, and ports 1024-65535.
     #[serde(default, rename = "allowedPorts")]
@@ -402,7 +403,7 @@ pub struct WorkstationConfig {
 }
 
 /// A single instance of a developer workstation with its own persistent storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Workstation {
     /// Optional. Client-specified annotations.
     #[serde(default)]
@@ -458,7 +459,7 @@ pub struct Workstation {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -475,7 +476,7 @@ pub struct Policy {
 }
 
 /// Configuration options for a custom domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainConfig {
     /// Immutable. Domain used by Workstations for HTTP ingress.
     #[serde(default)]
@@ -483,7 +484,7 @@ pub struct DomainConfig {
 }
 
 /// Configuration options for Cluster HTTP Gateway.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GatewayConfig {
     /// Optional. Whether HTTP/2 is enabled for this workstation cluster. Defaults to false.
     #[serde(default, rename = "http2Enabled")]
@@ -491,7 +492,7 @@ pub struct GatewayConfig {
 }
 
 /// Configuration options for private workstation clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateClusterConfig {
     /// Optional. Additional projects that are allowed to attach to the workstation cluster''s service attachment. By default, the workstation cluster''s project and the VPC host project (if different) are allowed.
     #[serde(default, rename = "allowedProjects")]
@@ -508,7 +509,7 @@ pub struct PrivateClusterConfig {
 }
 
 /// A PortRange defines a range of ports. Both first and last are inclusive. To specify a single port, both first and last should be the same.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortRange {
     /// Required. Starting port number for the current range of ports. Valid ports are 22, 80, and ports within the range 1024-65535.
     #[serde(default)]
@@ -519,7 +520,7 @@ pub struct PortRange {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -533,7 +534,7 @@ pub struct Status {
 }
 
 /// A Docker container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Container {
     /// Optional. Arguments passed to the entrypoint.
     #[serde(default)]
@@ -556,7 +557,7 @@ pub struct Container {
 }
 
 /// A customer-managed encryption key (CMEK) for the Compute Engine resources of the associated workstation configuration. Specify the name of your Cloud KMS encryption key and the default service account. We recommend that you use a separate service account and follow [Cloud KMS best practices](https://cloud.google.com/kms/docs/separation-of-duties).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerEncryptionKey {
     /// Immutable. The name of the Google Cloud KMS encryption key. For example, "projects/PROJECT_ID/locations/REGION/keyRings/KEY_RING/cryptoKeys/KEY_NAME". The key must be in the same region as the workstation configuration.
     #[serde(default, rename = "kmsKey")]
@@ -567,7 +568,7 @@ pub struct CustomerEncryptionKey {
 }
 
 /// An ephemeral directory which won''t persist across workstation sessions. It is freshly created on every workstation start operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EphemeralDirectory {
     /// An EphemeralDirectory backed by a Compute Engine persistent disk.
     #[serde(default, rename = "gcePd")]
@@ -578,7 +579,7 @@ pub struct EphemeralDirectory {
 }
 
 /// Runtime host for a workstation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Host {
     /// Specifies a Compute Engine instance as the host.
     #[serde(default, rename = "gceInstance")]
@@ -586,7 +587,7 @@ pub struct Host {
 }
 
 /// A directory to persist across workstation sessions. Updates to this field will not update existing workstations and will only take effect on new workstations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersistentDirectory {
     /// A PersistentDirectory backed by a Compute Engine hyperdisk high availability disk.
     #[serde(default, rename = "gceHd")]
@@ -600,7 +601,7 @@ pub struct PersistentDirectory {
 }
 
 /// A readiness check to be performed on a workstation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadinessCheck {
     /// Optional. Path to which the request should be sent.
     #[serde(default)]
@@ -611,7 +612,7 @@ pub struct ReadinessCheck {
 }
 
 /// Runtime host for the workstation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeHost {
     /// Specifies a Compute Engine instance as the host.
     #[serde(default, rename = "gceInstanceHost")]
@@ -619,7 +620,7 @@ pub struct RuntimeHost {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -630,7 +631,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -644,7 +645,7 @@ pub struct Binding {
 }
 
 /// An EphemeralDirectory is backed by a Compute Engine persistent disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcePersistentDisk {
     /// Optional. Type of the disk to use. Defaults to "pd-standard".
     #[serde(default, rename = "diskType")]
@@ -661,7 +662,7 @@ pub struct GcePersistentDisk {
 }
 
 /// A runtime using a Compute Engine instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GceInstance {
     /// Optional. A list of the type and count of accelerator cards attached to the instance.
     #[serde(default)]
@@ -717,7 +718,7 @@ pub struct GceInstance {
 }
 
 /// A Persistent Directory backed by a Compute Engine [Hyperdisk Balanced High Availability Disk](https://cloud.google.com/compute/docs/disks/hd-types/hyperdisk-balanced-ha). This is a high-availability block storage solution that offers a balance between performance and cost for most general-purpose workloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GceHyperdiskBalancedHighAvailability {
     /// Optional. Number of seconds to wait after initially creating or subsequently shutting down the workstation before converting its disk into a snapshot. This generally saves costs at the expense of greater startup time on next workstation start, as the service will need to create a disk from the archival snapshot. A value of "0s" indicates that the disk will never be archived.
     #[serde(default, rename = "archiveTimeout")]
@@ -734,7 +735,7 @@ pub struct GceHyperdiskBalancedHighAvailability {
 }
 
 /// A Persistent Directory backed by a Compute Engine regional persistent disk. The persistent_directories field is repeated, but it may contain only one entry. It creates a [persistent disk](https://cloud.google.com/compute/docs/disks/persistent-disks) that mounts to the workstation VM at /home when the session starts and detaches when the session ends. If this field is empty, workstations created with this configuration do not have a persistent home directory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GceRegionalPersistentDisk {
     /// Optional. The [type of the persistent disk](https://cloud.google.com/compute/docs/disks#disk-types) for the home directory. Defaults to "pd-standard".
     #[serde(default, rename = "diskType")]
@@ -754,7 +755,7 @@ pub struct GceRegionalPersistentDisk {
 }
 
 /// The Compute Engine instance host.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GceInstanceHost {
     /// Optional. Output only. The ID of the Compute Engine instance.
     #[serde(default)]
@@ -768,7 +769,7 @@ pub struct GceInstanceHost {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -779,7 +780,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -796,7 +797,7 @@ pub struct Expr {
 }
 
 /// A boost configuration is a set of resources that a workstation can use to increase its performance. If you specify a boost configuration, upon startup, workstation users can choose to use a VM provisioned under the boost config by passing the boost config ID in the start request. If the workstation user does not provide a boost config ID in the start request, the system will choose a VM from the pool provisioned under the default config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BoostConfig {
     /// Optional. A list of the type and count of accelerator cards attached to the boost instance. Defaults to none.
     #[serde(default)]
@@ -819,7 +820,7 @@ pub struct BoostConfig {
 }
 
 /// A set of Compute Engine Confidential VM instance options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GceConfidentialInstanceConfig {
     /// Optional. Whether the instance has confidential compute enabled.
     #[serde(default, rename = "enableConfidentialCompute")]
@@ -827,7 +828,7 @@ pub struct GceConfidentialInstanceConfig {
 }
 
 /// A set of Compute Engine Shielded instance options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GceShieldedInstanceConfig {
     /// Optional. Whether the instance has integrity monitoring enabled.
     #[serde(default, rename = "enableIntegrityMonitoring")]
@@ -841,7 +842,7 @@ pub struct GceShieldedInstanceConfig {
 }
 
 /// An accelerator card attached to the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Accelerator {
     /// Optional. Number of accelerator cards exposed to the instance.
     #[serde(default)]

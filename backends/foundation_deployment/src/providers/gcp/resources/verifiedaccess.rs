@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Result message for VerifiedAccess.GenerateChallenge.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Challenge {
     /// Generated challenge, the bytes representation of SignedData.
     #[serde(default)]
@@ -19,11 +20,11 @@ pub struct Challenge {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Signed ChallengeResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyChallengeResponseRequest {
     /// Required. The generated response to the challenge, the bytes representation of SignedData.
     #[serde(default, rename = "challengeResponse")]
@@ -34,7 +35,7 @@ pub struct VerifyChallengeResponseRequest {
 }
 
 /// Result message for VerifiedAccess.VerifyChallengeResponse. The response returned when successful for Managed profiles on Unmanaged browsers will NOT have devicePermanentId, keyTrustLevel, virtualDeviceId and customerId fields. Managed profiles will INSTEAD have the profileCustomerId, virtualProfileId, profilePermanentId and profileKeyTrustLevel fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyChallengeResponseResult {
     /// Output only. Attested device ID (ADID).
     #[serde(default, rename = "attestedDeviceId")]
@@ -78,7 +79,7 @@ pub struct VerifyChallengeResponseResult {
 }
 
 /// The device signals as reported by Chrome. Unless otherwise specified, signals are available on all platforms.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceSignals {
     /// Output only. Value of the AllowScreenLock policy on the device. See https://chromeenterprise.google/policies/?policy=AllowScreenLock for more details. Available on ChromeOS only.
     #[serde(default, rename = "allowScreenLock")]
@@ -182,7 +183,7 @@ pub struct DeviceSignals {
 }
 
 /// Antivirus information on a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Antivirus {
     /// Output only. The state of the antivirus on the device. Introduced in Chrome M136. // TODO: enum values: ["STATE_UNSPECIFIED", "MISSING", "DISABLED", "ENABLED"]
     #[serde(default)]
@@ -190,7 +191,7 @@ pub struct Antivirus {
 }
 
 /// Properties of the CrowdStrike agent installed on a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrowdStrikeAgent {
     /// Output only. The Agent ID of the Crowdstrike agent.
     #[serde(default, rename = "agentId")]

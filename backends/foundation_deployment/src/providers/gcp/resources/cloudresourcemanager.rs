@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Representation of a Capability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Capability {
     /// Immutable. Identifier. The resource name of the capability. Must be in the following form: * folders/{folder_id}/capabilities/{capability_name} For example, folders/123/capabilities/app-management Following are the allowed {capability_name} values: * app-management
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct Capability {
 }
 
 /// Metadata describing a long running folder operation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudresourcemanagerGoogleCloudResourcemanagerV2alpha1FolderOperation {
     /// The resource name of the folder or organization we are either creating the folder under or moving the folder to.
     #[serde(default, rename = "destinationParent")]
@@ -39,7 +40,7 @@ pub struct CloudresourcemanagerGoogleCloudResourcemanagerV2alpha1FolderOperation
 }
 
 /// Metadata describing a long running folder operation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudresourcemanagerGoogleCloudResourcemanagerV2beta1FolderOperation {
     /// The resource name of the folder or organization we are either creating the folder under or moving the folder to.
     #[serde(default, rename = "destinationParent")]
@@ -56,7 +57,7 @@ pub struct CloudresourcemanagerGoogleCloudResourcemanagerV2beta1FolderOperation 
 }
 
 /// Metadata pertaining to the Folder creation process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateFolderMetadata {
     /// The display name of the folder.
     #[serde(default, rename = "displayName")]
@@ -67,7 +68,7 @@ pub struct CreateFolderMetadata {
 }
 
 /// A status object which is used as the metadata field for the Operation returned by CreateProject. It provides insight for when significant phases of Project creation have completed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateProjectMetadata {
     /// Creation time of the project creation workflow.
     #[serde(default, rename = "createTime")]
@@ -81,43 +82,43 @@ pub struct CreateProjectMetadata {
 }
 
 /// Runtime operation information for creating a TagValue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateTagBindingMetadata {}
 
 /// Runtime operation information for creating a TagKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateTagKeyMetadata {}
 
 /// Runtime operation information for creating a TagValue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateTagValueMetadata {}
 
 /// A status object which is used as the metadata field for the Operation returned by DeleteFolder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteFolderMetadata {}
 
 /// A status object which is used as the metadata field for the operation returned by DeleteOrganization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteOrganizationMetadata {}
 
 /// A status object which is used as the metadata field for the Operation returned by DeleteProject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteProjectMetadata {}
 
 /// Runtime operation information for deleting a TagBinding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteTagBindingMetadata {}
 
 /// Runtime operation information for deleting a TagKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteTagKeyMetadata {}
 
 /// Runtime operation information for deleting a TagValue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteTagValueMetadata {}
 
 /// Represents a collection of effective tag bindings for a GCP resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EffectiveTagBindingCollection {
     /// Tag keys/values effectively bound to this resource, specified in namespaced format. For example: "123/environment": "production"
     #[serde(default, rename = "effectiveTags")]
@@ -131,11 +132,11 @@ pub struct EffectiveTagBindingCollection {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Metadata describing a long running folder operation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FolderOperation {
     /// The resource name of the folder or organization we are either creating the folder under or moving the folder to.
     #[serde(default, rename = "destinationParent")]
@@ -152,7 +153,7 @@ pub struct FolderOperation {
 }
 
 /// A classification of the Folder Operation error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FolderOperationError {
     /// The type of operation error experienced. // TODO: enum values: ["ERROR_TYPE_UNSPECIFIED", "ACTIVE_FOLDER_HEIGHT_VIOLATION", "MAX_CHILD_FOLDERS_VIOLATION", "FOLDER_NAME_UNIQUENESS_VIOLATION", "RESOURCE_DELETED_VIOLATION", "PARENT_DELETED_VIOLATION", "CYCLE_INTRODUCED_VIOLATION", "FOLDER_BEING_MOVED_VIOLATION", "FOLDER_TO_DELETE_NON_EMPTY_VIOLATION", "DELETED_FOLDER_HEIGHT_VIOLATION", "FOLDER_TO_DELETE_CONFIGURED_CAPABILITY_VIOLATION"]
     #[serde(default, rename = "errorMessageId")]
@@ -160,7 +161,7 @@ pub struct FolderOperationError {
 }
 
 /// Request message for GetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
@@ -168,7 +169,7 @@ pub struct GetIamPolicyRequest {
 }
 
 /// The response of ListEffectiveTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEffectiveTagsResponse {
     /// A possibly paginated list of effective tags for the specified resource.
     #[serde(default, rename = "effectiveTags")]
@@ -179,7 +180,7 @@ pub struct ListEffectiveTagsResponse {
 }
 
 /// The ListFolders response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFoldersResponse {
     /// A possibly paginated list of folders that are direct descendants of the specified parent resource.
     #[serde(default)]
@@ -190,7 +191,7 @@ pub struct ListFoldersResponse {
 }
 
 /// The response message for Liens.ListLiens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLiensResponse {
     /// A list of Liens.
     #[serde(default)]
@@ -201,7 +202,7 @@ pub struct ListLiensResponse {
 }
 
 /// A page of the response received from the ListProjects method. A paginated response where more pages are available has next_page_token set. This token can be used in a subsequent request to retrieve the next request page. NOTE: A response may contain fewer elements than the request page_size and still have a next_page_token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProjectsResponse {
     /// Pagination token. If the result set is too large to fit in a single response, this token is returned. It encodes the position of the current result cursor. Feeding this value into a new list request with the page_token parameter gives the next page of the results. When next_page_token is not filled in, there is no next page and the list returned is the last page in the result set. Pagination tokens have a limited lifetime.
     #[serde(default, rename = "nextPageToken")]
@@ -212,7 +213,7 @@ pub struct ListProjectsResponse {
 }
 
 /// The ListTagBindings response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTagBindingsResponse {
     /// Pagination token. If the result set is too large to fit in a single response, this token is returned. It encodes the position of the current result cursor. Feeding this value into a new list request with the page_token parameter gives the next page of the results. When next_page_token is not filled in, there is no next page and the list returned is the last page in the result set. Pagination tokens have a limited lifetime.
     #[serde(default, rename = "nextPageToken")]
@@ -223,7 +224,7 @@ pub struct ListTagBindingsResponse {
 }
 
 /// The ListTagHolds response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTagHoldsResponse {
     /// Pagination token. If the result set is too large to fit in a single response, this token is returned. It encodes the position of the current result cursor. Feeding this value into a new list request with the page_token parameter gives the next page of the results. When next_page_token is not filled in, there is no next page and the list returned is the last page in the result set. Pagination tokens have a limited lifetime.
     #[serde(default, rename = "nextPageToken")]
@@ -234,7 +235,7 @@ pub struct ListTagHoldsResponse {
 }
 
 /// The ListTagKeys response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTagKeysResponse {
     /// A pagination token returned from a previous call to ListTagKeys that indicates from where listing should continue.
     #[serde(default, rename = "nextPageToken")]
@@ -245,7 +246,7 @@ pub struct ListTagKeysResponse {
 }
 
 /// The ListTagValues response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTagValuesResponse {
     /// A pagination token returned from a previous call to ListTagValues that indicates from where listing should continue.
     #[serde(default, rename = "nextPageToken")]
@@ -256,7 +257,7 @@ pub struct ListTagValuesResponse {
 }
 
 /// Metadata pertaining to the folder move process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveFolderMetadata {
     /// The resource name of the folder or organization to move the folder to.
     #[serde(default, rename = "destinationParent")]
@@ -270,7 +271,7 @@ pub struct MoveFolderMetadata {
 }
 
 /// The MoveFolder request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveFolderRequest {
     /// Required. The resource name of the folder or organization which should be the folder''s new parent. Must be of the form folders/{folder_id} or organizations/{org_id}.
     #[serde(default, rename = "destinationParent")]
@@ -278,11 +279,11 @@ pub struct MoveFolderRequest {
 }
 
 /// A status object which is used as the metadata field for the Operation returned by MoveProject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveProjectMetadata {}
 
 /// The request sent to MoveProject method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveProjectRequest {
     /// Required. The new parent to move the Project under.
     #[serde(default, rename = "destinationParent")]
@@ -290,7 +291,7 @@ pub struct MoveProjectRequest {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -310,7 +311,7 @@ pub struct Operation {
 }
 
 /// A status object which is used as the metadata field for the Operation returned by CreateProject. It provides insight for when significant phases of Project creation have completed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectCreationStatus {
     /// Creation time of the project creation workflow.
     #[serde(default, rename = "createTime")]
@@ -324,7 +325,7 @@ pub struct ProjectCreationStatus {
 }
 
 /// The response message for searching folders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchFoldersResponse {
     /// A possibly paginated folder search results. the specified parent resource.
     #[serde(default)]
@@ -335,7 +336,7 @@ pub struct SearchFoldersResponse {
 }
 
 /// The response returned from the SearchOrganizations method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchOrganizationsResponse {
     /// A pagination token to be used to retrieve the next page of results. If the result is too large to fit within the page size specified in the request, this field will be set with a token that can be used to fetch the next page of results. If this field is empty, it indicates that this response contains the last page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -346,7 +347,7 @@ pub struct SearchOrganizationsResponse {
 }
 
 /// A page of the response received from the SearchProjects method. A paginated response where more pages are available has next_page_token set. This token can be used in a subsequent request to retrieve the next request page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchProjectsResponse {
     /// Pagination token. If the result set is too large to fit in a single response, this token is returned. It encodes the position of the current result cursor. Feeding this value into a new list request with the page_token parameter gives the next page of the results. When next_page_token is not filled in, there is no next page and the list returned is the last page in the result set. Pagination tokens have a limited lifetime.
     #[serde(default, rename = "nextPageToken")]
@@ -357,7 +358,7 @@ pub struct SearchProjectsResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -368,7 +369,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Represents a collection of tags directly bound to a GCP resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagBindingCollection {
     /// Optional. A checksum based on the current bindings which can be passed to prevent race conditions. This field is always set in server responses.
     #[serde(default)]
@@ -385,7 +386,7 @@ pub struct TagBindingCollection {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -393,7 +394,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -401,43 +402,43 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// A status object which is used as the metadata field for the Operation returned by UndeleteFolder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteFolderMetadata {}
 
 /// The UndeleteFolder request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteFolderRequest {}
 
 /// A status object which is used as the metadata field for the Operation returned by UndeleteOrganization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteOrganizationMetadata {}
 
 /// A status object which is used as the metadata field for the Operation returned by UndeleteProject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteProjectMetadata {}
 
 /// The request sent to the UndeleteProject method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteProjectRequest {}
 
 /// A status object which is used as the metadata field for the Operation returned by UpdateFolder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateFolderMetadata {}
 
 /// A status object which is used as the metadata field for the Operation returned by UpdateProject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateProjectMetadata {}
 
 /// Runtime operation information for updating a TagKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateTagKeyMetadata {}
 
 /// Runtime operation information for updating a TagValue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateTagValueMetadata {}
 
 /// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
@@ -445,7 +446,7 @@ pub struct GetPolicyOptions {
 }
 
 /// An EffectiveTag represents a tag that applies to a resource during policy evaluation. Tags can be either directly bound to a resource or inherited from its ancestor. EffectiveTag contains the name and namespaced_name of the tag value and tag key, with additional fields of inherited to indicate the inheritance status of the effective tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EffectiveTag {
     /// Indicates the inheritance status of a tag value attached to the given resource. If the tag value is inherited from one of the resource''s ancestors, inherited will be true. If false, then the tag value is directly attached to the resource, inherited will be false.
     #[serde(default)]
@@ -468,7 +469,7 @@ pub struct EffectiveTag {
 }
 
 /// A Lien represents an encumbrance on the actions that can be performed on a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Lien {
     /// The creation time of this Lien.
     #[serde(default, rename = "createTime")]
@@ -491,7 +492,7 @@ pub struct Lien {
 }
 
 /// A TagBinding represents a connection between a TagValue and a cloud resource. When a TagBinding is created, the TagValue is applied to all the descendants of the Google Cloud resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagBinding {
     /// Output only. The name of the TagBinding. This is a String of the form: tagBindings/{full-resource-name}/{tag-value-name} (e.g. tagBindings/%2F%2Fcloudresourcemanager.googleapis.com%2Fprojects%2F123/tagValues/456) or tagBindings/{full-resource-name}/{tag-key-name} (e.g. tagBindings/%2F%2Fcloudresourcemanager.googleapis.com%2Fprojects%2F123/tagKeys/123).
     #[serde(default)]
@@ -508,7 +509,7 @@ pub struct TagBinding {
 }
 
 /// A TagHold represents the use of a TagValue that is not captured by TagBindings. If a TagValue has any TagHolds, deletion will be blocked. This resource is intended to be created in the same cloud location as the holder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagHold {
     /// Output only. The time this TagHold was created.
     #[serde(default, rename = "createTime")]
@@ -528,7 +529,7 @@ pub struct TagHold {
 }
 
 /// A TagKey, used to group a set of TagValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagKey {
     /// Optional. Regular expression constraint for freeform tag values. If present, it implicitly allows freeform values (constrained by the regex).
     #[serde(default, rename = "allowedValuesRegex")]
@@ -566,7 +567,7 @@ pub struct TagKey {
 }
 
 /// A TagValue is a child of a particular TagKey. This is used to group cloud resources for the purpose of controlling them using policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagValue {
     /// Output only. Creation time.
     #[serde(default, rename = "createTime")]
@@ -595,7 +596,7 @@ pub struct TagValue {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -609,7 +610,7 @@ pub struct Status {
 }
 
 /// A folder in an organization''s resource hierarchy, used to organize that organization''s resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Folder {
     /// Output only. Optional capabilities configured for this folder (via UpdateCapability API). Example: folders/123/capabilities/app-management.
     #[serde(default, rename = "configuredCapabilities")]
@@ -647,7 +648,7 @@ pub struct Folder {
 }
 
 /// The root node in the resource hierarchy to which a particular entity''s (a company, for example) resources belong.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Organization {
     /// Output only. Timestamp when the Organization was created.
     #[serde(default, rename = "createTime")]
@@ -676,7 +677,7 @@ pub struct Organization {
 }
 
 /// A project is a high-level Google Cloud entity. It is a container for ACLs, APIs, App Engine Apps, VMs, and other Google Cloud Platform resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Project {
     /// Output only. If this project is a Management Project, list of capabilities configured on the parent folder. Note, presence of any capability implies that this is a Management Project. Example: folders/123/capabilities/app-management. OUTPUT ONLY.
     #[serde(default, rename = "configuredCapabilities")]
@@ -717,7 +718,7 @@ pub struct Project {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -734,7 +735,7 @@ pub struct Policy {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -745,7 +746,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -759,7 +760,7 @@ pub struct Binding {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -770,7 +771,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]

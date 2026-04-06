@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Default agent type. The agent uses instructions and callbacks specified in the agent to perform the task using a large language model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentLlmAgent {}
 
 /// Request message for AgentService.BatchDeleteConversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteConversationsRequest {
     /// Required. The resource names of the conversations to delete.
     #[serde(default)]
@@ -23,15 +24,15 @@ pub struct BatchDeleteConversationsRequest {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for ToolService.ExecuteTool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteToolRequest {
     /// Optional. The input parameters and values for the tool in JSON object format.
     #[serde(default)]
@@ -51,7 +52,7 @@ pub struct ExecuteToolRequest {
 }
 
 /// Response message for ToolService.ExecuteTool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteToolResponse {
     /// The tool execution result in JSON object format. Use "output" key to specify tool response and "error" key to specify error details (if any). If "output" and "error" keys are not specified, then whole "response" is treated as tool execution result.
     #[serde(default)]
@@ -68,7 +69,7 @@ pub struct ExecuteToolResponse {
 }
 
 /// Request message for AgentService.ExportApp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportAppRequest {
     /// Optional. The resource name of the app version to export. Format: projects/{project}/locations/{location}/apps/{app}/versions/{version}.
     #[serde(default, rename = "appVersion")]
@@ -82,7 +83,7 @@ pub struct ExportAppRequest {
 }
 
 /// Response message for AgentService.ExportApp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportAppResponse {
     /// App folder compressed as a zip file.
     #[serde(default, rename = "appContent")]
@@ -93,7 +94,7 @@ pub struct ExportAppResponse {
 }
 
 /// Request message for WidgetService.GenerateChatToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateChatTokenRequest {
     /// Required. The deployment of the app to use for the session. Format: projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}
     #[serde(default)]
@@ -107,7 +108,7 @@ pub struct GenerateChatTokenRequest {
 }
 
 /// Response message for WidgetService.GenerateChatToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateChatTokenResponse {
     /// The session scoped token for chat widget to authenticate with Session APIs.
     #[serde(default, rename = "chatToken")]
@@ -118,7 +119,7 @@ pub struct GenerateChatTokenResponse {
 }
 
 /// Request message for AgentService.ImportApp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportAppRequest {
     /// Raw bytes representing the compressed zip file with the app folder structure.
     #[serde(default, rename = "appContent")]
@@ -141,7 +142,7 @@ pub struct ImportAppRequest {
 }
 
 /// Response message for AgentService.ImportApp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportAppResponse {
     /// The resource name of the app that was imported.
     #[serde(default)]
@@ -152,7 +153,7 @@ pub struct ImportAppResponse {
 }
 
 /// Response message for AgentService.ListAgents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAgentsResponse {
     /// The list of agents.
     #[serde(default)]
@@ -163,7 +164,7 @@ pub struct ListAgentsResponse {
 }
 
 /// Response message for AgentService.ListAppVersions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAppVersionsResponse {
     /// The list of app versions.
     #[serde(default, rename = "appVersions")]
@@ -174,7 +175,7 @@ pub struct ListAppVersionsResponse {
 }
 
 /// Response message for AgentService.ListApps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAppsResponse {
     /// The list of apps.
     #[serde(default)]
@@ -188,7 +189,7 @@ pub struct ListAppsResponse {
 }
 
 /// Response message for AgentService.ListChangelogs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListChangelogsResponse {
     /// The list of changelogs.
     #[serde(default)]
@@ -199,7 +200,7 @@ pub struct ListChangelogsResponse {
 }
 
 /// Response message for AgentService.ListConversations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConversationsResponse {
     /// The list of conversations.
     #[serde(default)]
@@ -210,7 +211,7 @@ pub struct ListConversationsResponse {
 }
 
 /// Response message for AgentService.ListDeployments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDeploymentsResponse {
     /// The list of deployments.
     #[serde(default)]
@@ -221,7 +222,7 @@ pub struct ListDeploymentsResponse {
 }
 
 /// Response message for AgentService.ListExamples.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExamplesResponse {
     /// The list of examples.
     #[serde(default)]
@@ -232,7 +233,7 @@ pub struct ListExamplesResponse {
 }
 
 /// Response message for AgentService.ListGuardrails.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGuardrailsResponse {
     /// The list of guardrails.
     #[serde(default)]
@@ -243,7 +244,7 @@ pub struct ListGuardrailsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -254,7 +255,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -268,7 +269,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message for AgentService.ListTools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListToolsResponse {
     /// A token that can be sent as ListToolsRequest.page_token to retrieve the next page. Absence of this field indicates there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -279,7 +280,7 @@ pub struct ListToolsResponse {
 }
 
 /// Response message for AgentService.ListToolsets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListToolsetsResponse {
     /// A token that can be sent as ListToolsetsRequest.page_token to retrieve the next page. Absence of this field indicates there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -290,7 +291,7 @@ pub struct ListToolsetsResponse {
 }
 
 /// Represents an Omnichannel resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Omnichannel {
     /// Output only. Timestamp when the omnichannel resource was created.
     #[serde(default, rename = "createTime")]
@@ -316,7 +317,7 @@ pub struct Omnichannel {
 }
 
 /// ChannelConfig contains config for various of app integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OmnichannelIntegrationConfigChannelConfig {
     /// WhatsApp config.
     #[serde(default, rename = "whatsappConfig")]
@@ -324,7 +325,7 @@ pub struct OmnichannelIntegrationConfigChannelConfig {
 }
 
 /// Routing config specify how/who to route app events to a subscriber.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OmnichannelIntegrationConfigRoutingConfig {
     /// The key of the subscriber.
     #[serde(default, rename = "subscriberKey")]
@@ -332,7 +333,7 @@ pub struct OmnichannelIntegrationConfigRoutingConfig {
 }
 
 /// Configs of subscribers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OmnichannelIntegrationConfigSubscriberConfig {
     /// Ces app config.
     #[serde(default, rename = "cesAppConfig")]
@@ -340,7 +341,7 @@ pub struct OmnichannelIntegrationConfigSubscriberConfig {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OmnichannelOperationMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -357,7 +358,7 @@ pub struct OmnichannelOperationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -374,11 +375,11 @@ pub struct OperationMetadata {
 }
 
 /// Request message for AgentService.RestoreAppVersion
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreAppVersionRequest {}
 
 /// Request message for ToolService.RetrieveToolSchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveToolSchemaRequest {
     /// Optional. The name of the tool to retrieve the schema for. Format: projects/{project}/locations/{location}/apps/{app}/tools/{tool}
     #[serde(default)]
@@ -389,7 +390,7 @@ pub struct RetrieveToolSchemaRequest {
 }
 
 /// Response message for ToolService.RetrieveToolSchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveToolSchemaResponse {
     /// The schema of the tool input parameters.
     #[serde(default, rename = "inputSchema")]
@@ -406,7 +407,7 @@ pub struct RetrieveToolSchemaResponse {
 }
 
 /// Request message for ToolService.RetrieveTools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveToolsRequest {
     /// Optional. The identifiers of the tools to retrieve from the toolset. If empty, all tools in the toolset will be returned.
     #[serde(default, rename = "toolIds")]
@@ -414,7 +415,7 @@ pub struct RetrieveToolsRequest {
 }
 
 /// Response message for ToolService.RetrieveTools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveToolsResponse {
     /// The list of tools that are included in the specified toolset.
     #[serde(default)]
@@ -422,7 +423,7 @@ pub struct RetrieveToolsResponse {
 }
 
 /// Request message for SessionService.RunSession.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunSessionRequest {
     /// Required. The configuration for the session.
     #[serde(default)]
@@ -433,7 +434,7 @@ pub struct RunSessionRequest {
 }
 
 /// Response message for SessionService.RunSession.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunSessionResponse {
     /// Outputs for the session.
     #[serde(default)]
@@ -441,7 +442,7 @@ pub struct RunSessionResponse {
 }
 
 /// Project/Location level security settings for CES.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecuritySettings {
     /// Output only. Create time of the security settings.
     #[serde(default, rename = "createTime")]
@@ -461,11 +462,11 @@ pub struct SecuritySettings {
 }
 
 /// Configurations for authentication with [ID token](https://cloud.google.com/docs/authentication/token-types#id) generated from service agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAgentIdTokenAuthConfig {}
 
 /// Configuration for how the agent response should be synthesized.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SynthesizeSpeechConfig {
     /// Optional. The speaking rate/speed in the range [0.25, 2.0]. 1.0 is the normal native speed supported by the specific voice. 2.0 is twice as fast, and 0.5 is half as fast. Values outside of the range [0.25, 2.0] will return an error.
     #[serde(default, rename = "speakingRate")]
@@ -476,7 +477,7 @@ pub struct SynthesizeSpeechConfig {
 }
 
 /// Configuration options for the app import process. These options control how the import behaves, particularly when conflicts arise with existing app data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportAppRequestImportOptions {
     /// Optional. The strategy to use when resolving conflicts during import. // TODO: enum values: ["CONFLICT_RESOLUTION_STRATEGY_UNSPECIFIED", "REPLACE", "OVERWRITE"]
     #[serde(default, rename = "conflictResolutionStrategy")]
@@ -484,7 +485,7 @@ pub struct ImportAppRequestImportOptions {
 }
 
 /// In Customer Engagement Suite (CES), an app version is a snapshot of the app at a specific point in time. It is immutable and cannot be modified once created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppVersion {
     /// Output only. Timestamp when the app version was created.
     #[serde(default, rename = "createTime")]
@@ -510,7 +511,7 @@ pub struct AppVersion {
 }
 
 /// Changelogs represent a change made to the app or to an resource within the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Changelog {
     /// Output only. The action that was performed on the resource.
     #[serde(default)]
@@ -551,7 +552,7 @@ pub struct Changelog {
 }
 
 /// A conversation represents an interaction between an end user and the CES app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Conversation {
     /// Output only. The version of the app used for processing the conversation. Format: projects/{project}/locations/{location}/apps/{app}/versions/{version}
     #[serde(default, rename = "appVersion")]
@@ -595,7 +596,7 @@ pub struct Conversation {
 }
 
 /// A deployment represents an immutable, queryable version of the app. It is used to deploy an app version with a specific channel profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Deployment {
     /// Optional. The resource name of the app version to deploy. Format: projects/{project}/locations/{location}/apps/{app}/versions/{version} Use projects/{project}/locations/{location}/apps/{app}/versions/- to use the draft app.
     #[serde(default, rename = "appVersion")]
@@ -621,7 +622,7 @@ pub struct Deployment {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -641,7 +642,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -661,7 +662,7 @@ pub struct Operation {
 }
 
 /// OmnichannelIntegrationConfig contains all App integration configs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OmnichannelIntegrationConfig {
     /// Optional. Various of configuration for handling App events.
     #[serde(default, rename = "channelConfigs")]
@@ -675,7 +676,7 @@ pub struct OmnichannelIntegrationConfig {
 }
 
 /// How Omnichannel should receive/reply events from WhatsApp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OmnichannelIntegrationConfigWhatsappConfig {
     /// The Meta Business Portfolio (MBP) ID. https://www.facebook.com/business/help/1710077379203657
     #[serde(default, rename = "metaBusinessPortfolioId")]
@@ -698,7 +699,7 @@ pub struct OmnichannelIntegrationConfigWhatsappConfig {
 }
 
 /// Configs for CES app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OmnichannelIntegrationConfigCesAppConfig {
     /// The unique identifier of the CES app. Format: projects/{project}/locations/{location}/apps/{app}
     #[serde(default)]
@@ -706,7 +707,7 @@ pub struct OmnichannelIntegrationConfigCesAppConfig {
 }
 
 /// The configuration for the session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionConfig {
     /// Optional. The deployment of the app to use for the session. Format: projects/{project}/locations/{location}/apps/{app}/deployments/{deployment}
     #[serde(default)]
@@ -739,7 +740,7 @@ pub struct SessionConfig {
 }
 
 /// Input for the session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionInput {
     /// Optional. Audio data from the end user.
     #[serde(default)]
@@ -771,7 +772,7 @@ pub struct SessionInput {
 }
 
 /// Output for the session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionOutput {
     /// Output audio from the CES agent.
     #[serde(default)]
@@ -806,7 +807,7 @@ pub struct SessionOutput {
 }
 
 /// Defines project/location level endpoint control policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointControlPolicy {
     /// Optional. The allowed HTTP(s) origins that tools in the App are able to directly call. The enforcement depends on the value of enforcement_scope and the VPC-SC status of the project. If a port number is not provided, all ports will be allowed. Otherwise, the port number must match exactly. For example, "https://example.com" will match "https://example.com:443" and any other port. "https://example.com:443" will only match "https://example.com:443".
     #[serde(default, rename = "allowedOrigins")]
@@ -817,7 +818,7 @@ pub struct EndpointControlPolicy {
 }
 
 /// A snapshot of the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppSnapshot {
     /// Optional. List of agents in the app.
     #[serde(default)]
@@ -840,7 +841,7 @@ pub struct AppSnapshot {
 }
 
 /// All information about a single turn in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConversationTurn {
     /// Optional. List of messages in the conversation turn, including user input, agent responses and intermediate events during the processing.
     #[serde(default)]
@@ -851,7 +852,7 @@ pub struct ConversationTurn {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -865,7 +866,7 @@ pub struct Status {
 }
 
 /// InputAudioConfig configures how the CES agent should interpret the incoming audio data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputAudioConfig {
     /// Required. The encoding of the input audio data. // TODO: enum values: ["AUDIO_ENCODING_UNSPECIFIED", "LINEAR16", "MULAW", "ALAW"]
     #[serde(default, rename = "audioEncoding")]
@@ -879,7 +880,7 @@ pub struct InputAudioConfig {
 }
 
 /// OutputAudioConfig configures how the CES agent should synthesize outgoing audio responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutputAudioConfig {
     /// Required. The encoding of the output audio data. // TODO: enum values: ["AUDIO_ENCODING_UNSPECIFIED", "LINEAR16", "MULAW", "ALAW"]
     #[serde(default, rename = "audioEncoding")]
@@ -890,7 +891,7 @@ pub struct OutputAudioConfig {
 }
 
 /// [QueryParameters](https://cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#queryparameters) to send to the remote [Dialogflow](https://cloud.google.com/dialogflow/cx/docs/concept/console-conversational-agents) agent when the session control is transferred to the remote agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionConfigRemoteDialogflowQueryParameters {
     /// Optional. The end user metadata to be sent in [QueryParameters](https://cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#queryparameters).
     #[serde(default, rename = "endUserMetadata")]
@@ -904,7 +905,7 @@ pub struct SessionConfigRemoteDialogflowQueryParameters {
 }
 
 /// Event input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Event {
     /// Required. The name of the event.
     #[serde(default)]
@@ -912,7 +913,7 @@ pub struct Event {
 }
 
 /// Execution results for the requested tool calls from the client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolResponses {
     /// Optional. The list of tool execution results.
     #[serde(default, rename = "toolResponses")]
@@ -920,7 +921,7 @@ pub struct ToolResponses {
 }
 
 /// Citations associated with the agent response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Citations {
     /// List of cited pieces of information.
     #[serde(default, rename = "citedChunks")]
@@ -928,7 +929,7 @@ pub struct Citations {
 }
 
 /// Contains execution details during the processing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionOutputDiagnosticInfo {
     /// List of the messages that happened during the processing.
     #[serde(default)]
@@ -939,7 +940,7 @@ pub struct SessionOutputDiagnosticInfo {
 }
 
 /// Indicates the session has terminated, due to either successful completion (e.g. user says "Good bye!" ) or an agent escalation. The agent will not process any further inputs after session is terminated and the client should half-close and disconnect after receiving all remaining responses from the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndSession {
     /// Optional. Provides additional information about the end session signal, such as the reason for ending the session.
     #[serde(default)]
@@ -947,7 +948,7 @@ pub struct EndSession {
 }
 
 /// Search suggestions from Google Search Tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSearchSuggestions {
     /// Compliant HTML and CSS styling for search suggestions. The provided HTML and CSS automatically adapts to your device settings, displaying in either light or dark mode indicated by @media(prefers-color-scheme).
     #[serde(default)]
@@ -958,7 +959,7 @@ pub struct GoogleSearchSuggestions {
 }
 
 /// Request for the client to execute the tools and return the execution results before continuing the session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolCalls {
     /// Optional. The list of tool calls to execute.
     #[serde(default, rename = "toolCalls")]
@@ -966,7 +967,7 @@ pub struct ToolCalls {
 }
 
 /// An agent acts as the fundamental building block that provides instructions to the Large Language Model (LLM) for executing specific tasks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Agent {
     /// Optional. The callbacks to execute after the agent is called. The provided callbacks are executed sequentially in the exact order they are given in the list. If a callback returns an overridden response, execution stops and any remaining callbacks are skipped.
     #[serde(default, rename = "afterAgentCallbacks")]
@@ -1037,7 +1038,7 @@ pub struct Agent {
 }
 
 /// An app serves as a top-level container for a group of agents, including the root agent and its sub-agents, along with their associated configurations. These agents work together to achieve specific goals within the app''s context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct App {
     /// Optional. Audio processing configuration of the app.
     #[serde(default, rename = "audioProcessingConfig")]
@@ -1121,7 +1122,7 @@ pub struct App {
 }
 
 /// An example represents a sample conversation between the user and the agent(s).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Example {
     /// Output only. Timestamp when the example was created.
     #[serde(default, rename = "createTime")]
@@ -1153,7 +1154,7 @@ pub struct Example {
 }
 
 /// Guardrail contains a list of checks and balances to keep the agents safe and secure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Guardrail {
     /// Optional. Action to take when the guardrail is triggered.
     #[serde(default)]
@@ -1197,7 +1198,7 @@ pub struct Guardrail {
 }
 
 /// A tool represents an action that the CES agent can take to achieve certain goals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tool {
     /// Optional. The agent tool.
     #[serde(default, rename = "agentTool")]
@@ -1259,7 +1260,7 @@ pub struct Tool {
 }
 
 /// A toolset represents a group of dynamically managed tools that can be used by the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Toolset {
     /// Optional. A toolset that generates tools from an Integration Connectors Connection.
     #[serde(default, rename = "connectorToolset")]
@@ -1297,7 +1298,7 @@ pub struct Toolset {
 }
 
 /// Piece of cited information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CitationsCitedChunk {
     /// Text used for citation.
     #[serde(default)]
@@ -1311,7 +1312,7 @@ pub struct CitationsCitedChunk {
 }
 
 /// A span is a unit of work or a single operation during the request processing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Span {
     /// Output only. Key-value attributes associated with the span.
     #[serde(default)]
@@ -1334,7 +1335,7 @@ pub struct Span {
 }
 
 /// Represents a single web search query and its associated search uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebSearchQuery {
     /// The search query text.
     #[serde(default)]
@@ -1345,7 +1346,7 @@ pub struct WebSearchQuery {
 }
 
 /// The agent which will transfer execution to a remote [Dialogflow CX](https://docs.cloud.google.com/dialogflow/cx/docs/concept/agent) agent. The Dialogflow agent will process subsequent user queries until the session ends or flow ends, and the control is transferred back to the parent CES agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentRemoteDialogflowAgent {
     /// Required. The [Dialogflow](https://docs.cloud.google.com/dialogflow/cx/docs/concept/agent) agent resource name. Format: projects/{project}/locations/{location}/agents/{agent}
     #[serde(default)]
@@ -1368,7 +1369,7 @@ pub struct AgentRemoteDialogflowAgent {
 }
 
 /// A toolset with a selection of its tools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentAgentToolset {
     /// Optional. The tools IDs to filter the toolset.
     #[serde(default, rename = "toolIds")]
@@ -1379,7 +1380,7 @@ pub struct AgentAgentToolset {
 }
 
 /// Rule for transferring to a specific agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferRule {
     /// Required. The resource name of the child agent the rule applies to. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
     #[serde(default, rename = "childAgent")]
@@ -1396,7 +1397,7 @@ pub struct TransferRule {
 }
 
 /// Configuration for how the input and output audio should be processed and delivered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudioProcessingConfig {
     /// Optional. Configuration for the ambient sound to be played with the synthesized agent response, to enhance the naturalness of the conversation.
     #[serde(default, rename = "ambientSoundConfig")]
@@ -1413,7 +1414,7 @@ pub struct AudioProcessingConfig {
 }
 
 /// Settings for custom client certificates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientCertificateSettings {
     /// Optional. The name of the SecretManager secret version resource storing the passphrase to decrypt the private key. Should be left unset if the private key is not encrypted. Format: projects/{project}/secrets/{secret}/versions/{version}
     #[serde(default)]
@@ -1427,7 +1428,7 @@ pub struct ClientCertificateSettings {
 }
 
 /// Data store related settings for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreSettings {
     /// Output only. The engines for the app.
     #[serde(default)]
@@ -1435,7 +1436,7 @@ pub struct DataStoreSettings {
 }
 
 /// A ChannelProfile configures the agent''s behavior for a specific communication channel, such as web UI or telephony.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelProfile {
     /// Optional. The type of the channel profile. // TODO: enum values: ["UNKNOWN", "WEB_UI", "API", "TWILIO", "GOOGLE_TELEPHONY_PLATFORM", "CONTACT_CENTER_AS_A_SERVICE", "FIVE9", "CONTACT_CENTER_INTEGRATION"]
     #[serde(default, rename = "channelType")]
@@ -1461,7 +1462,7 @@ pub struct ChannelProfile {
 }
 
 /// Settings to describe how errors should be handled in the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorHandlingSettings {
     /// Optional. The strategy to use for error handling. // TODO: enum values: ["ERROR_HANDLING_STRATEGY_UNSPECIFIED", "NONE", "FALLBACK_RESPONSE", "END_SESSION"]
     #[serde(default, rename = "errorHandlingStrategy")]
@@ -1469,7 +1470,7 @@ pub struct ErrorHandlingSettings {
 }
 
 /// Threshold settings for metrics in an Evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvaluationMetricsThresholds {
     /// Optional. The golden evaluation metrics thresholds.
     #[serde(default, rename = "goldenEvaluationMetricsThresholds")]
@@ -1487,7 +1488,7 @@ pub struct EvaluationMetricsThresholds {
 }
 
 /// Language settings of the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageSettings {
     /// Optional. The default language code of the app.
     #[serde(default, rename = "defaultLanguageCode")]
@@ -1504,7 +1505,7 @@ pub struct LanguageSettings {
 }
 
 /// Settings to describe the logging behaviors for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingSettings {
     /// Optional. Configuration for how audio interactions should be recorded.
     #[serde(default, rename = "audioRecordingConfig")]
@@ -1530,7 +1531,7 @@ pub struct LoggingSettings {
 }
 
 /// Defines the structure and metadata for a variable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppVariableDeclaration {
     /// Required. The description of the variable.
     #[serde(default)]
@@ -1544,7 +1545,7 @@ pub struct AppVariableDeclaration {
 }
 
 /// TimeZone settings of the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeZoneSettings {
     /// Optional. The time zone of the app from the [time zone database](https://www.iana.org/time-zones), e.g., America/Los_Angeles, Europe/Paris.
     #[serde(default, rename = "timeZone")]
@@ -1552,7 +1553,7 @@ pub struct TimeZoneSettings {
 }
 
 /// A message within a conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Message {
     /// Optional. Content of the message as a series of chunks.
     #[serde(default)]
@@ -1566,7 +1567,7 @@ pub struct Message {
 }
 
 /// Action that is taken when a certain precondition is met.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TriggerAction {
     /// Optional. Respond with a generative answer.
     #[serde(default, rename = "generativeAnswer")]
@@ -1580,7 +1581,7 @@ pub struct TriggerAction {
 }
 
 /// Guardrail that blocks the conversation based on the code callbacks provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuardrailCodeCallback {
     /// Optional. The callback to execute after the agent is called. Each callback function is expected to return a structure (e.g., a dict or object) containing at least: - ''decision'': Either ''OK'' or ''TRIGGER''. - ''reason'': A string explaining the decision. A ''TRIGGER'' decision may halt further processing.
     #[serde(default, rename = "afterAgentCallback")]
@@ -1597,7 +1598,7 @@ pub struct GuardrailCodeCallback {
 }
 
 /// Guardrail that bans certain content from being used in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuardrailContentFilter {
     /// Optional. List of banned phrases. Applies to both user inputs and agent responses.
     #[serde(default, rename = "bannedContents")]
@@ -1617,7 +1618,7 @@ pub struct GuardrailContentFilter {
 }
 
 /// Guardrail that blocks the conversation if the input is considered unsafe based on the LLM classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuardrailLlmPromptSecurity {
     /// Optional. Use a user-defined LlmPolicy to configure the security guardrail.
     #[serde(default, rename = "customPolicy")]
@@ -1631,7 +1632,7 @@ pub struct GuardrailLlmPromptSecurity {
 }
 
 /// Model safety settings overrides. When this is set, it will override the default settings and trigger the guardrail if the response is considered unsafe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuardrailModelSafety {
     /// Required. List of safety settings.
     #[serde(default, rename = "safetySettings")]
@@ -1639,7 +1640,7 @@ pub struct GuardrailModelSafety {
 }
 
 /// Represents a tool that allows the agent to call another agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentTool {
     /// Optional. Description of the tool''s purpose.
     #[serde(default)]
@@ -1653,7 +1654,7 @@ pub struct AgentTool {
 }
 
 /// Represents a client-side function that the agent can invoke. When the tool is chosen by the agent, control is handed off to the client. The client is responsible for executing the function and returning the result as a ToolResponse to continue the interaction with the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientFunction {
     /// Optional. The function description.
     #[serde(default)]
@@ -1670,7 +1671,7 @@ pub struct ClientFunction {
 }
 
 /// A ConnectorTool allows connections to different integrations. See: https://cloud.google.com/integration-connectors/docs/overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectorTool {
     /// Required. Action for the tool to use.
     #[serde(default)]
@@ -1690,7 +1691,7 @@ pub struct ConnectorTool {
 }
 
 /// Tool to retrieve from Vertex AI Search datastore or engine for grounding. Accepts either a datastore or an engine, but not both. See Vertex AI Search: https://cloud.google.com/generative-ai-app-builder/docs/enterprise-search-introduction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreTool {
     /// Optional. Boost specification to boost certain documents.
     #[serde(default, rename = "boostSpecs")]
@@ -1716,7 +1717,7 @@ pub struct DataStoreTool {
 }
 
 /// The file search tool allows the agent to search across the files uploaded by the app/agent developer. It has presets to give relatively good quality search over the uploaded files and summarization of the retrieved results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileSearchTool {
     /// Optional. The type of the corpus. Default is FULLY_MANAGED. // TODO: enum values: ["CORPUS_TYPE_UNSPECIFIED", "USER_OWNED", "FULLY_MANAGED"]
     #[serde(default, rename = "corpusType")]
@@ -1733,7 +1734,7 @@ pub struct FileSearchTool {
 }
 
 /// Represents a tool to perform Google web searches for grounding. See https://cloud.google.com/customer-engagement-ai/conversational-agents/ps/tool#google-search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSearchTool {
     /// Optional. Content will be fetched directly from these URLs for context and grounding. Example: "https://example.com/path.html". A maximum of 20 URLs are allowed.
     #[serde(default, rename = "contextUrls")]
@@ -1756,7 +1757,7 @@ pub struct GoogleSearchTool {
 }
 
 /// An MCP tool. See https://modelcontextprotocol.io/specification/2025-06-18/server/tools for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McpTool {
     /// Optional. Authentication information required to execute the tool against the MCP server. For bearer token authentication, the token applies only to tool execution, not to listing tools. This requires that tools can be listed without authentication.
     #[serde(default, rename = "apiAuthentication")]
@@ -1788,7 +1789,7 @@ pub struct McpTool {
 }
 
 /// A remote API tool defined by an OpenAPI schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OpenApiTool {
     /// Optional. Authentication information required by the API.
     #[serde(default, rename = "apiAuthentication")]
@@ -1817,7 +1818,7 @@ pub struct OpenApiTool {
 }
 
 /// Pre-defined system tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SystemTool {
     /// Output only. The description of the system tool.
     #[serde(default)]
@@ -1828,7 +1829,7 @@ pub struct SystemTool {
 }
 
 /// Represents a widget tool that the agent can invoke. When the tool is chosen by the agent, agent will return the widget to the client. The client is responsible for processing the widget and generating the next user query to continue the interaction with the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WidgetTool {
     /// Optional. The mapping that defines how data from a source tool is mapped to the widget''s input parameters.
     #[serde(default, rename = "dataMapping")]
@@ -1851,7 +1852,7 @@ pub struct WidgetTool {
 }
 
 /// A toolset that generates tools from an Integration Connectors Connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectorToolset {
     /// Optional. Configures how authentication is handled in Integration Connectors. By default, an admin authentication is passed in the Integration Connectors API requests. You can override it with a different end-user authentication config. **Note**: The Connection must have authentication override enabled in order to specify an EUC configuration here - otherwise, the Toolset creation will fail. See: https://cloud.google.com/application-integration/docs/configure-connectors-task#configure-authentication-override
     #[serde(default, rename = "authConfig")]
@@ -1865,7 +1866,7 @@ pub struct ConnectorToolset {
 }
 
 /// A toolset that contains a list of tools that are offered by the MCP server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McpToolset {
     /// Optional. Authentication information required to access tools and execute a tool against the MCP server. For bearer token authentication, the token applies only to tool execution, not to listing tools. This requires that tools can be listed without authentication.
     #[serde(default, rename = "apiAuthentication")]
@@ -1885,7 +1886,7 @@ pub struct McpToolset {
 }
 
 /// A toolset that contains a list of tools that are defined by an OpenAPI schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OpenApiToolset {
     /// Optional. Authentication information required by the API.
     #[serde(default, rename = "apiAuthentication")]
@@ -1908,7 +1909,7 @@ pub struct OpenApiToolset {
 }
 
 /// Configuration for tool behavior in fake mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolFakeConfig {
     /// Optional. Code block which will be executed instead of a real tool call.
     #[serde(default, rename = "codeBlock")]
@@ -1919,7 +1920,7 @@ pub struct ToolFakeConfig {
 }
 
 /// Deterministic transfer rule. When the condition evaluates to true, the transfer occurs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferRuleDeterministicTransfer {
     /// Optional. A rule that evaluates a session state condition. If the condition evaluates to true, the transfer occurs.
     #[serde(default, rename = "expressionCondition")]
@@ -1930,7 +1931,7 @@ pub struct TransferRuleDeterministicTransfer {
 }
 
 /// A rule that prevents the planner from transferring to the target agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferRuleDisablePlannerTransfer {
     /// Required. If the condition evaluates to true, planner will not be allowed to transfer to the target agent.
     #[serde(default, rename = "expressionCondition")]
@@ -1938,7 +1939,7 @@ pub struct TransferRuleDisablePlannerTransfer {
 }
 
 /// Configuration for the ambient sound to be played with the synthesized agent response, to enhance the naturalness of the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AmbientSoundConfig {
     /// Optional. Ambient noise as a mono-channel, 16kHz WAV file stored in [Cloud Storage](https://cloud.google.com/storage). Note: Please make sure the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com has storage.objects.get permission to the Cloud Storage object.
     #[serde(default, rename = "gcsUri")]
@@ -1955,7 +1956,7 @@ pub struct AmbientSoundConfig {
 }
 
 /// Configuration for how the user barge-in activities should be handled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BargeInConfig {
     /// Optional. If enabled, the agent will adapt its next response based on the assumption that the user hasn''t heard the full preceding agent message. This should not be used in scenarios where agent responses are displayed visually.
     #[serde(default, rename = "bargeInAwareness")]
@@ -1966,7 +1967,7 @@ pub struct BargeInConfig {
 }
 
 /// An engine to which the data stores are connected. See Vertex AI Search: https://cloud.google.com/generative-ai-app-builder/docs/enterprise-search-introduction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreSettingsEngine {
     /// Output only. The resource name of the engine. Format: projects/{project}/locations/{location}/collections/{collection}/engines/{engine}
     #[serde(default)]
@@ -1977,7 +1978,7 @@ pub struct DataStoreSettingsEngine {
 }
 
 /// Represents the persona property of a channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelProfilePersonaProperty {
     /// Optional. The persona of the channel. // TODO: enum values: ["UNKNOWN", "CONCISE", "CHATTY"]
     #[serde(default)]
@@ -1985,7 +1986,7 @@ pub struct ChannelProfilePersonaProperty {
 }
 
 /// Message for configuration for the web widget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelProfileWebWidgetConfig {
     /// Optional. The modality of the web widget. // TODO: enum values: ["MODALITY_UNSPECIFIED", "CHAT_AND_VOICE", "VOICE_ONLY", "CHAT_ONLY", "CHAT_VOICE_AND_VIDEO"]
     #[serde(default)]
@@ -2002,7 +2003,7 @@ pub struct ChannelProfileWebWidgetConfig {
 }
 
 /// Settings for golden evaluations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds {
     /// Optional. The expectation level metrics thresholds.
     #[serde(default, rename = "expectationLevelMetricsThresholds")]
@@ -2016,7 +2017,7 @@ pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholds {
 }
 
 /// Configuration for how the audio interactions should be recorded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudioRecordingConfig {
     /// Optional. The [Cloud Storage](https://cloud.google.com/storage) bucket to store the session audio recordings. The URI must start with "gs://". Please choose a bucket location that meets your data residency requirements. Note: If the Cloud Storage bucket is in a different project from the app, you should grant storage.objects.create permission to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
     #[serde(default, rename = "gcsBucket")]
@@ -2027,7 +2028,7 @@ pub struct AudioRecordingConfig {
 }
 
 /// Settings to describe the BigQuery export behaviors for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryExportSettings {
     /// Optional. The BigQuery **dataset ID** to export the data to.
     #[serde(default)]
@@ -2041,7 +2042,7 @@ pub struct BigQueryExportSettings {
 }
 
 /// Settings to describe the Cloud Logging behaviors for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudLoggingSettings {
     /// Optional. Whether to enable Cloud Logging for the sessions.
     #[serde(default, rename = "enableCloudLogging")]
@@ -2049,7 +2050,7 @@ pub struct CloudLoggingSettings {
 }
 
 /// Settings to describe the conversation logging behaviors for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConversationLoggingSettings {
     /// Optional. Whether to disable conversation logging for the sessions.
     #[serde(default, rename = "disableConversationLogging")]
@@ -2057,7 +2058,7 @@ pub struct ConversationLoggingSettings {
 }
 
 /// Settings to describe the conversation data collection behaviors for LLM analysis metrics pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricAnalysisSettings {
     /// Optional. Whether to collect conversation data for llm analysis metrics. If true, conversation data will not be collected for llm analysis metrics; otherwise, conversation data will be collected.
     #[serde(default, rename = "llmMetricsOptedOut")]
@@ -2065,7 +2066,7 @@ pub struct MetricAnalysisSettings {
 }
 
 /// Configuration to instruct how sensitive data should be handled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RedactionConfig {
     /// Optional. [DLP](https://cloud.google.com/dlp/docs) deidentify template name to instruct on how to de-identify content. Format: projects/{project}/locations/{location}/deidentifyTemplates/{deidentify_template}
     #[serde(default, rename = "deidentifyTemplate")]
@@ -2079,7 +2080,7 @@ pub struct RedactionConfig {
 }
 
 /// A chunk of content within a message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Chunk {
     /// Optional. Agent transfer event.
     #[serde(default, rename = "agentTransfer")]
@@ -2114,7 +2115,7 @@ pub struct Chunk {
 }
 
 /// The agent will immediately respond with a generative answer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TriggerActionGenerativeAnswer {
     /// Required. The prompt to use for the generative answer.
     #[serde(default)]
@@ -2122,7 +2123,7 @@ pub struct TriggerActionGenerativeAnswer {
 }
 
 /// The agent will immediately respond with a preconfigured response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TriggerActionRespondImmediately {
     /// Required. The canned responses for the agent to choose from. The response is chosen randomly.
     #[serde(default)]
@@ -2130,7 +2131,7 @@ pub struct TriggerActionRespondImmediately {
 }
 
 /// The agent will transfer the conversation to a different agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TriggerActionTransferAgent {
     /// Required. The name of the agent to transfer the conversation to. The agent must be in the same app as the current agent. Format: projects/{project}/locations/{location}/apps/{app}/agents/{agent}
     #[serde(default)]
@@ -2138,7 +2139,7 @@ pub struct TriggerActionTransferAgent {
 }
 
 /// A callback defines the custom logic to be executed at various stages of agent interaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Callback {
     /// Optional. Human-readable description of the callback.
     #[serde(default)]
@@ -2155,7 +2156,7 @@ pub struct Callback {
 }
 
 /// Guardrail that blocks the conversation if the LLM response is considered violating the policy based on the LLM classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuardrailLlmPolicy {
     /// Optional. By default, the LLM policy check is bypassed for short utterances. Enabling this setting applies the policy check to all utterances, including those that would normally be skipped.
     #[serde(default, rename = "allowShortUtterance")]
@@ -2178,7 +2179,7 @@ pub struct GuardrailLlmPolicy {
 }
 
 /// Configuration for default system security settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuardrailLlmPromptSecurityDefaultSecuritySettings {
     /// Output only. The default prompt template used by the system. This field is for display purposes to show the user what prompt the system uses by default. It is OUTPUT_ONLY.
     #[serde(default, rename = "defaultPromptTemplate")]
@@ -2186,7 +2187,7 @@ pub struct GuardrailLlmPromptSecurityDefaultSecuritySettings {
 }
 
 /// Safety setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuardrailModelSafetySafetySetting {
     /// Required. The harm category. // TODO: enum values: ["HARM_CATEGORY_UNSPECIFIED", "HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_DANGEROUS_CONTENT", "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_SEXUALLY_EXPLICIT"]
     #[serde(default)]
@@ -2197,7 +2198,7 @@ pub struct GuardrailModelSafetySafetySetting {
 }
 
 /// Boost specifications to boost certain documents. For more information, please refer to https://cloud.google.com/generative-ai-app-builder/docs/boosting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolBoostSpecs {
     /// Required. The Data Store where the boosting configuration is applied. Full resource name of DataStore, such as projects/{project}/locations/{location}/collections/{collection}/dataStores/{dataStore}.
     #[serde(default, rename = "dataStores")]
@@ -2208,7 +2209,7 @@ pub struct DataStoreToolBoostSpecs {
 }
 
 /// Configuration for searching within an Engine, potentially targeting specific DataStores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolEngineSource {
     /// Optional. Use to target specific DataStores within the Engine. If empty, the search applies to all DataStores associated with the Engine.
     #[serde(default, rename = "dataStoreSources")]
@@ -2222,7 +2223,7 @@ pub struct DataStoreToolEngineSource {
 }
 
 /// If specified, will apply the given configuration for the specified modality.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolModalityConfig {
     /// Optional. The grounding configuration.
     #[serde(default, rename = "groundingConfig")]
@@ -2239,7 +2240,7 @@ pub struct DataStoreToolModalityConfig {
 }
 
 /// Prompt settings used by the model when processing or summarizing the google search results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSearchToolPromptConfig {
     /// Optional. Defines the prompt used for the system instructions when interacting with the agent in chat conversations. If not set, default prompt will be used.
     #[serde(default, rename = "textPrompt")]
@@ -2250,7 +2251,7 @@ pub struct GoogleSearchToolPromptConfig {
 }
 
 /// Configuration for mapping data from a source tool to the widget''s input parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WidgetToolDataMapping {
     /// Optional. A map of widget input parameter fields to the corresponding output fields of the source tool.
     #[serde(default, rename = "fieldMappings")]
@@ -2270,7 +2271,7 @@ pub struct WidgetToolDataMapping {
 }
 
 /// Represents a select subset of an OpenAPI 3.0 schema object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schema {
     /// Optional. Can either be a boolean or an object, controls the presence of additional properties.
     #[serde(default, rename = "additionalProperties")]
@@ -2332,7 +2333,7 @@ pub struct Schema {
 }
 
 /// End-user authentication configuration used for Connection calls. The field values must be the names of context variables in the format $context.variables..
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndUserAuthConfig {
     /// Oauth 2.0 Authorization Code authentication.
     #[serde(default, rename = "oauth2AuthCodeConfig")]
@@ -2343,7 +2344,7 @@ pub struct EndUserAuthConfig {
 }
 
 /// Configuration of an Action for the tool to use. Note: This can be either an Action or an Operation. See https://cloud.google.com/integration-connectors/docs/entities-operation-action for details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Action {
     /// ID of a Connection action for the tool to use.
     #[serde(default, rename = "connectionActionId")]
@@ -2360,7 +2361,7 @@ pub struct Action {
 }
 
 /// Authentication information required for API calls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiAuthentication {
     /// Optional. Config for API key auth.
     #[serde(default, rename = "apiKeyConfig")]
@@ -2380,7 +2381,7 @@ pub struct ApiAuthentication {
 }
 
 /// Configuration for tools using Service Directory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceDirectoryConfig {
     /// Required. The name of [Service Directory](https://cloud.google.com/service-directory) service. Format: projects/{project}/locations/{location}/namespaces/{namespace}/services/{service}. Location of the service directory must be the same as the location of the app.
     #[serde(default)]
@@ -2388,7 +2389,7 @@ pub struct ServiceDirectoryConfig {
 }
 
 /// The TLS configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsConfig {
     /// Required. Specifies a list of allowed custom CA certificates for HTTPS verification.
     #[serde(default, rename = "caCerts")]
@@ -2396,7 +2397,7 @@ pub struct TlsConfig {
 }
 
 /// A code block to be executed instead of a real tool call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CodeBlock {
     /// Required. Python code which will be invoked in tool fake mode. Expected Python function signature - To catch all tool calls: def fake_tool_call(tool: Tool, input: dict[str, Any], callback_context: CallbackContext) -&gt; Optional[dict[str, Any]]: To catch a specific tool call: def fake_{tool_id}(tool: Tool, input: dict[str, Any], callback_context: CallbackContext) -&gt; Optional[dict[str, Any]]: If the function returns None, the real tool will be invoked instead.
     #[serde(default, rename = "pythonCode")]
@@ -2404,7 +2405,7 @@ pub struct CodeBlock {
 }
 
 /// Python code block to evaluate the condition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PythonCodeCondition {
     /// Required. The python code to execute.
     #[serde(default, rename = "pythonCode")]
@@ -2412,7 +2413,7 @@ pub struct PythonCodeCondition {
 }
 
 /// Expression condition based on session state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExpressionCondition {
     /// Required. The string representation of cloud.api.Expression condition.
     #[serde(default)]
@@ -2420,7 +2421,7 @@ pub struct ExpressionCondition {
 }
 
 /// Security settings for the web widget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelProfileWebWidgetConfigSecuritySettings {
     /// Optional. The origins that are allowed to host the web widget. An origin is defined by RFC 6454. If empty, all origins are allowed. A maximum of 100 origins is allowed. Example: "https://example.com"
     #[serde(default, rename = "allowedOrigins")]
@@ -2437,7 +2438,7 @@ pub struct ChannelProfileWebWidgetConfigSecuritySettings {
 }
 
 /// Expectation level metrics thresholds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectationLevelMetricsThresholds
 {
     /// Optional. The success threshold for individual tool invocation parameter correctness. Must be a float between 0 and 1. Default is 1.0.
@@ -2446,7 +2447,7 @@ pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsExpectati
 }
 
 /// Settings for matching tool calls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvaluationMetricsThresholdsToolMatchingSettings {
     /// Optional. Behavior for extra tool calls. Defaults to FAIL. // TODO: enum values: ["EXTRA_TOOL_CALL_BEHAVIOR_UNSPECIFIED", "FAIL", "ALLOW"]
     #[serde(default, rename = "extraToolCallBehavior")]
@@ -2454,7 +2455,7 @@ pub struct EvaluationMetricsThresholdsToolMatchingSettings {
 }
 
 /// Turn level metrics thresholds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevelMetricsThresholds {
     /// Optional. The success threshold for overall tool invocation correctness. Must be a float between 0 and 1. Default is 1.0.
     #[serde(default, rename = "overallToolInvocationCorrectnessThreshold")]
@@ -2468,7 +2469,7 @@ pub struct EvaluationMetricsThresholdsGoldenEvaluationMetricsThresholdsTurnLevel
 }
 
 /// Represents an event indicating the transfer of a conversation to a different agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentTransfer {
     /// Output only. Display name of the agent.
     #[serde(default, rename = "displayName")]
@@ -2479,7 +2480,7 @@ pub struct AgentTransfer {
 }
 
 /// Represents a blob input or output in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Blob {
     /// Required. Raw bytes of the blob.
     #[serde(default)]
@@ -2490,7 +2491,7 @@ pub struct Blob {
 }
 
 /// Represents an image input or output in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// Required. Raw bytes of the image.
     #[serde(default)]
@@ -2501,7 +2502,7 @@ pub struct Image {
 }
 
 /// Request for the client or the agent to execute the specified tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolCall {
     /// Optional. The input parameters and values for the tool in JSON object format.
     #[serde(default)]
@@ -2521,7 +2522,7 @@ pub struct ToolCall {
 }
 
 /// The execution result of a specific tool from the client or the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolResponse {
     /// Output only. Display name of the tool.
     #[serde(default, rename = "displayName")]
@@ -2541,7 +2542,7 @@ pub struct ToolResponse {
 }
 
 /// Represents a response from the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TriggerActionResponse {
     /// Optional. Whether the response is disabled. Disabled responses are not used by the agent.
     #[serde(default)]
@@ -2552,7 +2553,7 @@ pub struct TriggerActionResponse {
 }
 
 /// Boost specification to boost certain documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolBoostSpec {
     /// Required. A list of boosting specifications.
     #[serde(default, rename = "conditionBoostSpecs")]
@@ -2561,7 +2562,7 @@ pub struct DataStoreToolBoostSpec {
 }
 
 /// Configuration for searching within a specific DataStore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolDataStoreSource {
     /// Optional. The data store.
     #[serde(default, rename = "dataStore")]
@@ -2572,7 +2573,7 @@ pub struct DataStoreToolDataStoreSource {
 }
 
 /// Grounding configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolGroundingConfig {
     /// Optional. Whether grounding is disabled.
     #[serde(default)]
@@ -2583,7 +2584,7 @@ pub struct DataStoreToolGroundingConfig {
 }
 
 /// Rewriter configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolRewriterConfig {
     /// Optional. Whether the rewriter is disabled.
     #[serde(default)]
@@ -2597,7 +2598,7 @@ pub struct DataStoreToolRewriterConfig {
 }
 
 /// Summarization configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolSummarizationConfig {
     /// Optional. Whether summarization is disabled.
     #[serde(default)]
@@ -2611,7 +2612,7 @@ pub struct DataStoreToolSummarizationConfig {
 }
 
 /// A Python function tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PythonFunction {
     /// Output only. The description of the Python function, parsed from the python code''s docstring.
     #[serde(default)]
@@ -2625,7 +2626,7 @@ pub struct PythonFunction {
 }
 
 /// Oauth 2.0 Authorization Code authentication configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndUserAuthConfigOauth2AuthCodeConfig {
     /// Required. Oauth token parameter name to pass through. Must be in the format $context.variables..
     #[serde(default, rename = "oauthToken")]
@@ -2633,7 +2634,7 @@ pub struct EndUserAuthConfigOauth2AuthCodeConfig {
 }
 
 /// JWT Profile Oauth 2.0 Authorization Grant authentication configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndUserAuthConfigOauth2JwtBearerConfig {
     /// Required. Client parameter name to pass through. Must be in the format $context.variables..
     #[serde(default, rename = "clientKey")]
@@ -2647,7 +2648,7 @@ pub struct EndUserAuthConfigOauth2JwtBearerConfig {
 }
 
 /// Entity CRUD operation specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionEntityOperation {
     /// Required. ID of the entity.
     #[serde(default, rename = "entityId")]
@@ -2658,7 +2659,7 @@ pub struct ActionEntityOperation {
 }
 
 /// Configurations for authentication with API key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiKeyConfig {
     /// Required. The name of the SecretManager secret version resource storing the API key. Format: projects/{project}/secrets/{secret}/versions/{version} Note: You should grant roles/secretmanager.secretAccessor role to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
     #[serde(default, rename = "apiKeySecretVersion")]
@@ -2672,7 +2673,7 @@ pub struct ApiKeyConfig {
 }
 
 /// Configurations for authentication with a bearer token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BearerTokenConfig {
     /// Required. The bearer token. Must be in the format $context.variables..
     #[serde(default)]
@@ -2680,7 +2681,7 @@ pub struct BearerTokenConfig {
 }
 
 /// Configurations for authentication with OAuth.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OAuthConfig {
     /// Required. The client ID from the OAuth provider.
     #[serde(default, rename = "clientId")]
@@ -2700,7 +2701,7 @@ pub struct OAuthConfig {
 }
 
 /// Configurations for authentication using a custom service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccountAuthConfig {
     /// Optional. The OAuth scopes to grant. If not specified, the default scope https://www.googleapis.com/auth/cloud-platform is used.
     #[serde(default)]
@@ -2711,7 +2712,7 @@ pub struct ServiceAccountAuthConfig {
 }
 
 /// The CA certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsConfigCaCert {
     /// Required. The allowed custom CA certificates (in DER format) for HTTPS verification. This overrides the default SSL trust store. If this is empty or unspecified, CES will use Google''s default trust store to verify certificates. N.B. Make sure the HTTPS server certificates are signed with "subject alt name". For instance a certificate can be self-signed using the following command:  openssl x509 -req -days 200 -in example.com.csr \ -signkey example.com.key \ -out example.com.crt \ -extfile &lt;(printf "\nsubjectAltName=''DNS:www.example.com''")
     #[serde(default)]
@@ -2722,7 +2723,7 @@ pub struct TlsConfigCaCert {
 }
 
 /// A tool that is created from a toolset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolsetTool {
     /// Optional. The tool ID to filter the tools to retrieve the schema for.
     #[serde(default, rename = "toolId")]
@@ -2733,7 +2734,7 @@ pub struct ToolsetTool {
 }
 
 /// Boost specification for a condition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolBoostSpecConditionBoostSpec {
     /// Optional. Strength of the boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0. Setting to 1.0 gives the suggestions a big promotion. However, it does not necessarily mean that the top result will be a boosted suggestion. Setting to -1.0 gives the suggestions a big demotion. However, other suggestions that are relevant might still be shown. Setting to 0.0 means no boost applied. The boosting condition is ignored.
     #[serde(default)]
@@ -2748,7 +2749,7 @@ pub struct DataStoreToolBoostSpecConditionBoostSpec {
 }
 
 /// A DataStore resource in Vertex AI Search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStore {
     /// Output only. The connector config for the data store connection.
     #[serde(default, rename = "connectorConfig")]
@@ -2771,7 +2772,7 @@ pub struct DataStore {
 }
 
 /// Model settings contains various configurations for the LLM model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModelSettings {
     /// Optional. The LLM model that the agent should use. If not set, the agent will inherit the model from its parent agent.
     #[serde(default)]
@@ -2782,7 +2783,7 @@ pub struct ModelSettings {
 }
 
 /// Specification for custom ranking based on customer specified attribute value. It provides more controls for customized ranking than the simple (condition, boost) combination above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec {
     /// Optional. The attribute type to be used to determine the boost amount. The attribute value can be derived from the field value of the specified field_name. In the case of numerical it is straightforward i.e. attribute_value = numerical_field_value. In the case of freshness however, attribute_value = (time.now() - datetime_field_value). // TODO: enum values: ["ATTRIBUTE_TYPE_UNSPECIFIED", "NUMERICAL", "FRESHNESS"]
     #[serde(default, rename = "attributeType")]
@@ -2801,7 +2802,7 @@ pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpec {
 }
 
 /// The connector config for the data store connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreConnectorConfig {
     /// Resource name of the collection the data store belongs to.
     #[serde(default)]
@@ -2815,7 +2816,7 @@ pub struct DataStoreConnectorConfig {
 }
 
 /// The control points used to define the curve. The curve defined through these control points can only be monotonically increasing or decreasing(constant values are acceptable).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint {
     /// Optional. Can be one of: 1. The numerical field value. 2. The duration spec for freshness: The value must be formatted as an XSD dayTimeDuration value (a restricted subset of an ISO 8601 duration value). The pattern for this is: nDnM].
     #[serde(default, rename = "attributeValue")]

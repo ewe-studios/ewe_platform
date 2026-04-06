@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Represents the response for FetchMultiDailyMetricsTimeSeries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchMultiDailyMetricsTimeSeriesResponse {
     /// DailyMetrics and their corresponding time series.
     #[serde(default, rename = "multiDailyMetricTimeSeries")]
@@ -20,7 +21,7 @@ pub struct FetchMultiDailyMetricsTimeSeriesResponse {
 }
 
 /// Represents the response for GetDailyMetricsTimeSeries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetDailyMetricsTimeSeriesResponse {
     /// The daily time series.
     #[serde(default, rename = "timeSeries")]
@@ -28,7 +29,7 @@ pub struct GetDailyMetricsTimeSeriesResponse {
 }
 
 /// Represents the response for ListSearchKeywordImpressionsMonthly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSearchKeywordImpressionsMonthlyResponse {
     /// A token indicating the last paginated result returned. This can be used by succeeding requests to get the next "page" of keywords. It will only be present when there are more results to be returned.
     #[serde(default, rename = "nextPageToken")]
@@ -39,7 +40,7 @@ pub struct ListSearchKeywordImpressionsMonthlyResponse {
 }
 
 /// Represents a list of tuples of DailyMetric-DailySubEntityType-TimeSeries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiDailyMetricTimeSeries {
     /// List of DailyMetric-TimeSeries pairs.
     #[serde(default, rename = "dailyMetricTimeSeries")]
@@ -47,7 +48,7 @@ pub struct MultiDailyMetricTimeSeries {
 }
 
 /// Represents a single search keyword and its value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchKeywordCount {
     /// One of either: 1) The sum of the number of unique users that used the keyword in a month, aggregated for each month requested. 2) A threshold that indicates that the actual value is below this threshold.
     #[serde(default, rename = "insightsValue")]
@@ -58,7 +59,7 @@ pub struct SearchKeywordCount {
 }
 
 /// Represents a single datapoint, where each datapoint is a DailyMetric-DailySubEntityType-TimeSeries tuple.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyMetricTimeSeries {
     /// The DailyMetric that the TimeSeries represents. // TODO: enum values: ["DAILY_METRIC_UNKNOWN", "BUSINESS_IMPRESSIONS_DESKTOP_MAPS", "BUSINESS_IMPRESSIONS_DESKTOP_SEARCH", "BUSINESS_IMPRESSIONS_MOBILE_MAPS", "BUSINESS_IMPRESSIONS_MOBILE_SEARCH", "BUSINESS_CONVERSATIONS", "BUSINESS_DIRECTION_REQUESTS", "CALL_CLICKS", "WEBSITE_CLICKS", "BUSINESS_BOOKINGS", "BUSINESS_FOOD_ORDERS", "BUSINESS_FOOD_MENU_CLICKS"]
     #[serde(default, rename = "dailyMetric")]
@@ -72,7 +73,7 @@ pub struct DailyMetricTimeSeries {
 }
 
 /// Represents an insights value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsValue {
     /// Represents the threshold below which the actual value falls.
     #[serde(default)]
@@ -83,7 +84,7 @@ pub struct InsightsValue {
 }
 
 /// Represents all possible subentity types that are associated with DailyMetrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailySubEntityType {
     /// Represents the day of the week. Eg: MONDAY. Currently supported DailyMetrics = NONE. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
@@ -94,7 +95,7 @@ pub struct DailySubEntityType {
 }
 
 /// Represents a timeseries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeSeries {
     /// List of datapoints in the timeseries, where each datapoint is a date-value pair.
     #[serde(default, rename = "datedValues")]
@@ -102,7 +103,7 @@ pub struct TimeSeries {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -119,7 +120,7 @@ pub struct TimeOfDay {
 }
 
 /// Represents a single datapoint in the timeseries, where each datapoint is a date-value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatedValue {
     /// The date that the datapoint corresponds to. This represents a month value if the day field is not set.
     #[serde(default)]
@@ -130,7 +131,7 @@ pub struct DatedValue {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]

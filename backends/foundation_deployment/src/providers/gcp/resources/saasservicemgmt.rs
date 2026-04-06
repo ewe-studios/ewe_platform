@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Deprovision is the unit operation that deprovision the underlying resources represented by a Unit. Can only execute if the Unit is currently provisioned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Deprovision {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -30,7 +31,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response structure for the ListReleases method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReleasesResponse {
     /// If present, the next page token can be provided to a subsequent ListReleases call to list the next page. If empty, there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -44,7 +45,7 @@ pub struct ListReleasesResponse {
 }
 
 /// The response structure for the ListRolloutKinds method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRolloutKindsResponse {
     /// If present, the next page token can be provided to a subsequent ListRolloutKinds call to list the next page. If empty, there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -58,7 +59,7 @@ pub struct ListRolloutKindsResponse {
 }
 
 /// The response structure for the ListRollouts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRolloutsResponse {
     /// If present, the next page token can be provided to a subsequent ListRollouts call to list the next page. If empty, there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -72,7 +73,7 @@ pub struct ListRolloutsResponse {
 }
 
 /// The response structure for the ListSaas method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSaasResponse {
     /// If present, the next page token can be provided to a subsequent ListSaas call to list the next page. If empty, there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -86,7 +87,7 @@ pub struct ListSaasResponse {
 }
 
 /// The response structure for the ListTenants method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTenantsResponse {
     /// If present, the next page token can be provided to a subsequent ListTenants call to list the next page. If empty, there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -100,7 +101,7 @@ pub struct ListTenantsResponse {
 }
 
 /// The response structure for the ListUnitKinds method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUnitKindsResponse {
     /// If present, the next page token can be provided to a subsequent ListUnitKinds call to list the next page. If empty, there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -114,7 +115,7 @@ pub struct ListUnitKindsResponse {
 }
 
 /// The response structure for the ListUnitOperations method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUnitOperationsResponse {
     /// If present, the next page token can be provided to a subsequent ListUnitOperations call to list the next page. If empty, there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -128,7 +129,7 @@ pub struct ListUnitOperationsResponse {
 }
 
 /// The response structure for the ListUnits method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUnitsResponse {
     /// If present, the next page token can be provided to a subsequent ListUnits call to list the next page. If empty, there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -142,7 +143,7 @@ pub struct ListUnitsResponse {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationLocation {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -162,7 +163,7 @@ pub struct GoogleCloudLocationLocation {
 }
 
 /// A new version to be propagated and deployed to units. This includes pointers to packaged blueprints for actuation (e.g Helm or Terraform configuration packages) via artifact registry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Release {
     /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
     #[serde(default)]
@@ -206,7 +207,7 @@ pub struct Release {
 }
 
 /// An object that describes various settings of Rollout execution. Includes built-in policies across GCP and GDC, and customizable policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RolloutKind {
     /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
     #[serde(default)]
@@ -247,7 +248,7 @@ pub struct RolloutKind {
 }
 
 /// Represents a single rollout execution and its results
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Rollout {
     /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
     #[serde(default)]
@@ -318,7 +319,7 @@ pub struct Rollout {
 }
 
 /// Saas is a representation of a SaaS service managed by the Producer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Saas {
     /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
     #[serde(default)]
@@ -356,7 +357,7 @@ pub struct Saas {
 }
 
 /// Tenant represents the service producer side of an instance of the service created based on a request from a consumer. In a typical scenario a Tenant has a one-to-one mapping with a resource given out to a service consumer. Example: tenant: name: "projects/svc1/locations/loc/tenants/inst-068afff8" consumer_resource: "projects/gshoe/locations/loc/shoes/black-shoe"
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tenant {
     /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
     #[serde(default)]
@@ -388,7 +389,7 @@ pub struct Tenant {
 }
 
 /// Definition of a Unit. Units belonging to the same UnitKind are managed together; for example they follow the same release model (blueprints, versions etc.) and are typically rolled out together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnitKind {
     /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
     #[serde(default)]
@@ -429,7 +430,7 @@ pub struct UnitKind {
 }
 
 /// UnitOperation encapsulates the intent of changing/interacting with the service component represented by the specific Unit. Multiple UnitOperations can be created (requested) and scheduled in the future, however only one will be allowed to execute at a time (that can change in the future for non-mutating operations). UnitOperations allow different actors interacting with the same unit to focus only on the change they have requested. This is a base object that contains the common fields in all unit operations. Next: 22
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnitOperation {
     /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
     #[serde(default)]
@@ -491,7 +492,7 @@ pub struct UnitOperation {
 }
 
 /// A unit of deployment that has its lifecycle via a CRUD API using an actuation engine under the hood (e.g. based on Terraform, Helm or a custom implementation provided by a service producer). A building block of a SaaS Tenant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Unit {
     /// Optional. Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/user-guide/annotations
     #[serde(default)]
@@ -571,7 +572,7 @@ pub struct Unit {
 }
 
 /// Blueprints are OCI Images that contain all of the artifacts needed to provision a unit. Metadata such as, type of the engine used to actuate the blueprint (e.g. terraform, helm etc) and version will come from the image manifest. If the hostname is omitted, it will be assumed to be the regional path to Artifact Registry (eg. us-east1-docker.pkg.dev).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Blueprint {
     /// Output only. Type of the engine used to actuate the blueprint. e.g. terraform, helm etc.
     #[serde(default)]
@@ -585,7 +586,7 @@ pub struct Blueprint {
 }
 
 /// Set of requirements to be fulfilled on the Unit when using this Release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReleaseRequirements {
     /// Optional. A list of releases from which a unit can be upgraded to this one (optional). If left empty no constraints will be applied. When provided, unit upgrade requests to this release will check and enforce this constraint.
     #[serde(default, rename = "upgradeableFromReleases")]
@@ -593,7 +594,7 @@ pub struct ReleaseRequirements {
 }
 
 /// The configuration for error budget. If the number of failed units exceeds max(allowed_count, allowed_ratio * total_units), the rollout will be paused.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorBudget {
     /// Optional. The maximum number of failed units allowed in a location without pausing the rollout.
     #[serde(default, rename = "allowedCount")]
@@ -604,7 +605,7 @@ pub struct ErrorBudget {
 }
 
 /// RolloutControl provides a way to request a change to the execution of a Rollout by pausing or canceling it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RolloutControl {
     /// Required. Action to be performed on the Rollout. The default behavior is to run the rollout until it naturally reaches a terminal state. // TODO: enum values: ["ROLLOUT_ACTION_UNSPECIFIED", "ROLLOUT_ACTION_RUN", "ROLLOUT_ACTION_PAUSE", "ROLLOUT_ACTION_CANCEL"]
     #[serde(default)]
@@ -615,7 +616,7 @@ pub struct RolloutControl {
 }
 
 /// RolloutStats contains information about the progress of a rollout.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RolloutStats {
     /// Optional. Output only. Estimated number of units based. The estimation is computed upon creation of the rollout.
     #[serde(default, rename = "estimatedTotalUnitCount")]
@@ -626,7 +627,7 @@ pub struct RolloutStats {
 }
 
 /// SaasCondition describes the status of a Saas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SaasCondition {
     /// Required. Last time the condition transited from one status to another.
     #[serde(default, rename = "lastTransitionTime")]
@@ -646,7 +647,7 @@ pub struct SaasCondition {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -660,7 +661,7 @@ pub struct Status {
 }
 
 /// Location information that the service is available in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// Optional. Name of location.
     #[serde(default)]
@@ -668,7 +669,7 @@ pub struct Location {
 }
 
 /// Dependency represent a single dependency with another unit kind by alias.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dependency {
     /// Required. An alias for the dependency. Used for input variable mapping.
     #[serde(default)]
@@ -679,7 +680,7 @@ pub struct Dependency {
 }
 
 /// Mapping of input variables to their respective output variable for depedenencies
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VariableMapping {
     /// Optional. Output variables which will get their values from dependencies
     #[serde(default)]
@@ -693,7 +694,7 @@ pub struct VariableMapping {
 }
 
 /// UnitOperationCondition describes the status of an Unit Operation. UnitOperationCondition is individual components that contribute to an overall state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnitOperationCondition {
     /// Required. Last time the condition transited from one status to another.
     #[serde(default, rename = "lastTransitionTime")]
@@ -713,7 +714,7 @@ pub struct UnitOperationCondition {
 }
 
 /// Provision is the unit operation that provision the underlying resources represented by a Unit. Can only execute if the Unit is not currently provisioned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Provision {
     /// Optional. Set of input variables. Maximum 100. (optional)
     #[serde(default, rename = "inputVariables")]
@@ -724,7 +725,7 @@ pub struct Provision {
 }
 
 /// A time specification to schedule the maintenance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schedule {
     /// Optional. Start of operation. If not set, will be set to the start of the next window. (optional)
     #[serde(default, rename = "startTime")]
@@ -732,7 +733,7 @@ pub struct Schedule {
 }
 
 /// Upgrade is the unit operation that upgrades a provisioned unit, which may also include the underlying resources represented by a Unit. Can only execute if the Unit is currently provisioned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Upgrade {
     /// Optional. Set of input variables. Maximum 100. (optional)
     #[serde(default, rename = "inputVariables")]
@@ -743,7 +744,7 @@ pub struct Upgrade {
 }
 
 /// UnitCondition describes the status of an Unit. UnitCondition is individual components that contribute to an overall state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnitCondition {
     /// Required. Last time the condition transited from one status to another.
     #[serde(default, rename = "lastTransitionTime")]
@@ -763,7 +764,7 @@ pub struct UnitCondition {
 }
 
 /// Set of dependencies for this unit. Maximum 10.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnitDependency {
     /// Output only. Alias for the name of the dependency.
     #[serde(default)]
@@ -774,7 +775,7 @@ pub struct UnitDependency {
 }
 
 /// Captures requested directives for performing future maintenance on the unit. This includes a request for the unit to skip maintenance for a period of time and remain pinned to its current release as well as controls for postponing maintenance scheduled in future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceSettings {
     /// Optional. If present, it fixes the release on the unit until the given time; i.e. changes to the release field will be rejected. Rollouts should and will also respect this by not requesting an upgrade in the first place.
     #[serde(default, rename = "pinnedUntilTime")]
@@ -782,7 +783,7 @@ pub struct MaintenanceSettings {
 }
 
 /// Parameters for the RUN action controlling the behavior of the rollout when it is resumed from a PAUSED state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunRolloutActionParams {
     /// Required. If true, the rollout will retry failed operations when resumed. This is applicable only the current state of the Rollout is PAUSED and the requested action is RUN.
     #[serde(default, rename = "retryFailedOperations")]
@@ -790,7 +791,7 @@ pub struct RunRolloutActionParams {
 }
 
 /// Represents the aggregation of a set of population of like records by a certain group. For example, a collection of unit counts can be aggregated and grouped by their state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Aggregate {
     /// Required. Number of records in the group.
     #[serde(default)]
@@ -801,7 +802,7 @@ pub struct Aggregate {
 }
 
 /// Output variables whose values will be passed on to dependencies
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FromMapping {
     /// Required. Alias of the dependency that the outputVariable will pass its value to
     #[serde(default)]
@@ -812,7 +813,7 @@ pub struct FromMapping {
 }
 
 /// Input variables whose values will be passed on to dependencies
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToMapping {
     /// Required. Alias of the dependency that the inputVariable will pass its value to
     #[serde(default)]
@@ -826,7 +827,7 @@ pub struct ToMapping {
 }
 
 /// UnitVariable describes a parameter for a Unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnitVariable {
     /// Optional. Immutable. Name of a supported variable type. Supported types are string, int, bool. // TODO: enum values: ["TYPE_UNSPECIFIED", "STRING", "INT", "BOOL"]
     #[serde(default, rename = "type")]

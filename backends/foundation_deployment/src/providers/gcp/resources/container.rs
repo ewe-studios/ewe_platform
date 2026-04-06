@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// CancelOperationRequest cancels a single operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {
     /// The name (project, location, operation id) of the operation to cancel. Specified in the format projects/*/locations/*/operations/*.
     #[serde(default)]
@@ -28,7 +29,7 @@ pub struct CancelOperationRequest {
 }
 
 /// CheckAutopilotCompatibilityResponse has a list of compatibility issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckAutopilotCompatibilityResponse {
     /// The list of issues for the given operation.
     #[serde(default)]
@@ -39,7 +40,7 @@ pub struct CheckAutopilotCompatibilityResponse {
 }
 
 /// ClusterUpgradeInfo contains the upgrade information of a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterUpgradeInfo {
     /// The auto upgrade status.
     #[serde(default, rename = "autoUpgradeStatus")]
@@ -65,7 +66,7 @@ pub struct ClusterUpgradeInfo {
 }
 
 /// CompleteIPRotationRequest moves the cluster master back into single-IP mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompleteIPRotationRequest {
     /// Deprecated. The name of the cluster. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -82,11 +83,11 @@ pub struct CompleteIPRotationRequest {
 }
 
 /// CompleteNodePoolUpgradeRequest sets the name of target node pool to complete upgrade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompleteNodePoolUpgradeRequest {}
 
 /// CreateClusterRequest creates a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateClusterRequest {
     /// Required. A [cluster resource](https://cloud.google.com/container-engine/reference/rest/v1/projects.locations.clusters)
     #[serde(default)]
@@ -103,7 +104,7 @@ pub struct CreateClusterRequest {
 }
 
 /// CreateNodePoolRequest creates a node pool for a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateNodePoolRequest {
     /// Deprecated. The name of the cluster. This field has been deprecated and replaced by the parent field.
     #[serde(default, rename = "clusterId")]
@@ -123,11 +124,11 @@ pub struct CreateNodePoolRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// GetJSONWebKeysResponse is a valid JSON Web Key Set as specified in rfc 7517
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetJSONWebKeysResponse {
     /// For HTTP requests, this field is automatically extracted into the Cache-Control HTTP header.
     #[serde(default, rename = "cacheHeader")]
@@ -138,7 +139,7 @@ pub struct GetJSONWebKeysResponse {
 }
 
 /// GetOpenIDConfigResponse is an OIDC discovery document for the cluster. See the OpenID Connect Discovery 1.0 specification for details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetOpenIDConfigResponse {
     /// For HTTP requests, this field is automatically extracted into the Cache-Control HTTP header.
     #[serde(default, rename = "cacheHeader")]
@@ -167,7 +168,7 @@ pub struct GetOpenIDConfigResponse {
 }
 
 /// ListClustersResponse is the result of ListClustersRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListClustersResponse {
     /// A list of clusters in the project in the specified zone, or across all ones.
     #[serde(default)]
@@ -178,7 +179,7 @@ pub struct ListClustersResponse {
 }
 
 /// ListNodePoolsResponse is the result of ListNodePoolsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNodePoolsResponse {
     /// A list of node pools for a cluster.
     #[serde(default, rename = "nodePools")]
@@ -186,7 +187,7 @@ pub struct ListNodePoolsResponse {
 }
 
 /// ListOperationsResponse is the result of ListOperationsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// If any zones are listed here, the list of operations returned may be missing the operations from those zones.
     #[serde(default, rename = "missingZones")]
@@ -197,7 +198,7 @@ pub struct ListOperationsResponse {
 }
 
 /// ListUsableSubnetworksResponse is the response of ListUsableSubnetworksRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUsableSubnetworksResponse {
     /// This token allows you to get the next page of results for list requests. If the number of results is larger than page_size, use the next_page_token as a value for the query parameter page_token in the next request. The value will become empty when there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -208,7 +209,7 @@ pub struct ListUsableSubnetworksResponse {
 }
 
 /// NodePoolUpgradeInfo contains the upgrade information of a nodepool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodePoolUpgradeInfo {
     /// The auto upgrade status.
     #[serde(default, rename = "autoUpgradeStatus")]
@@ -234,7 +235,7 @@ pub struct NodePoolUpgradeInfo {
 }
 
 /// RollbackNodePoolUpgradeRequest rollbacks the previously Aborted or Failed NodePool upgrade. This will be an no-op if the last upgrade successfully completed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackNodePoolUpgradeRequest {
     /// Deprecated. The name of the cluster to rollback. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -257,11 +258,11 @@ pub struct RollbackNodePoolUpgradeRequest {
 }
 
 /// SecondaryBootDiskUpdateStrategy is a placeholder which will be extended in the future to define different options for updating secondary boot disks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryBootDiskUpdateStrategy {}
 
 /// SecurityBulletinEvent is a notification sent to customers when a security bulletin has been posted that they are vulnerable to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityBulletinEvent {
     /// The GKE minor versions affected by this vulnerability.
     #[serde(default, rename = "affectedSupportedMinors")]
@@ -299,7 +300,7 @@ pub struct SecurityBulletinEvent {
 }
 
 /// Kubernetes Engine service configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServerConfig {
     /// List of release channel configurations.
     #[serde(default)]
@@ -322,7 +323,7 @@ pub struct ServerConfig {
 }
 
 /// SetAddonsConfigRequest sets the addons associated with the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetAddonsConfigRequest {
     /// Required. The desired configurations for the various addons available to run in the cluster.
     #[serde(default, rename = "addonsConfig")]
@@ -342,7 +343,7 @@ pub struct SetAddonsConfigRequest {
 }
 
 /// SetLabelsRequest sets the Google Cloud Platform labels on a Google Container Engine cluster, which will in turn set them for Google Compute Engine resources used by that cluster
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetLabelsRequest {
     /// Deprecated. The name of the cluster. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -365,7 +366,7 @@ pub struct SetLabelsRequest {
 }
 
 /// SetLegacyAbacRequest enables or disables the ABAC authorization mechanism for a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetLegacyAbacRequest {
     /// Deprecated. The name of the cluster to update. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -385,7 +386,7 @@ pub struct SetLegacyAbacRequest {
 }
 
 /// SetLocationsRequest sets the locations of the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetLocationsRequest {
     /// Deprecated. The name of the cluster to upgrade. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -405,7 +406,7 @@ pub struct SetLocationsRequest {
 }
 
 /// SetLoggingServiceRequest sets the logging service of a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetLoggingServiceRequest {
     /// Deprecated. The name of the cluster to upgrade. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -425,7 +426,7 @@ pub struct SetLoggingServiceRequest {
 }
 
 /// SetMaintenancePolicyRequest sets the maintenance policy for a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetMaintenancePolicyRequest {
     /// Required. The name of the cluster to update.
     #[serde(default, rename = "clusterId")]
@@ -445,7 +446,7 @@ pub struct SetMaintenancePolicyRequest {
 }
 
 /// SetMasterAuthRequest updates the admin password of a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetMasterAuthRequest {
     /// Required. The exact form of action to be taken on the master auth. // TODO: enum values: ["UNKNOWN", "SET_PASSWORD", "GENERATE_PASSWORD", "SET_USERNAME"]
     #[serde(default)]
@@ -468,7 +469,7 @@ pub struct SetMasterAuthRequest {
 }
 
 /// SetMonitoringServiceRequest sets the monitoring service of a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetMonitoringServiceRequest {
     /// Deprecated. The name of the cluster to upgrade. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -488,7 +489,7 @@ pub struct SetMonitoringServiceRequest {
 }
 
 /// SetNetworkPolicyRequest enables/disables network policy for a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetNetworkPolicyRequest {
     /// Deprecated. The name of the cluster. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -508,7 +509,7 @@ pub struct SetNetworkPolicyRequest {
 }
 
 /// SetNodePoolAutoscalingRequest sets the autoscaler settings of a node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetNodePoolAutoscalingRequest {
     /// Required. Autoscaling configuration for the node pool.
     #[serde(default)]
@@ -531,7 +532,7 @@ pub struct SetNodePoolAutoscalingRequest {
 }
 
 /// SetNodePoolManagementRequest sets the node management properties of a node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetNodePoolManagementRequest {
     /// Deprecated. The name of the cluster to update. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -554,7 +555,7 @@ pub struct SetNodePoolManagementRequest {
 }
 
 /// SetNodePoolSizeRequest sets the size of a node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetNodePoolSizeRequest {
     /// Deprecated. The name of the cluster to update. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -577,7 +578,7 @@ pub struct SetNodePoolSizeRequest {
 }
 
 /// StartIPRotationRequest creates a new IP for the cluster and then performs a node upgrade on each node pool to point to the new IP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartIPRotationRequest {
     /// Deprecated. The name of the cluster. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -597,7 +598,7 @@ pub struct StartIPRotationRequest {
 }
 
 /// UpdateClusterRequest updates the settings of a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateClusterRequest {
     /// Deprecated. The name of the cluster to upgrade. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -617,7 +618,7 @@ pub struct UpdateClusterRequest {
 }
 
 /// UpdateMasterRequest updates the master of the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateMasterRequest {
     /// Deprecated. The name of the cluster to upgrade. This field has been deprecated and replaced by the name field.
     #[serde(default, rename = "clusterId")]
@@ -637,7 +638,7 @@ pub struct UpdateMasterRequest {
 }
 
 /// UpdateNodePoolRequests update a node pool''s image and/or version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateNodePoolRequest {
     /// A list of hardware accelerators to be attached to each node. See https://cloud.google.com/compute/docs/gpus for more information about support for GPUs.
     #[serde(default)]
@@ -753,7 +754,7 @@ pub struct UpdateNodePoolRequest {
 }
 
 /// UpgradeAvailableEvent is a notification sent to customers when a new available version is released.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeAvailableEvent {
     /// The release channel of the version. If empty, it means a non-channel release.
     #[serde(default, rename = "releaseChannel")]
@@ -770,7 +771,7 @@ pub struct UpgradeAvailableEvent {
 }
 
 /// UpgradeEvent is a notification sent to customers by the cluster server when a resource is upgrading.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeEvent {
     /// The current version before the upgrade.
     #[serde(default, rename = "currentVersion")]
@@ -793,7 +794,7 @@ pub struct UpgradeEvent {
 }
 
 /// UpgradeInfoEvent is a notification sent to customers about the upgrade information of a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeInfoEvent {
     /// The current version before the upgrade.
     #[serde(default, rename = "currentVersion")]
@@ -837,7 +838,7 @@ pub struct UpgradeInfoEvent {
 }
 
 /// AutopilotCompatibilityIssue contains information about a specific compatibility issue with Autopilot mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutopilotCompatibilityIssue {
     /// The constraint type of the issue.
     #[serde(default, rename = "constraintType")]
@@ -860,7 +861,7 @@ pub struct AutopilotCompatibilityIssue {
 }
 
 /// Jwk is a JSON Web Key as specified in RFC 7517
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Jwk {
     /// Algorithm.
     #[serde(default)]
@@ -892,7 +893,7 @@ pub struct Jwk {
 }
 
 /// RFC-2616: cache control support
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpCacheControlResponseHeader {
     /// 14.6 response cache age, in seconds since the response is generated
     #[serde(default)]
@@ -906,7 +907,7 @@ pub struct HttpCacheControlResponseHeader {
 }
 
 /// A Google Kubernetes Engine cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cluster {
     /// Configurations for the various addons available to run in the cluster.
     #[serde(default, rename = "addonsConfig")]
@@ -1164,7 +1165,7 @@ pub struct Cluster {
 }
 
 /// This operation resource represents operations that may have happened or are happening on the cluster. All fields are output only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// Which conditions caused the current cluster state. Deprecated. Use field error instead.
     #[serde(default, rename = "clusterConditions")]
@@ -1214,7 +1215,7 @@ pub struct Operation {
 }
 
 /// UsableSubnetwork resource returns the subnetwork name, its associated network and the primary CIDR range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsableSubnetwork {
     /// The range of internal addresses that are owned by this subnetwork.
     #[serde(default, rename = "ipCidrRange")]
@@ -1235,7 +1236,7 @@ pub struct UsableSubnetwork {
 }
 
 /// UpgradeDetails contains detailed information of each individual upgrade operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeDetails {
     /// The end timestamp of the upgrade.
     #[serde(default, rename = "endTime")]
@@ -1258,7 +1259,7 @@ pub struct UpgradeDetails {
 }
 
 /// ReleaseChannelConfig exposes configuration for a release channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReleaseChannelConfig {
     /// The release channel this configuration applies to. // TODO: enum values: ["UNSPECIFIED", "RAPID", "REGULAR", "STABLE", "EXTENDED"]
     #[serde(default)]
@@ -1275,7 +1276,7 @@ pub struct ReleaseChannelConfig {
 }
 
 /// ClusterUpdate describes an update to the cluster. Exactly one update can be applied to a cluster with each request, so at most one field can be provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterUpdate {
     /// The additional pod ranges to be added to the cluster. These pod ranges can be used by node pools to allocate pod IPs.
     #[serde(default, rename = "additionalPodRangesConfig")]
@@ -1522,7 +1523,7 @@ pub struct ClusterUpdate {
 }
 
 /// Collection of node-level [Kubernetes labels](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeLabels {
     /// Map of node label keys and node label values.
     #[serde(default)]
@@ -1530,7 +1531,7 @@ pub struct NodeLabels {
 }
 
 /// Collection of [Resource Manager labels](https://cloud.google.com/resource-manager/docs/creating-managing-labels).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceLabels {
     /// Map of node label keys and node label values.
     #[serde(default)]
@@ -1538,7 +1539,7 @@ pub struct ResourceLabels {
 }
 
 /// Collection of Kubernetes [node taints](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTaints {
     /// List of node taints.
     #[serde(default)]
@@ -1546,7 +1547,7 @@ pub struct NodeTaints {
 }
 
 /// DisruptionEvent is a notification sent to customers about the disruption event of a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisruptionEvent {
     /// The type of the disruption event. // TODO: enum values: ["DISRUPTION_TYPE_UNSPECIFIED", "POD_NOT_ENOUGH_PDB", "POD_PDB_VIOLATION"]
     #[serde(default, rename = "disruptionType")]
@@ -1563,7 +1564,7 @@ pub struct DisruptionEvent {
 }
 
 /// Autopilot is the configuration for Autopilot settings on the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Autopilot {
     /// ClusterPolicyConfig denotes cluster level policies that are enforced for the cluster.
     #[serde(default, rename = "clusterPolicyConfig")]
@@ -1580,7 +1581,7 @@ pub struct Autopilot {
 }
 
 /// EnterpriseConfig is the cluster enterprise configuration. Deprecated: GKE Enterprise features are now available without an Enterprise tier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseConfig {
     /// Output only. cluster_tier indicates the effective tier of the cluster. // TODO: enum values: ["CLUSTER_TIER_UNSPECIFIED", "STANDARD", "ENTERPRISE"]
     #[serde(default, rename = "clusterTier")]
@@ -1591,7 +1592,7 @@ pub struct EnterpriseConfig {
 }
 
 /// Configuration for controlling how IPs are allocated in the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IPAllocationPolicy {
     /// Output only. The additional IP ranges that are added to the cluster. These IP ranges can be used by new node pools to allocate node and pod IPs automatically. Each AdditionalIPRangesConfig corresponds to a single subnetwork. Once a range is removed it will not show up in IPAllocationPolicy.
     #[serde(default, rename = "additionalIpRangesConfigs")]
@@ -1666,7 +1667,7 @@ pub struct IPAllocationPolicy {
 }
 
 /// Configuration for the legacy Attribute Based Access Control authorization mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegacyAbac {
     /// Whether the ABAC authorizer is enabled for this cluster. When enabled, identities in the system, including service accounts, nodes, and controllers, will have statically granted permissions beyond those provided by the RBAC configuration or IAM.
     #[serde(default)]
@@ -1674,7 +1675,7 @@ pub struct LegacyAbac {
 }
 
 /// MaintenancePolicy defines the maintenance policy to be used for the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenancePolicy {
     /// Optional. The upgrade disruption budget for the cluster control plane.
     #[serde(default, rename = "disruptionBudget")]
@@ -1688,7 +1689,7 @@ pub struct MaintenancePolicy {
 }
 
 /// The authentication information for accessing the master endpoint. Authentication can be done using HTTP basic auth or using client certificates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MasterAuth {
     /// Output only. Base64-encoded public certificate used by clients to authenticate to the cluster endpoint. Issued only if client_certificate_config is set.
     #[serde(default, rename = "clientCertificate")]
@@ -1711,7 +1712,7 @@ pub struct MasterAuth {
 }
 
 /// NetworkConfig reports the relative names of network & subnetwork.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConfig {
     /// The desired datapath provider for this cluster. By default, uses the IPTables-based kube-proxy implementation. // TODO: enum values: ["DATAPATH_PROVIDER_UNSPECIFIED", "LEGACY_DATAPATH", "ADVANCED_DATAPATH"]
     #[serde(default, rename = "datapathProvider")]
@@ -1767,7 +1768,7 @@ pub struct NetworkConfig {
 }
 
 /// Configuration options for the NetworkPolicy feature. https://kubernetes.io/docs/concepts/services-networking/networkpolicies/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPolicy {
     /// Whether network policy is enabled on the cluster.
     #[serde(default)]
@@ -1778,7 +1779,7 @@ pub struct NetworkPolicy {
 }
 
 /// Node pool configs that apply to all auto-provisioned node pools in autopilot clusters and node auto-provisioning enabled clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodePoolAutoConfig {
     /// Output only. Configuration options for Linux nodes.
     #[serde(default, rename = "linuxNodeConfig")]
@@ -1795,7 +1796,7 @@ pub struct NodePoolAutoConfig {
 }
 
 /// Subset of Nodepool message that has defaults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodePoolDefaults {
     /// Subset of NodeConfig message that has defaults.
     #[serde(default, rename = "nodeConfigDefaults")]
@@ -1803,7 +1804,7 @@ pub struct NodePoolDefaults {
 }
 
 /// NodePool contains the name and configuration for a cluster''s node pool. Node pools are a set of nodes (i.e. VM''s), with a common configuration and specification, under the control of the cluster master. They may have a set of Kubernetes labels applied to them, which may be used to reference them during pod scheduling. They may also be resized up or down, to accommodate the workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodePool {
     /// Specifies the autopilot configuration for this node pool. This field is exclusively reserved for Cluster Autoscaler.
     #[serde(default, rename = "autopilotConfig")]
@@ -1877,7 +1878,7 @@ pub struct NodePool {
 }
 
 /// Configuration for scheduled upgrades on the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduleUpgradeConfig {
     /// Optional. Whether or not scheduled upgrades are enabled.
     #[serde(default)]
@@ -1885,7 +1886,7 @@ pub struct ScheduleUpgradeConfig {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1899,7 +1900,7 @@ pub struct Status {
 }
 
 /// Information about operation (or operation stage) progress.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationProgress {
     /// Progress metric bundle, for example: metrics: [{name: "nodes done", int_value: 15}, {name: "nodes total", int_value: 32}] or metrics: [{name: "progress", double_value: 0.56}, {name: "progress scale", double_value: 1.0}]
     #[serde(default)]
@@ -1916,7 +1917,7 @@ pub struct OperationProgress {
 }
 
 /// Secondary IP range of a usable subnetwork.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsableSubnetworkSecondaryRange {
     /// The range of IP addresses belonging to this subnetwork secondary range.
     #[serde(default, rename = "ipCidrRange")]
@@ -1930,7 +1931,7 @@ pub struct UsableSubnetworkSecondaryRange {
 }
 
 /// DesiredAdditionalIPRangesConfig is a wrapper used for cluster update operation and contains multiple AdditionalIPRangesConfigs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DesiredAdditionalIPRangesConfig {
     /// List of additional IP ranges configs where each AdditionalIPRangesConfig corresponds to one subnetwork''s IP ranges
     #[serde(default, rename = "additionalIpRangesConfigs")]
@@ -1939,7 +1940,7 @@ pub struct DesiredAdditionalIPRangesConfig {
 }
 
 /// Configuration for the addons that can be automatically spun up in the cluster, enabling additional functionality.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddonsConfig {
     /// Configuration for the Cloud Run addon, which allows the user to use a managed Knative service.
     #[serde(default, rename = "cloudRunConfig")]
@@ -1996,7 +1997,7 @@ pub struct AddonsConfig {
 }
 
 /// AnonymousAuthenticationConfig defines the settings needed to limit endpoints that allow anonymous authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnonymousAuthenticationConfig {
     /// Defines the mode of limiting anonymous access in the cluster. // TODO: enum values: ["MODE_UNSPECIFIED", "ENABLED", "LIMITED"]
     #[serde(default)]
@@ -2004,7 +2005,7 @@ pub struct AnonymousAuthenticationConfig {
 }
 
 /// Configuration for returning group information from authenticators.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthenticatorGroupsConfig {
     /// Whether this cluster should return group membership lookups during authentication using a group of security groups.
     #[serde(default)]
@@ -2015,7 +2016,7 @@ pub struct AuthenticatorGroupsConfig {
 }
 
 /// Configuration for Binary Authorization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BinaryAuthorization {
     /// This field is deprecated. Leave this unset and instead configure BinaryAuthorization using evaluation_mode. If evaluation_mode is set to anything other than EVALUATION_MODE_UNSPECIFIED, this field is ignored.
     #[serde(default)]
@@ -2026,7 +2027,7 @@ pub struct BinaryAuthorization {
 }
 
 /// ClusterAutoscaling contains global, per-cluster information required by Cluster Autoscaler to automatically adjust the size of the cluster and create/delete node pools based on the current needs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterAutoscaling {
     /// Autopilot general profile for the cluster, which defines the configuration for the cluster. // TODO: enum values: ["AUTOPILOT_GENERAL_PROFILE_UNSPECIFIED", "NO_PERFORMANCE", "NONE"]
     #[serde(default, rename = "autopilotGeneralProfile")]
@@ -2053,7 +2054,7 @@ pub struct ClusterAutoscaling {
 }
 
 /// Deprecated: Compliance Posture is no longer supported. For more details, see https://cloud.google.com/kubernetes-engine/docs/deprecations/posture-management-deprecation. CompliancePostureConfig defines the settings needed to enable/disable features for the Compliance Posture.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompliancePostureConfig {
     /// List of enabled compliance standards.
     #[serde(default, rename = "complianceStandards")]
@@ -2064,7 +2065,7 @@ pub struct CompliancePostureConfig {
 }
 
 /// ControlPlaneEgress defines the settings needed to enable control plane egress control.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ControlPlaneEgress {
     /// Defines the mode of control plane egress. // TODO: enum values: ["MODE_UNSPECIFIED", "VIA_CONTROL_PLANE", "NONE"]
     #[serde(default)]
@@ -2072,7 +2073,7 @@ pub struct ControlPlaneEgress {
 }
 
 /// Configuration for all of the cluster''s control plane endpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ControlPlaneEndpointsConfig {
     /// DNS endpoint configuration.
     #[serde(default, rename = "dnsEndpointConfig")]
@@ -2083,7 +2084,7 @@ pub struct ControlPlaneEndpointsConfig {
 }
 
 /// Configuration for fine-grained cost management feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CostManagementConfig {
     /// Whether the feature is enabled or not.
     #[serde(default)]
@@ -2091,7 +2092,7 @@ pub struct CostManagementConfig {
 }
 
 /// Configuration of etcd encryption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseEncryption {
     /// Output only. The current state of etcd encryption. // TODO: enum values: ["CURRENT_STATE_UNSPECIFIED", "CURRENT_STATE_ENCRYPTED", "CURRENT_STATE_DECRYPTED", "CURRENT_STATE_ENCRYPTION_PENDING", "CURRENT_STATE_ENCRYPTION_ERROR", "CURRENT_STATE_DECRYPTION_PENDING", "CURRENT_STATE_DECRYPTION_ERROR", "CURRENT_STATE_ALL_OBJECTS_ENCRYPTION_ENABLED", "CURRENT_STATE_ALL_OBJECTS_ENCRYPTION_PENDING", "CURRENT_STATE_ALL_OBJECTS_ENCRYPTION_ERROR"]
     #[serde(default, rename = "currentState")]
@@ -2111,7 +2112,7 @@ pub struct DatabaseEncryption {
 }
 
 /// DesiredEnterpriseConfig is a wrapper used for updating enterprise_config. Deprecated: GKE Enterprise features are now available without an Enterprise tier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DesiredEnterpriseConfig {
     /// desired_tier specifies the desired tier of the cluster. // TODO: enum values: ["CLUSTER_TIER_UNSPECIFIED", "STANDARD", "ENTERPRISE"]
     #[serde(default, rename = "desiredTier")]
@@ -2119,7 +2120,7 @@ pub struct DesiredEnterpriseConfig {
 }
 
 /// Fleet is the fleet configuration for the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Fleet {
     /// Output only. The full resource name of the registered fleet membership of the cluster, in the format //gkehub.googleapis.com/projects/*/locations/*/memberships/*.
     #[serde(default)]
@@ -2136,7 +2137,7 @@ pub struct Fleet {
 }
 
 /// IdentityServiceConfig is configuration for Identity Service which allows customers to use external identity providers with the K8S API
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceConfig {
     /// Whether to enable the Identity Service component
     #[serde(default)]
@@ -2144,7 +2145,7 @@ pub struct IdentityServiceConfig {
 }
 
 /// IntraNodeVisibilityConfig contains the desired config of the intra-node visibility on this cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntraNodeVisibilityConfig {
     /// Enables intra node visibility for this cluster.
     #[serde(default)]
@@ -2152,7 +2153,7 @@ pub struct IntraNodeVisibilityConfig {
 }
 
 /// K8sBetaAPIConfig , configuration for beta APIs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct K8sBetaAPIConfig {
     /// Enabled k8s beta APIs.
     #[serde(default, rename = "enabledApis")]
@@ -2160,7 +2161,7 @@ pub struct K8sBetaAPIConfig {
 }
 
 /// ILBSubsettingConfig contains the desired config of L4 Internal LoadBalancer subsetting on this cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ILBSubsettingConfig {
     /// Enables l4 ILB subsetting for this cluster.
     #[serde(default)]
@@ -2168,7 +2169,7 @@ pub struct ILBSubsettingConfig {
 }
 
 /// LoggingConfig is cluster logging configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingConfig {
     /// Logging components configuration
     #[serde(default, rename = "componentConfig")]
@@ -2176,7 +2177,7 @@ pub struct LoggingConfig {
 }
 
 /// ManagedMachineLearningDiagnosticsConfig is the configuration for the GKE Managed Machine Learning Diagnostics pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedMachineLearningDiagnosticsConfig {
     /// Enable/Disable Managed Machine Learning Diagnostics.
     #[serde(default)]
@@ -2184,7 +2185,7 @@ pub struct ManagedMachineLearningDiagnosticsConfig {
 }
 
 /// ManagedOpenTelemetryConfig is the configuration for the GKE Managed OpenTelemetry pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedOpenTelemetryConfig {
     /// Scope of the Managed OpenTelemetry pipeline. // TODO: enum values: ["SCOPE_UNSPECIFIED", "NONE", "COLLECTION_AND_INSTRUMENTATION_COMPONENTS"]
     #[serde(default)]
@@ -2192,7 +2193,7 @@ pub struct ManagedOpenTelemetryConfig {
 }
 
 /// Configuration for issuance of mTLS keys and certificates to Kubernetes pods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MeshCertificates {
     /// enable_certificates controls issuance of workload mTLS certificates. If set, the GKE Workload Identity Certificates controller and node agent will be deployed in the cluster, which can then be configured by creating a WorkloadCertificateConfig Custom Resource. Requires Workload Identity (workload_pool must be non-empty).
     #[serde(default, rename = "enableCertificates")]
@@ -2200,7 +2201,7 @@ pub struct MeshCertificates {
 }
 
 /// MonitoringConfig is cluster monitoring configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MonitoringConfig {
     /// Configuration of Advanced Datapath Observability features.
     #[serde(default, rename = "advancedDatapathObservabilityConfig")]
@@ -2215,7 +2216,7 @@ pub struct MonitoringConfig {
 }
 
 /// NotificationConfig is the configuration of notifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationConfig {
     /// Notification config for Pub/Sub.
     #[serde(default)]
@@ -2223,7 +2224,7 @@ pub struct NotificationConfig {
 }
 
 /// ParentProductConfig is the configuration of the parent product of the cluster. This field is used by Google internal products that are built on top of a GKE cluster and take the ownership of the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParentProductConfig {
     /// Labels contain the configuration of the parent product.
     #[serde(default)]
@@ -2234,7 +2235,7 @@ pub struct ParentProductConfig {
 }
 
 /// PodAutoscaling is used for configuration of parameters for workload autoscaling.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PodAutoscaling {
     /// Selected Horizontal Pod Autoscaling profile. // TODO: enum values: ["HPA_PROFILE_UNSPECIFIED", "NONE", "PERFORMANCE"]
     #[serde(default, rename = "hpaProfile")]
@@ -2242,7 +2243,7 @@ pub struct PodAutoscaling {
 }
 
 /// Configuration options for private clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateClusterConfig {
     /// Whether the master''s internal IP address is used as the cluster endpoint. Deprecated: Use ControlPlaneEndpointsConfig.IPEndpointsConfig.enable_public_endpoint instead. Note that the value of enable_public_endpoint is reversed: if enable_private_endpoint is false, then enable_public_endpoint will be true.
     #[serde(default, rename = "enablePrivateEndpoint")]
@@ -2271,7 +2272,7 @@ pub struct PrivateClusterConfig {
 }
 
 /// RBACBindingConfig allows user to restrict ClusterRoleBindings an RoleBindings that can be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RBACBindingConfig {
     /// Setting this to true will allow any ClusterRoleBinding and RoleBinding with subjects system:authenticated.
     #[serde(default, rename = "enableInsecureBindingSystemAuthenticated")]
@@ -2282,7 +2283,7 @@ pub struct RBACBindingConfig {
 }
 
 /// ReleaseChannel indicates which release channel a cluster is subscribed to. Release channels are arranged in order of risk. When a cluster is subscribed to a release channel, Google maintains both the master version and the node version. Node auto-upgrade defaults to true and cannot be disabled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReleaseChannel {
     /// channel specifies which release channel the cluster is subscribed to. // TODO: enum values: ["UNSPECIFIED", "RAPID", "REGULAR", "STABLE", "EXTENDED"]
     #[serde(default)]
@@ -2290,7 +2291,7 @@ pub struct ReleaseChannel {
 }
 
 /// Configuration for exporting cluster resource usages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceUsageExportConfig {
     /// Configuration to use BigQuery as usage export destination.
     #[serde(default, rename = "bigqueryDestination")]
@@ -2304,7 +2305,7 @@ pub struct ResourceUsageExportConfig {
 }
 
 /// SecretManagerConfig is config for secret manager enablement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretManagerConfig {
     /// Enable/Disable Secret Manager Config.
     #[serde(default)]
@@ -2315,7 +2316,7 @@ pub struct SecretManagerConfig {
 }
 
 /// Configuration for sync Secret Manager secrets as k8s secrets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretSyncConfig {
     /// Enable/Disable Secret Sync Config.
     #[serde(default)]
@@ -2326,7 +2327,7 @@ pub struct SecretSyncConfig {
 }
 
 /// SecurityPostureConfig defines the flags needed to enable/disable features for the Security Posture API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPostureConfig {
     /// Sets which mode to use for Security Posture features. // TODO: enum values: ["MODE_UNSPECIFIED", "DISABLED", "BASIC", "ENTERPRISE"]
     #[serde(default)]
@@ -2337,7 +2338,7 @@ pub struct SecurityPostureConfig {
 }
 
 /// Configuration of Shielded Nodes feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShieldedNodes {
     /// Whether Shielded Nodes features are enabled on all nodes in this cluster.
     #[serde(default)]
@@ -2345,7 +2346,7 @@ pub struct ShieldedNodes {
 }
 
 /// UserManagedKeysConfig holds the resource address to Keys which are used for signing certs and token that are used for communication within cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserManagedKeysConfig {
     /// The Certificate Authority Service caPool to use for the aggregation CA in this cluster.
     #[serde(default, rename = "aggregationCa")]
@@ -2377,7 +2378,7 @@ pub struct UserManagedKeysConfig {
 }
 
 /// VerticalPodAutoscaling contains global, per-cluster information required by Vertical Pod Autoscaler to automatically adjust the resources of pods controlled by it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerticalPodAutoscaling {
     /// Enables vertical pod autoscaling.
     #[serde(default)]
@@ -2385,7 +2386,7 @@ pub struct VerticalPodAutoscaling {
 }
 
 /// Configuration for the use of Kubernetes Service Accounts in IAM policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadIdentityConfig {
     /// The workload pool to attach all Kubernetes service accounts to.
     #[serde(default, rename = "workloadPool")]
@@ -2393,7 +2394,7 @@ pub struct WorkloadIdentityConfig {
 }
 
 /// GkeAutoUpgradeConfig is the configuration for GKE auto upgrades.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeAutoUpgradeConfig {
     /// PatchMode specifies how auto upgrade patch builds should be selected. // TODO: enum values: ["PATCH_MODE_UNSPECIFIED", "ACCELERATED"]
     #[serde(default, rename = "patchMode")]
@@ -2401,7 +2402,7 @@ pub struct GkeAutoUpgradeConfig {
 }
 
 /// The namespace/name of the pod whose eviction is blocked by PDB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PdbBlockedPod {
     /// The name of the pod.
     #[serde(default)]
@@ -2412,7 +2413,7 @@ pub struct PdbBlockedPod {
 }
 
 /// ClusterPolicyConfig stores the configuration for cluster wide policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterPolicyConfig {
     /// Denotes preventing standard node pools and requiring only autopilot node pools.
     #[serde(default, rename = "noStandardNodePools")]
@@ -2429,7 +2430,7 @@ pub struct ClusterPolicyConfig {
 }
 
 /// PrivilegedAdmissionConfig stores the list of authorized allowlist paths for the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivilegedAdmissionConfig {
     /// The customer allowlist Cloud Storage paths for the cluster. These paths are used with the --autopilot-privileged-admission flag to authorize privileged workloads in Autopilot clusters. Paths can be GKE-owned, in the format gke:////, or customer-owned, in the format gs:///. Wildcards (*) are supported to authorize all allowlists under specific paths or directories. Example: gs://my-bucket/* will authorize all allowlists under the my-bucket bucket.
     #[serde(default, rename = "allowlistPaths")]
@@ -2437,7 +2438,7 @@ pub struct PrivilegedAdmissionConfig {
 }
 
 /// WorkloadPolicyConfig is the configuration related to GCW workload policy
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadPolicyConfig {
     /// If true, workloads can use NET_ADMIN capability.
     #[serde(default, rename = "allowNetAdmin")]
@@ -2448,7 +2449,7 @@ pub struct WorkloadPolicyConfig {
 }
 
 /// AdditionalPodRangesConfig is the configuration for additional pod secondary ranges supporting the ClusterUpdate message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdditionalPodRangesConfig {
     /// Output only. Information for additional pod range.
     #[serde(default, rename = "podRangeInfo")]
@@ -2459,7 +2460,7 @@ pub struct AdditionalPodRangesConfig {
 }
 
 /// AutoIpamConfig contains all information related to Auto IPAM
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoIpamConfig {
     /// The flag that enables Auto IPAM on this cluster
     #[serde(default)]
@@ -2467,7 +2468,7 @@ pub struct AutoIpamConfig {
 }
 
 /// DisruptionBudget defines the upgrade disruption budget for the cluster control plane.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisruptionBudget {
     /// Output only. The last time a disruption was performed on the control plane.
     #[serde(default, rename = "lastDisruptionTime")]
@@ -2484,7 +2485,7 @@ pub struct DisruptionBudget {
 }
 
 /// MaintenanceWindow defines the maintenance window to be used for the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
     /// DailyMaintenanceWindow specifies a daily maintenance operation window.
     #[serde(default, rename = "dailyMaintenanceWindow")]
@@ -2498,7 +2499,7 @@ pub struct MaintenanceWindow {
 }
 
 /// Configuration for client certificates on the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientCertificateConfig {
     /// Issue a client certificate.
     #[serde(default, rename = "issueClientCertificate")]
@@ -2506,7 +2507,7 @@ pub struct ClientCertificateConfig {
 }
 
 /// DefaultSnatStatus contains the desired state of whether default sNAT should be disabled on the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultSnatStatus {
     /// Disables cluster default sNAT rules.
     #[serde(default)]
@@ -2514,7 +2515,7 @@ pub struct DefaultSnatStatus {
 }
 
 /// DNSConfig contains the desired set of options for configuring clusterDNS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DNSConfig {
     /// Optional. The domain used in Additive VPC scope.
     #[serde(default, rename = "additiveVpcScopeDnsDomain")]
@@ -2531,7 +2532,7 @@ pub struct DNSConfig {
 }
 
 /// GatewayAPIConfig contains the desired config of Gateway API on this cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GatewayAPIConfig {
     /// The Gateway API release channel to use for Gateway API. // TODO: enum values: ["CHANNEL_UNSPECIFIED", "CHANNEL_DISABLED", "CHANNEL_EXPERIMENTAL", "CHANNEL_STANDARD"]
     #[serde(default)]
@@ -2539,7 +2540,7 @@ pub struct GatewayAPIConfig {
 }
 
 /// Configuration of network bandwidth tiers
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterNetworkPerformanceConfig {
     /// Specifies the total network bandwidth tier for NodePools in the cluster. // TODO: enum values: ["TIER_UNSPECIFIED", "TIER_1"]
     #[serde(default, rename = "totalEgressBandwidthTier")]
@@ -2547,7 +2548,7 @@ pub struct ClusterNetworkPerformanceConfig {
 }
 
 /// Config to block services with externalIPs field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceExternalIPsConfig {
     /// Whether Services with ExternalIPs field are allowed or not.
     #[serde(default)]
@@ -2555,7 +2556,7 @@ pub struct ServiceExternalIPsConfig {
 }
 
 /// Collection of Compute Engine network tags that can be applied to a node''s underlying VM instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkTags {
     /// List of network tags.
     #[serde(default)]
@@ -2563,7 +2564,7 @@ pub struct NetworkTags {
 }
 
 /// Subset of NodeConfig message that has defaults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeConfigDefaults {
     /// Parameters for containerd customization.
     #[serde(default, rename = "containerdConfig")]
@@ -2580,7 +2581,7 @@ pub struct NodeConfigDefaults {
 }
 
 /// AutopilotConfig contains configuration of autopilot feature for this nodepool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutopilotConfig {
     /// Denotes that nodes belonging to this node pool are Autopilot nodes.
     #[serde(default)]
@@ -2588,7 +2589,7 @@ pub struct AutopilotConfig {
 }
 
 /// NodePoolAutoscaling contains information required by cluster autoscaler to adjust the size of the node pool to the current cluster usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodePoolAutoscaling {
     /// Can this node pool be deleted automatically.
     #[serde(default)]
@@ -2614,7 +2615,7 @@ pub struct NodePoolAutoscaling {
 }
 
 /// Best effort provisioning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BestEffortProvisioning {
     /// When this is enabled, cluster/node pool creations will ignore non-fatal errors like stockout to best provision as many nodes as possible right now and eventually bring up all target number of nodes
     #[serde(default)]
@@ -2625,7 +2626,7 @@ pub struct BestEffortProvisioning {
 }
 
 /// StatusCondition describes why a cluster or a node pool has a certain status (e.g., ERROR or DEGRADED).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatusCondition {
     /// Canonical code of the condition. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
     #[serde(default, rename = "canonicalCode")]
@@ -2639,7 +2640,7 @@ pub struct StatusCondition {
 }
 
 /// Parameters that describe the nodes in a cluster. GKE Autopilot clusters do not recognize parameters in NodeConfig. Use AutoprovisioningNodePoolDefaults instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeConfig {
     /// A list of hardware accelerators to be attached to each node. See https://cloud.google.com/compute/docs/gpus for more information about support for GPUs.
     #[serde(default)]
@@ -2788,7 +2789,7 @@ pub struct NodeConfig {
 }
 
 /// Parameters for node pool-level network config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeNetworkConfig {
     /// Immutable. The accelerator network profile for the node pool. For now the only valid value is "auto". If specified, the network configuration of the nodes in this node pool will be managed by this profile for the supported machine types, zone, etc.
     #[serde(default, rename = "acceleratorNetworkProfile")]
@@ -2831,7 +2832,7 @@ pub struct NodeNetworkConfig {
 }
 
 /// NodeDrainConfig contains the node drain related configurations for this nodepool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeDrainConfig {
     /// Whether to respect PDB during node pool deletion.
     #[serde(default, rename = "respectPdbDuringNodePoolDeletion")]
@@ -2839,7 +2840,7 @@ pub struct NodeDrainConfig {
 }
 
 /// PlacementPolicy defines the placement policy used by the node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementPolicy {
     /// If set, refers to the name of a custom resource policy supplied by the user. The resource policy must be in the same project and region as the node pool. If not found, InvalidArgument error is returned.
     #[serde(default, rename = "policyName")]
@@ -2853,7 +2854,7 @@ pub struct PlacementPolicy {
 }
 
 /// QueuedProvisioning defines the queued provisioning used by the node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueuedProvisioning {
     /// Denotes that this nodepool is QRM specific, meaning nodes can be only obtained through queuing via the Cluster Autoscaler ProvisioningRequest API.
     #[serde(default)]
@@ -2861,7 +2862,7 @@ pub struct QueuedProvisioning {
 }
 
 /// UpdateInfo contains resource (instance groups, etc), status and other intermediate information relevant to a node pool upgrade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateInfo {
     /// Information of a blue-green upgrade.
     #[serde(default, rename = "blueGreenInfo")]
@@ -2869,7 +2870,7 @@ pub struct UpdateInfo {
 }
 
 /// Progress metric is (string, int|float|string) pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metric {
     /// For metrics with floating point value.
     #[serde(default, rename = "doubleValue")]
@@ -2886,7 +2887,7 @@ pub struct Metric {
 }
 
 /// AdditionalIPRangesConfig is the configuration for individual additional subnetwork attached to the cluster
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdditionalIPRangesConfig {
     /// List of secondary ranges names within this subnetwork that can be used for pod IPs. Example1: gke-pod-range1 Example2: gke-pod-range1,gke-pod-range2
     #[serde(default, rename = "podIpv4RangeNames")]
@@ -2900,7 +2901,7 @@ pub struct AdditionalIPRangesConfig {
 }
 
 /// Configuration options for the Cloud Run feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudRunConfig {
     /// Whether Cloud Run addon is enabled for this cluster.
     #[serde(default)]
@@ -2911,7 +2912,7 @@ pub struct CloudRunConfig {
 }
 
 /// Configuration options for the Config Connector add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigConnectorConfig {
     /// Whether Cloud Connector is enabled for this cluster.
     #[serde(default)]
@@ -2919,7 +2920,7 @@ pub struct ConfigConnectorConfig {
 }
 
 /// Configuration for NodeLocal DNSCache
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsCacheConfig {
     /// Whether NodeLocal DNSCache is enabled for this cluster.
     #[serde(default)]
@@ -2927,7 +2928,7 @@ pub struct DnsCacheConfig {
 }
 
 /// Configuration for the Compute Engine PD CSI driver.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcePersistentDiskCsiDriverConfig {
     /// Whether the Compute Engine PD CSI driver is enabled for this cluster.
     #[serde(default)]
@@ -2935,7 +2936,7 @@ pub struct GcePersistentDiskCsiDriverConfig {
 }
 
 /// Configuration for the Filestore CSI driver.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcpFilestoreCsiDriverConfig {
     /// Whether the Filestore CSI driver is enabled for this cluster.
     #[serde(default)]
@@ -2943,7 +2944,7 @@ pub struct GcpFilestoreCsiDriverConfig {
 }
 
 /// Configuration for the Cloud Storage Fuse CSI driver.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsFuseCsiDriverConfig {
     /// Whether the Cloud Storage Fuse CSI driver is enabled for this cluster.
     #[serde(default)]
@@ -2951,7 +2952,7 @@ pub struct GcsFuseCsiDriverConfig {
 }
 
 /// Configuration for the Backup for GKE Agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeBackupAgentConfig {
     /// Whether the Backup for GKE agent is enabled for this cluster.
     #[serde(default)]
@@ -2959,7 +2960,7 @@ pub struct GkeBackupAgentConfig {
 }
 
 /// Configuration for the High Scale Checkpointing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HighScaleCheckpointingConfig {
     /// Whether the High Scale Checkpointing is enabled for this cluster.
     #[serde(default)]
@@ -2967,7 +2968,7 @@ pub struct HighScaleCheckpointingConfig {
 }
 
 /// Configuration options for the horizontal pod autoscaling feature, which increases or decreases the number of replica pods a replication controller has based on the resource usage of the existing pods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HorizontalPodAutoscaling {
     /// Whether the Horizontal Pod Autoscaling feature is enabled in the cluster. When enabled, it ensures that metrics are collected into Stackdriver Monitoring.
     #[serde(default)]
@@ -2975,7 +2976,7 @@ pub struct HorizontalPodAutoscaling {
 }
 
 /// Configuration options for the HTTP (L7) load balancing controller addon, which makes it easy to set up HTTP load balancers for services in a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpLoadBalancing {
     /// Whether the HTTP Load Balancing controller is enabled in the cluster. When enabled, it runs a small pod in the cluster that manages the load balancers.
     #[serde(default)]
@@ -2983,7 +2984,7 @@ pub struct HttpLoadBalancing {
 }
 
 /// Configuration for the Kubernetes Dashboard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KubernetesDashboard {
     /// Whether the Kubernetes Dashboard is enabled for this cluster.
     #[serde(default)]
@@ -2991,7 +2992,7 @@ pub struct KubernetesDashboard {
 }
 
 /// Configuration for the Lustre CSI driver.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LustreCsiDriverConfig {
     /// When set to true, this disables multi-NIC support for the Lustre CSI driver. By default, GKE enables multi-NIC support, which allows the Lustre CSI driver to automatically detect and configure all suitable network interfaces on a node to maximize I/O performance for demanding workloads.
     #[serde(default, rename = "disableMultiNic")]
@@ -3005,7 +3006,7 @@ pub struct LustreCsiDriverConfig {
 }
 
 /// Configuration for NetworkPolicy. This only tracks whether the addon is enabled or not on the Master, it does not track whether network policy is enabled for the nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPolicyConfig {
     /// Whether NetworkPolicy is enabled for this cluster.
     #[serde(default)]
@@ -3013,7 +3014,7 @@ pub struct NetworkPolicyConfig {
 }
 
 /// Configuration for the Cloud Storage Parallelstore CSI driver.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParallelstoreCsiDriverConfig {
     /// Whether the Cloud Storage Parallelstore CSI driver is enabled for this cluster.
     #[serde(default)]
@@ -3021,7 +3022,7 @@ pub struct ParallelstoreCsiDriverConfig {
 }
 
 /// Configuration options for the Ray Operator add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RayOperatorConfig {
     /// Whether the Ray Operator addon is enabled for this cluster.
     #[serde(default)]
@@ -3035,7 +3036,7 @@ pub struct RayOperatorConfig {
 }
 
 /// Configuration for the Slice Controller.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SliceControllerConfig {
     /// Optional. Indicates whether Slice Controller is enabled in the cluster.
     #[serde(default)]
@@ -3043,7 +3044,7 @@ pub struct SliceControllerConfig {
 }
 
 /// Configuration for the Stateful HA add-on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatefulHAConfig {
     /// Whether the Stateful HA add-on is enabled for this cluster.
     #[serde(default)]
@@ -3051,7 +3052,7 @@ pub struct StatefulHAConfig {
 }
 
 /// AutoprovisioningNodePoolDefaults contains defaults for a node pool created by NAP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoprovisioningNodePoolDefaults {
     /// The Customer Managed Encryption Key used to encrypt the boot disk attached to each node in the node pool. This should be of the form projects/[KEY_PROJECT_ID]/locations/[LOCATION]/keyRings/[RING_NAME]/cryptoKeys/[KEY_NAME]. For more information about protecting resources with Cloud KMS Keys please see: https://cloud.google.com/compute/docs/disks/customer-managed-encryption
     #[serde(default, rename = "bootDiskKmsKey")]
@@ -3089,7 +3090,7 @@ pub struct AutoprovisioningNodePoolDefaults {
 }
 
 /// DefaultComputeClassConfig defines default compute class configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultComputeClassConfig {
     /// Enables default compute class.
     #[serde(default)]
@@ -3097,7 +3098,7 @@ pub struct DefaultComputeClassConfig {
 }
 
 /// Contains information about amount of some resource in the cluster. For memory, value should be in GB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceLimit {
     /// Maximum amount of the resource in the cluster.
     #[serde(default)]
@@ -3111,7 +3112,7 @@ pub struct ResourceLimit {
 }
 
 /// Defines the details of a compliance standard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComplianceStandard {
     /// Name of the compliance standard.
     #[serde(default)]
@@ -3119,7 +3120,7 @@ pub struct ComplianceStandard {
 }
 
 /// Describes the configuration of a DNS endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DNSEndpointConfig {
     /// Controls whether user traffic is allowed over this endpoint. Note that Google-managed services may still use the endpoint even if this is false.
     #[serde(default, rename = "allowExternalTraffic")]
@@ -3136,7 +3137,7 @@ pub struct DNSEndpointConfig {
 }
 
 /// IP endpoints configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IPEndpointsConfig {
     /// Configuration of authorized networks. If enabled, restricts access to the control plane based on source IP. It is invalid to specify both Cluster.masterAuthorizedNetworksConfig and this field at the same time.
     #[serde(default, rename = "authorizedNetworksConfig")]
@@ -3162,7 +3163,7 @@ pub struct IPEndpointsConfig {
 }
 
 /// OperationError records errors seen from CloudKMS keys encountered during updates to DatabaseEncryption configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationError {
     /// Description of the error seen during the operation.
     #[serde(default, rename = "errorMessage")]
@@ -3176,7 +3177,7 @@ pub struct OperationError {
 }
 
 /// LoggingComponentConfig is cluster logging component configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingComponentConfig {
     /// Select components to collect logs. An empty set would disable all logging.
     #[serde(default, rename = "enableComponents")]
@@ -3184,7 +3185,7 @@ pub struct LoggingComponentConfig {
 }
 
 /// AdvancedDatapathObservabilityConfig specifies configuration of observability features of advanced datapath.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvancedDatapathObservabilityConfig {
     /// Expose flow metrics on nodes
     #[serde(default, rename = "enableMetrics")]
@@ -3198,7 +3199,7 @@ pub struct AdvancedDatapathObservabilityConfig {
 }
 
 /// MonitoringComponentConfig is cluster monitoring component configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MonitoringComponentConfig {
     /// Select components to collect metrics. An empty set would disable all monitoring.
     #[serde(default, rename = "enableComponents")]
@@ -3206,7 +3207,7 @@ pub struct MonitoringComponentConfig {
 }
 
 /// ManagedPrometheusConfig defines the configuration for Google Cloud Managed Service for Prometheus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedPrometheusConfig {
     /// GKE Workload Auto-Monitoring Configuration.
     #[serde(default, rename = "autoMonitoringConfig")]
@@ -3217,7 +3218,7 @@ pub struct ManagedPrometheusConfig {
 }
 
 /// Pub/Sub specific notification config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubSub {
     /// Enable notifications for Pub/Sub.
     #[serde(default)]
@@ -3231,7 +3232,7 @@ pub struct PubSub {
 }
 
 /// Configuration for controlling master global access settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateClusterMasterGlobalAccessConfig {
     /// Whenever master is accessible globally or not.
     #[serde(default)]
@@ -3239,7 +3240,7 @@ pub struct PrivateClusterMasterGlobalAccessConfig {
 }
 
 /// Parameters for using BigQuery as the destination of resource usage export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryDestination {
     /// The ID of a BigQuery Dataset.
     #[serde(default, rename = "datasetId")]
@@ -3247,7 +3248,7 @@ pub struct BigQueryDestination {
 }
 
 /// Parameters for controlling consumption metering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsumptionMeteringConfig {
     /// Whether to enable consumption metering for this cluster. If enabled, a second BigQuery table will be created to hold resource consumption records.
     #[serde(default)]
@@ -3255,7 +3256,7 @@ pub struct ConsumptionMeteringConfig {
 }
 
 /// RotationConfig is config for secret manager auto rotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RotationConfig {
     /// Whether the rotation is enabled.
     #[serde(default)]
@@ -3266,7 +3267,7 @@ pub struct RotationConfig {
 }
 
 /// SyncRotationConfig is config for secret manager auto rotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SyncRotationConfig {
     /// Whether the rotation is enabled.
     #[serde(default)]
@@ -3277,7 +3278,7 @@ pub struct SyncRotationConfig {
 }
 
 /// RangeInfo contains the range name and the range utilization by this cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RangeInfo {
     /// Output only. Name of a range.
     #[serde(default, rename = "rangeName")]
@@ -3288,7 +3289,7 @@ pub struct RangeInfo {
 }
 
 /// Time window specified for daily maintenance operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyMaintenanceWindow {
     /// Output only. Duration of the time window, automatically chosen to be smallest possible in the given scenario. Duration will be in [RFC3339](https://www.ietf.org/rfc/rfc3339.txt) format "PTnHnMnS".
     #[serde(default)]
@@ -3299,7 +3300,7 @@ pub struct DailyMaintenanceWindow {
 }
 
 /// Represents an arbitrary window of time that recurs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecurringTimeWindow {
     /// An RRULE (https://tools.ietf.org/html/rfc5545#section-3.8.5.3) for how this window recurs. They go on for the span of time between the start and end time. For example, to have something repeat every weekday, you''d use: FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR To repeat some window daily (equivalent to the DailyMaintenanceWindow): FREQ=DAILY For the first weekend of every month: FREQ=MONTHLY;BYSETPOS=1;BYDAY=SA,SU This specifies how frequently the window starts. Eg, if you wanted to have a 9-5 UTC-4 window every weekday, you''d use something like:  start time = 2019-01-01T09:00:00-0400 end time = 2019-01-01T17:00:00-0400 recurrence = FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR  Windows can span multiple days. Eg, to make the window encompass every weekend from midnight Saturday till the last minute of Sunday UTC:  start time = 2019-01-05T00:00:00Z end time = 2019-01-07T23:59:00Z recurrence = FREQ=WEEKLY;BYDAY=SA  Note the start and end time''s specific dates are largely arbitrary except to specify duration of the window and when it first starts. The FREQ values of HOURLY, MINUTELY, and SECONDLY are not supported.
     #[serde(default)]
@@ -3310,7 +3311,7 @@ pub struct RecurringTimeWindow {
 }
 
 /// AcceleratorConfig represents a Hardware Accelerator request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorConfig {
     /// The number of the accelerator cards exposed to an instance.
     #[serde(default, rename = "acceleratorCount")]
@@ -3330,7 +3331,7 @@ pub struct AcceleratorConfig {
 }
 
 /// Specifies options for controlling advanced machine features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvancedMachineFeatures {
     /// Whether or not to enable nested virtualization (defaults to false).
     #[serde(default, rename = "enableNestedVirtualization")]
@@ -3344,7 +3345,7 @@ pub struct AdvancedMachineFeatures {
 }
 
 /// BootDisk specifies the boot disk configuration for nodepools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BootDisk {
     /// Disk type of the boot disk. (i.e. Hyperdisk-Balanced, PD-Balanced, etc.)
     #[serde(default, rename = "diskType")]
@@ -3361,7 +3362,7 @@ pub struct BootDisk {
 }
 
 /// ConfidentialNodes is configuration for the confidential nodes feature, which makes nodes run on confidential VMs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfidentialNodes {
     /// Defines the type of technology used by the confidential node. // TODO: enum values: ["CONFIDENTIAL_INSTANCE_TYPE_UNSPECIFIED", "SEV", "SEV_SNP", "TDX"]
     #[serde(default, rename = "confidentialInstanceType")]
@@ -3372,7 +3373,7 @@ pub struct ConfidentialNodes {
 }
 
 /// ContainerdConfig contains configuration to customize containerd.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerdConfig {
     /// PrivateRegistryAccessConfig is used to configure access configuration for private container registries.
     #[serde(default, rename = "privateRegistryAccessConfig")]
@@ -3386,7 +3387,7 @@ pub struct ContainerdConfig {
 }
 
 /// EphemeralStorageLocalSsdConfig contains configuration for the node ephemeral storage using Local SSDs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EphemeralStorageLocalSsdConfig {
     /// Number of local SSDs to use for GKE Data Cache.
     #[serde(default, rename = "dataCacheCount")]
@@ -3397,7 +3398,7 @@ pub struct EphemeralStorageLocalSsdConfig {
 }
 
 /// Configuration of Fast Socket feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FastSocket {
     /// Whether Fast Socket features are enabled in the node pool.
     #[serde(default)]
@@ -3405,7 +3406,7 @@ pub struct FastSocket {
 }
 
 /// GcfsConfig contains configurations of Google Container File System (image streaming).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcfsConfig {
     /// Whether to use GCFS.
     #[serde(default)]
@@ -3413,7 +3414,7 @@ pub struct GcfsConfig {
 }
 
 /// GPUDirectConfig specifies the GPU direct strategy on the node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GPUDirectConfig {
     /// The type of GPU direct strategy to enable on the node pool. // TODO: enum values: ["GPU_DIRECT_STRATEGY_UNSPECIFIED", "RDMA"]
     #[serde(default, rename = "gpuDirectStrategy")]
@@ -3421,7 +3422,7 @@ pub struct GPUDirectConfig {
 }
 
 /// Configuration of gVNIC feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VirtualNIC {
     /// Whether gVNIC features are enabled in the node pool.
     #[serde(default)]
@@ -3429,7 +3430,7 @@ pub struct VirtualNIC {
 }
 
 /// Node kubelet configs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeKubeletConfig {
     /// Optional. Defines a comma-separated allowlist of unsafe sysctls or sysctl patterns (ending in *). The unsafe namespaced sysctl groups are kernel.shm*, kernel.msg*, kernel.sem, fs.mqueue.*, and net.*. Leaving this allowlist empty means they cannot be set on Pods. To allow certain sysctls or sysctl patterns to be set on Pods, list them separated by commas. For example: kernel.msg*,net.ipv4.route.min_pmtu. See https://kubernetes.io/docs/tasks/administer-cluster/sysctl-cluster/ for more details.
     #[serde(default, rename = "allowedUnsafeSysctls")]
@@ -3503,7 +3504,7 @@ pub struct NodeKubeletConfig {
 }
 
 /// Parameters that can be configured on Linux nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinuxNodeConfig {
     /// Optional. The accurate time configuration for the node pool.
     #[serde(default, rename = "accurateTimeConfig")]
@@ -3532,7 +3533,7 @@ pub struct LinuxNodeConfig {
 }
 
 /// LocalNvmeSsdBlockConfig contains configuration for using raw-block local NVMe SSDs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalNvmeSsdBlockConfig {
     /// Number of local NVMe SSDs to use. The limit for this value is dependent upon the maximum number of disk available on a machine per zone. See: https://cloud.google.com/compute/docs/disks/local-ssd for more information. A zero (or unset) value has different meanings depending on machine type being used: 1. For pre-Gen3 machines, which support flexible numbers of local ssds, zero (or unset) means to disable using local SSDs as ephemeral storage. 2. For Gen3 machines which dictate a specific number of local ssds, zero (or unset) means to use the default number of local ssds that goes with that machine type. For example, for a c3-standard-8-lssd machine, 2 local ssds would be provisioned. For c3-standard-8 (which doesn''t support local ssds), 0 will be provisioned. See https://cloud.google.com/compute/docs/disks/local-ssd#choose_number_local_ssds for more info.
     #[serde(default, rename = "localSsdCount")]
@@ -3540,7 +3541,7 @@ pub struct LocalNvmeSsdBlockConfig {
 }
 
 /// NodePoolLoggingConfig specifies logging configuration for nodepools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodePoolLoggingConfig {
     /// Logging variant configuration.
     #[serde(default, rename = "variantConfig")]
@@ -3548,7 +3549,7 @@ pub struct NodePoolLoggingConfig {
 }
 
 /// [ReservationAffinity](https://cloud.google.com/compute/docs/instances/reserving-zonal-resources) is the configuration of desired reservation which instances could take capacity from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationAffinity {
     /// Corresponds to the type of reservation consumption. // TODO: enum values: ["UNSPECIFIED", "NO_RESERVATION", "ANY_RESERVATION", "SPECIFIC_RESERVATION"]
     #[serde(default, rename = "consumeReservationType")]
@@ -3562,7 +3563,7 @@ pub struct ReservationAffinity {
 }
 
 /// A map of resource manager tag keys and values to be attached to the nodes for managing Compute Engine firewalls using Network Firewall Policies. Tags must be according to specifications in https://cloud.google.com/vpc/docs/tags-firewalls-overview#specifications. A maximum of 5 tag key-value pairs can be specified. Existing tags will be replaced with new values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceManagerTags {
     /// TagKeyValue must be in one of the following formats ([KEY]=[VALUE]) 1. tagKeys/{tag_key_id}=tagValues/{tag_value_id} 2. {org_id}/{tag_key_name}={tag_value_name} 3. {project_id}/{tag_key_name}={tag_value_name}
     #[serde(default)]
@@ -3570,7 +3571,7 @@ pub struct ResourceManagerTags {
 }
 
 /// SandboxConfig contains configurations of the sandbox to use for the node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SandboxConfig {
     /// Type of the sandbox to use for the node. // TODO: enum values: ["UNSPECIFIED", "GVISOR"]
     #[serde(default, rename = "type")]
@@ -3578,7 +3579,7 @@ pub struct SandboxConfig {
 }
 
 /// SecondaryBootDisk represents a persistent disk attached to a node with special configurations based on its mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryBootDisk {
     /// Fully-qualified resource ID for an existing disk image.
     #[serde(default, rename = "diskImage")]
@@ -3589,7 +3590,7 @@ pub struct SecondaryBootDisk {
 }
 
 /// SoleTenantConfig contains the NodeAffinities to specify what shared sole tenant node groups should back the node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SoleTenantConfig {
     /// Optional. The minimum number of virtual CPUs this instance will consume when running on a sole-tenant node. This field can only be set if the node pool is created in a shared sole-tenant node group.
     #[serde(default, rename = "minNodeCpus")]
@@ -3600,7 +3601,7 @@ pub struct SoleTenantConfig {
 }
 
 /// TaintConfig contains the configuration for the taints of the node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaintConfig {
     /// Optional. Controls architecture tainting behavior. // TODO: enum values: ["ARCHITECTURE_TAINT_BEHAVIOR_UNSPECIFIED", "NONE", "ARM"]
     #[serde(default, rename = "architectureTaintBehavior")]
@@ -3608,7 +3609,7 @@ pub struct TaintConfig {
 }
 
 /// Kubernetes taint is composed of three fields: key, value, and effect. Effect can only be one of three types: NoSchedule, PreferNoSchedule or NoExecute. See [here](https://kubernetes.io/docs/concepts/configuration/taint-and-toleration) for more information, including usage and the valid values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTaint {
     /// Effect for taint. // TODO: enum values: ["EFFECT_UNSPECIFIED", "NO_SCHEDULE", "PREFER_NO_SCHEDULE", "NO_EXECUTE"]
     #[serde(default)]
@@ -3622,7 +3623,7 @@ pub struct NodeTaint {
 }
 
 /// Parameters that can be configured on Windows nodes. Windows Node Config that define the parameters that will be used to configure the Windows node pool settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WindowsNodeConfig {
     /// OSVersion specifies the Windows node config to be used on the node. // TODO: enum values: ["OS_VERSION_UNSPECIFIED", "OS_VERSION_LTSC2019", "OS_VERSION_LTSC2022"]
     #[serde(default, rename = "osVersion")]
@@ -3630,7 +3631,7 @@ pub struct WindowsNodeConfig {
 }
 
 /// WorkloadMetadataConfig defines the metadata configuration to expose to workloads on the node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadMetadataConfig {
     /// Mode is the configuration for how to expose metadata to workloads running on the node pool. // TODO: enum values: ["MODE_UNSPECIFIED", "GCE_METADATA", "GKE_METADATA"]
     #[serde(default)]
@@ -3638,7 +3639,7 @@ pub struct WorkloadMetadataConfig {
 }
 
 /// AdditionalNodeNetworkConfig is the configuration for additional node networks within the NodeNetworkConfig message
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdditionalNodeNetworkConfig {
     /// Name of the VPC where the additional interface belongs
     #[serde(default)]
@@ -3649,7 +3650,7 @@ pub struct AdditionalNodeNetworkConfig {
 }
 
 /// AdditionalPodNetworkConfig is the configuration for additional pod networks within the NodeNetworkConfig message
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdditionalPodNetworkConfig {
     /// The maximum number of pods per node which use this pod network.
     #[serde(default, rename = "maxPodsPerNode")]
@@ -3666,7 +3667,7 @@ pub struct AdditionalPodNetworkConfig {
 }
 
 /// Configuration of all network bandwidth tiers
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPerformanceConfig {
     /// Specifies the total network bandwidth tier for the NodePool. // TODO: enum values: ["TIER_UNSPECIFIED", "TIER_1"]
     #[serde(default, rename = "totalEgressBandwidthTier")]
@@ -3674,7 +3675,7 @@ pub struct NetworkPerformanceConfig {
 }
 
 /// NetworkTierConfig contains network tier information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkTierConfig {
     /// Network tier configuration. // TODO: enum values: ["NETWORK_TIER_UNSPECIFIED", "NETWORK_TIER_DEFAULT", "NETWORK_TIER_PREMIUM", "NETWORK_TIER_STANDARD"]
     #[serde(default, rename = "networkTier")]
@@ -3682,7 +3683,7 @@ pub struct NetworkTierConfig {
 }
 
 /// [PRIVATE FIELD] Config for pod CIDR size overprovisioning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PodCIDROverprovisionConfig {
     /// Whether Pod CIDR overprovisioning is disabled. Note: Pod CIDR overprovisioning is enabled by default.
     #[serde(default)]
@@ -3690,7 +3691,7 @@ pub struct PodCIDROverprovisionConfig {
 }
 
 /// Information relevant to blue-green upgrade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlueGreenInfo {
     /// The resource URLs of the [managed instance groups] (/compute/docs/instance-groups/creating-groups-of-managed-instances) associated with blue pool.
     #[serde(default, rename = "blueInstanceGroupUrls")]
@@ -3710,7 +3711,7 @@ pub struct BlueGreenInfo {
 }
 
 /// RayClusterLoggingConfig specifies configuration of Ray logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RayClusterLoggingConfig {
     /// Enable log collection for Ray clusters.
     #[serde(default)]
@@ -3718,7 +3719,7 @@ pub struct RayClusterLoggingConfig {
 }
 
 /// RayClusterMonitoringConfig specifies monitoring configuration for Ray clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RayClusterMonitoringConfig {
     /// Enable metrics collection for Ray clusters.
     #[serde(default)]
@@ -3726,7 +3727,7 @@ pub struct RayClusterMonitoringConfig {
 }
 
 /// NodeManagement defines the set of node management services turned on for the node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeManagement {
     /// A flag that specifies whether the node auto-repair is enabled for the node pool. If enabled, the nodes in this node pool will be monitored and, if they fail health checks too many times, an automatic repair action will be triggered.
     #[serde(default, rename = "autoRepair")]
@@ -3740,7 +3741,7 @@ pub struct NodeManagement {
 }
 
 /// A set of Shielded Instance options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShieldedInstanceConfig {
     /// Defines whether the instance has integrity monitoring enabled. Enables monitoring and attestation of the boot integrity of the instance. The attestation is performed against the integrity policy baseline. This baseline is initially derived from the implicitly trusted boot image when the instance is created.
     #[serde(default, rename = "enableIntegrityMonitoring")]
@@ -3751,7 +3752,7 @@ pub struct ShieldedInstanceConfig {
 }
 
 /// These upgrade settings control the level of parallelism and the level of disruption caused by an upgrade. maxUnavailable controls the number of nodes that can be simultaneously unavailable. maxSurge controls the number of additional nodes that can be added to the node pool temporarily for the time of the upgrade to increase the number of available nodes. (maxUnavailable + maxSurge) determines the level of parallelism (how many nodes are being upgraded at the same time). Note: upgrades inevitably introduce some disruption since workloads need to be moved from old nodes to new, upgraded ones. Even if maxUnavailable=0, this holds true. (Disruption stays within the limits of PodDisruptionBudget, if it is configured.) Consider a hypothetical node pool with 5 nodes having maxSurge=2, maxUnavailable=1. This means the upgrade process upgrades 3 nodes simultaneously. It creates 2 additional (upgraded) nodes, then it brings down 3 old (not yet upgraded) nodes at the same time. This ensures that there are always at least 4 nodes available. These upgrade settings configure the upgrade strategy for the node pool. Use strategy to switch between the strategies applied to the node pool. If the strategy is ROLLING, use max_surge and max_unavailable to control the level of parallelism and the level of disruption caused by upgrade. 1. maxSurge controls the number of additional nodes that can be added to the node pool temporarily for the time of the upgrade to increase the number of available nodes. 2. maxUnavailable controls the number of nodes that can be simultaneously unavailable. 3. (maxUnavailable + maxSurge) determines the level of parallelism (how many nodes are being upgraded at the same time). If the strategy is BLUE_GREEN, use blue_green_settings to configure the blue-green upgrade related settings. 1. standard_rollout_policy is the default policy. The policy is used to control the way blue pool gets drained. The draining is executed in the batch mode. The batch size could be specified as either percentage of the node pool size or the number of nodes. batch_soak_duration is the soak time after each batch gets drained. 2. node_pool_soak_duration is the soak time after all blue nodes are drained. After this period, the blue pool nodes will be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeSettings {
     /// Settings for blue-green upgrade strategy.
     #[serde(default, rename = "blueGreenSettings")]
@@ -3768,7 +3769,7 @@ pub struct UpgradeSettings {
 }
 
 /// Configuration options for the master authorized networks feature. Enabled master authorized networks will disallow all external traffic to access Kubernetes master through HTTPS except traffic from the given CIDR blocks, Google Compute Engine Public IPs and Google Prod IPs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MasterAuthorizedNetworksConfig {
     /// cidr_blocks define up to 50 external networks that could access Kubernetes master through HTTPS.
     #[serde(default, rename = "cidrBlocks")]
@@ -3785,7 +3786,7 @@ pub struct MasterAuthorizedNetworksConfig {
 }
 
 /// AutoMonitoringConfig defines the configuration for GKE Workload Auto-Monitoring.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoMonitoringConfig {
     /// Scope for GKE Workload Auto-Monitoring. // TODO: enum values: ["SCOPE_UNSPECIFIED", "ALL", "NONE"]
     #[serde(default)]
@@ -3793,7 +3794,7 @@ pub struct AutoMonitoringConfig {
 }
 
 /// Allows filtering to one or more specific event types. If event types are present, those and only those event types will be transmitted to the cluster. Other types will be skipped. If no filter is specified, or no event types are present, all event types will be sent
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Filter {
     /// Event types to allowlist.
     #[serde(default, rename = "eventType")]
@@ -3801,7 +3802,7 @@ pub struct Filter {
 }
 
 /// Represents an arbitrary window of time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeWindow {
     /// The time that the window ends. The end time should take place after the start time.
     #[serde(default, rename = "endTime")]
@@ -3815,7 +3816,7 @@ pub struct TimeWindow {
 }
 
 /// GPUDriverInstallationConfig specifies the version of GPU driver to be auto installed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GPUDriverInstallationConfig {
     /// Mode for how the GPU driver is installed. // TODO: enum values: ["GPU_DRIVER_VERSION_UNSPECIFIED", "INSTALLATION_DISABLED", "DEFAULT", "LATEST"]
     #[serde(default, rename = "gpuDriverVersion")]
@@ -3823,7 +3824,7 @@ pub struct GPUDriverInstallationConfig {
 }
 
 /// GPUSharingConfig represents the GPU sharing configuration for Hardware Accelerators.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GPUSharingConfig {
     /// The type of GPU sharing strategy to enable on the GPU node. // TODO: enum values: ["GPU_SHARING_STRATEGY_UNSPECIFIED", "TIME_SHARING", "MPS"]
     #[serde(default, rename = "gpuSharingStrategy")]
@@ -3834,7 +3835,7 @@ pub struct GPUSharingConfig {
 }
 
 /// PrivateRegistryAccessConfig contains access configuration for private container registries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateRegistryAccessConfig {
     /// Private registry access configuration.
     #[serde(default, rename = "certificateAuthorityDomainConfig")]
@@ -3846,7 +3847,7 @@ pub struct PrivateRegistryAccessConfig {
 }
 
 /// RegistryHostConfig configures the top-level structure for a single containerd registry server''s configuration, which represents one hosts.toml file on the node. It will override the same fqdns in PrivateRegistryAccessConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegistryHostConfig {
     /// HostConfig configures a list of host-specific configurations for the server. Each server can have at most 10 host configurations.
     #[serde(default)]
@@ -3857,7 +3858,7 @@ pub struct RegistryHostConfig {
 }
 
 /// Defines writable cgroups configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WritableCgroups {
     /// Optional. Whether writable cgroups is enabled.
     #[serde(default)]
@@ -3865,7 +3866,7 @@ pub struct WritableCgroups {
 }
 
 /// Contains config to modify node-level parameters for container restart behavior.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrashLoopBackOffConfig {
     /// Optional. The maximum duration the backoff delay can accrue to for container restarts, minimum 1 second, maximum 300 seconds. If not set, defaults to the internal crashloopbackoff maximum. The string must be a sequence of decimal numbers, each with optional fraction and a unit suffix, such as "300ms". Valid time units are "ns", "us" (or "µs"), "ms", "s", "m", "h". See https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#configurable-container-restart-delay for more details.
     #[serde(default, rename = "maxContainerRestartPeriod")]
@@ -3873,7 +3874,7 @@ pub struct CrashLoopBackOffConfig {
 }
 
 /// Eviction minimum reclaims are the resource amounts of minimum reclaims for each eviction signal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvictionMinimumReclaim {
     /// Optional. Minimum reclaim for eviction due to imagefs available signal. Only take percentage value for now. Sample format: "10%". Must be &lt;=10%. See https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/#eviction-signals
     #[serde(default, rename = "imagefsAvailable")]
@@ -3896,7 +3897,7 @@ pub struct EvictionMinimumReclaim {
 }
 
 /// Eviction signals are the current state of a particular resource at a specific point in time. The kubelet uses eviction signals to make eviction decisions by comparing the signals to eviction thresholds, which are the minimum amount of the resource that should be available on the node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvictionSignals {
     /// Optional. Amount of storage available on filesystem that container runtime uses for storing images layers. If the container filesystem and image filesystem are not separate, then imagefs can store both image layers and writeable layers. Defines the amount of "imagefs.available" signal in kubelet. Default is unset, if not specified in the kubelet config. It takses percentage value for now. Sample format: "30%". Must be &gt;= 15% and &lt;= 50%. See https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/#eviction-signals
     #[serde(default, rename = "imagefsAvailable")]
@@ -3919,7 +3920,7 @@ pub struct EvictionSignals {
 }
 
 /// Eviction grace periods are grace periods for each eviction signal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvictionGracePeriod {
     /// Optional. Grace period for eviction due to imagefs available signal. Sample format: "10s". Must be &gt;= 0. See https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/#eviction-signals
     #[serde(default, rename = "imagefsAvailable")]
@@ -3942,7 +3943,7 @@ pub struct EvictionGracePeriod {
 }
 
 /// The option enables the Kubernetes NUMA-aware Memory Manager feature. Detailed description about the feature can be found [here](https://kubernetes.io/docs/tasks/administer-cluster/memory-manager/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemoryManager {
     /// Controls the memory management policy on the Node. See https://kubernetes.io/docs/tasks/administer-cluster/memory-manager/#policies The following values are allowed. * "none" * "static" The default value is ''none'' if unspecified.
     #[serde(default)]
@@ -3950,7 +3951,7 @@ pub struct MemoryManager {
 }
 
 /// TopologyManager defines the configuration options for Topology Manager feature. See https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TopologyManager {
     /// Configures the strategy for resource alignment. Allowed values are: * none: the default policy, and does not perform any topology alignment. * restricted: the topology manager stores the preferred NUMA node affinity for the container, and will reject the pod if the affinity if not preferred. * best-effort: the topology manager stores the preferred NUMA node affinity for the container. If the affinity is not preferred, the topology manager will admit the pod to the node anyway. * single-numa-node: the topology manager determines if the single NUMA node affinity is possible. If it is, Topology Manager will store this and the Hint Providers can then use this information when making the resource allocation decision. If, however, this is not possible then the Topology Manager will reject the pod from the node. This will result in a pod in a Terminated state with a pod admission failure. The default policy value is ''none'' if unspecified. Details about each strategy can be found [here](https://kubernetes.io/docs/tasks/administer-cluster/topology-manager/#topology-manager-policies).
     #[serde(default)]
@@ -3961,7 +3962,7 @@ pub struct TopologyManager {
 }
 
 /// AccurateTimeConfig contains configuration for the accurate time synchronization feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccurateTimeConfig {
     /// Enables enhanced time synchronization using PTP-KVM.
     #[serde(default, rename = "enablePtpKvmTimeSync")]
@@ -3969,7 +3970,7 @@ pub struct AccurateTimeConfig {
 }
 
 /// Hugepages amount in both 2m and 1g size
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HugepagesConfig {
     /// Optional. Amount of 1G hugepages
     #[serde(default, rename = "hugepageSize1g")]
@@ -3980,7 +3981,7 @@ pub struct HugepagesConfig {
 }
 
 /// Configuration for kernel module loading on nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeKernelModuleLoading {
     /// Set the node module loading policy for nodes in the node pool. // TODO: enum values: ["POLICY_UNSPECIFIED", "ENFORCE_SIGNED_MODULES", "DO_NOT_ENFORCE_SIGNED_MODULES"]
     #[serde(default)]
@@ -3988,7 +3989,7 @@ pub struct NodeKernelModuleLoading {
 }
 
 /// Configuration for swap memory on a node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SwapConfig {
     /// Swap on the node''s boot disk.
     #[serde(default, rename = "bootDiskProfile")]
@@ -4008,7 +4009,7 @@ pub struct SwapConfig {
 }
 
 /// LoggingVariantConfig specifies the behaviour of the logging component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingVariantConfig {
     /// Logging variant deployed on nodes. // TODO: enum values: ["VARIANT_UNSPECIFIED", "DEFAULT", "MAX_THROUGHPUT"]
     #[serde(default)]
@@ -4016,7 +4017,7 @@ pub struct LoggingVariantConfig {
 }
 
 /// Specifies the NodeAffinity key, values, and affinity operator according to [shared sole tenant node group affinities](https://cloud.google.com/compute/docs/nodes/sole-tenant-nodes#node_affinity_and_anti-affinity).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeAffinity {
     /// Key for NodeAffinity.
     #[serde(default)]
@@ -4030,7 +4031,7 @@ pub struct NodeAffinity {
 }
 
 /// Constraints applied to pods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaxPodsConstraint {
     /// Constraint enforced on the max num of pods per node.
     #[serde(default, rename = "maxPodsPerNode")]
@@ -4038,7 +4039,7 @@ pub struct MaxPodsConstraint {
 }
 
 /// AutoUpgradeOptions defines the set of options for the user to control how the Auto Upgrades will proceed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoUpgradeOptions {
     /// Output only. This field is set when upgrades are about to commence with the approximate start time for the upgrades, in [RFC3339](https://www.ietf.org/rfc/rfc3339.txt) text format.
     #[serde(default, rename = "autoUpgradeStartTime")]
@@ -4049,7 +4050,7 @@ pub struct AutoUpgradeOptions {
 }
 
 /// Settings for blue-green upgrade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlueGreenSettings {
     /// Autoscaled policy for cluster autoscaler enabled blue-green upgrade.
     #[serde(default, rename = "autoscaledRolloutPolicy")]
@@ -4063,7 +4064,7 @@ pub struct BlueGreenSettings {
 }
 
 /// CidrBlock contains an optional name and one CIDR block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CidrBlock {
     /// cidr_block must be specified in CIDR notation.
     #[serde(default, rename = "cidrBlock")]
@@ -4074,7 +4075,7 @@ pub struct CidrBlock {
 }
 
 /// Represents the Maintenance exclusion option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceExclusionOptions {
     /// EndTimeBehavior specifies the behavior of the exclusion end time. // TODO: enum values: ["END_TIME_BEHAVIOR_UNSPECIFIED", "UNTIL_END_OF_SUPPORT"]
     #[serde(default, rename = "endTimeBehavior")]
@@ -4085,7 +4086,7 @@ pub struct MaintenanceExclusionOptions {
 }
 
 /// CertificateAuthorityDomainConfig configures one or more fully qualified domain names (FQDN) to a specific certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateAuthorityDomainConfig {
     /// List of fully qualified domain names (FQDN). Specifying port is supported. Wildcards are NOT supported. Examples: - my.customdomain.com - 10.0.1.2:5000
     #[serde(default)]
@@ -4097,7 +4098,7 @@ pub struct CertificateAuthorityDomainConfig {
 }
 
 /// HostConfig configures the registry host under a given Server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HostConfig {
     /// CA configures the registry host certificate.
     #[serde(default)]
@@ -4123,7 +4124,7 @@ pub struct HostConfig {
 }
 
 /// Swap on the node''s boot disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BootDiskProfile {
     /// Specifies the size of the swap space in gibibytes (GiB).
     #[serde(default, rename = "swapSizeGib")]
@@ -4134,7 +4135,7 @@ pub struct BootDiskProfile {
 }
 
 /// Provisions a new, separate local NVMe SSD exclusively for swap.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DedicatedLocalSsdProfile {
     /// The number of physical local NVMe SSD disks to attach.
     #[serde(default, rename = "diskCount")]
@@ -4142,7 +4143,7 @@ pub struct DedicatedLocalSsdProfile {
 }
 
 /// Defines encryption settings for the swap space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionConfig {
     /// Optional. If true, swap space will not be encrypted. Defaults to false (encrypted).
     #[serde(default)]
@@ -4150,7 +4151,7 @@ pub struct EncryptionConfig {
 }
 
 /// Swap on the local SSD shared with pod ephemeral storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EphemeralLocalSsdProfile {
     /// Specifies the size of the swap space in gibibytes (GiB).
     #[serde(default, rename = "swapSizeGib")]
@@ -4161,7 +4162,7 @@ pub struct EphemeralLocalSsdProfile {
 }
 
 /// Autoscaled rollout policy utilizes the cluster autoscaler during blue-green upgrade to scale both the blue and green pools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscaledRolloutPolicy {
     /// Optional. Time to wait after cordoning the blue pool before draining the nodes. Defaults to 3 days. The value can be set between 0 and 7 days, inclusive.
     #[serde(default, rename = "waitForDrainDuration")]
@@ -4169,7 +4170,7 @@ pub struct AutoscaledRolloutPolicy {
 }
 
 /// Standard rollout policy is the default policy for blue-green.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandardRolloutPolicy {
     /// Number of blue nodes to drain in a batch.
     #[serde(default, rename = "batchNodeCount")]
@@ -4183,7 +4184,7 @@ pub struct StandardRolloutPolicy {
 }
 
 /// GCPSecretManagerCertificateConfig configures a secret from [Secret Manager](https://cloud.google.com/secret-manager).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GCPSecretManagerCertificateConfig {
     /// Secret URI, in the form "projects/$PROJECT_ID/secrets/$SECRET_NAME/versions/$VERSION". Version can be fixed (e.g. "2") or "latest"
     #[serde(default, rename = "secretUri")]
@@ -4191,7 +4192,7 @@ pub struct GCPSecretManagerCertificateConfig {
 }
 
 /// CertificateConfigPair configures pairs of certificates, which is used for client certificate and key pairs under a registry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateConfigPair {
     /// Cert configures the client certificate.
     #[serde(default)]
@@ -4202,7 +4203,7 @@ pub struct CertificateConfigPair {
 }
 
 /// RegistryHeader configures headers for the registry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegistryHeader {
     /// Key configures the header key.
     #[serde(default)]
@@ -4213,7 +4214,7 @@ pub struct RegistryHeader {
 }
 
 /// CertificateConfig configures certificate for the registry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateConfig {
     /// The URI configures a secret from [Secret Manager](https://cloud.google.com/secret-manager) in the format "projects/$PROJECT_ID/secrets/$SECRET_NAME/versions/$VERSION" for global secret or "projects/$PROJECT_ID/locations/$REGION/secrets/$SECRET_NAME/versions/$VERSION" for regional secret. Version can be fixed (e.g. "2") or "latest"
     #[serde(default, rename = "gcpSecretManagerSecretUri")]

@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// A GoogleChannelConfig is a resource that stores the custom settings respected by Eventarc first-party triggers in the matching region. Once configured, first-party event data will be protected using the specified custom managed encryption key instead of Google-managed encryption keys.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChannelConfig {
     /// Optional. Resource name of a KMS crypto key (managed by the user) used to encrypt/decrypt their event data. It must match the pattern projects/*/locations/*/keyRings/*/cryptoKeys/*.
     #[serde(default, rename = "cryptoKeyName")]
@@ -32,15 +33,15 @@ pub struct GoogleChannelConfig {
 }
 
 /// The format of a JSON message payload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatJsonFormat {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -54,7 +55,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// The response message for the ListChannelConnections method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListChannelConnectionsResponse {
     /// The requested channel connections, up to the number specified in page_size.
     #[serde(default, rename = "channelConnections")]
@@ -68,7 +69,7 @@ pub struct ListChannelConnectionsResponse {
 }
 
 /// The response message for the ListChannels method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListChannelsResponse {
     /// The requested channels, up to the number specified in page_size.
     #[serde(default)]
@@ -82,7 +83,7 @@ pub struct ListChannelsResponse {
 }
 
 /// The response message for the ListEnrollments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEnrollmentsResponse {
     /// The requested Enrollments, up to the number specified in page_size.
     #[serde(default)]
@@ -96,7 +97,7 @@ pub struct ListEnrollmentsResponse {
 }
 
 /// The response message for the ListGoogleApiSources method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGoogleApiSourcesResponse {
     /// The requested GoogleApiSources, up to the number specified in page_size.
     #[serde(default, rename = "googleApiSources")]
@@ -110,7 +111,7 @@ pub struct ListGoogleApiSourcesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -121,7 +122,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for the ListMessageBusEnrollments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMessageBusEnrollmentsResponse {
     /// The requested enrollments, up to the number specified in page_size.
     #[serde(default)]
@@ -135,7 +136,7 @@ pub struct ListMessageBusEnrollmentsResponse {
 }
 
 /// The response message for the ListMessageBuses method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMessageBusesResponse {
     /// The requested message buses, up to the number specified in page_size.
     #[serde(default, rename = "messageBuses")]
@@ -149,7 +150,7 @@ pub struct ListMessageBusesResponse {
 }
 
 /// The response message for the ListPipelines method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPipelinesResponse {
     /// A page token that can be sent to ListPipelines to request the next page. If this is empty, then there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -163,7 +164,7 @@ pub struct ListPipelinesResponse {
 }
 
 /// The response message for the ListProviders method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProvidersResponse {
     /// A page token that can be sent to ListProviders to request the next page. If this is empty, then there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -177,7 +178,7 @@ pub struct ListProvidersResponse {
 }
 
 /// The response message for the ListTriggers method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTriggersResponse {
     /// A page token that can be sent to ListTriggers to request the next page. If this is empty, then there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -191,7 +192,7 @@ pub struct ListTriggersResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -217,7 +218,7 @@ pub struct OperationMetadata {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -228,7 +229,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// A condition that is part of the trigger state computation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StateCondition {
     /// The canonical code of the condition. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
     #[serde(default)]
@@ -239,7 +240,7 @@ pub struct StateCondition {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -247,7 +248,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -255,7 +256,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -275,7 +276,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// A representation of the ChannelConnection resource. A ChannelConnection is a resource which event providers create during the activation process to establish a connection between the provider and the subscriber channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChannelConnection {
     /// Input only. Activation token for the channel. The token will be used during the creation of ChannelConnection to bind the channel with the provider project. This field will not be stored in the provider resource.
     #[serde(default, rename = "activationToken")]
@@ -301,7 +302,7 @@ pub struct ChannelConnection {
 }
 
 /// A representation of the Channel resource. A Channel is a resource on which event providers publish their events. The published events are delivered through the transport associated with the channel. Note that a channel is associated with exactly one event provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Channel {
     /// Output only. The activation token for the channel. The token must be used by the provider to register the channel for publishing.
     #[serde(default, rename = "activationToken")]
@@ -339,7 +340,7 @@ pub struct Channel {
 }
 
 /// An enrollment represents a subscription for messages on a particular message bus. It defines a matching criteria for messages on the bus and the subscriber endpoint where matched messages should be delivered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Enrollment {
     /// Optional. Resource annotations.
     #[serde(default)]
@@ -377,7 +378,7 @@ pub struct Enrollment {
 }
 
 /// A GoogleApiSource represents a subscription of 1P events from a MessageBus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiSource {
     /// Optional. Resource annotations.
     #[serde(default)]
@@ -421,7 +422,7 @@ pub struct GoogleApiSource {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -441,7 +442,7 @@ pub struct Location {
 }
 
 /// MessageBus for the messages flowing through the system. The admin has visibility and control over the messages being published and consumed and can restrict publishers and subscribers to only a subset of data available in the system by defining authorization policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageBus {
     /// Optional. Resource annotations.
     #[serde(default)]
@@ -476,7 +477,7 @@ pub struct MessageBus {
 }
 
 /// A representation of the Pipeline resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pipeline {
     /// Optional. User-defined annotations. See https://google.aip.dev/128#annotations.
     #[serde(default)]
@@ -528,7 +529,7 @@ pub struct Pipeline {
 }
 
 /// A representation of the Provider resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Provider {
     /// Output only. Human friendly name for the Provider. For example "Cloud Storage".
     #[serde(default, rename = "displayName")]
@@ -542,7 +543,7 @@ pub struct Provider {
 }
 
 /// A representation of the trigger resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Trigger {
     /// Optional. The name of the channel associated with the trigger in projects/{project}/locations/{location}/channels/{channel} format. You must provide a channel to receive events from Eventarc SaaS partners.
     #[serde(default)]
@@ -592,7 +593,7 @@ pub struct Trigger {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -609,7 +610,7 @@ pub struct Policy {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -623,7 +624,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Config to enabled subscribing to events from other projects in the org.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationSubscription {
     /// Required. Enable org level subscription.
     #[serde(default)]
@@ -631,7 +632,7 @@ pub struct OrganizationSubscription {
 }
 
 /// Config to enable subscribing to all events from a list of projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectSubscriptions {
     /// Required. A list of projects to receive events from. All the projects must be in the same org. The listed projects should have the format project/{identifier} where identifier can be either the project id for project number. A single list may contain both formats. At most 100 projects can be listed.
     #[serde(default)]
@@ -639,7 +640,7 @@ pub struct ProjectSubscriptions {
 }
 
 /// Represents a target of an invocation over HTTP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineDestination {
     /// Optional. An authentication config used to authenticate message requests, such that destinations can verify the source. For example, this can be used with private Google Cloud destinations that require Google Cloud credentials for access like Cloud Run. This field is optional and should be set only by users interested in authenticated push.
     #[serde(default, rename = "authenticationConfig")]
@@ -668,7 +669,7 @@ pub struct GoogleCloudEventarcV1PipelineDestination {
 }
 
 /// The configuration for Platform Telemetry logging for Eventarc Advanced resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingConfig {
     /// Optional. The minimum severity of logs that will be sent to Stackdriver/Platform Telemetry. Logs at severitiy ≥ this value will be sent, unless it is NONE. // TODO: enum values: ["LOG_SEVERITY_UNSPECIFIED", "NONE", "DEBUG", "INFO", "NOTICE", "WARNING", "ERROR", "CRITICAL", "ALERT", "EMERGENCY"]
     #[serde(default, rename = "logSeverity")]
@@ -676,7 +677,7 @@ pub struct LoggingConfig {
 }
 
 /// Mediation defines different ways to modify the Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineMediation {
     /// Optional. How the Pipeline is to transform messages
     #[serde(default)]
@@ -685,7 +686,7 @@ pub struct GoogleCloudEventarcV1PipelineMediation {
 }
 
 /// The retry policy configuration for the Pipeline. The pipeline exponentially backs off in case the destination is non responsive or returns a retryable error code. The default semantics are as follows: The backoff starts with a 5 second delay and doubles the delay after each failed attempt (10 seconds, 20 seconds, 40 seconds, etc.). The delay is capped at 60 seconds by default. Please note that if you set the min_retry_delay and max_retry_delay fields to the same value this will make the duration between retries constant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineRetryPolicy {
     /// Optional. The maximum number of delivery attempts for any message. The value must be between 1 and 100. The default value for this field is 5.
     #[serde(default, rename = "maxAttempts")]
@@ -699,7 +700,7 @@ pub struct GoogleCloudEventarcV1PipelineRetryPolicy {
 }
 
 /// A representation of the event type resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventType {
     /// Output only. Human friendly description of what the event type is about. For example "Bucket created in Cloud Storage".
     #[serde(default)]
@@ -716,7 +717,7 @@ pub struct EventType {
 }
 
 /// Represents a target of an invocation over HTTP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Destination {
     /// The Cloud Function resource name. Cloud Functions V1 and V2 are supported. Format: projects/{project}/locations/{location}/functions/{function} This is a read-only field. Creating Cloud Functions V1/V2 triggers is only supported via the Cloud Functions product. An error will be returned if the user sets this value.
     #[serde(default, rename = "cloudFunction")]
@@ -739,7 +740,7 @@ pub struct Destination {
 }
 
 /// Filters events based on exact matches on the CloudEvents attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventFilter {
     /// Required. The name of a CloudEvents attribute. Currently, only a subset of attributes are supported for filtering. You can [retrieve a specific provider''s supported event types](/eventarc/docs/list-providers#describe-provider). All triggers MUST provide a filter for the ''type'' attribute.
     #[serde(default)]
@@ -753,7 +754,7 @@ pub struct EventFilter {
 }
 
 /// The retry policy configuration for the Trigger. Can only be set with Cloud Run destinations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetryPolicy {
     /// Optional. The maximum number of delivery attempts for any message. The only valid value is 1.
     #[serde(default, rename = "maxAttempts")]
@@ -761,7 +762,7 @@ pub struct RetryPolicy {
 }
 
 /// Represents the transport intermediaries created for the trigger to deliver events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Transport {
     /// The Pub/Sub topic and subscription used by Eventarc as a transport intermediary.
     #[serde(default)]
@@ -769,7 +770,7 @@ pub struct Transport {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -780,7 +781,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -794,7 +795,7 @@ pub struct Binding {
 }
 
 /// Represents a config used to authenticate message requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineDestinationAuthenticationConfig {
     /// Optional. This authenticate method will apply Google OIDC tokens signed by a Google Cloud service account to the requests.
     #[serde(default, rename = "googleOidc")]
@@ -809,7 +810,7 @@ pub struct GoogleCloudEventarcV1PipelineDestinationAuthenticationConfig {
 }
 
 /// Represents a HTTP endpoint destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineDestinationHttpEndpoint {
     /// Optional. The CEL expression used to modify how the destination-bound HTTP request is constructed. If a binding expression is not specified here, the message is treated as a CloudEvent and is mapped to the HTTP request according to the CloudEvent HTTP Protocol Binding Binary Content Mode (https://github.com/cloudevents/spec/blob/main/cloudevents/bindings/http-protocol-binding.md#31-binary-content-mode). In this representation, all fields except the data and datacontenttype field on the message are mapped to HTTP request headers with a prefix of ce-. To construct the HTTP request payload and the value of the content-type HTTP header, the payload format is defined as follows: 1) Use the output_payload_format_type on the Pipeline.Destination if it is set, else: 2) Use the input_payload_format_type on the Pipeline if it is set, else: 3) Treat the payload as opaque binary data. The data field of the message is converted to the payload format or left as-is for case 3) and then attached as the payload of the HTTP request. The content-type header on the HTTP request is set to the payload format type or left empty for case 3). However, if a mediation has updated the datacontenttype field on the message so that it is not the same as the payload format type but it is still a prefix of the payload format type, then the content-type header on the HTTP request is set to this datacontenttype value. For example, if the datacontenttype is "application/json" and the payload format type is "application/json; charset=utf-8", then the content-type header on the HTTP request is set to "application/json; charset=utf-8". If a non-empty binding expression is specified then this expression is used to modify the default CloudEvent HTTP Protocol Binding Binary Content representation. The result of the CEL expression must be a map of key/value pairs which is used as follows: - If a map named headers exists on the result of the expression, then its key/value pairs are directly mapped to the HTTP request headers. The headers values are constructed from the corresponding value type''s canonical representation. If the headers field doesn''t exist then the resulting HTTP request will be the headers of the CloudEvent HTTP Binding Binary Content Mode representation of the final message. Note: If the specified binding expression, has updated the datacontenttype field on the message so that it is not the same as the payload format type but it is still a prefix of the payload format type, then the content-type header in the headers map is set to this datacontenttype value. - If a field named body exists on the result of the expression then its value is directly mapped to the body of the request. If the value of the body field is of type bytes or string then it is used for the HTTP request body as-is, with no conversion. If the body field is of any other type then it is converted to a JSON string. If the body field does not exist then the resulting payload of the HTTP request will be data value of the CloudEvent HTTP Binding Binary Content Mode representation of the final message as described earlier. - Any other fields in the resulting expression will be ignored. The CEL expression may access the incoming CloudEvent message in its definition, as follows: - The data field of the incoming CloudEvent message can be accessed using the message.data value. Subfields of message.data may also be accessed if an input_payload_format has been specified on the Pipeline. - Each attribute of the incoming CloudEvent message can be accessed using the message. value, where is replaced with the name of the attribute. - Existing headers can be accessed in the CEL expression using the headers variable. The headers variable defines a map of key/value pairs corresponding to the HTTP headers of the CloudEvent HTTP Binding Binary Content Mode representation of the final message as described earlier. For example, the following CEL expression can be used to construct an HTTP request by adding an additional header to the HTTP headers of the CloudEvent HTTP Binding Binary Content Mode representation of the final message and by overwriting the body of the request:  { "headers": headers.merge({"new-header-key": "new-header-value"}), "body": "new-body" }  - The default binding for the message payload can be accessed using the body variable. It conatins a string representation of the message payload in the format specified by the output_payload_format field. If the input_payload_format field is not set, the body variable contains the same message payload bytes that were published. Additionally, the following CEL extension functions are provided for use in this CEL expression: - toBase64Url: map.toBase64Url() -&gt; string - Converts a CelValue to a base64url encoded string - toJsonString: map.toJsonString() -&gt; string - Converts a CelValue to a JSON string - merge: map1.merge(map2) -&gt; map3 - Merges the passed CEL map with the existing CEL map the function is applied to. - If the same key exists in both maps, if the key''s value is type map both maps are merged else the value from the passed map is used. - denormalize: map.denormalize() -&gt; map - Denormalizes a CEL map such that every value of type map or key in the map is expanded to return a single level map. - The resulting keys are "." separated indices of the map keys. - For example: { "a": 1, "b": { "c": 2, "d": 3 } "e": [4, 5] } .denormalize() -&gt; { "a": 1, "b.c": 2, "b.d": 3, "e.0": 4, "e.1": 5 } - setField: map.setField(key, value) -&gt; message - Sets the field of the message with the given key to the given value. - If the field is not present it will be added. - If the field is present it will be overwritten. - The key can be a dot separated path to set a field in a nested message. - Key must be of type string. - Value may be any valid type. - removeFields: map.removeFields([key1, key2, ...]) -&gt; message - Removes the fields of the map with the given keys. - The keys can be a dot separated path to remove a field in a nested message. - If a key is not found it will be ignored. - Keys must be of type string. - toMap: [map1, map2, ...].toMap() -&gt; map - Converts a CEL list of CEL maps to a single CEL map - toCloudEventJsonWithPayloadFormat: message.toCloudEventJsonWithPayloadFormat() -&gt; map - Converts a message to the corresponding structure of JSON format for CloudEvents. - It converts data to destination payload format specified in output_payload_format. If output_payload_format is not set, the data will remain unchanged. - It also sets the corresponding datacontenttype of the CloudEvent, as indicated by output_payload_format. If no output_payload_format is set it will use the value of the "datacontenttype" attribute on the CloudEvent if present, else remove "datacontenttype" attribute. - This function expects that the content of the message will adhere to the standard CloudEvent format. If it doesn''t then this function will fail. - The result is a CEL map that corresponds to the JSON representation of the CloudEvent. To convert that data to a JSON string it can be chained with the toJsonString function. The Pipeline expects that the message it receives adheres to the standard CloudEvent format. If it doesn''t then the outgoing message request may fail with a persistent error.
     #[serde(default, rename = "messageBindingTemplate")]
@@ -820,7 +821,7 @@ pub struct GoogleCloudEventarcV1PipelineDestinationHttpEndpoint {
 }
 
 /// Represents a network config to be used for destination resolution and connectivity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineDestinationNetworkConfig {
     /// Required. Name of the NetworkAttachment that allows access to the consumer VPC. Format: projects/{PROJECT_ID}/regions/{REGION}/networkAttachments/{NETWORK_ATTACHMENT_NAME}
     #[serde(default, rename = "networkAttachment")]
@@ -828,7 +829,7 @@ pub struct GoogleCloudEventarcV1PipelineDestinationNetworkConfig {
 }
 
 /// Represents the format of message data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormat {
     /// Optional. Avro format.
     #[serde(default)]
@@ -843,7 +844,7 @@ pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormat {
 }
 
 /// Transformation defines the way to transform an incoming message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineMediationTransformation {
     /// Optional. The CEL expression template to apply to transform messages. The following CEL extension functions are provided for use in this CEL expression: - merge: map1.merge(map2) -&gt; map3 - Merges the passed CEL map with the existing CEL map the function is applied to. - If the same key exists in both maps, if the key''s value is type map both maps are merged else the value from the passed map is used. - denormalize: map.denormalize() -&gt; map - Denormalizes a CEL map such that every value of type map or key in the map is expanded to return a single level map. - The resulting keys are "." separated indices of the map keys. - For example: { "a": 1, "b": { "c": 2, "d": 3 } "e": [4, 5] } .denormalize() -&gt; { "a": 1, "b.c": 2, "b.d": 3, "e.0": 4, "e.1": 5 } - setField: map.setField(key, value) -&gt; message - Sets the field of the message with the given key to the given value. - If the field is not present it will be added. - If the field is present it will be overwritten. - The key can be a dot separated path to set a field in a nested message. - Key must be of type string. - Value may be any valid type. - removeFields: map.removeFields([key1, key2, ...]) -&gt; message - Removes the fields of the map with the given keys. - The keys can be a dot separated path to remove a field in a nested message. - If a key is not found it will be ignored. - Keys must be of type string. - toMap: [map1, map2, ...].toMap() -&gt; map - Converts a CEL list of CEL maps to a single CEL map - toDestinationPayloadFormat(): message.data.toDestinationPayloadFormat() -&gt; string or bytes - Converts the message data to the destination payload format specified in Pipeline.Destination.output_payload_format - This function is meant to be applied to the message.data field. - If the destination payload format is not set, the function will return the message data unchanged. - toCloudEventJsonWithPayloadFormat: message.toCloudEventJsonWithPayloadFormat() -&gt; map - Converts a message to the corresponding structure of JSON format for CloudEvents - This function applies toDestinationPayloadFormat() to the message data. It also sets the corresponding datacontenttype of the CloudEvent, as indicated by Pipeline.Destination.output_payload_format. If no output_payload_format is set it will use the existing datacontenttype on the CloudEvent if present, else leave datacontenttype absent. - This function expects that the content of the message will adhere to the standard CloudEvent format. If it doesn''t then this function will fail. - The result is a CEL map that corresponds to the JSON representation of the CloudEvent. To convert that data to a JSON string it can be chained with the toJsonString function.
     #[serde(default, rename = "transformationTemplate")]
@@ -851,7 +852,7 @@ pub struct GoogleCloudEventarcV1PipelineMediationTransformation {
 }
 
 /// A representation of the FilteringAttribute resource. Filtering attributes are per event type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilteringAttribute {
     /// Output only. Attribute used for filtering the event type.
     #[serde(default)]
@@ -868,7 +869,7 @@ pub struct FilteringAttribute {
 }
 
 /// Represents a Cloud Run destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudRun {
     /// Optional. The relative path on the Cloud Run service the events should be sent to. The value must conform to the definition of a URI path segment (section 3.3 of RFC2396). Examples: "/route", "route", "route/subroute".
     #[serde(default)]
@@ -882,7 +883,7 @@ pub struct CloudRun {
 }
 
 /// Represents a GKE destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GKE {
     /// Required. The name of the cluster the GKE service is running in. The cluster must be running in the same project as the trigger being created.
     #[serde(default)]
@@ -902,7 +903,7 @@ pub struct GKE {
 }
 
 /// Represents a HTTP endpoint destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpEndpoint {
     /// Required. The URI of the HTTP endpoint. The value must be a RFC2396 URI string. Examples: http://10.10.10.8:80/route, http://svc.us-central1.p.local:8080/. Only HTTP and HTTPS protocols are supported. The host can be either a static IP addressable from the VPC specified by the network config, or an internal DNS hostname of the service resolvable via Cloud DNS.
     #[serde(default)]
@@ -910,7 +911,7 @@ pub struct HttpEndpoint {
 }
 
 /// Network Configuration that can be inherited by other protos.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConfig {
     /// Required. Name of the NetworkAttachment that allows access to the customer''s VPC. Format: projects/{PROJECT_ID}/regions/{REGION}/networkAttachments/{NETWORK_ATTACHMENT_NAME}
     #[serde(default, rename = "networkAttachment")]
@@ -918,7 +919,7 @@ pub struct NetworkConfig {
 }
 
 /// Represents a Pub/Sub transport.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pubsub {
     /// Output only. The name of the Pub/Sub subscription created and managed by Eventarc as a transport for the event delivery. Format: projects/{PROJECT_ID}/subscriptions/{SUBSCRIPTION_NAME}.
     #[serde(default)]
@@ -929,7 +930,7 @@ pub struct Pubsub {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -940,7 +941,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -957,7 +958,7 @@ pub struct Expr {
 }
 
 /// Represents a config used to authenticate with a Google OIDC token using a Google Cloud service account. Use this authentication method to invoke your Cloud Run and Cloud Functions destinations or HTTP endpoints that support Google OIDC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOidcToken {
     /// Optional. Audience to be used to generate the OIDC Token. The audience claim identifies the recipient that the JWT is intended for. If unspecified, the destination URI will be used.
     #[serde(default)]
@@ -968,7 +969,7 @@ pub struct GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOidcToken
 }
 
 /// Contains information needed for generating an [OAuth token](https://developers.google.com/identity/protocols/OAuth2). This type of authorization should generally only be used when calling Google APIs hosted on *.googleapis.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOAuthToken {
     /// Optional. OAuth scope to be used for generating OAuth access token. If not specified, "https://www.googleapis.com/auth/cloud-platform" will be used.
     #[serde(default)]
@@ -979,7 +980,7 @@ pub struct GoogleCloudEventarcV1PipelineDestinationAuthenticationConfigOAuthToke
 }
 
 /// The format of an AVRO message payload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatAvroFormat {
     /// Optional. The entire schema definition is stored in this field.
     #[serde(default, rename = "schemaDefinition")]
@@ -987,7 +988,7 @@ pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatAvroFormat {
 }
 
 /// The format of a Protobuf message payload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEventarcV1PipelineMessagePayloadFormatProtobufFormat {
     /// Optional. The entire schema definition is stored in this field.
     #[serde(default, rename = "schemaDefinition")]

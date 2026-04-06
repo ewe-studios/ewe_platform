@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// EncryptVolumesRequest specifies the KMS config to encrypt existing volumes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptVolumesRequest {}
 
 /// EstablishPeeringRequest establishes cluster and svm peerings between the source and the destination replications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EstablishPeeringRequest {
     /// Required. Name of the user''s local source cluster to be peered with the destination cluster.
     #[serde(default, rename = "peerClusterName")]
@@ -36,7 +37,7 @@ pub struct EstablishPeeringRequest {
 }
 
 /// EstablishVolumePeeringRequest establishes cluster and svm peerings between the source and destination clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EstablishVolumePeeringRequest {
     /// Required. Name of the user''s local source cluster to be peered with the destination cluster.
     #[serde(default, rename = "peerClusterName")]
@@ -53,7 +54,7 @@ pub struct EstablishVolumePeeringRequest {
 }
 
 /// Response message for ExecuteOntapDelete API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteOntapDeleteResponse {
     /// The raw JSON body of the response.
     #[serde(default)]
@@ -61,7 +62,7 @@ pub struct ExecuteOntapDeleteResponse {
 }
 
 /// Response message for ExecuteOntapGet API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteOntapGetResponse {
     /// The raw JSON body of the response.
     #[serde(default)]
@@ -69,7 +70,7 @@ pub struct ExecuteOntapGetResponse {
 }
 
 /// Request message for ExecuteOntapPatch API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteOntapPatchRequest {
     /// Required. The raw JSON body of the request. The body should be in the format of the ONTAP resource. For example:  { "body": { "field1": "value1", "field2": "value2", } }
     #[serde(default)]
@@ -77,7 +78,7 @@ pub struct ExecuteOntapPatchRequest {
 }
 
 /// Response message for ExecuteOntapPatch API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteOntapPatchResponse {
     /// The raw JSON body of the response.
     #[serde(default)]
@@ -85,7 +86,7 @@ pub struct ExecuteOntapPatchResponse {
 }
 
 /// Request message for ExecuteOntapPost API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteOntapPostRequest {
     /// Required. The raw JSON body of the request. The body should be in the format of the ONTAP resource. For example:  { "body": { "field1": "value1", "field2": "value2", } }
     #[serde(default)]
@@ -93,7 +94,7 @@ pub struct ExecuteOntapPostRequest {
 }
 
 /// Response message for ExecuteOntapPost API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteOntapPostResponse {
     /// The raw JSON body of the response.
     #[serde(default)]
@@ -101,11 +102,11 @@ pub struct ExecuteOntapPostResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// ListActiveDirectoriesResponse contains all the active directories requested.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListActiveDirectoriesResponse {
     /// The list of active directories.
     #[serde(default, rename = "activeDirectories")]
@@ -119,7 +120,7 @@ pub struct ListActiveDirectoriesResponse {
 }
 
 /// ListBackupPoliciesResponse contains all the backup policies requested.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupPoliciesResponse {
     /// The list of backup policies.
     #[serde(default, rename = "backupPolicies")]
@@ -133,7 +134,7 @@ pub struct ListBackupPoliciesResponse {
 }
 
 /// ListBackupVaultsResponse is the result of ListBackupVaultsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupVaultsResponse {
     /// A list of backupVaults in the project for the specified location.
     #[serde(default, rename = "backupVaults")]
@@ -147,7 +148,7 @@ pub struct ListBackupVaultsResponse {
 }
 
 /// ListBackupsResponse is the result of ListBackupsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupsResponse {
     /// A list of backups in the project.
     #[serde(default)]
@@ -161,7 +162,7 @@ pub struct ListBackupsResponse {
 }
 
 /// ListHostGroupsResponse is the response to a ListHostGroupsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHostGroupsResponse {
     /// The list of host groups.
     #[serde(default, rename = "hostGroups")]
@@ -175,7 +176,7 @@ pub struct ListHostGroupsResponse {
 }
 
 /// ListKmsConfigsResponse is the response to a ListKmsConfigsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListKmsConfigsResponse {
     /// The list of KmsConfigs
     #[serde(default, rename = "kmsConfigs")]
@@ -189,7 +190,7 @@ pub struct ListKmsConfigsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -200,7 +201,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -214,7 +215,7 @@ pub struct ListOperationsResponse {
 }
 
 /// ListQuotaRulesResponse is the response to a ListQuotaRulesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListQuotaRulesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -228,7 +229,7 @@ pub struct ListQuotaRulesResponse {
 }
 
 /// ListReplicationsResponse is the result of ListReplicationsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReplicationsResponse {
     /// The token you can use to retrieve the next page of results. Not returned if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -242,7 +243,7 @@ pub struct ListReplicationsResponse {
 }
 
 /// ListSnapshotsResponse is the result of ListSnapshotsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSnapshotsResponse {
     /// The token you can use to retrieve the next page of results. Not returned if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -256,7 +257,7 @@ pub struct ListSnapshotsResponse {
 }
 
 /// ListStoragePoolsResponse is the response to a ListStoragePoolsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListStoragePoolsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -270,7 +271,7 @@ pub struct ListStoragePoolsResponse {
 }
 
 /// Message for response to listing Volumes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVolumesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -284,7 +285,7 @@ pub struct ListVolumesResponse {
 }
 
 /// Metadata for a given google.cloud.location.Location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationMetadata {
     /// Output only. Indicates if the location has ONTAP Proxy support.
     #[serde(default, rename = "hasOntapProxy")]
@@ -301,7 +302,7 @@ pub struct LocationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -327,7 +328,7 @@ pub struct OperationMetadata {
 }
 
 /// RestoreBackupFilesRequest restores files from a backup to a volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreBackupFilesRequest {
     /// Required. The backup resource name, in the format projects/{project_id}/locations/{location}/backupVaults/{backup_vault_id}/backups/{backup_id}
     #[serde(default)]
@@ -341,15 +342,15 @@ pub struct RestoreBackupFilesRequest {
 }
 
 /// ResumeReplicationRequest resumes a stopped replication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResumeReplicationRequest {}
 
 /// ReverseReplicationDirectionRequest reverses direction of replication. Source becomes destination and destination becomes source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReverseReplicationDirectionRequest {}
 
 /// RevertVolumeRequest reverts the given volume to the specified snapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevertVolumeRequest {
     /// Required. The snapshot resource ID, in the format ''my-snapshot'', where the specified ID is the {snapshot_id} of the fully qualified name like projects/{project_id}/locations/{location_id}/volumes/{volume_id}/snapshots/{snapshot_id}
     #[serde(default, rename = "snapshotId")]
@@ -357,7 +358,7 @@ pub struct RevertVolumeRequest {
 }
 
 /// StopReplicationRequest stops a replication until resumed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopReplicationRequest {
     /// Indicates whether to stop replication forcefully while data transfer is in progress. Warning! if force is true, this will abort any current transfers and can lead to data loss due to partial transfer. If force is false, stop replication will fail while data transfer is in progress and you will need to retry later.
     #[serde(default)]
@@ -365,15 +366,15 @@ pub struct StopReplicationRequest {
 }
 
 /// SwitchActiveReplicaZoneRequest switch the active/replica zone for a regional storagePool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SwitchActiveReplicaZoneRequest {}
 
 /// SyncReplicationRequest syncs the replication from source to destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SyncReplicationRequest {}
 
 /// ValidateDirectoryServiceRequest validates the directory service policy attached to the storage pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidateDirectoryServiceRequest {
     /// Type of directory service policy attached to the storage pool. // TODO: enum values: ["DIRECTORY_SERVICE_TYPE_UNSPECIFIED", "ACTIVE_DIRECTORY"]
     #[serde(default, rename = "directoryServiceType")]
@@ -381,11 +382,11 @@ pub struct ValidateDirectoryServiceRequest {
 }
 
 /// VerifyKmsConfigRequest specifies the KMS config to be validated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyKmsConfigRequest {}
 
 /// VerifyKmsConfigResponse contains the information if the config is correctly and error message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyKmsConfigResponse {
     /// Output only. Error message if config is not healthy.
     #[serde(default, rename = "healthError")]
@@ -399,7 +400,7 @@ pub struct VerifyKmsConfigResponse {
 }
 
 /// ActiveDirectory is the public representation of the active directory config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveDirectory {
     /// Optional. Users to be added to the Built-in Admininstrators group.
     #[serde(default)]
@@ -470,7 +471,7 @@ pub struct ActiveDirectory {
 }
 
 /// Backup Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupPolicy {
     /// Output only. The total number of volumes assigned by this backup policy.
     #[serde(default, rename = "assignedVolumeCount")]
@@ -505,7 +506,7 @@ pub struct BackupPolicy {
 }
 
 /// A NetApp BackupVault.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupVault {
     /// Optional. Region where the backups are stored. Format: projects/{project_id}/locations/{location}
     #[serde(default, rename = "backupRegion")]
@@ -552,7 +553,7 @@ pub struct BackupVault {
 }
 
 /// A NetApp Backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Backup {
     /// Output only. Region in which backup is stored. Format: projects/{project_id}/locations/{location}
     #[serde(default, rename = "backupRegion")]
@@ -602,7 +603,7 @@ pub struct Backup {
 }
 
 /// Host group is a collection of hosts that can be used for accessing a Block Volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HostGroup {
     /// Output only. Create time of the host group.
     #[serde(default, rename = "createTime")]
@@ -631,7 +632,7 @@ pub struct HostGroup {
 }
 
 /// KmsConfig is the customer-managed encryption key(CMEK) configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KmsConfig {
     /// Output only. Create time of the KmsConfig.
     #[serde(default, rename = "createTime")]
@@ -663,7 +664,7 @@ pub struct KmsConfig {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -683,7 +684,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -703,7 +704,7 @@ pub struct Operation {
 }
 
 /// QuotaRule specifies the maximum disk space a user or group can use within a volume. They can be used for creating default and individual quota rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotaRule {
     /// Output only. Create time of the quota rule
     #[serde(default, rename = "createTime")]
@@ -735,7 +736,7 @@ pub struct QuotaRule {
 }
 
 /// Replication is a nested resource under Volume, that describes a cross-region replication relationship between 2 volumes in different regions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Replication {
     /// Optional. Location of the user cluster.
     #[serde(default, rename = "clusterLocation")]
@@ -794,7 +795,7 @@ pub struct Replication {
 }
 
 /// Snapshot is a point-in-time version of a Volume''s content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Snapshot {
     /// Output only. The time when the snapshot was created.
     #[serde(default, rename = "createTime")]
@@ -820,7 +821,7 @@ pub struct Snapshot {
 }
 
 /// StoragePool is a container for volumes with a service level and capacity. Volumes can be created in a pool of sufficient available capacity. StoragePool capacity is what you are billed for.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePool {
     /// Optional. Specifies the Active Directory to be used for creating a SMB volume.
     #[serde(default, rename = "activeDirectory")]
@@ -927,7 +928,7 @@ pub struct StoragePool {
 }
 
 /// Volume provides a filesystem that you can mount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Volume {
     /// Output only. Specifies the ActiveDirectory name of a SMB volume.
     #[serde(default, rename = "activeDirectory")]
@@ -1064,7 +1065,7 @@ pub struct Volume {
 }
 
 /// Retention policy for backups in the backup vault
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupRetentionPolicy {
     /// Required. Minimum retention duration in days for backups in the backup vault.
     #[serde(default, rename = "backupMinimumEnforcedRetentionDays")]
@@ -1084,7 +1085,7 @@ pub struct BackupRetentionPolicy {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1098,7 +1099,7 @@ pub struct Status {
 }
 
 /// DestinationVolumeParameters specify input parameters used for creating destination volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationVolumeParameters {
     /// Description for the destination volume.
     #[serde(default)]
@@ -1118,7 +1119,7 @@ pub struct DestinationVolumeParameters {
 }
 
 /// HybridPeeringDetails contains details about the hybrid peering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HybridPeeringDetails {
     /// Output only. Copy-paste-able commands to be used on user''s ONTAP to accept peering requests.
     #[serde(default)]
@@ -1144,7 +1145,7 @@ pub struct HybridPeeringDetails {
 }
 
 /// UserCommands contains the commands to be executed by the customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserCommands {
     /// Output only. List of commands to be executed by the customer.
     #[serde(default)]
@@ -1152,7 +1153,7 @@ pub struct UserCommands {
 }
 
 /// TransferStats reports all statistics related to replication transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferStats {
     /// Lag duration indicates the duration by which Destination region volume content lags behind the primary region volume content.
     #[serde(default, rename = "lagDuration")]
@@ -1181,7 +1182,7 @@ pub struct TransferStats {
 }
 
 /// BackupConfig contains backup related config on a volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupConfig {
     /// Output only. Total size of all backups in a chain in bytes = baseline backup size + sum(incremental backup size).
     #[serde(default, rename = "backupChainBytes")]
@@ -1198,7 +1199,7 @@ pub struct BackupConfig {
 }
 
 /// Block device represents the device(s) which are stored in the block volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlockDevice {
     /// Optional. A list of host groups that identify hosts that can mount the block volume. Format: projects/{project_id}/locations/{location}/hostGroups/{host_group_id} This field can be updated after the block device is created.
     #[serde(default, rename = "hostGroups")]
@@ -1218,7 +1219,7 @@ pub struct BlockDevice {
 }
 
 /// Cache Parameters for the volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CacheParameters {
     /// Optional. Configuration of the cache volume.
     #[serde(default, rename = "cacheConfig")]
@@ -1256,7 +1257,7 @@ pub struct CacheParameters {
 }
 
 /// Details about a clone volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloneDetails {
     /// Output only. Shared space in GiB. Determined at volume creation time based on size of source snapshot.
     #[serde(default, rename = "sharedSpaceGib")]
@@ -1270,7 +1271,7 @@ pub struct CloneDetails {
 }
 
 /// Defines the export policy for the volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportPolicy {
     /// Required. List of export policy rules
     #[serde(default)]
@@ -1278,7 +1279,7 @@ pub struct ExportPolicy {
 }
 
 /// The Hybrid Replication parameters for the volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HybridReplicationParameters {
     /// Optional. Name of source cluster location associated with the Hybrid replication. This is a free-form field for the display purpose only.
     #[serde(default, rename = "clusterLocation")]
@@ -1316,7 +1317,7 @@ pub struct HybridReplicationParameters {
 }
 
 /// Configuration for a Large Capacity Volume. A Large Capacity Volume supports sizes ranging from 4.8 TiB to 20 PiB, it is composed of multiple internal constituents, and must be created in a large capacity pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LargeCapacityConfig {
     /// Optional. The number of internal constituents (e.g., FlexVols) for this large volume. The minimum number of constituents is 2.
     #[serde(default, rename = "constituentCount")]
@@ -1324,7 +1325,7 @@ pub struct LargeCapacityConfig {
 }
 
 /// View only mount options for a volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MountOption {
     /// Export string
     #[serde(default)]
@@ -1344,7 +1345,7 @@ pub struct MountOption {
 }
 
 /// The RestoreParameters if volume is created from a snapshot or backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreParameters {
     /// Full name of the backup resource. Format for standard backup: projects/{project}/locations/{location}/backupVaults/{backup_vault_id}/backups/{backup_id} Format for BackupDR backup: projects/{project}/locations/{location}/backupVaults/{backup_vault}/dataSources/{data_source}/backups/{backup}
     #[serde(default, rename = "sourceBackup")]
@@ -1355,7 +1356,7 @@ pub struct RestoreParameters {
 }
 
 /// Snapshot Policy for a volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotPolicy {
     /// Daily schedule policy.
     #[serde(default, rename = "dailySchedule")]
@@ -1375,7 +1376,7 @@ pub struct SnapshotPolicy {
 }
 
 /// Defines tiering policy for the volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TieringPolicy {
     /// Optional. Time in days to mark the volume''s data block as cold and make it eligible for tiering, can be range from 2-183. Default is 31.
     #[serde(default, rename = "coolingThresholdDays")]
@@ -1389,7 +1390,7 @@ pub struct TieringPolicy {
 }
 
 /// Configuration of the cache volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CacheConfig {
     /// Optional. Pre-populate cache volume with data from the origin volume.
     #[serde(default, rename = "cachePrePopulate")]
@@ -1406,7 +1407,7 @@ pub struct CacheConfig {
 }
 
 /// An export policy rule describing various export options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SimpleExportPolicyRule {
     /// Access type (ReadWrite, ReadOnly, None) // TODO: enum values: ["ACCESS_TYPE_UNSPECIFIED", "READ_ONLY", "READ_WRITE", "READ_NONE"]
     #[serde(default, rename = "accessType")]
@@ -1450,7 +1451,7 @@ pub struct SimpleExportPolicyRule {
 }
 
 /// Make a snapshot every day e.g. at 04:00, 05:20, 23:50
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailySchedule {
     /// Set the hour to start the snapshot (0-23), defaults to midnight (0).
     #[serde(default)]
@@ -1464,7 +1465,7 @@ pub struct DailySchedule {
 }
 
 /// Make a snapshot every hour e.g. at 04:00, 05:00, 06:00.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HourlySchedule {
     /// Set the minute of the hour to start the snapshot (0-59), defaults to the top of the hour (0).
     #[serde(default)]
@@ -1475,7 +1476,7 @@ pub struct HourlySchedule {
 }
 
 /// Make a snapshot once a month e.g. at 2nd 04:00, 7th 05:20, 24th 23:50
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MonthlySchedule {
     /// Set the day or days of the month to make a snapshot (1-31). Accepts a comma separated number of days. Defaults to ''1''.
     #[serde(default, rename = "daysOfMonth")]
@@ -1492,7 +1493,7 @@ pub struct MonthlySchedule {
 }
 
 /// Make a snapshot every week e.g. at Monday 04:00, Wednesday 05:20, Sunday 23:50
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeeklySchedule {
     /// Set the day or days of the week to make a snapshot. Accepts a comma separated days of the week. Defaults to ''Sunday''.
     #[serde(default)]
@@ -1509,7 +1510,7 @@ pub struct WeeklySchedule {
 }
 
 /// Pre-populate cache volume with data from the origin volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CachePrePopulate {
     /// Optional. List of directory-paths to be excluded for pre-population for the FlexCache volume.
     #[serde(default, rename = "excludePathList")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Message sent by the client for the CreateCustomClass method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateCustomClassRequest {
     /// Required. The custom class to create.
     #[serde(default, rename = "customClass")]
@@ -22,7 +23,7 @@ pub struct CreateCustomClassRequest {
 }
 
 /// Message sent by the client for the CreatePhraseSet method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreatePhraseSetRequest {
     /// Required. The phrase set to create.
     #[serde(default, rename = "phraseSet")]
@@ -33,11 +34,11 @@ pub struct CreatePhraseSetRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Message returned to the client by the ListCustomClasses method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCustomClassesResponse {
     /// The custom classes.
     #[serde(default, rename = "customClasses")]
@@ -48,7 +49,7 @@ pub struct ListCustomClassesResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -62,7 +63,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Message returned to the client by the ListPhraseSet method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPhraseSetResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -73,7 +74,7 @@ pub struct ListPhraseSetResponse {
 }
 
 /// Describes the progress of a long-running LongRunningRecognize call. It is included in the metadata field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LongRunningRecognizeMetadata {
     /// Time of the most recent processing update.
     #[serde(default, rename = "lastUpdateTime")]
@@ -90,7 +91,7 @@ pub struct LongRunningRecognizeMetadata {
 }
 
 /// The top-level message sent by the client for the LongRunningRecognize method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LongRunningRecognizeRequest {
     /// Required. The audio data to be recognized.
     #[serde(default)]
@@ -104,7 +105,7 @@ pub struct LongRunningRecognizeRequest {
 }
 
 /// The only message returned to the client by the LongRunningRecognize method. It contains the result as zero or more sequential SpeechRecognitionResult messages. It is included in the result.response field of the Operation returned by the GetOperation call of the google::longrunning::Operations service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LongRunningRecognizeResponse {
     /// Original output config if present in the request.
     #[serde(default, rename = "outputConfig")]
@@ -127,7 +128,7 @@ pub struct LongRunningRecognizeResponse {
 }
 
 /// The top-level message sent by the client for the Recognize method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecognizeRequest {
     /// Required. The audio data to be recognized.
     #[serde(default)]
@@ -138,7 +139,7 @@ pub struct RecognizeRequest {
 }
 
 /// The only message returned to the client by the Recognize method. It contains the result as zero or more sequential SpeechRecognitionResult messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecognizeResponse {
     /// The ID associated with the request. This is a unique ID specific only to the given request.
     #[serde(default, rename = "requestId")]
@@ -158,7 +159,7 @@ pub struct RecognizeResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -178,7 +179,7 @@ pub struct Operation {
 }
 
 /// Specifies an optional destination for the recognition results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranscriptOutputConfig {
     /// Specifies a Cloud Storage URI for the recognition results. Must be specified in the format: gs://bucket_name/object_name, and the bucket must already exist.
     #[serde(default, rename = "gcsUri")]
@@ -186,7 +187,7 @@ pub struct TranscriptOutputConfig {
 }
 
 /// Contains audio data in the encoding specified in the RecognitionConfig. Either content or uri must be supplied. Supplying both or neither returns google.rpc.Code.INVALID_ARGUMENT. See [content limits](https://cloud.google.com/speech-to-text/quotas#content).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecognitionAudio {
     /// The audio data bytes encoded as specified in RecognitionConfig. Note: as with all bytes fields, proto buffers use a pure binary representation, whereas JSON representations use base64.
     #[serde(default)]
@@ -197,7 +198,7 @@ pub struct RecognitionAudio {
 }
 
 /// Provides information to the recognizer that specifies how to process the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecognitionConfig {
     /// Speech adaptation configuration improves the accuracy of speech recognition. For more information, see the [speech adaptation](https://cloud.google.com/speech-to-text/docs/adaptation) documentation. When speech adaptation is set it supersedes the speech_contexts field.
     #[serde(default)]
@@ -262,7 +263,7 @@ pub struct RecognitionConfig {
 }
 
 /// A speech recognition result corresponding to a portion of the audio.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpeechRecognitionResult {
     /// May contain one or more recognition hypotheses (up to the maximum specified in max_alternatives). These alternatives are ordered in terms of accuracy, with the top (first) alternative being the most probable, as ranked by the recognizer.
     #[serde(default)]
@@ -279,7 +280,7 @@ pub struct SpeechRecognitionResult {
 }
 
 /// Information on speech adaptation use in results
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpeechAdaptationInfo {
     /// Whether there was a timeout when applying speech adaptation. If true, adaptation had no effect in the response transcript.
     #[serde(default, rename = "adaptationTimeout")]
@@ -290,7 +291,7 @@ pub struct SpeechAdaptationInfo {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -304,7 +305,7 @@ pub struct Status {
 }
 
 /// Speech adaptation configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpeechAdaptation {
     /// Augmented Backus-Naur form (ABNF) is a standardized grammar notation comprised by a set of derivation rules. See specifications: https://www.w3.org/TR/speech-grammar
     #[serde(default, rename = "abnfGrammar")]
@@ -321,7 +322,7 @@ pub struct SpeechAdaptation {
 }
 
 /// Config to enable speaker diarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpeakerDiarizationConfig {
     /// If ''true'', enables speaker detection for each recognized word in the top alternative of the recognition result using a speaker_label provided in the WordInfo.
     #[serde(default, rename = "enableSpeakerDiarization")]
@@ -338,7 +339,7 @@ pub struct SpeakerDiarizationConfig {
 }
 
 /// Description of audio data to be recognized.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecognitionMetadata {
     /// Description of the content. Eg. "Recordings of federal supreme court hearings from 2012".
     #[serde(default, rename = "audioTopic")]
@@ -367,7 +368,7 @@ pub struct RecognitionMetadata {
 }
 
 /// Provides "hints" to the speech recognizer to favor specific words and phrases in the results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpeechContext {
     /// Hint Boost. Positive value will increase the probability that a specific phrase will be recognized over other similar sounding phrases. The higher the boost, the higher the chance of false positive recognition as well. Negative boost values would correspond to anti-biasing. Anti-biasing is not enabled, so negative boost will simply be ignored. Though boost can accept a wide range of positive values, most use cases are best served with values between 0 and 20. We recommend using a binary search approach to finding the optimal value for your use case.
     #[serde(default)]
@@ -378,7 +379,7 @@ pub struct SpeechContext {
 }
 
 /// Transcription normalization configuration. Use transcription normalization to automatically replace parts of the transcript with phrases of your choosing. For StreamingRecognize, this normalization only applies to stable partial transcripts (stability &gt; 0.8) and final transcripts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranscriptNormalization {
     /// A list of replacement entries. We will perform replacement with one entry at a time. For example, the second entry in ["cat" =&gt; "dog", "mountain cat" =&gt; "mountain dog"] will never be applied because we will always process the first entry before it. At most 100 entries.
     #[serde(default)]
@@ -386,7 +387,7 @@ pub struct TranscriptNormalization {
 }
 
 /// Alternative hypotheses (a.k.a. n-best list).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpeechRecognitionAlternative {
     /// The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative of a non-streaming result or, of a streaming result where is_final=true. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -400,7 +401,7 @@ pub struct SpeechRecognitionAlternative {
 }
 
 /// ABNFGrammar resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ABNFGrammar {
     /// All declarations and rules of an ABNF grammar broken up into multiple strings that will end up concatenated.
     #[serde(default, rename = "abnfStrings")]
@@ -408,7 +409,7 @@ pub struct ABNFGrammar {
 }
 
 /// A set of words or phrases that represents a common concept likely to appear in your audio, for example a list of passenger ship names. CustomClass items can be substituted into placeholders that you set in PhraseSet phrases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomClass {
     /// Output only. Allows users to store small amounts of arbitrary data. Both the key and the value must be 63 characters or less each. At most 100 annotations. This field is not used.
     #[serde(default)]
@@ -452,7 +453,7 @@ pub struct CustomClass {
 }
 
 /// Provides "hints" to the speech recognizer to favor specific words and phrases in the results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhraseSet {
     /// Output only. Allows users to store small amounts of arbitrary data. Both the key and the value must be 63 characters or less each. At most 100 annotations. This field is not used.
     #[serde(default)]
@@ -496,7 +497,7 @@ pub struct PhraseSet {
 }
 
 /// A single replacement configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entry {
     /// Whether the search is case sensitive.
     #[serde(default, rename = "caseSensitive")]
@@ -510,7 +511,7 @@ pub struct Entry {
 }
 
 /// Word-specific information for recognized words.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WordInfo {
     /// The confidence estimate between 0.0 and 1.0. A higher number indicates an estimated greater likelihood that the recognized words are correct. This field is set only for the top alternative of a non-streaming result or, of a streaming result where is_final=true. This field is not guaranteed to be accurate and users should not rely on it to be always provided. The default of 0.0 is a sentinel value indicating confidence was not set.
     #[serde(default)]
@@ -533,7 +534,7 @@ pub struct WordInfo {
 }
 
 /// An item of the class.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClassItem {
     /// The class item''s value.
     #[serde(default)]
@@ -541,7 +542,7 @@ pub struct ClassItem {
 }
 
 /// A phrases containing words and phrase "hints" so that the speech recognition is more likely to recognize them. This can be used to improve the accuracy for specific words and phrases, for example, if specific commands are typically spoken by the user. This can also be used to add additional words to the vocabulary of the recognizer. See [usage limits](https://cloud.google.com/speech-to-text/quotas#content). List items can also include pre-built or custom classes containing groups of words that represent common concepts that occur in natural language. For example, rather than providing a phrase hint for every month of the year (e.g. "i was born in january", "i was born in febuary", ...), use the pre-built $MONTH class improves the likelihood of correctly transcribing audio that includes months (e.g. "i was born in $month"). To refer to pre-built classes, use the class'' symbol prepended with $ e.g. $MONTH. To refer to custom classes that were defined inline in the request, set the class''s custom_class_id to a string unique to all class resources and inline classes. Then use the class'' id wrapped in ${...} e.g. "${my-months}". To refer to custom classes resources, use the class'' id wrapped in ${} (e.g. ${my-months}). Speech-to-Text supports three locations: global, us (US North America), and eu (Europe). If you are calling the speech.googleapis.com endpoint, use the global location. To specify a region, use a [regional endpoint](https://cloud.google.com/speech-to-text/docs/endpoints) with matching us or eu location value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Phrase {
     /// Hint Boost. Overrides the boost set at the phrase set level. Positive value will increase the probability that a specific phrase will be recognized over other similar sounding phrases. The higher the boost, the higher the chance of false positive recognition as well. Negative boost will simply be ignored. Though boost can accept a wide range of positive values, most use cases are best served with values between 0 and 20. We recommend using a binary search approach to finding the optimal value for your use case as well as adding phrases both with and without boost to your requests.
     #[serde(default)]

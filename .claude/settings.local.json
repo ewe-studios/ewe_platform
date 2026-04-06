@@ -42,7 +42,8 @@
       "Read(//tmp/mold-2.40.4-arm-linux/bin/**)",
       "Bash(curl -sL \"https://github.com/rui314/mold/releases/download/v2.40.4/mold-2.40.4-x86_64-linux.tar.gz\" | tar -tzf - | head -20)",
       "Bash(cargo test:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(TRYBUILD=overwrite cargo test -p foundation_macros json_hash_compile_tests)"
     ]
   }
 }

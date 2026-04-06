@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// AnalyzePackagesMetadata contains metadata for an active scan of a container image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzePackagesMetadata {
     /// When the scan was created.
     #[serde(default, rename = "createTime")]
@@ -22,7 +23,7 @@ pub struct AnalyzePackagesMetadata {
 }
 
 /// AnalyzePackagesMetadata contains metadata for an active scan of a container image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzePackagesMetadataV1 {
     /// When the scan was created.
     #[serde(default, rename = "createTime")]
@@ -33,7 +34,7 @@ pub struct AnalyzePackagesMetadataV1 {
 }
 
 /// AnalyzePackagesRequest is the request to analyze a list of packages and create Vulnerability Occurrences for it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzePackagesRequestV1 {
     /// [DEPRECATED] Whether to include OSV data in the scan. For backwards compatibility reasons, this field can be neither removed nor renamed.
     #[serde(default, rename = "includeOsvData")]
@@ -47,7 +48,7 @@ pub struct AnalyzePackagesRequestV1 {
 }
 
 /// AnalyzePackagesResponse contains the information necessary to find results for the given scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzePackagesResponse {
     /// The name of the scan resource created by this successful scan.
     #[serde(default)]
@@ -55,7 +56,7 @@ pub struct AnalyzePackagesResponse {
 }
 
 /// AnalyzePackagesResponse contains the information necessary to find results for the given scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzePackagesResponseV1 {
     /// The name of the scan resource created by this successful scan.
     #[serde(default)]
@@ -63,11 +64,11 @@ pub struct AnalyzePackagesResponseV1 {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Container message for hashes of byte content of files, used in source messages to verify integrity of source input to the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileHashes {
     /// Required. Collection of file hashes.
     #[serde(default, rename = "fileHash")]
@@ -75,7 +76,7 @@ pub struct FileHashes {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -89,7 +90,7 @@ pub struct ListOperationsResponse {
 }
 
 /// ListVulnerabilitiesResponse contains a single page of vulnerabilities resulting from a scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVulnerabilitiesResponseV1 {
     /// A page token that can be used in a subsequent call to ListVulnerabilities to continue retrieving results.
     #[serde(default, rename = "nextPageToken")]
@@ -100,7 +101,7 @@ pub struct ListVulnerabilitiesResponseV1 {
 }
 
 /// PackageData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PackageData {
     /// The architecture of the package.
     #[serde(default)]
@@ -157,7 +158,7 @@ pub struct PackageData {
 }
 
 /// Container message for hash values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hash {
     /// Required. The type of hash that was performed, e.g. "SHA-256".
     #[serde(default, rename = "type")]
@@ -168,7 +169,7 @@ pub struct Hash {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -188,7 +189,7 @@ pub struct Operation {
 }
 
 /// An instance of an analysis type that has been found on a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Occurrence {
     /// The time this advisory was published by the source.
     #[serde(default, rename = "advisoryPublishTime")]
@@ -256,7 +257,7 @@ pub struct Occurrence {
 }
 
 /// BinarySourceInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BinarySourceInfo {
     /// The binary package. This is significant when the source is different than the binary itself. Historically if they''ve differed, we''ve stored the name of the source and its version in the package/version fields, but we should also store the binary package info, as that''s what''s actually installed.
     #[serde(default, rename = "binaryVersion")]
@@ -267,7 +268,7 @@ pub struct BinarySourceInfo {
 }
 
 /// Indicates a language package available between this package and the customer''s resource artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguagePackageDependency {
     #[serde(default)]
     pub package: ::core::option::Option<String>,
@@ -276,7 +277,7 @@ pub struct LanguagePackageDependency {
 }
 
 /// Indicates the location at which a package was found.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileLocation {
     /// For jars that are contained inside .war files, this filepath can indicate the path to war file combined with the path to jar file.
     #[serde(default, rename = "filePath")]
@@ -286,7 +287,7 @@ pub struct FileLocation {
 }
 
 /// Maintainer resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Maintainer {
     #[serde(default)]
     pub email: ::core::option::Option<String>,
@@ -299,7 +300,7 @@ pub struct Maintainer {
 }
 
 /// Occurrence that represents a single "attestation". The authenticity of an attestation can be verified using the attached signature. If the verifier trusts the public key of the signer, then verifying the signature is sufficient to establish trust. In this circumstance, the authority to which this attestation is attached is primarily useful for lookup (how to find this attestation if you already know the authority and artifact to be verified) and intent (for which authority this attestation was intended to sign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttestationOccurrence {
     /// One or more JWTs encoding a self-contained attestation. Each JWT encodes the payload that it verifies within the JWT itself. Verifier implementation SHOULD ignore the serialized_payload field when verifying these JWTs. If only JWTs are present on this AttestationOccurrence, then the serialized_payload SHOULD be left empty. Each JWT SHOULD encode a claim specific to the resource_uri of this Occurrence, but this is not validated by Grafeas metadata API implementations. The JWT itself is opaque to Grafeas.
     #[serde(default)]
@@ -313,7 +314,7 @@ pub struct AttestationOccurrence {
 }
 
 /// Details of a build occurrence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildOccurrence {
     /// In-Toto Slsa Provenance V1 represents a slsa provenance meeting the slsa spec, wrapped in an in-toto statement. This allows for direct jsonification of a to-spec in-toto slsa statement with a to-spec slsa provenance.
     #[serde(default, rename = "inTotoSlsaProvenanceV1")]
@@ -333,7 +334,7 @@ pub struct BuildOccurrence {
 }
 
 /// An indication that the compliance checks in the associated ComplianceNote were not satisfied for particular resources or a specified reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComplianceOccurrence {
     #[serde(default, rename = "nonComplianceReason")]
     pub non_compliance_reason: ::core::option::Option<String>,
@@ -345,7 +346,7 @@ pub struct ComplianceOccurrence {
 }
 
 /// The period during which some deployable was active in a runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentOccurrence {
     /// Address of the runtime element hosting this deployment.
     #[serde(default)]
@@ -371,7 +372,7 @@ pub struct DeploymentOccurrence {
 }
 
 /// Provides information about the analysis status of a discovered resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscoveryOccurrence {
     #[serde(default, rename = "analysisCompleted")]
     pub analysis_completed: ::core::option::Option<AnalysisCompleted>,
@@ -408,7 +409,7 @@ pub struct DiscoveryOccurrence {
 }
 
 /// Deprecated. Prefer to use a regular Occurrence, and populate the Envelope at the top level of the Occurrence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DSSEAttestationOccurrence {
     /// If doing something security critical, make sure to verify the signatures in this metadata.
     #[serde(default)]
@@ -418,7 +419,7 @@ pub struct DSSEAttestationOccurrence {
 }
 
 /// Details of the derived image portion of the DockerImage relationship. This image would be produced from a Dockerfile with FROM .
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageOccurrence {
     /// Output only. This contains the base image URL for the derived image occurrence.
     #[serde(default, rename = "baseResourceUrl")]
@@ -435,7 +436,7 @@ pub struct ImageOccurrence {
 }
 
 /// Details on how a particular software package was installed on a system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PackageOccurrence {
     /// Output only. The CPU architecture for which packages in this distribution channel were built. Architecture will be blank for language packages. // TODO: enum values: ["ARCHITECTURE_UNSPECIFIED", "X86", "X64"]
     #[serde(default)]
@@ -461,7 +462,7 @@ pub struct PackageOccurrence {
 }
 
 /// The occurrence representing an SBOM reference as applied to a specific resource. The occurrence follows the DSSE specification. See https://github.com/secure-systems-lab/dsse/blob/master/envelope.md for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SBOMReferenceOccurrence {
     /// The actual payload that contains the SBOM reference data.
     #[serde(default)]
@@ -475,7 +476,7 @@ pub struct SBOMReferenceOccurrence {
 }
 
 /// The occurrence provides details of a secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretOccurrence {
     /// Required. Type of secret. // TODO: enum values: ["SECRET_KIND_UNSPECIFIED", "SECRET_KIND_UNKNOWN", "SECRET_KIND_GCP_SERVICE_ACCOUNT_KEY", "SECRET_KIND_GCP_API_KEY", "SECRET_KIND_GCP_OAUTH2_CLIENT_CREDENTIALS", "SECRET_KIND_GCP_OAUTH2_ACCESS_TOKEN", "SECRET_KIND_ANTHROPIC_ADMIN_API_KEY", "SECRET_KIND_ANTHROPIC_API_KEY", "SECRET_KIND_AZURE_ACCESS_TOKEN", "SECRET_KIND_AZURE_IDENTITY_TOKEN", "SECRET_KIND_DOCKER_HUB_PERSONAL_ACCESS_TOKEN", "SECRET_KIND_GITHUB_APP_REFRESH_TOKEN", "SECRET_KIND_GITHUB_APP_SERVER_TO_SERVER_TOKEN", "SECRET_KIND_GITHUB_APP_USER_TO_SERVER_TOKEN", "SECRET_KIND_GITHUB_CLASSIC_PERSONAL_ACCESS_TOKEN", "SECRET_KIND_GITHUB_FINE_GRAINED_PERSONAL_ACCESS_TOKEN", "SECRET_KIND_GITHUB_OAUTH_TOKEN", "SECRET_KIND_HUGGINGFACE_API_KEY", "SECRET_KIND_OPENAI_API_KEY", "SECRET_KIND_PERPLEXITY_API_KEY", "SECRET_KIND_STRIPE_SECRET_KEY", "SECRET_KIND_STRIPE_RESTRICTED_KEY", "SECRET_KIND_STRIPE_WEBHOOK_SECRET"]
     #[serde(default)]
@@ -489,7 +490,7 @@ pub struct SecretOccurrence {
 }
 
 /// An Upgrade Occurrence represents that a specific resource_url could install a specific upgrade. This presence is supplied via local sources (i.e. it is present in the mirror and the running system has noticed its availability). For Windows, both distribution and windows_update contain information for the Windows update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeOccurrence {
     /// Metadata about the upgrade for available for the specific operating system for the resource_url. This allows efficient filtering, as well as making it easier to use the occurrence.
     #[serde(default)]
@@ -506,7 +507,7 @@ pub struct UpgradeOccurrence {
 }
 
 /// An occurrence of a severity vulnerability on a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VulnerabilityOccurrence {
     /// Output only. The CVSS score of this vulnerability. CVSS score is on a scale of 0 - 10 where 0 indicates low severity and 10 indicates high severity.
     #[serde(default, rename = "cvssScore")]
@@ -555,7 +556,7 @@ pub struct VulnerabilityOccurrence {
 }
 
 /// PackageVersion resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PackageVersion {
     /// The licenses associated with this package. Note that this has to go on the PackageVersion level, because we can have cases with images with the same source having different licences. E.g. in Alpine, musl and musl-utils both have the same origin musl, but have different sets of licenses.
     #[serde(default)]
@@ -567,7 +568,7 @@ pub struct PackageVersion {
 }
 
 /// Details about the layer a package was found in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LayerDetails {
     /// The base images the layer is found within.
     #[serde(default, rename = "baseImages")]
@@ -587,7 +588,7 @@ pub struct LayerDetails {
 }
 
 /// Jwt resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Jwt {
     /// The compact encoding of a JWS, which is always three base64 encoded strings joined by periods. For details, see: https://tools.ietf.org/html/rfc7515.html#section-3.1
     #[serde(default, rename = "compactJwt")]
@@ -595,7 +596,7 @@ pub struct Jwt {
 }
 
 /// Verifiers (e.g. Kritis implementations) MUST verify signatures with respect to the trust anchors defined in policy (e.g. a Kritis policy). Typically this means that the verifier has been configured with a map from public_key_id to public key material (and any required parameters, e.g. signing algorithm). In particular, verification implementations MUST NOT treat the signature public_key_id as anything more than a key lookup hint. The public_key_id DOES NOT validate or authenticate a public key; it only provides a mechanism for quickly selecting a public key ALREADY CONFIGURED on the verifier through a trusted channel. Verification implementations MUST reject signatures in any of the following circumstances: * The public_key_id is not recognized by the verifier. * The public key that public_key_id refers to does not verify the signature with respect to the payload. The signature contents SHOULD NOT be "attached" (where the payload is included with the serialized signature bytes). Verifiers MUST ignore any "attached" payload and only verify signatures with respect to explicitly provided payload (e.g. a payload field on the proto message that holds this Signature, or the canonical serialization of the proto message that holds this signature).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Signature {
     /// The identifier for the public key that verifies this signature. * The public_key_id is required. * The public_key_id SHOULD be an RFC3986 conformant URI. * When possible, the public_key_id SHOULD be an immutable reference, such as a cryptographic digest. Examples of valid public_key_ids: OpenPGP V4 public key fingerprint: * "openpgp4fpr:74FAF3B861BDA0870C7B6DEF607E48D2A663AEEA" See https://www.iana.org/assignments/uri-schemes/prov/openpgp4fpr for more details on this scheme. RFC6920 digest-named SubjectPublicKeyInfo (digest of the DER serialization): * "ni:///sha-256;cD9o9Cq6LG3jD0iKXqEi_vdjJGecm_iXkbqVoScViaU" * "nih:///sha-256;703f68f42aba2c6de30f488a5ea122fef76324679c9bf89791ba95a1271589a5"
     #[serde(default, rename = "publicKeyId")]
@@ -606,7 +607,7 @@ pub struct Signature {
 }
 
 /// InTotoSlsaProvenanceV1 resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InTotoSlsaProvenanceV1 {
     /// InToto spec defined at https://github.com/in-toto/attestation/tree/main/spec#statement
     #[serde(default, rename = "_type")]
@@ -620,7 +621,7 @@ pub struct InTotoSlsaProvenanceV1 {
 }
 
 /// Provenance of a build. Contains all information needed to verify the full details about the build from source to completion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildProvenance {
     /// Special options applied to this build. This is a catch-all field where build providers can enter any desired additional details.
     #[serde(default, rename = "buildOptions")]
@@ -664,7 +665,7 @@ pub struct BuildProvenance {
 }
 
 /// Details about files that caused a compliance check to fail. display_command is a single command that can be used to display a list of non compliant files. When there is no such command, we can also iterate a list of non compliant file using ''path''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NonCompliantFile {
     /// Command to display the non-compliant files.
     #[serde(default, rename = "displayCommand")]
@@ -678,7 +679,7 @@ pub struct NonCompliantFile {
 }
 
 /// Describes the CIS benchmark version that is applicable to a given OS and os version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComplianceVersion {
     /// The name of the document that defines this benchmark, e.g. "CIS Container-Optimized OS".
     #[serde(default, rename = "benchmarkDocument")]
@@ -692,14 +693,14 @@ pub struct ComplianceVersion {
 }
 
 /// Indicates which analysis completed successfully. Multiple types of analysis can be performed on a single resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalysisCompleted {
     #[serde(default, rename = "analysisType")]
     pub analysis_type: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -713,7 +714,7 @@ pub struct Status {
 }
 
 /// File resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct File {
     #[serde(default)]
     pub digest: ::core::option::Option<serde_json::Value>,
@@ -722,7 +723,7 @@ pub struct File {
 }
 
 /// The status of an SBOM generation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SBOMStatus {
     /// If there was an error generating an SBOM, this will indicate what that error was.
     #[serde(default)]
@@ -733,7 +734,7 @@ pub struct SBOMStatus {
 }
 
 /// MUST match https://github.com/secure-systems-lab/dsse/blob/master/envelope.proto. An authenticated message of arbitrary type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Envelope {
     #[serde(default)]
     pub payload: ::core::option::Option<String>,
@@ -744,7 +745,7 @@ pub struct Envelope {
 }
 
 /// Spec defined at https://github.com/in-toto/attestation/tree/main/spec#statement The serialized InTotoStatement will be stored as Envelope.payload. Envelope.payloadType is always "application/vnd.in-toto+json".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InTotoStatement {
     /// Always https://in-toto.io/Statement/v0.1.
     #[serde(default, rename = "_type")]
@@ -763,7 +764,7 @@ pub struct InTotoStatement {
 }
 
 /// A set of properties that uniquely identify a given Docker image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Fingerprint {
     /// Required. The layer ID of the final layer in the Docker image''s v1 representation.
     #[serde(default, rename = "v1Name")]
@@ -777,7 +778,7 @@ pub struct Fingerprint {
 }
 
 /// Layer holds metadata specific to a layer of a Docker image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Layer {
     /// The recovered arguments to the Dockerfile directive.
     #[serde(default)]
@@ -788,7 +789,7 @@ pub struct Layer {
 }
 
 /// License information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct License {
     /// Comments
     #[serde(default)]
@@ -799,7 +800,7 @@ pub struct License {
 }
 
 /// An occurrence of a particular package installation found within a system''s filesystem. E.g., glibc was found in /var/lib/dpkg/status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// Deprecated. The CPE URI in [CPE format](https://cpe.mitre.org/specification/)
     #[serde(default, rename = "cpeUri")]
@@ -813,7 +814,7 @@ pub struct Location {
 }
 
 /// The actual payload that contains the SBOM Reference data. The payload follows the intoto statement specification. See https://github.com/in-toto/attestation/blob/main/spec/v1.0/statement.md for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SbomReferenceIntotoPayload {
     /// Identifier for the schema of the Statement.
     #[serde(default, rename = "_type")]
@@ -830,7 +831,7 @@ pub struct SbomReferenceIntotoPayload {
 }
 
 /// The location of the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretLocation {
     /// The secret is found from a file.
     #[serde(default, rename = "fileLocation")]
@@ -838,7 +839,7 @@ pub struct SecretLocation {
 }
 
 /// The status of the secret with a timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretStatus {
     /// Optional. Optional message about the status code.
     #[serde(default)]
@@ -852,7 +853,7 @@ pub struct SecretStatus {
 }
 
 /// The Upgrade Distribution represents metadata about the Upgrade for each operating system (CPE). Some distributions have additional metadata around updates, classifying them into various categories and severities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeDistribution {
     /// The operating system classification of this Upgrade, as specified by the upstream operating system upgrade feed. For Windows the classification is one of the category_ids listed at https://docs.microsoft.com/en-us/previous-versions/windows/desktop/ff357803(v=vs.85)
     #[serde(default)]
@@ -869,7 +870,7 @@ pub struct UpgradeDistribution {
 }
 
 /// Windows Update represents the metadata about the update for the Windows operating system. The fields in this message come from the Windows Update API documented at https://docs.microsoft.com/en-us/windows/win32/api/wuapi/nn-wuapi-iupdate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WindowsUpdate {
     /// The list of categories to which the update belongs.
     #[serde(default)]
@@ -895,7 +896,7 @@ pub struct WindowsUpdate {
 }
 
 /// Common Vulnerability Scoring System. For details, see https://www.first.org/cvss/specification-document This is a message we will try to use for storing various versions of CVSS rather than making a separate proto for storing a specific version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CVSS {
     /// TODO: enum values: ["ATTACK_COMPLEXITY_UNSPECIFIED", "ATTACK_COMPLEXITY_LOW", "ATTACK_COMPLEXITY_HIGH", "ATTACK_COMPLEXITY_MEDIUM"]
     #[serde(default, rename = "attackComplexity")]
@@ -934,7 +935,7 @@ pub struct CVSS {
 }
 
 /// A detail for a distro and package this vulnerability occurrence was found in and its associated fix (if one is available).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PackageIssue {
     /// Required. The [CPE URI](https://cpe.mitre.org/specification/) this vulnerability was found in.
     #[serde(default, rename = "affectedCpeUri")]
@@ -969,7 +970,7 @@ pub struct PackageIssue {
 }
 
 /// Risk resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Risk {
     /// CISA maintains the authoritative source of vulnerabilities that have been exploited in the wild.
     #[serde(default, rename = "cisaKev")]
@@ -980,7 +981,7 @@ pub struct Risk {
 }
 
 /// VexAssessment provides all publisher provided Vex information that is related to this vulnerability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VexAssessment {
     /// Holds the MITRE standard Common Vulnerabilities and Exposures (CVE) tracking number for the vulnerability. Deprecated: Use vulnerability_id instead to denote CVEs.
     #[serde(default)]
@@ -1009,7 +1010,7 @@ pub struct VexAssessment {
 }
 
 /// BaseImage describes a base image of a container image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BaseImage {
     /// The number of layers that the base image is composed of.
     #[serde(default, rename = "layerCount")]
@@ -1026,7 +1027,7 @@ pub struct BaseImage {
 }
 
 /// Keep in sync with schema at https://github.com/slsa-framework/slsa/blob/main/docs/provenance/schema/v1/provenance.proto Builder renamed to ProvenanceBuilder because of Java conflicts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlsaProvenanceV1 {
     #[serde(default, rename = "buildDefinition")]
     pub build_definition: ::core::option::Option<BuildDefinition>,
@@ -1035,7 +1036,7 @@ pub struct SlsaProvenanceV1 {
 }
 
 /// Artifact describes a build product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Artifact {
     /// Hash or checksum value of a binary, or Docker Registry 2.0 digest of a container.
     #[serde(default)]
@@ -1049,7 +1050,7 @@ pub struct Artifact {
 }
 
 /// Command describes a step performed as part of the build pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Command {
     /// Command-line arguments used when executing this command.
     #[serde(default)]
@@ -1072,7 +1073,7 @@ pub struct Command {
 }
 
 /// Source describes the location of the source used for the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// If provided, some of the source code used for the build may be found in these locations, in the case where the source repository had multiple remotes or submodules. This list will not include the context specified in the context field.
     #[serde(default, rename = "additionalContexts")]
@@ -1089,7 +1090,7 @@ pub struct Source {
 }
 
 /// EnvelopeSignature resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvelopeSignature {
     #[serde(default)]
     pub keyid: ::core::option::Option<String>,
@@ -1098,7 +1099,7 @@ pub struct EnvelopeSignature {
 }
 
 /// InTotoProvenance resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InTotoProvenance {
     /// required
     #[serde(default, rename = "builderConfig")]
@@ -1114,7 +1115,7 @@ pub struct InTotoProvenance {
 }
 
 /// SlsaProvenance resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlsaProvenance {
     /// required
     #[serde(default)]
@@ -1130,7 +1131,7 @@ pub struct SlsaProvenance {
 }
 
 /// See full explanation of fields at slsa.dev/provenance/v0.2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlsaProvenanceZeroTwo {
     #[serde(default, rename = "buildConfig")]
     pub build_config: ::core::option::Option<serde_json::Value>,
@@ -1148,7 +1149,7 @@ pub struct SlsaProvenanceZeroTwo {
 }
 
 /// A predicate which describes the SBOM being referenced.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SbomReferenceIntotoPredicate {
     /// A map of algorithm to digest of the contents of the SBOM.
     #[serde(default)]
@@ -1165,7 +1166,7 @@ pub struct SbomReferenceIntotoPredicate {
 }
 
 /// Subject resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subject {
     /// "": "" Algorithms can be e.g. sha256, sha512 See https://github.com/in-toto/attestation/blob/main/spec/field_types.md#DigestSet
     #[serde(default)]
@@ -1175,7 +1176,7 @@ pub struct Subject {
 }
 
 /// The category to which the update belongs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Category {
     /// The identifier of the category.
     #[serde(default, rename = "categoryId")]
@@ -1186,7 +1187,7 @@ pub struct Category {
 }
 
 /// The unique identifier of the update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Identity {
     /// The revision number of the update.
     #[serde(default)]
@@ -1197,7 +1198,7 @@ pub struct Identity {
 }
 
 /// Version contains structured information about the version of a package.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Version {
     /// Used to correct mistakes in the version numbering scheme.
     #[serde(default)]
@@ -1220,7 +1221,7 @@ pub struct Version {
 }
 
 /// Indicates the location at which a package was found.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrafeasV1FileLocation {
     /// For jars that are contained inside .war files, this filepath can indicate the path to war file combined with the path to jar file.
     #[serde(default, rename = "filePath")]
@@ -1234,7 +1235,7 @@ pub struct GrafeasV1FileLocation {
 }
 
 /// CISAKnownExploitedVulnerabilities resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CISAKnownExploitedVulnerabilities {
     /// Whether the vulnerability is known to have been leveraged as part of a ransomware campaign.
     #[serde(default, rename = "knownRansomwareCampaignUse")]
@@ -1242,7 +1243,7 @@ pub struct CISAKnownExploitedVulnerabilities {
 }
 
 /// ExploitPredictionScoringSystem resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExploitPredictionScoringSystem {
     /// The percentile of the current score, the proportion of all scored vulnerabilities with the same or a lower EPSS score
     #[serde(default)]
@@ -1253,7 +1254,7 @@ pub struct ExploitPredictionScoringSystem {
 }
 
 /// Justification provides the justification when the state of the assessment if NOT_AFFECTED.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Justification {
     /// Additional details on why this justification was chosen.
     #[serde(default)]
@@ -1264,7 +1265,7 @@ pub struct Justification {
 }
 
 /// Specifies details on how to handle (and presumably, fix) a vulnerability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Remediation {
     /// Contains a comprehensive human-readable discussion of the remediation.
     #[serde(default)]
@@ -1278,7 +1279,7 @@ pub struct Remediation {
 }
 
 /// BuildDefinition resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildDefinition {
     #[serde(default, rename = "buildType")]
     pub build_type: ::core::option::Option<String>,
@@ -1291,7 +1292,7 @@ pub struct BuildDefinition {
 }
 
 /// RunDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunDetails {
     #[serde(default)]
     pub builder: ::core::option::Option<ProvenanceBuilder>,
@@ -1302,7 +1303,7 @@ pub struct RunDetails {
 }
 
 /// A SourceContext is a reference to a tree of files. A SourceContext together with a path point to a unique revision of a single file or directory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceContext {
     /// A SourceContext referring to a revision in a Google Cloud Source Repo.
     #[serde(default, rename = "cloudRepo")]
@@ -1319,14 +1320,14 @@ pub struct SourceContext {
 }
 
 /// BuilderConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuilderConfig {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
 
 /// Other properties of the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// The timestamp of when the build completed.
     #[serde(default, rename = "buildFinishedOn")]
@@ -1346,7 +1347,7 @@ pub struct Metadata {
 }
 
 /// Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Recipe {
     /// Collection of all external inputs that influenced the build on top of recipe.definedInMaterial and recipe.entryPoint. For example, if the recipe type were "make", then this might be the flags passed to make aside from the target, which is captured in recipe.entryPoint. Since the arguments field can greatly vary in structure, depending on the builder and recipe type, this is of form "Any".
     #[serde(default)]
@@ -1366,14 +1367,14 @@ pub struct Recipe {
 }
 
 /// SlsaBuilder resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlsaBuilder {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
 
 /// Material resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Material {
     #[serde(default)]
     pub digest: ::core::option::Option<serde_json::Value>,
@@ -1382,7 +1383,7 @@ pub struct Material {
 }
 
 /// Other properties of the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlsaMetadata {
     /// The timestamp of when the build completed.
     #[serde(default, rename = "buildFinishedOn")]
@@ -1402,7 +1403,7 @@ pub struct SlsaMetadata {
 }
 
 /// Steps taken to build the artifact. For a TaskRun, typically each container corresponds to one step in the recipe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlsaRecipe {
     /// Collection of all external inputs that influenced the build on top of recipe.definedInMaterial and recipe.entryPoint. For example, if the recipe type were "make", then this might be the flags passed to make aside from the target, which is captured in recipe.entryPoint. Depending on the recipe Type, the structure may be different.
     #[serde(default)]
@@ -1422,14 +1423,14 @@ pub struct SlsaRecipe {
 }
 
 /// Identifies the entity that executed the recipe, which is trusted to have correctly performed the operation and populated this provenance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaBuilder {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
 }
 
 /// Identifies the event that kicked off the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaInvocation {
     #[serde(default, rename = "configSource")]
     pub config_source: ::core::option::Option<GrafeasV1SlsaProvenanceZeroTwoSlsaConfigSource>,
@@ -1440,7 +1441,7 @@ pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaInvocation {
 }
 
 /// The collection of artifacts that influenced the build including sources, dependencies, build tools, base images, and so on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaMaterial {
     #[serde(default)]
     pub digest: ::core::option::Option<serde_json::Value>,
@@ -1449,7 +1450,7 @@ pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaMaterial {
 }
 
 /// Other properties of the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata {
     #[serde(default, rename = "buildFinishedOn")]
     pub build_finished_on: ::core::option::Option<String>,
@@ -1464,7 +1465,7 @@ pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaMetadata {
 }
 
 /// Details about the layer a package was found in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrafeasV1LayerDetails {
     /// The base images the layer is found within.
     #[serde(default, rename = "baseImages")]
@@ -1484,7 +1485,7 @@ pub struct GrafeasV1LayerDetails {
 }
 
 /// Metadata for any related URL information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelatedUrl {
     /// Label to describe usage of the URL.
     #[serde(default)]
@@ -1495,7 +1496,7 @@ pub struct RelatedUrl {
 }
 
 /// ProvenanceBuilder resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvenanceBuilder {
     #[serde(default, rename = "builderDependencies")]
     pub builder_dependencies: ::core::option::Option<::std::vec::Vec<ResourceDescriptor>>,
@@ -1506,7 +1507,7 @@ pub struct ProvenanceBuilder {
 }
 
 /// BuildMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildMetadata {
     #[serde(default, rename = "finishedOn")]
     pub finished_on: ::core::option::Option<String>,
@@ -1517,7 +1518,7 @@ pub struct BuildMetadata {
 }
 
 /// A CloudRepoSourceContext denotes a particular revision in a Google Cloud Source Repo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudRepoSourceContext {
     /// An alias, which may be a branch or tag.
     #[serde(default, rename = "aliasContext")]
@@ -1531,7 +1532,7 @@ pub struct CloudRepoSourceContext {
 }
 
 /// A SourceContext referring to a Gerrit project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GerritSourceContext {
     /// An alias, which may be a branch or tag.
     #[serde(default, rename = "aliasContext")]
@@ -1548,7 +1549,7 @@ pub struct GerritSourceContext {
 }
 
 /// A GitSourceContext denotes a particular revision in a third party Git repository (e.g., GitHub).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitSourceContext {
     /// Git commit hash.
     #[serde(default, rename = "revisionId")]
@@ -1559,7 +1560,7 @@ pub struct GitSourceContext {
 }
 
 /// Indicates that the builder claims certain fields in this message to be complete.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Completeness {
     /// If true, the builder claims that recipe.arguments is complete, meaning that all external inputs are properly captured in the recipe.
     #[serde(default)]
@@ -1573,7 +1574,7 @@ pub struct Completeness {
 }
 
 /// Indicates that the builder claims certain fields in this message to be complete.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlsaCompleteness {
     /// If true, the builder claims that recipe.arguments is complete, meaning that all external inputs are properly captured in the recipe.
     #[serde(default)]
@@ -1587,7 +1588,7 @@ pub struct SlsaCompleteness {
 }
 
 /// Describes where the config file that kicked off the build came from. This is effectively a pointer to the source where buildConfig came from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaConfigSource {
     #[serde(default)]
     pub digest: ::core::option::Option<serde_json::Value>,
@@ -1598,7 +1599,7 @@ pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaConfigSource {
 }
 
 /// Indicates that the builder claims certain fields in this message to be complete.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaCompleteness {
     #[serde(default)]
     pub environment: ::core::option::Option<bool>,
@@ -1609,7 +1610,7 @@ pub struct GrafeasV1SlsaProvenanceZeroTwoSlsaCompleteness {
 }
 
 /// BaseImage describes a base image of a container image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrafeasV1BaseImage {
     /// The number of layers that the base image is composed of.
     #[serde(default, rename = "layerCount")]
@@ -1626,7 +1627,7 @@ pub struct GrafeasV1BaseImage {
 }
 
 /// ResourceDescriptor resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceDescriptor {
     #[serde(default)]
     pub annotations: ::core::option::Option<serde_json::Value>,
@@ -1645,7 +1646,7 @@ pub struct ResourceDescriptor {
 }
 
 /// A unique identifier for a Cloud Repo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepoId {
     /// A combination of a project ID and a repo name.
     #[serde(default, rename = "projectRepoId")]
@@ -1656,7 +1657,7 @@ pub struct RepoId {
 }
 
 /// An alias to a repo revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AliasContext {
     /// The alias kind. // TODO: enum values: ["KIND_UNSPECIFIED", "FIXED", "MOVABLE", "OTHER"]
     #[serde(default)]
@@ -1667,7 +1668,7 @@ pub struct AliasContext {
 }
 
 /// Selects a repo using a Google Cloud Platform project ID (e.g., winged-cargo-31) and a repo name within that project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectRepoId {
     /// The ID of the project.
     #[serde(default, rename = "projectId")]

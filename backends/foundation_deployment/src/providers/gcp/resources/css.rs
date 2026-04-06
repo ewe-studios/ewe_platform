@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// This resource represents input data you submit for a CSS Product, not the processed CSS Product that you see in CSS Center, in Shopping Ads, or across Google surfaces.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CssProductInput {
     /// A list of CSS Product attributes.
     #[serde(default)]
@@ -40,11 +41,11 @@ pub struct CssProductInput {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for the ListAccountLabels method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountLabelsResponse {
     /// The labels from the specified account.
     #[serde(default, rename = "accountLabels")]
@@ -55,7 +56,7 @@ pub struct ListAccountLabelsResponse {
 }
 
 /// Response message for the ListChildAccounts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListChildAccountsResponse {
     /// The CSS/MC accounts returned for the specified CSS parent account.
     #[serde(default)]
@@ -66,7 +67,7 @@ pub struct ListChildAccountsResponse {
 }
 
 /// Response message for the ListCssProducts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCssProductsResponse {
     /// The processed CSS products from the specified account. These are your processed CSS products after applying rules and supplemental feeds.
     #[serde(default, rename = "cssProducts")]
@@ -77,7 +78,7 @@ pub struct ListCssProductsResponse {
 }
 
 /// Response message for the ListMethodGroups method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListQuotaGroupsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -88,7 +89,7 @@ pub struct ListQuotaGroupsResponse {
 }
 
 /// The request message for the UpdateLabels method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateAccountLabelsRequest {
     /// The list of label IDs to overwrite the existing account label IDs. If the list is empty, all currently assigned label IDs will be deleted.
     #[serde(default, rename = "labelIds")]
@@ -99,7 +100,7 @@ pub struct UpdateAccountLabelsRequest {
 }
 
 /// Label assigned by CSS domain or CSS group to one of its sub-accounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountLabel {
     /// Output only. The ID of account this label belongs to.
     #[serde(default, rename = "accountId")]
@@ -122,7 +123,7 @@ pub struct AccountLabel {
 }
 
 /// Information about CSS/MC account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// Output only. The type of this account. // TODO: enum values: ["ACCOUNT_TYPE_UNSPECIFIED", "CSS_GROUP", "CSS_DOMAIN", "MC_PRIMARY_CSS_MCA", "MC_CSS_MCA", "MC_MARKETPLACE_MCA", "MC_OTHER_MCA", "MC_STANDALONE", "MC_MCA_SUBACCOUNT"]
     #[serde(default, rename = "accountType")]
@@ -151,7 +152,7 @@ pub struct Account {
 }
 
 /// The processed CSS Product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CssProduct {
     /// Output only. A list of product attributes.
     #[serde(default)]
@@ -177,7 +178,7 @@ pub struct CssProduct {
 }
 
 /// The group information for methods in the CSS API. The quota is shared between all methods in the group. Even if none of the methods within the group have usage the information for the group is returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotaGroup {
     /// Output only. List of all methods group quota applies to.
     #[serde(default, rename = "methodDetails")]
@@ -197,7 +198,7 @@ pub struct QuotaGroup {
 }
 
 /// Attributes for CSS Product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attributes {
     /// Additional URL of images of the item.
     #[serde(default, rename = "additionalImageLinks")]
@@ -364,7 +365,7 @@ pub struct Attributes {
 }
 
 /// The status of the Css Product, data validation issues, that is, information about the Css Product computed asynchronously.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CssProductStatus {
     /// Date on which the item has been created, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.
     #[serde(default, rename = "creationDate")]
@@ -384,7 +385,7 @@ pub struct CssProductStatus {
 }
 
 /// A message that represents custom attributes. Exactly one of value or group_values must not be empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomAttribute {
     /// Subattributes within this attribute group. If group_values is not empty, value must be empty.
     #[serde(default, rename = "groupValues")]
@@ -398,7 +399,7 @@ pub struct CustomAttribute {
 }
 
 /// The method details per method in the CSS API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MethodDetails {
     /// Output only. The name of the method for example cssproductsservice.listcssproducts.
     #[serde(default)]
@@ -415,7 +416,7 @@ pub struct MethodDetails {
 }
 
 /// The certification for the product. Use the this attribute to describe certifications, such as energy efficiency ratings, associated with a product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Certification {
     /// The authority or certification body responsible for issuing the certification. At this time, the most common value is "EC" or “European_Commission” for energy labels in the EU.
     #[serde(default)]
@@ -429,7 +430,7 @@ pub struct Certification {
 }
 
 /// A message that represents installment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeadlineOfferInstallment {
     /// The amount the buyer has to pay per month.
     #[serde(default)]
@@ -443,7 +444,7 @@ pub struct HeadlineOfferInstallment {
 }
 
 /// The SubscriptionCost of the product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeadlineOfferSubscriptionCost {
     /// The amount the buyer has to pay per subscription period.
     #[serde(default)]
@@ -457,7 +458,7 @@ pub struct HeadlineOfferSubscriptionCost {
 }
 
 /// The product details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductDetail {
     /// The name of the product detail.
     #[serde(default, rename = "attributeName")]
@@ -471,7 +472,7 @@ pub struct ProductDetail {
 }
 
 /// The dimension of the product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductDimension {
     /// Required. The dimension units. Acceptable values are: * "in" * "cm"
     #[serde(default)]
@@ -482,7 +483,7 @@ pub struct ProductDimension {
 }
 
 /// The weight of the product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductWeight {
     /// Required. The weight unit. Acceptable values are: * "g" * "kg" * "oz" * "lb"
     #[serde(default)]
@@ -493,7 +494,7 @@ pub struct ProductWeight {
 }
 
 /// The destination status of the product status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationStatus {
     /// List of country codes (ISO 3166-1 alpha-2) where the CSS Product is approved.
     #[serde(default, rename = "approvedCountries")]
@@ -510,7 +511,7 @@ pub struct DestinationStatus {
 }
 
 /// The ItemLevelIssue of the product status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ItemLevelIssue {
     /// List of country codes (ISO 3166-1 alpha-2) where issue applies to the CSS Product.
     #[serde(default, rename = "applicableCountries")]
@@ -542,7 +543,7 @@ pub struct ItemLevelIssue {
 }
 
 /// The price represented as a number and currency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Price {
     /// The price represented as a number in micros (1 million micros is an equivalent to one''s currency standard unit, for example, 1 USD = 1000000 micros).
     #[serde(default, rename = "amountMicros")]

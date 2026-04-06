@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// gdata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataMedia {
     /// gdata
     #[serde(default)]
@@ -110,7 +111,7 @@ pub struct GdataMedia {
 }
 
 /// Response message for ReportingService.ListJobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListJobsResponse {
     /// The list of jobs.
     #[serde(default)]
@@ -121,7 +122,7 @@ pub struct ListJobsResponse {
 }
 
 /// Response message for ReportingService.ListReportTypes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReportTypesResponse {
     /// A token to retrieve next page of results. Pass this value in the ListReportTypesRequest.page_token field in the subsequent call to ListReportTypes method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -132,7 +133,7 @@ pub struct ListReportTypesResponse {
 }
 
 /// Response message for ReportingService.ListReports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReportsResponse {
     /// A token to retrieve next page of results. Pass this value in the ListReportsRequest.page_token field in the subsequent call to ListReports method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -143,7 +144,7 @@ pub struct ListReportsResponse {
 }
 
 /// gdata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataContentTypeInfo {
     /// gdata
     #[serde(default, rename = "bestGuess")]
@@ -163,7 +164,7 @@ pub struct GdataContentTypeInfo {
 }
 
 /// gdata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDiffChecksumsResponse {
     /// gdata
     #[serde(default, rename = "checksumsLocation")]
@@ -183,7 +184,7 @@ pub struct GdataDiffChecksumsResponse {
 }
 
 /// gdata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDiffDownloadResponse {
     /// gdata
     #[serde(default, rename = "objectLocation")]
@@ -191,7 +192,7 @@ pub struct GdataDiffDownloadResponse {
 }
 
 /// gdata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDiffUploadRequest {
     /// gdata
     #[serde(default, rename = "checksumsInfo")]
@@ -205,7 +206,7 @@ pub struct GdataDiffUploadRequest {
 }
 
 /// gdata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDiffUploadResponse {
     /// gdata
     #[serde(default, rename = "objectVersion")]
@@ -216,7 +217,7 @@ pub struct GdataDiffUploadResponse {
 }
 
 /// gdata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDiffVersionResponse {
     /// gdata
     #[serde(default, rename = "objectSizeBytes")]
@@ -227,7 +228,7 @@ pub struct GdataDiffVersionResponse {
 }
 
 /// gdata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDownloadParameters {
     /// gdata
     #[serde(default, rename = "allowGzipCompression")]
@@ -238,7 +239,7 @@ pub struct GdataDownloadParameters {
 }
 
 /// A job creating reports of a specific type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Job {
     /// The creation date/time of the job.
     #[serde(default, rename = "createTime")]
@@ -261,7 +262,7 @@ pub struct Job {
 }
 
 /// A report type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportType {
     /// The date/time when this report type was/will be deprecated.
     #[serde(default, rename = "deprecateTime")]
@@ -278,7 +279,7 @@ pub struct ReportType {
 }
 
 /// A report''s metadata including the URL from which the report itself can be downloaded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Report {
     /// The date/time when this report was created.
     #[serde(default, rename = "createTime")]
@@ -304,7 +305,7 @@ pub struct Report {
 }
 
 /// gdata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataCompositeMedia {
     /// gdata
     #[serde(default, rename = "blobRef")]
@@ -342,7 +343,7 @@ pub struct GdataCompositeMedia {
 }
 
 /// gdata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataBlobstore2Info {
     /// gdata
     #[serde(default, rename = "blobGeneration")]
@@ -368,7 +369,7 @@ pub struct GdataBlobstore2Info {
 }
 
 /// gdata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataObjectId {
     /// gdata
     #[serde(default, rename = "bucketName")]

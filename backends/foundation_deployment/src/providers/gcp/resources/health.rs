@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request to delete a batch of identifiable data points.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteDataPointsRequest {
     /// Required. The names of the DataPoints to delete. A maximum of 10000 data points can be deleted in a single request.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct BatchDeleteDataPointsRequest {
 }
 
 /// Request to roll up data points by civil time intervals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyRollUpDataPointsRequest {
     /// Optional. The data source family name to roll up. If empty, data points from all available data sources will be rolled up. Format: users/me/dataSourceFamilies/{data_source_family} The supported values are: - users/me/dataSourceFamilies/all-sources - default value - users/me/dataSourceFamilies/google-wearables - tracker devices - users/me/dataSourceFamilies/google-sources - Google first party sources
     #[serde(default, rename = "dataSourceFamily")]
@@ -39,7 +40,7 @@ pub struct DailyRollUpDataPointsRequest {
 }
 
 /// Response containing the list of rolled up data points.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyRollUpDataPointsResponse {
     /// Values for each aggregation time window.
     #[serde(default, rename = "rollupDataPoints")]
@@ -47,7 +48,7 @@ pub struct DailyRollUpDataPointsResponse {
 }
 
 /// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateTime {
     /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
     #[serde(default)]
@@ -79,7 +80,7 @@ pub struct DateTime {
 }
 
 /// Represents a Response for exporting exercise data in TCX format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportExerciseTcxResponse {
     /// Contains the exported TCX data.
     #[serde(default, rename = "tcxData")]
@@ -87,7 +88,7 @@ pub struct ExportExerciseTcxResponse {
 }
 
 /// Represents a type of health data a user can have data points recorded for. It matches the parent resource of collection containing data points of the given type. Clients currently do not need to interact with this resource directly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevicesandservicesHealthV4DataType {
     /// Identifier. The resource name of the data type. Format: users/{user}/dataTypes/{data_type} See DataPoint.name for examples and possible values.
     #[serde(default)]
@@ -95,7 +96,7 @@ pub struct GoogleDevicesandservicesHealthV4DataType {
 }
 
 /// Represents details about the Google user''s identity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Identity {
     /// Output only. The Google User Identifier in the Google Health APIs. It matches the {user} resource ID segment in the resource name paths, e.g. users/{user}/dataTypes/steps. Valid values are strings of 1-63 characters, and valid characters are lowercase and uppercase letters, numbers, and hyphens.
     #[serde(default, rename = "healthUserId")]
@@ -109,7 +110,7 @@ pub struct Identity {
 }
 
 /// Response containing raw data points matching the query
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDataPointsResponse {
     /// Data points matching the query
     #[serde(default, rename = "dataPoints")]
@@ -120,7 +121,7 @@ pub struct ListDataPointsResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -140,7 +141,7 @@ pub struct Operation {
 }
 
 /// Profile details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Profile {
     /// Optional. The age in years based on the user''s birth date. Updates to this field are currently not supported.
     #[serde(default)]
@@ -166,7 +167,7 @@ pub struct Profile {
 }
 
 /// Response containing the list of reconciled DataPoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReconcileDataPointsResponse {
     /// Data points matching the query
     #[serde(default, rename = "dataPoints")]
@@ -177,7 +178,7 @@ pub struct ReconcileDataPointsResponse {
 }
 
 /// Request to roll up data points by physical time intervals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollUpDataPointsRequest {
     /// Optional. The data source family name to roll up. If empty, data points from all available data sources will be rolled up. Format: users/me/dataSourceFamilies/{data_source_family} The supported values are: - users/me/dataSourceFamilies/all-sources - default value - users/me/dataSourceFamilies/google-wearables - tracker devices - users/me/dataSourceFamilies/google-sources - Google first party sources
     #[serde(default, rename = "dataSourceFamily")]
@@ -197,7 +198,7 @@ pub struct RollUpDataPointsRequest {
 }
 
 /// Response containing the list of rolled up data points.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollUpDataPointsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -208,7 +209,7 @@ pub struct RollUpDataPointsResponse {
 }
 
 /// Settings details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Settings {
     /// Optional. True if the user''s stride length is determined automatically. Updates to this field are currently not supported.
     #[serde(default, rename = "autoStrideEnabled")]
@@ -255,7 +256,7 @@ pub struct Settings {
 }
 
 /// Counterpart of google.type.Interval, but using CivilDateTime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivilTimeInterval {
     /// Required. The exclusive end of the range.
     #[serde(default)]
@@ -266,7 +267,7 @@ pub struct CivilTimeInterval {
 }
 
 /// Value of a daily rollup for a single civil time interval (aggregation window)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyRollupDataPoint {
     /// Returned by default when rolling up data points from the active-minutes data type, or when requested explicitly using the active-minutes rollup type identifier.
     #[serde(default, rename = "activeMinutes")]
@@ -333,7 +334,7 @@ pub struct DailyRollupDataPoint {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
@@ -344,7 +345,7 @@ pub struct TimeZone {
 }
 
 /// A computed or recorded metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataPoint {
     /// Optional. Data for points in the active-minutes interval data type collection.
     #[serde(default, rename = "activeMinutes")]
@@ -437,7 +438,7 @@ pub struct DataPoint {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -451,7 +452,7 @@ pub struct Status {
 }
 
 /// A reconciled computed or recorded metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReconciledDataPoint {
     /// Data for points in the active-minutes interval data type collection.
     #[serde(default, rename = "activeMinutes")]
@@ -541,7 +542,7 @@ pub struct ReconciledDataPoint {
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
@@ -552,7 +553,7 @@ pub struct Interval {
 }
 
 /// Value of a rollup for a single physical time interval (aggregation window)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollupDataPoint {
     /// Returned by default when rolling up data points from the active-minutes data type, or when requested explicitly using the active-minutes rollup type identifier.
     #[serde(default, rename = "activeMinutes")]
@@ -611,7 +612,7 @@ pub struct RollupDataPoint {
 }
 
 /// Represents the result of the rollup of the user''s daily heart rate variability personal range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeartRateVariabilityPersonalRangeRollupValue {
     /// The upper bound of the user''s average heart rate variability personal range.
     #[serde(default, rename = "averageHeartRateVariabilityMillisecondsMax")]
@@ -622,7 +623,7 @@ pub struct HeartRateVariabilityPersonalRangeRollupValue {
 }
 
 /// Represents the rollup value for the daily resting heart rate data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestingHeartRatePersonalRangeRollupValue {
     /// The upper bound of the user''s daily resting heart rate personal range.
     #[serde(default, rename = "beatsPerMinuteMax")]
@@ -633,7 +634,7 @@ pub struct RestingHeartRatePersonalRangeRollupValue {
 }
 
 /// Data Source definition to track the origin of data. Each health data point, regardless of the complexity or data model (whether a simple step count or a detailed sleep session) must retain information about its source of origin (e.g. the device or app that collected it).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSource {
     /// Output only. Captures metadata for the application that provided this data.
     #[serde(default)]
@@ -650,7 +651,7 @@ pub struct DataSource {
 }
 
 /// Record of active minutes in a given time interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveMinutes {
     /// Required. Active minutes by activity level. At most one record per activity level is allowed.
     #[serde(default, rename = "activeMinutesByActivityLevel")]
@@ -662,7 +663,7 @@ pub struct ActiveMinutes {
 }
 
 /// Record of active zone minutes in a given time interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveZoneMinutes {
     /// Required. Number of Active Zone Minutes earned in the given time interval. Note: active_zone_minutes equals to 1 for low intensity (fat burn) zones or 2 for high intensity zones (cardio, peak).
     #[serde(default, rename = "activeZoneMinutes")]
@@ -676,7 +677,7 @@ pub struct ActiveZoneMinutes {
 }
 
 /// Internal type to capture activity level during a certain time interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityLevel {
     /// Required. Activity level type in the given time interval. // TODO: enum values: ["ACTIVITY_LEVEL_TYPE_UNSPECIFIED", "SEDENTARY", "LIGHTLY_ACTIVE", "MODERATELY_ACTIVE", "VERY_ACTIVE"]
     #[serde(default, rename = "activityLevelType")]
@@ -687,7 +688,7 @@ pub struct ActivityLevel {
 }
 
 /// Captures the altitude gain (i.e. deltas), and not level above sea, for a user in millimeters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Altitude {
     /// Required. Altitude gain in millimeters over the observed interval.
     #[serde(default, rename = "gainMillimeters")]
@@ -698,7 +699,7 @@ pub struct Altitude {
 }
 
 /// Body fat measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BodyFat {
     /// Required. Body fat percentage, in range [0, 100].
     #[serde(default)]
@@ -709,7 +710,7 @@ pub struct BodyFat {
 }
 
 /// Represents the daily heart rate variability data type. At least one of the following fields must be set: - average_heart_rate_variability_milliseconds - non_rem_heart_rate_beats_per_minute - entropy - deep_sleep_root_mean_square_of_successive_differences_milliseconds
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyHeartRateVariability {
     /// Optional. A user''s average heart rate variability calculated using the root mean square of successive differences (RMSSD) in times between heartbeats.
     #[serde(default, rename = "averageHeartRateVariabilityMilliseconds")]
@@ -733,7 +734,7 @@ pub struct DailyHeartRateVariability {
 }
 
 /// User''s heart rate zone thresholds based on the Karvonen algorithm for a specific day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyHeartRateZones {
     /// Required. Date (in user''s timezone) of the heart rate zones record.
     #[serde(default)]
@@ -744,7 +745,7 @@ pub struct DailyHeartRateZones {
 }
 
 /// A daily oxygen saturation (SpO2) record. Represents the user''s daily oxygen saturation summary, typically calculated during sleep.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyOxygenSaturation {
     /// Required. The average value of the oxygen saturation samples during the sleep.
     #[serde(default, rename = "averagePercentage")]
@@ -764,7 +765,7 @@ pub struct DailyOxygenSaturation {
 }
 
 /// A daily average respiratory rate (breaths per minute) for a day of the year. One data point per day calculated for the main sleep.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyRespiratoryRate {
     /// Required. The average number of breaths taken per minute.
     #[serde(default, rename = "breathsPerMinute")]
@@ -775,7 +776,7 @@ pub struct DailyRespiratoryRate {
 }
 
 /// Measures the daily resting heart rate for a user, calculated using the all day heart rate measurements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyRestingHeartRate {
     /// Required. The resting heart rate value in beats per minute.
     #[serde(default, rename = "beatsPerMinute")]
@@ -789,7 +790,7 @@ pub struct DailyRestingHeartRate {
 }
 
 /// Provides derived sleep temperature values, calculated from skin or internal device temperature readings during sleep.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailySleepTemperatureDerivations {
     /// Optional. The user''s baseline skin temperature. It is the median of the user''s nightly skin temperature over the past 30 days.
     #[serde(default, rename = "baselineTemperatureCelsius")]
@@ -806,7 +807,7 @@ pub struct DailySleepTemperatureDerivations {
 }
 
 /// Contains a daily summary of the user''s VO2 max (cardio fitness score), which is the maximum rate of oxygen the body can use during exercise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyVO2Max {
     /// Optional. Represents the user''s cardio fitness level based on their VO2 max. // TODO: enum values: ["CARDIO_FITNESS_LEVEL_UNSPECIFIED", "POOR", "FAIR", "AVERAGE", "GOOD", "VERY_GOOD", "EXCELLENT"]
     #[serde(default, rename = "cardioFitnessLevel")]
@@ -826,7 +827,7 @@ pub struct DailyVO2Max {
 }
 
 /// Distance traveled over an interval of time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Distance {
     /// Required. Observed interval.
     #[serde(default)]
@@ -837,7 +838,7 @@ pub struct Distance {
 }
 
 /// An exercise that stores information about a physical activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Exercise {
     /// Optional. Duration excluding pauses.
     #[serde(default, rename = "activeDuration")]
@@ -878,7 +879,7 @@ pub struct Exercise {
 }
 
 /// Gained elevation measured in floors over the time interval
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Floors {
     /// Required. Number of floors in the recorded interval
     #[serde(default)]
@@ -889,7 +890,7 @@ pub struct Floors {
 }
 
 /// A heart rate measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeartRate {
     /// Required. The heart rate value in beats per minute.
     #[serde(default, rename = "beatsPerMinute")]
@@ -903,7 +904,7 @@ pub struct HeartRate {
 }
 
 /// Captures user''s heart rate variability (HRV) as measured by the root mean square of successive differences (RMSSD) between normal heartbeats or by standard deviation of the inter-beat intervals (SDNN).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeartRateVariability {
     /// Optional. The root mean square of successive differences between normal heartbeats. This is a measure of heart rate variability used by Fitbit.
     #[serde(default, rename = "rootMeanSquareOfSuccessiveDifferencesMilliseconds")]
@@ -917,7 +918,7 @@ pub struct HeartRateVariability {
 }
 
 /// Holds information about a user logged hydration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HydrationLog {
     /// Required. Amount of liquid (ex. water) consumed.
     #[serde(default, rename = "amountConsumed")]
@@ -928,7 +929,7 @@ pub struct HydrationLog {
 }
 
 /// Captures the user''s instantaneous oxygen saturation percentage (SpO2).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OxygenSaturation {
     /// Required. The oxygen saturation percentage. Valid values are from 0 to 100.
     #[serde(default)]
@@ -939,7 +940,7 @@ pub struct OxygenSaturation {
 }
 
 /// Records respiratory rate details during sleep. Can have multiple per day if the user sleeps multiple times.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RespiratoryRateSleepSummary {
     /// Optional. Respiratory rate statistics for deep sleep.
     #[serde(default, rename = "deepSleepStats")]
@@ -959,7 +960,7 @@ pub struct RespiratoryRateSleepSummary {
 }
 
 /// VO2 max value calculated based on the user''s running activity. Value stored in ml/kg/min.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunVO2Max {
     /// Required. Run VO2 max value in ml/kg/min.
     #[serde(default, rename = "runVo2Max")]
@@ -970,7 +971,7 @@ pub struct RunVO2Max {
 }
 
 /// SedentaryPeriod SedentaryPeriod data represents the periods of time that the user was sedentary (i.e. not moving while wearing the device).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SedentaryPeriod {
     /// Required. Observed interval.
     #[serde(default)]
@@ -978,7 +979,7 @@ pub struct SedentaryPeriod {
 }
 
 /// A sleep session possibly including stages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Sleep {
     /// Output only. Creation time of this sleep observation.
     #[serde(default, rename = "createTime")]
@@ -1007,7 +1008,7 @@ pub struct Sleep {
 }
 
 /// Step count over the time interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Steps {
     /// Required. Number of steps in the recorded interval.
     #[serde(default)]
@@ -1018,7 +1019,7 @@ pub struct Steps {
 }
 
 /// Time in heart rate zone record. It''s an interval spent in specific heart rate zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeInHeartRateZone {
     /// Required. Heart rate zone type. // TODO: enum values: ["HEART_RATE_ZONE_TYPE_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS", "PEAK"]
     #[serde(default, rename = "heartRateZoneType")]
@@ -1029,7 +1030,7 @@ pub struct TimeInHeartRateZone {
 }
 
 /// VO2 max measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VO2Max {
     /// Optional. The method used to measure the VO2 max value. // TODO: enum values: ["MEASUREMENT_METHOD_UNSPECIFIED", "FITBIT_RUN", "GOOGLE_DEMOGRAPHIC", "COOPER_TEST", "HEART_RATE_RATIO", "METABOLIC_CART", "MULTISTAGE_FITNESS_TEST", "ROCKPORT_FITNESS_TEST", "MAX_EXERCISE", "PREDICTION_SUB_MAX_EXERCISE", "PREDICTION_NON_EXERCISE", "OTHER"]
     #[serde(default, rename = "measurementMethod")]
@@ -1043,7 +1044,7 @@ pub struct VO2Max {
 }
 
 /// Body weight measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Weight {
     /// Optional. Standard free-form notes captured at manual logging.
     #[serde(default)]
@@ -1057,7 +1058,7 @@ pub struct Weight {
 }
 
 /// Represents the result of the rollup of the active minutes data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveMinutesRollupValue {
     /// Active minutes by activity level. At most one record per activity level is allowed.
     #[serde(default, rename = "activeMinutesRollupByActivityLevel")]
@@ -1066,7 +1067,7 @@ pub struct ActiveMinutesRollupValue {
 }
 
 /// Represents the result of the rollup of the active zone minutes data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveZoneMinutesRollupValue {
     /// Active zone minutes in HeartRateZone.CARDIO.
     #[serde(default, rename = "sumInCardioHeartZone")]
@@ -1080,7 +1081,7 @@ pub struct ActiveZoneMinutesRollupValue {
 }
 
 /// Represents the result of the rollup of the activity level data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityLevelRollupValue {
     /// List of total durations in each activity level type.
     #[serde(default, rename = "activityLevelRollupsByActivityLevelType")]
@@ -1089,7 +1090,7 @@ pub struct ActivityLevelRollupValue {
 }
 
 /// Represents the result of the rollup of the user''s altitude.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AltitudeRollupValue {
     /// Sum of the altitude gain in millimeters.
     #[serde(default, rename = "gainMillimetersSum")]
@@ -1097,7 +1098,7 @@ pub struct AltitudeRollupValue {
 }
 
 /// Represents the result of the rollup of the body fat data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BodyFatRollupValue {
     /// Average body fat percentage.
     #[serde(default, rename = "bodyFatPercentageAvg")]
@@ -1105,7 +1106,7 @@ pub struct BodyFatRollupValue {
 }
 
 /// Represents the result of the rollup of the calories in heart rate zone data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CaloriesInHeartRateZoneRollupValue {
     /// List of calories burned in each heart rate zone.
     #[serde(default, rename = "caloriesInHeartRateZones")]
@@ -1114,7 +1115,7 @@ pub struct CaloriesInHeartRateZoneRollupValue {
 }
 
 /// Result of the rollup of the user''s distance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DistanceRollupValue {
     /// Sum of the distance in millimeters.
     #[serde(default, rename = "millimetersSum")]
@@ -1122,7 +1123,7 @@ pub struct DistanceRollupValue {
 }
 
 /// Represents the result of the rollup of the user''s floors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloorsRollupValue {
     /// Sum of the floors count.
     #[serde(default, rename = "countSum")]
@@ -1130,7 +1131,7 @@ pub struct FloorsRollupValue {
 }
 
 /// Represents the result of the rollup of the heart rate data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeartRateRollupValue {
     /// The average heart rate value in the interval.
     #[serde(default, rename = "beatsPerMinuteAvg")]
@@ -1144,7 +1145,7 @@ pub struct HeartRateRollupValue {
 }
 
 /// Represents the result of the rollup of the hydration log data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HydrationLogRollupValue {
     /// Rollup for amount consumed.
     #[serde(default, rename = "amountConsumed")]
@@ -1152,7 +1153,7 @@ pub struct HydrationLogRollupValue {
 }
 
 /// Represents the result of the rollup of the user''s daily heart rate variability personal range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunVO2MaxRollupValue {
     /// Average value of run VO2 max in the interval.
     #[serde(default, rename = "rateAvg")]
@@ -1166,7 +1167,7 @@ pub struct RunVO2MaxRollupValue {
 }
 
 /// Represents the result of the rollup of the user''s sedentary periods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SedentaryPeriodRollupValue {
     /// The total time user spent sedentary during the interval.
     #[serde(default, rename = "durationSum")]
@@ -1174,7 +1175,7 @@ pub struct SedentaryPeriodRollupValue {
 }
 
 /// Represents the result of the rollup of the steps data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StepsRollupValue {
     /// Total number of steps in the interval.
     #[serde(default, rename = "countSum")]
@@ -1182,7 +1183,7 @@ pub struct StepsRollupValue {
 }
 
 /// Represents the result of the rollup of the time in heart rate zone data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeInHeartRateZoneRollupValue {
     /// List of time spent in each heart rate zone.
     #[serde(default, rename = "timeInHeartRateZones")]
@@ -1190,7 +1191,7 @@ pub struct TimeInHeartRateZoneRollupValue {
 }
 
 /// Represents the result of the rollup of the user''s total calories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TotalCaloriesRollupValue {
     /// Sum of the total calories in kilocalories.
     #[serde(default, rename = "kcalSum")]
@@ -1198,7 +1199,7 @@ pub struct TotalCaloriesRollupValue {
 }
 
 /// Represents the result of the rollup of the weight data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeightRollupValue {
     /// Average weight in grams.
     #[serde(default, rename = "weightGramsAvg")]
@@ -1206,7 +1207,7 @@ pub struct WeightRollupValue {
 }
 
 /// Optional metadata for the application that provided this data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
     /// Output only. Captures the client ID of the entity that recorded the data.
     #[serde(default, rename = "googleWebClientId")]
@@ -1220,7 +1221,7 @@ pub struct Application {
 }
 
 /// Captures metadata about the device that recorded the measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Device {
     /// Optional. An optional name for the device.
     #[serde(default, rename = "displayName")]
@@ -1234,7 +1235,7 @@ pub struct Device {
 }
 
 /// Active minutes at a given activity level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveMinutesByActivityLevel {
     /// Required. Number of whole minutes spent in activity.
     #[serde(default, rename = "activeMinutes")]
@@ -1245,7 +1246,7 @@ pub struct ActiveMinutesByActivityLevel {
 }
 
 /// The heart rate zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeartRateZone {
     /// Required. The heart rate zone type. // TODO: enum values: ["HEART_RATE_ZONE_TYPE_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS", "PEAK"]
     #[serde(default, rename = "heartRateZoneType")]
@@ -1259,7 +1260,7 @@ pub struct HeartRateZone {
 }
 
 /// Metadata for the daily resting heart rate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyRestingHeartRateMetadata {
     /// Required. The method used to calculate the resting heart rate. // TODO: enum values: ["CALCULATION_METHOD_UNSPECIFIED", "WITH_SLEEP", "ONLY_WITH_AWAKE_DATA"]
     #[serde(default, rename = "calculationMethod")]
@@ -1267,7 +1268,7 @@ pub struct DailyRestingHeartRateMetadata {
 }
 
 /// Represents instantaneous events that happen during an exercise, such as start, stop, pause, split.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExerciseEvent {
     /// Required. Exercise event time
     #[serde(default, rename = "eventTime")]
@@ -1281,7 +1282,7 @@ pub struct ExerciseEvent {
 }
 
 /// Additional exercise metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExerciseMetadata {
     /// Optional. Whether the exercise had GPS tracking.
     #[serde(default, rename = "hasGps")]
@@ -1292,7 +1293,7 @@ pub struct ExerciseMetadata {
 }
 
 /// Represents splits or laps recorded within an exercise. Lap events partition a workout into segments based on criteria like distance, time, or calories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SplitSummary {
     /// Output only. Lap time excluding the pauses.
     #[serde(default, rename = "activeDuration")]
@@ -1318,7 +1319,7 @@ pub struct SplitSummary {
 }
 
 /// Heart rate metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeartRateMetadata {
     /// Optional. Indicates the user’s level of activity when the heart rate sample was measured // TODO: enum values: ["MOTION_CONTEXT_UNSPECIFIED", "ACTIVE", "SEDENTARY"]
     #[serde(default, rename = "motionContext")]
@@ -1329,7 +1330,7 @@ pub struct HeartRateMetadata {
 }
 
 /// Represents the volume quantity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VolumeQuantity {
     /// Required. Value representing the volume in milliliters.
     #[serde(default)]
@@ -1340,7 +1341,7 @@ pub struct VolumeQuantity {
 }
 
 /// Respiratory rate statistics for a given sleep stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RespiratoryRateSleepSummaryStatistics {
     /// Required. Average breaths per minute.
     #[serde(default, rename = "breathsPerMinute")]
@@ -1354,7 +1355,7 @@ pub struct RespiratoryRateSleepSummaryStatistics {
 }
 
 /// Represents a time interval of session data point, which bundles multiple observed metrics together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionTimeInterval {
     /// Output only. Session end time in civil time in the timezone the subject is in at the end of the session.
     #[serde(default, rename = "civilEndTime")]
@@ -1377,7 +1378,7 @@ pub struct SessionTimeInterval {
 }
 
 /// Additional information about how the sleep was processed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SleepMetadata {
     /// Optional. Sleep identifier relevant in the context of the data source.
     #[serde(default, rename = "externalId")]
@@ -1397,7 +1398,7 @@ pub struct SleepMetadata {
 }
 
 /// A time interval to represent an out-of-bed segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutOfBedSegment {
     /// Required. Segment end time.
     #[serde(default, rename = "endTime")]
@@ -1414,7 +1415,7 @@ pub struct OutOfBedSegment {
 }
 
 /// Sleep stage segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SleepStage {
     /// Output only. Creation time of this sleep stages segment.
     #[serde(default, rename = "createTime")]
@@ -1440,7 +1441,7 @@ pub struct SleepStage {
 }
 
 ///  Sleep summary: metrics and stages summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SleepSummary {
     /// Output only. Minutes after wake up calculated by restlessness algorithm.
     #[serde(default, rename = "minutesAfterWakeUp")]
@@ -1463,7 +1464,7 @@ pub struct SleepSummary {
 }
 
 /// Represents a time interval of an observed data point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObservationTimeInterval {
     /// Output only. Observed interval end time in civil time in the timezone the subject is in at the end of the observed interval
     #[serde(default, rename = "civilEndTime")]
@@ -1486,7 +1487,7 @@ pub struct ObservationTimeInterval {
 }
 
 /// Represents a sample time of an observed data point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObservationSampleTime {
     /// Output only. The civil time in the timezone the subject is in at the time of the observation.
     #[serde(default, rename = "civilTime")]
@@ -1500,7 +1501,7 @@ pub struct ObservationSampleTime {
 }
 
 /// Active minutes by activity level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveMinutesRollupByActivityLevel {
     /// Number of whole minutes spent in activity.
     #[serde(default, rename = "activeMinutesSum")]
@@ -1511,7 +1512,7 @@ pub struct ActiveMinutesRollupByActivityLevel {
 }
 
 /// Represents the total duration in a specific activity level type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityLevelRollupByActivityLevelType {
     /// Activity level type. // TODO: enum values: ["ACTIVITY_LEVEL_TYPE_UNSPECIFIED", "SEDENTARY", "LIGHTLY_ACTIVE", "MODERATELY_ACTIVE", "VERY_ACTIVE"]
     #[serde(default, rename = "activityLevelType")]
@@ -1522,7 +1523,7 @@ pub struct ActivityLevelRollupByActivityLevelType {
 }
 
 /// Represents the amount of kilocalories burned in a specific heart rate zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CaloriesInHeartRateZoneValue {
     /// The heart rate zone. // TODO: enum values: ["HEART_RATE_ZONE_TYPE_UNSPECIFIED", "LIGHT", "MODERATE", "VIGOROUS", "PEAK"]
     #[serde(default, rename = "heartRateZone")]
@@ -1533,7 +1534,7 @@ pub struct CaloriesInHeartRateZoneValue {
 }
 
 /// Rollup for volume quantity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VolumeQuantityRollup {
     /// Required. The sum of volume in milliliters.
     #[serde(default, rename = "millilitersSum")]
@@ -1544,7 +1545,7 @@ pub struct VolumeQuantityRollup {
 }
 
 /// Represents the total time spent in a specific heart rate zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeInHeartRateZoneValue {
     /// The total time spent in the specified heart rate zone.
     #[serde(default)]
@@ -1555,7 +1556,7 @@ pub struct TimeInHeartRateZoneValue {
 }
 
 /// Summary metrics for an exercise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricsSummary {
     /// Optional. Total active zone minutes for the exercise.
     #[serde(default, rename = "activeZoneMinutes")]
@@ -1596,7 +1597,7 @@ pub struct MetricsSummary {
 }
 
 /// Total duration and segment count for a stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageSummary {
     /// Output only. Number of sleep stages segments.
     #[serde(default)]
@@ -1610,7 +1611,7 @@ pub struct StageSummary {
 }
 
 /// Civil time representation similar to google.type.DateTime, but ensures that neither the timezone nor the UTC offset can be set to avoid confusion between civil and physical time queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CivilDateTime {
     /// Required. Calendar date.
     #[serde(default)]
@@ -1621,7 +1622,7 @@ pub struct CivilDateTime {
 }
 
 /// Time spent in each heart rate zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeInHeartRateZones {
     /// Optional. Time spent in light heart rate zone.
     #[serde(default, rename = "lightTime")]
@@ -1638,7 +1639,7 @@ pub struct TimeInHeartRateZones {
 }
 
 /// Mobility workouts specific metrics
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobilityMetrics {
     /// Optional. Cadence is a measure of the frequency of your foot strikes. Steps / min in real time during workout.
     #[serde(default, rename = "avgCadenceStepsPerMinute")]
@@ -1658,7 +1659,7 @@ pub struct MobilityMetrics {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -1672,7 +1673,7 @@ pub struct Date {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]

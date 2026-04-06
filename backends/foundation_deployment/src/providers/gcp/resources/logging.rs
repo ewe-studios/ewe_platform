@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Metadata for LongRunningUpdateBucket Operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketMetadata {
     /// LongRunningCreateBucket RPC request.
     #[serde(default, rename = "createBucketRequest")]
@@ -31,11 +32,11 @@ pub struct BucketMetadata {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Metadata for CopyLogEntries long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CopyLogEntriesMetadata {
     /// Identifies whether the user has requested cancellation of the operation.
     #[serde(default, rename = "cancellationRequested")]
@@ -70,7 +71,7 @@ pub struct CopyLogEntriesMetadata {
 }
 
 /// Response type for CopyLogEntries long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CopyLogEntriesResponse {
     /// Number of log entries copied.
     #[serde(default, rename = "logEntriesCopiedCount")]
@@ -78,11 +79,11 @@ pub struct CopyLogEntriesResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for GetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
@@ -90,7 +91,7 @@ pub struct GetIamPolicyRequest {
 }
 
 /// Metadata for long running Link operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkMetadata {
     /// CreateLink RPC request.
     #[serde(default, rename = "createLinkRequest")]
@@ -110,7 +111,7 @@ pub struct LinkMetadata {
 }
 
 /// The response from ListBuckets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBucketsResponse {
     /// A list of buckets.
     #[serde(default)]
@@ -121,7 +122,7 @@ pub struct ListBucketsResponse {
 }
 
 /// Result returned from ListExclusions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExclusionsResponse {
     /// A list of exclusions.
     #[serde(default)]
@@ -132,7 +133,7 @@ pub struct ListExclusionsResponse {
 }
 
 /// The response from ListLinks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLinksResponse {
     /// A list of links.
     #[serde(default)]
@@ -143,7 +144,7 @@ pub struct ListLinksResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -154,7 +155,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The parameters to ListLogEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLogEntriesRequest {
     /// Optional. A filter that chooses which log entries to return. For more information, see Logging query language (https://docs.cloud.google.com/logging/docs/view/logging-query-language).Only log entries that match the filter are returned. An empty filter matches all log entries in the resources listed in resource_names. Referencing a parent resource that is not listed in resource_names will cause the filter to return no results. The maximum length of a filter is 20,000 characters.To make queries faster, you can make the filter more selective by using restrictions on indexed fields (https://docs.cloud.google.com/logging/docs/view/logging-query-language#indexed-fields) as well as limit the time range of the query by adding range restrictions on the timestamp field.
     #[serde(default)]
@@ -177,7 +178,7 @@ pub struct ListLogEntriesRequest {
 }
 
 /// Result returned from ListLogEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLogEntriesResponse {
     /// A list of log entries. If entries is empty, nextPageToken may still be returned, indicating that more entries may exist. See nextPageToken for more information.
     #[serde(default)]
@@ -188,7 +189,7 @@ pub struct ListLogEntriesResponse {
 }
 
 /// Result returned from ListLogMetrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLogMetricsResponse {
     /// A list of logs-based metrics.
     #[serde(default)]
@@ -199,7 +200,7 @@ pub struct ListLogMetricsResponse {
 }
 
 /// The response from ListLogScopes. Every project has a _Default log scope that cannot be modified or deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLogScopesResponse {
     /// A list of log scopes.
     #[serde(default, rename = "logScopes")]
@@ -210,7 +211,7 @@ pub struct ListLogScopesResponse {
 }
 
 /// Result returned from ListLogs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLogsResponse {
     /// A list of log names. For example, "projects/my-project/logs/syslog" or "organizations/123/logs/cloudresourcemanager.googleapis.com%2Factivity".
     #[serde(default, rename = "logNames")]
@@ -221,7 +222,7 @@ pub struct ListLogsResponse {
 }
 
 /// Result returned from ListMonitoredResourceDescriptors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMonitoredResourceDescriptorsResponse {
     /// If there might be more results than those appearing in this response, then nextPageToken is included. To get the next set of results, call this method again using the value of nextPageToken as pageToken.
     #[serde(default, rename = "nextPageToken")]
@@ -232,7 +233,7 @@ pub struct ListMonitoredResourceDescriptorsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -246,7 +247,7 @@ pub struct ListOperationsResponse {
 }
 
 /// The response from ListRecentQueries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRecentQueriesResponse {
     /// If there might be more results than appear in this response, then nextPageToken is included. To get the next set of results, call the same method again using the value of nextPageToken as pageToken.
     #[serde(default, rename = "nextPageToken")]
@@ -260,7 +261,7 @@ pub struct ListRecentQueriesResponse {
 }
 
 /// The response from ListSavedQueries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSavedQueriesResponse {
     /// If there might be more results than appear in this response, then nextPageToken is included. To get the next set of results, call the same method again using the value of nextPageToken as pageToken.
     #[serde(default, rename = "nextPageToken")]
@@ -274,7 +275,7 @@ pub struct ListSavedQueriesResponse {
 }
 
 /// Result returned from ListSinks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSinksResponse {
     /// If there might be more results than appear in this response, then nextPageToken is included. To get the next set of results, call the same method again using the value of nextPageToken as pageToken.
     #[serde(default, rename = "nextPageToken")]
@@ -285,7 +286,7 @@ pub struct ListSinksResponse {
 }
 
 /// The response from ListViews.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListViewsResponse {
     /// If there might be more results than appear in this response, then nextPageToken is included. To get the next set of results, call the same method again using the value of nextPageToken as pageToken.
     #[serde(default, rename = "nextPageToken")]
@@ -296,7 +297,7 @@ pub struct ListViewsResponse {
 }
 
 /// Cloud Logging specific location metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationMetadata {
     /// Indicates whether or not Log Analytics features are supported in the given location.
     #[serde(default, rename = "logAnalyticsEnabled")]
@@ -304,7 +305,7 @@ pub struct LocationMetadata {
 }
 
 /// Complete log information about a single HTTP request to an App Engine application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestLog {
     /// App Engine release version.
     #[serde(default, rename = "appEngineRelease")]
@@ -411,7 +412,7 @@ pub struct RequestLog {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -422,7 +423,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Describes the settings associated with a project, folder, organization, or billing account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Settings {
     /// Optional. Overrides the built-in configuration for _Default sink.
     #[serde(default, rename = "defaultSinkConfig")]
@@ -448,7 +449,7 @@ pub struct Settings {
 }
 
 /// The parameters to TailLogEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TailLogEntriesRequest {
     /// Optional. The amount of time to buffer log entries at the server before being returned to prevent out of order results due to late arriving log entries. Valid values are between 0-60000 milliseconds. Defaults to 2000 milliseconds.
     #[serde(default, rename = "bufferWindow")]
@@ -462,7 +463,7 @@ pub struct TailLogEntriesRequest {
 }
 
 /// Result returned from TailLogEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TailLogEntriesResponse {
     /// A list of log entries. Each response in the stream will order entries with increasing values of LogEntry.timestamp. Ordering is not guaranteed between separate responses.
     #[serde(default)]
@@ -473,7 +474,7 @@ pub struct TailLogEntriesResponse {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see IAM Overview (https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -481,7 +482,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -489,11 +490,11 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// The parameters to UndeleteBucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteBucketRequest {}
 
 /// The parameters to WriteLogEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteLogEntriesRequest {
     /// Optional. If true, the request should expect normal response, but the entries won''t be persisted nor exported. Useful for checking whether the logging API endpoints are working properly before sending valuable data.
     #[serde(default, rename = "dryRun")]
@@ -516,11 +517,11 @@ pub struct WriteLogEntriesRequest {
 }
 
 /// Result returned from WriteLogEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteLogEntriesResponse {}
 
 /// The parameters to CreateBucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateBucketRequest {
     /// Required. The new bucket. The region specified in the new bucket must be compliant with any Location Restriction Org Policy. The name field in the bucket is ignored.
     #[serde(default)]
@@ -534,7 +535,7 @@ pub struct CreateBucketRequest {
 }
 
 /// The parameters to UpdateBucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateBucketRequest {
     /// Required. The updated bucket.
     #[serde(default)]
@@ -548,7 +549,7 @@ pub struct UpdateBucketRequest {
 }
 
 /// The parameters to CopyLogEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CopyLogEntriesRequest {
     /// Required. Destination to which to copy log entries. For example: "storage.googleapis.com/GCS_BUCKET"
     #[serde(default)]
@@ -562,7 +563,7 @@ pub struct CopyLogEntriesRequest {
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy.Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected.Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset.The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
@@ -570,7 +571,7 @@ pub struct GetPolicyOptions {
 }
 
 /// The parameters to CreateLink.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateLinkRequest {
     /// Required. The new link.
     #[serde(default)]
@@ -584,7 +585,7 @@ pub struct CreateLinkRequest {
 }
 
 /// The parameters to DeleteLink.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteLinkRequest {
     /// Required. The full resource name of the link to delete. "projects/[PROJECT_ID]/locations/[LOCATION_ID]/buckets/[BUCKET_ID]/links/[LINK_ID]" "organizations/[ORGANIZATION_ID]/locations/[LOCATION_ID]/buckets/[BUCKET_ID]/links/[LINK_ID]" "billingAccounts/[BILLING_ACCOUNT_ID]/locations/[LOCATION_ID]/buckets/[BUCKET_ID]/links/[LINK_ID]" "folders/[FOLDER_ID]/locations/[LOCATION_ID]/buckets/[BUCKET_ID]/links/[LINK_ID]"
     #[serde(default)]
@@ -592,7 +593,7 @@ pub struct DeleteLinkRequest {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -612,7 +613,7 @@ pub struct Location {
 }
 
 /// Describes a logs-based metric. The value of the metric is the number of log entries that match a logs filter in a given time interval.Logs-based metrics can also be used to extract values from logs and create a distribution of the values. The distribution records the statistics of the extracted values along with an optional histogram of the values as specified by the bucket options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogMetric {
     /// Optional. The resource name of the Log Bucket that owns the Log Metric. Only Log Buckets in projects are supported. The bucket has to be in the same project as the metric.For example:projects/my-project/locations/global/buckets/my-bucketIf empty, then the Log Metric is considered a non-Bucket Log Metric.
     #[serde(default, rename = "bucketName")]
@@ -656,7 +657,7 @@ pub struct LogMetric {
 }
 
 /// Describes a group of resources to read log entries from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogScope {
     /// Output only. The creation timestamp of the log scope.
     #[serde(default, rename = "createTime")]
@@ -676,7 +677,7 @@ pub struct LogScope {
 }
 
 /// An object that describes the schema of a MonitoredResource object using a type name and a set of labels. For example, the monitored resource descriptor for Google Compute Engine VM instances has a type of "gce_instance" and specifies the use of the labels "instance_id" and "zone" to identify particular VM instances.Different APIs can support different monitored resource types. APIs generally provide a list method that returns the monitored resource descriptors used by the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MonitoredResourceDescriptor {
     /// Optional. A detailed description of the monitored resource type that might be used in documentation.
     #[serde(default)]
@@ -699,7 +700,7 @@ pub struct MonitoredResourceDescriptor {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -719,7 +720,7 @@ pub struct Operation {
 }
 
 /// Describes a recent query executed on the Logs Explorer or Log Analytics page within the last ~ 30 days.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecentQuery {
     /// Output only. The timestamp when this query was last run.
     #[serde(default, rename = "lastRunTime")]
@@ -736,7 +737,7 @@ pub struct RecentQuery {
 }
 
 /// Describes a query that has been saved by a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SavedQuery {
     /// Output only. The timestamp when the saved query was created.
     #[serde(default, rename = "createTime")]
@@ -765,7 +766,7 @@ pub struct SavedQuery {
 }
 
 /// Describes a sink used to export log entries to one of the following destinations: a Cloud Logging log bucket, a Cloud Storage bucket, a BigQuery dataset, a Pub/Sub topic, a Cloud project.A logs filter controls which log entries are exported. The sink must be created within a project, organization, billing account, or folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogSink {
     /// Optional. Options that affect sinks exporting data to BigQuery.
     #[serde(default, rename = "bigqueryOptions")]
@@ -812,7 +813,7 @@ pub struct LogSink {
 }
 
 /// Describes a view over log entries in a bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogView {
     /// Output only. The creation timestamp of the view.
     #[serde(default, rename = "createTime")]
@@ -832,7 +833,7 @@ pub struct LogView {
 }
 
 /// Application log line emitted while processing a request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogLine {
     /// App-provided log message.
     #[serde(default, rename = "logMessage")]
@@ -849,7 +850,7 @@ pub struct LogLine {
 }
 
 /// A reference to a particular snapshot of the source tree used to build and deploy an application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceReference {
     /// Optional. A URI string identifying the repository. Example: "https://github.com/GoogleCloudPlatform/kubernetes.git"
     #[serde(default)]
@@ -860,7 +861,7 @@ pub struct SourceReference {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources.A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role.For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).JSON example: { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 } YAML example: bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3 For a description of IAM and its features, see the IAM documentation (https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal.The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -874,7 +875,7 @@ pub struct Policy {
 }
 
 /// Describes the custom _Default sink configuration that is used to override the built-in _Default sink configuration in newly created resource containers, such as projects or folders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultSinkConfig {
     /// Optional. Specifies the set of exclusions to be added to the _Default sink in newly created resource containers.
     #[serde(default)]
@@ -888,7 +889,7 @@ pub struct DefaultSinkConfig {
 }
 
 /// Information about entries that were omitted from the session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuppressionInfo {
     /// The reason that entries were omitted from the session. // TODO: enum values: ["REASON_UNSPECIFIED", "RATE_LIMIT", "NOT_CONSUMED"]
     #[serde(default)]
@@ -899,7 +900,7 @@ pub struct SuppressionInfo {
 }
 
 /// An individual entry in a log.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogEntry {
     /// Output only. AppHub application metadata associated with this LogEntry. May be empty if there is no associated AppHub application or multiple associated applications (such as for VPC flow logs)
     #[serde(default)]
@@ -973,7 +974,7 @@ pub struct LogEntry {
 }
 
 /// Describes a repository in which log entries are stored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogBucket {
     /// Optional. Whether log analytics is enabled for this bucket.Once enabled, log analytics features cannot be disabled.
     #[serde(default, rename = "analyticsEnabled")]
@@ -1011,7 +1012,7 @@ pub struct LogBucket {
 }
 
 /// Describes a link connected to an analytics enabled bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Link {
     /// Optional. The information of a BigQuery Dataset. When a link is created, a BigQuery dataset is created along with it, in the same project as the LogBucket it''s linked to. This dataset will also have BigQuery Views corresponding to the LogViews in the bucket.
     #[serde(default, rename = "bigqueryDataset")]
@@ -1031,7 +1032,7 @@ pub struct Link {
 }
 
 /// BucketOptions describes the bucket boundaries used to create a histogram for the distribution. The buckets can be in a linear sequence, an exponential sequence, or each bucket can be specified explicitly. BucketOptions does not include the number of values in each bucket.A bucket has an inclusive lower bound and exclusive upper bound for the values that are counted for that bucket. The upper bound of a bucket must be strictly greater than the lower bound. The sequence of N buckets for a distribution consists of an underflow bucket (number 0), zero or more finite buckets (number 1 through N - 2) and an overflow bucket (number N - 1). The buckets are contiguous: the lower bound of bucket i (i &gt; 0) is the same as the upper bound of bucket i - 1. The buckets span the whole range of finite values: lower bound of the underflow bucket is -infinity and the upper bound of the overflow bucket is +infinity. The finite buckets are so-called because both bounds are finite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketOptions {
     /// The explicit buckets.
     #[serde(default, rename = "explicitBuckets")]
@@ -1045,7 +1046,7 @@ pub struct BucketOptions {
 }
 
 /// Defines a metric type and its schema. Once a metric descriptor is created, deleting or altering it stops data collection and makes the metric type''s existing data unusable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricDescriptor {
     /// A detailed description of the metric, which can be used in documentation.
     #[serde(default)]
@@ -1083,7 +1084,7 @@ pub struct MetricDescriptor {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1097,7 +1098,7 @@ pub struct Status {
 }
 
 /// Describes a Cloud Logging query that can be run in Logs Explorer UI or via the logging API.In addition to the query itself, additional information may be stored to capture the display configuration and other UI state used in association with analysis of query results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingQuery {
     /// Required. An advanced query using the Logging Query Language (https://docs.cloud.google.com/logging/docs/view/logging-query-language). The maximum length of the filter is 20000 characters.
     #[serde(default)]
@@ -1114,7 +1115,7 @@ pub struct LoggingQuery {
 }
 
 /// Describes a query that can be run in Log Analytics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OpsAnalyticsQuery {
     /// Optional. A query builder configuration used in Log Analytics.If both query_builder and sql_query_text fields are set, then the sql_query_text will be used, if its non-empty. At least one of the two fields must be set.
     #[serde(default, rename = "queryBuilder")]
@@ -1125,7 +1126,7 @@ pub struct OpsAnalyticsQuery {
 }
 
 /// Options that change functionality of a sink exporting data to BigQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryOptions {
     /// Optional. Whether to use BigQuery''s partition tables (https://docs.cloud.google.com/bigquery/docs/partitioned-tables). By default, Cloud Logging creates dated tables based on the log entries'' timestamps, e.g. syslog_20170523. With partitioned tables the date suffix is no longer present and special query syntax (https://docs.cloud.google.com/bigquery/docs/querying-partitioned-tables) has to be used instead. In both cases, tables are sharded based on UTC timezone.
     #[serde(default, rename = "usePartitionedTables")]
@@ -1136,7 +1137,7 @@ pub struct BigQueryOptions {
 }
 
 /// Specifies a location in a source code file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceLocation {
     /// Source file name. Depending on the runtime environment, this might be a simple name or a fully-qualified name.
     #[serde(default)]
@@ -1150,7 +1151,7 @@ pub struct SourceLocation {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding.If the condition evaluates to true, then this binding applies to the current request.If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1164,7 +1165,7 @@ pub struct Binding {
 }
 
 /// Specifies a set of log entries that are filtered out by a sink. If your Google Cloud resource receives a large volume of log entries, you can use exclusions to reduce your chargeable logs. Note that exclusions on organization-level and folder-level sinks don''t apply to child resources. Note also that you cannot modify the _Required sink or exclude logs from it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogExclusion {
     /// Output only. The creation timestamp of the exclusion.This field may not be present for older exclusions.
     #[serde(default, rename = "createTime")]
@@ -1187,7 +1188,7 @@ pub struct LogExclusion {
 }
 
 /// Metadata associated with App Hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppHub {
     /// Metadata associated with the application.
     #[serde(default)]
@@ -1201,7 +1202,7 @@ pub struct AppHub {
 }
 
 /// Contains metadata that associates the LogEntry to Error Reporting error groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogErrorGroup {
     /// The id is a unique identifier for a particular error group; it is the last part of the error group resource name: /project/[PROJECT_ID]/errors/[ERROR_GROUP_ID]. Example: COShysOX0r_51QE. The id is derived from key parts of the error-log content and is treated as Service Data. For information about how Service Data is handled, see Google Cloud Privacy Notice (https://cloud.google.com/terms/cloud-privacy-notice).
     #[serde(default)]
@@ -1209,7 +1210,7 @@ pub struct LogErrorGroup {
 }
 
 /// A common proto for logging HTTP requests. Only contains semantics defined by the HTTP specification. Product-specific logging information MUST be defined in a separate message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRequest {
     /// The number of HTTP response bytes inserted into cache. Set only when a cache fill was attempted.
     #[serde(default, rename = "cacheFillBytes")]
@@ -1259,7 +1260,7 @@ pub struct HttpRequest {
 }
 
 /// Auxiliary metadata for a MonitoredResource object. MonitoredResource objects contain the minimum set of information to uniquely identify a monitored resource instance. There is some other useful auxiliary metadata. Monitoring and Logging use an ingestion pipeline to extract metadata for cloud resources of all types, and store the metadata in this message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MonitoredResourceMetadata {
     /// Output only. Values for predefined system metadata labels. System labels are a kind of metadata extracted by Google, including "machine_image", "vpc", "subnet_id", "security_group", "name", etc. System label values can be only strings, Boolean values, or a list of strings. For example: { "name": "my-test-instance", "security_group": ["a", "b", "c"], "spot_instance": false }
     #[serde(default, rename = "systemLabels")]
@@ -1270,7 +1271,7 @@ pub struct MonitoredResourceMetadata {
 }
 
 /// Additional information about a potentially long-running operation with which a log entry is associated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogEntryOperation {
     /// Optional. Set this to True if this is the first log entry in the operation.
     #[serde(default)]
@@ -1287,7 +1288,7 @@ pub struct LogEntryOperation {
 }
 
 /// An object representing a resource that can be used for monitoring, logging, billing, or other purposes. Examples include virtual machine instances, databases, and storage devices such as disks. The type field identifies a MonitoredResourceDescriptor object that describes the resource''s schema. Information in the labels field identifies the actual resource and its attributes according to the schema. For example, a particular Compute Engine VM instance could be represented by the following object, because the MonitoredResourceDescriptor for "gce_instance" has labels "project_id", "instance_id" and "zone": { "type": "gce_instance", "labels": { "project_id": "my-project", "instance_id": "12345678901234", "zone": "us-central1-a" }}
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MonitoredResource {
     /// Required. Values for all of the labels listed in the associated monitored resource descriptor. For example, Compute Engine VM instances use the labels "project_id", "instance_id", and "zone".
     #[serde(default)]
@@ -1298,7 +1299,7 @@ pub struct MonitoredResource {
 }
 
 /// Additional information about the source code location that produced the log entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogEntrySourceLocation {
     /// Optional. Source file name. Depending on the runtime environment, this might be a simple name or a fully-qualified name.
     #[serde(default)]
@@ -1312,7 +1313,7 @@ pub struct LogEntrySourceLocation {
 }
 
 /// Additional information used to correlate multiple log entries. Used when a single LogEntry would exceed the Google Cloud Logging size limit and is split across multiple log entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogSplit {
     /// The index of this LogEntry in the sequence of split log entries. Log entries are given |index| values 0, 1, ..., n-1 for a sequence of n log entries.
     #[serde(default)]
@@ -1326,7 +1327,7 @@ pub struct LogSplit {
 }
 
 /// Describes the customer-managed encryption key (CMEK) settings associated with a project, folder, organization, billing account, or flexible resource.Note: CMEK for the Log Router can currently only be configured for Google Cloud organizations. Once configured, it applies to all projects and folders in the Google Cloud organization.See Configure CMEK for Cloud Logging (https://docs.cloud.google.com/logging/docs/routing/managed-encryption) for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CmekSettings {
     /// Optional. The resource name for the configured Cloud KMS key.KMS key name format: "projects/[PROJECT_ID]/locations/[LOCATION]/keyRings/[KEYRING]/cryptoKeys/[KEY]" For example:"projects/my-project/locations/us-central1/keyRings/my-ring/cryptoKeys/my-key"To enable CMEK for the Log Router, set this field to a valid kms_key_name for which the associated service account has the needed cloudkms.cryptoKeyEncrypterDecrypter roles assigned for the key.The Cloud KMS key used by the Log Router can be updated by changing the kms_key_name to a new valid key name or disabled by setting the key name to an empty string. Encryption operations that are in progress will be completed with the key that was in use when they started. Decryption operations will be completed using the key that was used at the time of encryption unless access to that key has been revoked.To disable CMEK for the Log Router, set this field to an empty string.See Configure CMEK for Cloud Logging (https://docs.cloud.google.com/logging/docs/routing/managed-encryption) for more information.
     #[serde(default, rename = "kmsKeyName")]
@@ -1343,7 +1344,7 @@ pub struct CmekSettings {
 }
 
 /// Configuration for an indexed field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IndexConfig {
     /// Output only. The timestamp when the index was last modified.This is used to return the timestamp, and will be ignored if supplied during update.
     #[serde(default, rename = "createTime")]
@@ -1357,7 +1358,7 @@ pub struct IndexConfig {
 }
 
 /// Describes a BigQuery dataset that was created by a link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryDataset {
     /// Output only. The full resource name of the BigQuery dataset. The DATASET_ID will match the ID of the link, so the link must match the naming restrictions of BigQuery datasets (alphanumeric characters and underscores only).The dataset will have a resource path of "bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID"
     #[serde(default, rename = "datasetId")]
@@ -1365,7 +1366,7 @@ pub struct BigQueryDataset {
 }
 
 /// Specifies a set of buckets with arbitrary widths.There are size(bounds) + 1 (= N) buckets. Bucket i has the following boundaries:Upper bound (0 &lt;= i &lt; N-1): boundsi Lower bound (1 &lt;= i &lt; N); boundsi - 1The bounds field must contain at least one element. If bounds has only one element, then there are no finite buckets, and that single element is the common boundary of the overflow and underflow buckets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Explicit {
     /// The values must be monotonically increasing.
     #[serde(default)]
@@ -1373,7 +1374,7 @@ pub struct Explicit {
 }
 
 /// Specifies an exponential sequence of buckets that have a width that is proportional to the value of the lower bound. Each bucket represents a constant relative uncertainty on a specific value in the bucket.There are num_finite_buckets + 2 (= N) buckets. Bucket i has the following boundaries:Upper bound (0 &lt;= i &lt; N-1): scale * (growth_factor ^ i).Lower bound (1 &lt;= i &lt; N): scale * (growth_factor ^ (i - 1)).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Exponential {
     /// Must be greater than 1.
     #[serde(default, rename = "growthFactor")]
@@ -1387,7 +1388,7 @@ pub struct Exponential {
 }
 
 /// Specifies a linear sequence of buckets that all have the same width (except overflow and underflow). Each bucket represents a constant absolute uncertainty on the specific value in the bucket.There are num_finite_buckets + 2 (= N) buckets. Bucket i has the following boundaries:Upper bound (0 &lt;= i &lt; N-1): offset + (width * i).Lower bound (1 &lt;= i &lt; N): offset + (width * (i - 1)).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Linear {
     /// Must be greater than 0.
     #[serde(default, rename = "numFiniteBuckets")]
@@ -1401,7 +1402,7 @@ pub struct Linear {
 }
 
 /// A description of a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelDescriptor {
     /// A human-readable description for the label.
     #[serde(default)]
@@ -1415,7 +1416,7 @@ pub struct LabelDescriptor {
 }
 
 /// Additional annotations that can be used to guide the usage of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricDescriptorMetadata {
     /// The delay of data points caused by ingestion. Data points older than this age are guaranteed to be ingested and available to be read, excluding data loss due to errors.
     #[serde(default, rename = "ingestDelay")]
@@ -1432,7 +1433,7 @@ pub struct MetricDescriptorMetadata {
 }
 
 /// A field from the LogEntry that is added to the summary line (https://docs.cloud.google.com/logging/docs/view/logs-explorer-interface#preferences) for a query in the Logs Explorer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SummaryField {
     /// Optional. The field from the LogEntry to include in the summary line, for example resource.type or jsonPayload.name.
     #[serde(default)]
@@ -1440,7 +1441,7 @@ pub struct SummaryField {
 }
 
 /// Defines a structured query configuration that can be used instead of writing raw SQL. This configuration represents the components of a SQL query (FROM, SELECT, WHERE, ORDER BY, LIMIT) and is typically converted into an executable query (e.g., BigQuery SQL) by the backend service to retrieve data for analysis or visualization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryBuilderConfig {
     /// Defines the items to include in the query result, analogous to a SQL SELECT clause.
     #[serde(default, rename = "fieldSources")]
@@ -1463,7 +1464,7 @@ pub struct QueryBuilderConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec.Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1480,7 +1481,7 @@ pub struct Expr {
 }
 
 /// Resource identifiers associated with an AppHub application AppHub resources are of the form projects//locations//applications/ projects//locations//applications//services/ projects//locations//applications//workloads/ These resources can be reconstructed from the components below.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppHubApplication {
     /// Resource container that owns the application. Example: "projects/management_project"
     #[serde(default)]
@@ -1494,7 +1495,7 @@ pub struct AppHubApplication {
 }
 
 /// Metadata associated with an App Hub service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppHubService {
     /// Service criticality type Example: "CRITICAL"
     #[serde(default, rename = "criticalityType")]
@@ -1508,7 +1509,7 @@ pub struct AppHubService {
 }
 
 /// Metadata associated with an App Hub workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppHubWorkload {
     /// Workload criticality type Example: "CRITICAL"
     #[serde(default, rename = "criticalityType")]
@@ -1522,7 +1523,7 @@ pub struct AppHubWorkload {
 }
 
 /// A filter for a query. This equates to the WHERE clause in SQL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterPredicate {
     /// The children of the filter predicate. This equates to the branches of the filter predicate that could contain further nested leaves.
     #[serde(default, rename = "childPredicates")]
@@ -1536,7 +1537,7 @@ pub struct FilterPredicate {
 }
 
 /// A sort order for a query based on a column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SortOrderParameter {
     /// The field to sort on. Can be one of the FieldSource types: field name, alias ref, variable ref, or a literal value.
     #[serde(default, rename = "fieldSource")]
@@ -1547,7 +1548,7 @@ pub struct SortOrderParameter {
 }
 
 /// This is a leaf of the FilterPredicate. Ex: { field: json_payload.message.error_code, filter_value: {numeric_value: 400}, comparator: EQUAL_TO} The field will be schema field that is selected using the . annotation to display the drill down value. The value will be the user inputted text that the filter is comparing against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterExpression {
     /// The comparison type to use for the filter. // TODO: enum values: ["COMPARATOR_UNSPECIFIED", "EQUALS", "MATCHES_REGEXP", "GREATER_THAN", "LESS_THAN", "GREATER_THAN_EQUALS", "LESS_THAN_EQUALS", "IS_NULL", "IN", "LIKE"]
     #[serde(default)]
@@ -1567,7 +1568,7 @@ pub struct FilterExpression {
 }
 
 /// A source that can be used to represent a field within various parts of a structured query, such as in SELECT, WHERE, or ORDER BY clauses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldSource {
     /// The alias name for a field that has already been aliased within a different ProjectedField type elsewhere in the query model. The alias must be defined in the QueryBuilderConfig''s field_sources list, otherwise the model is invalid.
     #[serde(default, rename = "aliasRef")]
@@ -1590,7 +1591,7 @@ pub struct FieldSource {
 }
 
 /// Represents a field selected in the query, analogous to an item in a SQL SELECT clause. It specifies the source field and optionally applies transformations like aggregation, casting, regex extraction, or assigns an alias. Use ProjectedField when you need more than just the raw source field name (for which you might use FieldSource directly in QueryBuilderConfig''s field_sources list if no transformations or specific operation type are needed).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectedField {
     /// The alias name for the field. Valid alias examples are: - single word alias: TestAlias - numbers in an alias: Alias123 - multi word alias should be enclosed in quotes: "Test Alias" Invalid alias examples are: - alias containing keywords: WHERE, SELECT, FROM, etc. - alias starting with a number: 1stAlias
     #[serde(default)]
@@ -1616,7 +1617,7 @@ pub struct ProjectedField {
 }
 
 /// Defines the aggregation function to apply to this field. This message is used only when operation is set to AGGREGATE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FunctionApplication {
     /// Optional. Parameters to be applied to the aggregation. Aggregations that support or require parameters are listed above.
     #[serde(default)]

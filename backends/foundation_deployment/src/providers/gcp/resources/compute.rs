@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// AcceleratorTypeAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorTypeAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -37,7 +38,7 @@ pub struct AcceleratorTypeAggregatedList {
 }
 
 /// Contains a list of accelerator types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorTypeList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -60,7 +61,7 @@ pub struct AcceleratorTypeList {
 }
 
 /// AcceleratorTypesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorTypesScopedList {
     /// [Output Only] A list of accelerator types contained in this scope.
     #[serde(default, rename = "acceleratorTypes")]
@@ -71,7 +72,7 @@ pub struct AcceleratorTypesScopedList {
 }
 
 /// AddressAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -97,7 +98,7 @@ pub struct AddressAggregatedList {
 }
 
 /// Contains a list of addresses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -120,7 +121,7 @@ pub struct AddressList {
 }
 
 /// AddressesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressesScopedList {
     /// [Output Only] A list of addresses contained in this scope.
     #[serde(default)]
@@ -131,7 +132,7 @@ pub struct AddressesScopedList {
 }
 
 /// AutoscalerAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalerAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -157,7 +158,7 @@ pub struct AutoscalerAggregatedList {
 }
 
 /// Contains a list of Autoscaler resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalerList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -180,7 +181,7 @@ pub struct AutoscalerList {
 }
 
 /// AutoscalersScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalersScopedList {
     /// [Output Only] A list of autoscalers contained in this scope.
     #[serde(default)]
@@ -193,7 +194,7 @@ pub struct AutoscalersScopedList {
 /// Scaling based on user-defined schedule. The message describes a single
 /// scaling schedule. A scaling schedule changes the minimum number of VM
 /// instances an autoscaler can recommend, which can trigger scaling out.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingPolicyScalingSchedule {
     /// A description of a scaling schedule.
     #[serde(default)]
@@ -216,7 +217,7 @@ pub struct AutoscalingPolicyScalingSchedule {
 }
 
 /// Contains a list of BackendBucket resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendBucketList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -239,7 +240,7 @@ pub struct BackendBucketList {
 }
 
 /// Contains a list of BackendServicesScopedList.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -265,7 +266,7 @@ pub struct BackendServiceAggregatedList {
 }
 
 /// BackendServiceGroupHealth resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceGroupHealth {
     /// Metadata defined as annotations on the network endpoint group.
     #[serde(default)]
@@ -279,7 +280,7 @@ pub struct BackendServiceGroupHealth {
 }
 
 /// Contains a list of BackendService resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -302,7 +303,7 @@ pub struct BackendServiceList {
 }
 
 /// Contains a list of usable BackendService resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceListUsable {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -325,7 +326,7 @@ pub struct BackendServiceListUsable {
 }
 
 /// BackendServicesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServicesScopedList {
     /// A list of BackendServices contained in this scope.
     #[serde(default, rename = "backendServices")]
@@ -338,7 +339,7 @@ pub struct BackendServicesScopedList {
 /// A transient resource used in compute.disks.bulkInsert and
 /// compute.regionDisks.bulkInsert. It is only used to process
 /// requests and is not persisted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkInsertDiskResource {
     /// The URL of the DiskConsistencyGroupPolicy for the group of disks to clone.
     #[serde(default, rename = "sourceConsistencyGroupPolicy")]
@@ -348,7 +349,7 @@ pub struct BulkInsertDiskResource {
 /// A transient resource used in compute.instances.bulkInsert and
 /// compute.regionInstances.bulkInsert . This resource is not persisted
 /// anywhere, it is used only for processing the requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkInsertInstanceResource {
     /// The maximum number of instances to create.
     #[serde(default)]
@@ -378,7 +379,7 @@ pub struct BulkInsertInstanceResource {
 
 /// Per-instance properties to be set on individual instances.
 /// To be extended in the future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkInsertInstanceResourcePerInstanceProperties {
     /// Specifies the hostname of the instance. More details in:
     #[serde(default)]
@@ -389,7 +390,7 @@ pub struct BulkInsertInstanceResourcePerInstanceProperties {
 }
 
 /// BulkInsertOperationStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkInsertOperationStatus {
     /// [Output Only] Count of VMs successfully created so far.
     #[serde(default, rename = "createdVmCount")]
@@ -409,14 +410,14 @@ pub struct BulkInsertOperationStatus {
 }
 
 /// BulkZoneSetLabelsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkZoneSetLabelsRequest {
     #[serde(default)]
     pub requests: ::core::option::Option<::std::vec::Vec<BulkSetLabelsRequest>>,
 }
 
 /// CacheInvalidationRule resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CacheInvalidationRule {
     /// A list of cache tags used to identify cached objects.
     #[serde(default, rename = "cacheTags")]
@@ -430,7 +431,7 @@ pub struct CacheInvalidationRule {
 
 /// A request to recommend the best way to consume the specified resources in the
 /// future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CalendarModeAdviceRequest {
     /// Specification of resources to create in the future.
     #[serde(default, rename = "futureResourcesSpecs")]
@@ -440,7 +441,7 @@ pub struct CalendarModeAdviceRequest {
 /// A response containing the recommended way of creating the specified resources
 /// in the future. It contains (will contain) multiple recommendations that can
 /// be analyzed by the customer and the best one can be picked.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CalendarModeAdviceResponse {
     /// Recommendations where, how and when to create the requested resources
     #[serde(default)]
@@ -448,7 +449,7 @@ pub struct CalendarModeAdviceResponse {
 }
 
 /// CommitmentAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitmentAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -474,7 +475,7 @@ pub struct CommitmentAggregatedList {
 }
 
 /// Contains a list of Commitment resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitmentList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -497,7 +498,7 @@ pub struct CommitmentList {
 }
 
 /// CommitmentsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitmentsScopedList {
     /// [Output Only] The list of commitments contained in this scope.
     #[serde(default)]
@@ -508,7 +509,7 @@ pub struct CommitmentsScopedList {
 }
 
 /// Contains a list of CompositeHealthChecksScopedList.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompositeHealthCheckAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -534,7 +535,7 @@ pub struct CompositeHealthCheckAggregatedList {
 }
 
 /// CompositeHealthCheckList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompositeHealthCheckList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -557,7 +558,7 @@ pub struct CompositeHealthCheckList {
 }
 
 /// CompositeHealthChecksScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompositeHealthChecksScopedList {
     /// A list of CompositeHealthChecks contained in this scope.
     #[serde(default, rename = "compositeHealthChecks")]
@@ -568,7 +569,7 @@ pub struct CompositeHealthChecksScopedList {
 }
 
 /// Response to the list request that contains a list of cross-site networks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrossSiteNetworkList {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -596,7 +597,7 @@ pub struct CrossSiteNetworkList {
 }
 
 /// DiskAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -622,14 +623,14 @@ pub struct DiskAggregatedList {
 }
 
 /// DiskAsyncReplicationList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskAsyncReplicationList {
     #[serde(default, rename = "asyncReplicationDisk")]
     pub async_replication_disk: ::core::option::Option<DiskAsyncReplication>,
 }
 
 /// A list of Disk resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -652,7 +653,7 @@ pub struct DiskList {
 }
 
 /// DiskMoveRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskMoveRequest {
     /// The URL of the destination zone to move the disk. This can be a full or
     #[serde(default, rename = "destinationZone")]
@@ -663,7 +664,7 @@ pub struct DiskMoveRequest {
 }
 
 /// DiskTypeAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskTypeAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -689,7 +690,7 @@ pub struct DiskTypeAggregatedList {
 }
 
 /// Contains a list of disk types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskTypeList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -712,7 +713,7 @@ pub struct DiskTypeList {
 }
 
 /// DiskTypesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskTypesScopedList {
     /// [Output Only] A list of disk types contained in this scope.
     #[serde(default, rename = "diskTypes")]
@@ -723,7 +724,7 @@ pub struct DiskTypesScopedList {
 }
 
 /// DisksAddResourcePoliciesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisksAddResourcePoliciesRequest {
     /// Full or relative path to the resource policy to be added to this disk. You
     #[serde(default, rename = "resourcePolicies")]
@@ -731,7 +732,7 @@ pub struct DisksAddResourcePoliciesRequest {
 }
 
 /// DisksRemoveResourcePoliciesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisksRemoveResourcePoliciesRequest {
     /// Resource policies to be removed from this disk.
     #[serde(default, rename = "resourcePolicies")]
@@ -739,7 +740,7 @@ pub struct DisksRemoveResourcePoliciesRequest {
 }
 
 /// DisksResizeRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisksResizeRequest {
     /// The new size of the persistent disk, which is specified in GB.
     #[serde(default, rename = "sizeGb")]
@@ -747,7 +748,7 @@ pub struct DisksResizeRequest {
 }
 
 /// DisksScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisksScopedList {
     /// [Output Only] A list of disks contained in this scope.
     #[serde(default)]
@@ -758,7 +759,7 @@ pub struct DisksScopedList {
 }
 
 /// DisksStartAsyncReplicationRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisksStartAsyncReplicationRequest {
     /// The secondary disk to start asynchronous replication to.
     #[serde(default, rename = "asyncSecondaryDisk")]
@@ -768,7 +769,7 @@ pub struct DisksStartAsyncReplicationRequest {
 /// A transient resource used in compute.disks.stopGroupAsyncReplication and
 /// compute.regionDisks.stopGroupAsyncReplication. It is only used to process
 /// requests and is not persisted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisksStopGroupAsyncReplicationResource {
     /// The URL of the DiskConsistencyGroupPolicy for the group of disks to stop.
     #[serde(default, rename = "resourcePolicy")]
@@ -799,7 +800,7 @@ pub struct DisksStopGroupAsyncReplicationResource {
 ///         "availableRegions": "us-central1,us-east2"
 ///       }
 ///     }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorInfo {
     /// The logical grouping to which the "reason" belongs. The error domain
     #[serde(default)]
@@ -813,7 +814,7 @@ pub struct ErrorInfo {
 }
 
 /// ExchangedPeeringRoutesList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangedPeeringRoutesList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -836,7 +837,7 @@ pub struct ExchangedPeeringRoutesList {
 }
 
 /// Response to the list request, and contains a list of externalVpnGateways.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalVpnGatewayList {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -861,7 +862,7 @@ pub struct ExternalVpnGatewayList {
 }
 
 /// Contains a list of firewalls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -884,7 +885,7 @@ pub struct FirewallList {
 }
 
 /// FirewallPoliciesListAssociationsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallPoliciesListAssociationsResponse {
     /// A list of associations.
     #[serde(default)]
@@ -895,7 +896,7 @@ pub struct FirewallPoliciesListAssociationsResponse {
 }
 
 /// FirewallPoliciesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallPoliciesScopedList {
     /// A list of firewall policies contained in this scope.
     #[serde(default, rename = "firewallPolicies")]
@@ -906,7 +907,7 @@ pub struct FirewallPoliciesScopedList {
 }
 
 /// FirewallPolicyList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallPolicyList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -926,7 +927,7 @@ pub struct FirewallPolicyList {
 }
 
 /// ForwardingRuleAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardingRuleAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -952,7 +953,7 @@ pub struct ForwardingRuleAggregatedList {
 }
 
 /// Contains a list of ForwardingRule resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardingRuleList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -975,7 +976,7 @@ pub struct ForwardingRuleList {
 }
 
 /// ForwardingRulesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardingRulesScopedList {
     /// A list of forwarding rules contained in this scope.
     #[serde(default, rename = "forwardingRules")]
@@ -986,7 +987,7 @@ pub struct ForwardingRulesScopedList {
 }
 
 /// Contains a list of future reservations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservationsAggregatedListResponse {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -1014,7 +1015,7 @@ pub struct FutureReservationsAggregatedListResponse {
 }
 
 /// FutureReservationsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservationsListResponse {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -1042,7 +1043,7 @@ pub struct FutureReservationsListResponse {
 }
 
 /// FutureReservationsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservationsScopedList {
     /// A list of future reservations contained in this scope.
     #[serde(default, rename = "futureReservations")]
@@ -1054,7 +1055,7 @@ pub struct FutureReservationsScopedList {
 
 /// Recommendation for single resources specification, to be created in the
 /// future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureResourcesRecommendation {
     #[serde(default, rename = "endTime")]
     pub end_time: ::core::option::Option<String>,
@@ -1076,7 +1077,7 @@ pub struct FutureResourcesRecommendation {
 
 /// Information about recommendation status for locations
 /// that were allowed but not used by the response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureResourcesRecommendationOtherLocation {
     /// Details (human readable) describing the situation.
     #[serde(default)]
@@ -1088,7 +1089,7 @@ pub struct FutureResourcesRecommendationOtherLocation {
 
 /// Specification of resources to be created at some time in the future within an
 /// optionally specified set of locations, and within the specified time range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureResourcesSpec {
     /// Indicates if the reservation allocation strategy is static (DENSE) or
     #[serde(default, rename = "deploymentType")]
@@ -1105,7 +1106,7 @@ pub struct FutureResourcesSpec {
 }
 
 /// Preference for a single specified location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureResourcesSpecLocationPolicyLocation {
     /// Preference for this location. // TODO: enum values: ["ALLOW", "DENY", "PREFERENCE_UNSPECIFIED"]
     #[serde(default)]
@@ -1113,7 +1114,7 @@ pub struct FutureResourcesSpecLocationPolicyLocation {
 }
 
 /// GlobalAddressesMoveRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlobalAddressesMoveRequest {
     /// An optional destination address description if intended to be different
     #[serde(default)]
@@ -1124,7 +1125,7 @@ pub struct GlobalAddressesMoveRequest {
 }
 
 /// GlobalNetworkEndpointGroupsAttachEndpointsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlobalNetworkEndpointGroupsAttachEndpointsRequest {
     /// The list of network endpoints to be attached.
     #[serde(default, rename = "networkEndpoints")]
@@ -1132,7 +1133,7 @@ pub struct GlobalNetworkEndpointGroupsAttachEndpointsRequest {
 }
 
 /// GlobalNetworkEndpointGroupsDetachEndpointsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlobalNetworkEndpointGroupsDetachEndpointsRequest {
     /// The list of network endpoints to be detached.
     #[serde(default, rename = "networkEndpoints")]
@@ -1140,7 +1141,7 @@ pub struct GlobalNetworkEndpointGroupsDetachEndpointsRequest {
 }
 
 /// GlobalOrganizationSetPolicyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlobalOrganizationSetPolicyRequest {
     /// Flatten Policy to create a backward compatible wire-format.
     #[serde(default)]
@@ -1154,7 +1155,7 @@ pub struct GlobalOrganizationSetPolicyRequest {
 }
 
 /// GlobalSetLabelsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlobalSetLabelsRequest {
     /// The fingerprint of the previous set of labels for this resource,
     #[serde(default, rename = "labelFingerprint")]
@@ -1165,7 +1166,7 @@ pub struct GlobalSetLabelsRequest {
 }
 
 /// GlobalSetPolicyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlobalSetPolicyRequest {
     /// Flatten Policy to create a backward compatible wire-format.
     #[serde(default)]
@@ -1179,7 +1180,7 @@ pub struct GlobalSetPolicyRequest {
 }
 
 /// A guest attributes entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestAttributes {
     /// Output only. [Output Only] Type of the resource. Alwayscompute#guestAttributes for guest attributes entry.
     #[serde(default)]
@@ -1202,7 +1203,7 @@ pub struct GuestAttributes {
 }
 
 /// HealthAggregationPoliciesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthAggregationPoliciesScopedList {
     /// A list of HealthAggregationPolicys contained in this scope.
     #[serde(default, rename = "healthAggregationPolicies")]
@@ -1214,7 +1215,7 @@ pub struct HealthAggregationPoliciesScopedList {
 }
 
 /// Contains a list of HealthAggregationPoliciesScopedList.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthAggregationPolicyAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1240,7 +1241,7 @@ pub struct HealthAggregationPolicyAggregatedList {
 }
 
 /// HealthAggregationPolicyList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthAggregationPolicyList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1263,7 +1264,7 @@ pub struct HealthAggregationPolicyList {
 }
 
 /// Contains a list of HealthCheck resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheckList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1286,7 +1287,7 @@ pub struct HealthCheckList {
 }
 
 /// Contains a list of HealthCheckServicesScopedList.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheckServiceAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1312,7 +1313,7 @@ pub struct HealthCheckServiceAggregatedList {
 }
 
 /// HealthCheckServicesList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheckServicesList {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1335,7 +1336,7 @@ pub struct HealthCheckServicesList {
 }
 
 /// HealthCheckServicesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheckServicesScopedList {
     /// A list of HealthCheckServices contained in this scope.
     #[serde(default)]
@@ -1346,7 +1347,7 @@ pub struct HealthCheckServicesScopedList {
 }
 
 /// HealthChecksAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthChecksAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1372,7 +1373,7 @@ pub struct HealthChecksAggregatedList {
 }
 
 /// HealthChecksScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthChecksScopedList {
     /// A list of HealthChecks contained in this scope.
     #[serde(default, rename = "healthChecks")]
@@ -1383,7 +1384,7 @@ pub struct HealthChecksScopedList {
 }
 
 /// Contains a list of HealthSourcesScopedList.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthSourceAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1409,7 +1410,7 @@ pub struct HealthSourceAggregatedList {
 }
 
 /// HealthSourceList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthSourceList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1432,7 +1433,7 @@ pub struct HealthSourceList {
 }
 
 /// HealthSourcesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthSourcesScopedList {
     /// A list of HealthSources contained in this scope.
     #[serde(default, rename = "healthSources")]
@@ -1447,7 +1448,7 @@ pub struct HealthSourcesScopedList {
 /// For example, if a quota check failed with an error indicating the calling
 /// project hasn''t enabled the accessed service, this can contain a URL pointing
 /// directly to the right place in the developer console to flip the bit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Help {
     /// URL(s) pointing to additional information on handling the current error.
     #[serde(default)]
@@ -1455,7 +1456,7 @@ pub struct Help {
 }
 
 /// Contains a list of HttpHealthCheck resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpHealthCheckList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1478,7 +1479,7 @@ pub struct HttpHealthCheckList {
 }
 
 /// Contains a list of HttpsHealthCheck resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpsHealthCheckList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1501,7 +1502,7 @@ pub struct HttpsHealthCheckList {
 }
 
 /// ImageFamilyView resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageFamilyView {
     /// The latest image that is part of the specified image family in the
     #[serde(default)]
@@ -1509,7 +1510,7 @@ pub struct ImageFamilyView {
 }
 
 /// Contains a list of images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1532,7 +1533,7 @@ pub struct ImageList {
 }
 
 /// InstanceAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1562,7 +1563,7 @@ pub struct InstanceAggregatedList {
 /// The count specified in the shape flexibility must not exceed the number
 /// of entries in per_instance_properties or the capacity of the
 /// name_pattern, if used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceFlexibilityPolicyInstanceSelection {
     /// Disks to be attached to the instances created from in this selection.
     #[serde(default)]
@@ -1576,7 +1577,7 @@ pub struct InstanceFlexibilityPolicyInstanceSelection {
 }
 
 /// InstanceGroupAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupAggregatedList {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1602,7 +1603,7 @@ pub struct InstanceGroupAggregatedList {
 }
 
 /// A list of InstanceGroup resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupList {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1625,7 +1626,7 @@ pub struct InstanceGroupList {
 }
 
 /// InstanceGroupManagerAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerAggregatedList {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1651,7 +1652,7 @@ pub struct InstanceGroupManagerAggregatedList {
 }
 
 /// InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection {
     /// Full machine-type names, e.g. "n1-standard-16".
     #[serde(default, rename = "machineTypes")]
@@ -1662,7 +1663,7 @@ pub struct InstanceGroupManagerInstanceFlexibilityPolicyInstanceSelection {
 }
 
 /// [Output Only] A list of managed instance groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerList {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1685,7 +1686,7 @@ pub struct InstanceGroupManagerList {
 }
 
 /// [Output Only] A list of resize requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerResizeRequestsListResponse {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1708,7 +1709,7 @@ pub struct InstanceGroupManagerResizeRequestsListResponse {
 }
 
 /// InstanceGroupManagersAbandonInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersAbandonInstancesRequest {
     /// The URLs of one or more instances to abandon. This can be a full URL or
     #[serde(default)]
@@ -1716,7 +1717,7 @@ pub struct InstanceGroupManagersAbandonInstancesRequest {
 }
 
 /// InstanceGroupManagers.applyUpdatesToInstances
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersApplyUpdatesRequest {
     /// Flag to update all instances instead of specified list of “instances”.
     #[serde(default, rename = "allInstances")]
@@ -1733,7 +1734,7 @@ pub struct InstanceGroupManagersApplyUpdatesRequest {
 }
 
 /// InstanceGroupManagers.createInstances
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersCreateInstancesRequest {
     /// [Required] List of specifications of per-instance configs.
     #[serde(default)]
@@ -1741,7 +1742,7 @@ pub struct InstanceGroupManagersCreateInstancesRequest {
 }
 
 /// InstanceGroupManagersDeleteInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersDeleteInstancesRequest {
     /// The URLs of one or more instances to delete. This can be a full URL or
     #[serde(default)]
@@ -1752,7 +1753,7 @@ pub struct InstanceGroupManagersDeleteInstancesRequest {
 }
 
 /// InstanceGroupManagers.deletePerInstanceConfigs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersDeletePerInstanceConfigsReq {
     /// The list of instance names for which we want to delete per-instance configs
     #[serde(default)]
@@ -1760,7 +1761,7 @@ pub struct InstanceGroupManagersDeletePerInstanceConfigsReq {
 }
 
 /// InstanceGroupManagersListErrorsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersListErrorsResponse {
     /// Output only. [Output Only] The list of errors of the managed instance group.
     #[serde(default)]
@@ -1771,7 +1772,7 @@ pub struct InstanceGroupManagersListErrorsResponse {
 }
 
 /// InstanceGroupManagersListManagedInstancesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersListManagedInstancesResponse {
     /// Output only. [Output Only] The list of instances in the managed instance group.
     #[serde(default, rename = "managedInstances")]
@@ -1782,7 +1783,7 @@ pub struct InstanceGroupManagersListManagedInstancesResponse {
 }
 
 /// InstanceGroupManagersListPerInstanceConfigsResp resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersListPerInstanceConfigsResp {
     /// Output only. [Output Only] The list of PerInstanceConfig.
     #[serde(default)]
@@ -1796,7 +1797,7 @@ pub struct InstanceGroupManagersListPerInstanceConfigsResp {
 }
 
 /// InstanceGroupManagers.patchPerInstanceConfigs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersPatchPerInstanceConfigsReq {
     /// The list of per-instance configurations to insert or patch on this managed
     #[serde(default, rename = "perInstanceConfigs")]
@@ -1804,7 +1805,7 @@ pub struct InstanceGroupManagersPatchPerInstanceConfigsReq {
 }
 
 /// InstanceGroupManagersRecreateInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersRecreateInstancesRequest {
     /// The URLs of one or more instances to recreate. This can be a full URL or
     #[serde(default)]
@@ -1812,7 +1813,7 @@ pub struct InstanceGroupManagersRecreateInstancesRequest {
 }
 
 /// InstanceGroupManagersResumeInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersResumeInstancesRequest {
     /// The URLs of one or more instances to resume. This can be a full URL or
     #[serde(default)]
@@ -1820,7 +1821,7 @@ pub struct InstanceGroupManagersResumeInstancesRequest {
 }
 
 /// InstanceGroupManagersScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersScopedList {
     /// Output only. [Output Only] The list of managed instance groups that are contained in
     #[serde(default, rename = "instanceGroupManagers")]
@@ -1831,7 +1832,7 @@ pub struct InstanceGroupManagersScopedList {
 }
 
 /// InstanceGroupManagersSetInstanceTemplateRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersSetInstanceTemplateRequest {
     /// The URL of the instance template that is specified for this managed
     #[serde(default, rename = "instanceTemplate")]
@@ -1839,7 +1840,7 @@ pub struct InstanceGroupManagersSetInstanceTemplateRequest {
 }
 
 /// InstanceGroupManagersSetTargetPoolsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersSetTargetPoolsRequest {
     /// The fingerprint of the target pools information. Use this optional
     #[serde(default)]
@@ -1850,7 +1851,7 @@ pub struct InstanceGroupManagersSetTargetPoolsRequest {
 }
 
 /// InstanceGroupManagersStartInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersStartInstancesRequest {
     /// The URLs of one or more instances to start. This can be a full URL or
     #[serde(default)]
@@ -1858,7 +1859,7 @@ pub struct InstanceGroupManagersStartInstancesRequest {
 }
 
 /// InstanceGroupManagersStopInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersStopInstancesRequest {
     /// If this flag is set to true, the Instance Group Manager will proceed to
     #[serde(default, rename = "forceStop")]
@@ -1869,7 +1870,7 @@ pub struct InstanceGroupManagersStopInstancesRequest {
 }
 
 /// InstanceGroupManagersSuspendInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersSuspendInstancesRequest {
     /// If this flag is set to true, the Instance Group Manager will proceed to
     #[serde(default, rename = "forceSuspend")]
@@ -1880,7 +1881,7 @@ pub struct InstanceGroupManagersSuspendInstancesRequest {
 }
 
 /// InstanceGroupManagers.updatePerInstanceConfigs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagersUpdatePerInstanceConfigsReq {
     /// The list of per-instance configurations to insert or patch on this managed
     #[serde(default, rename = "perInstanceConfigs")]
@@ -1888,7 +1889,7 @@ pub struct InstanceGroupManagersUpdatePerInstanceConfigsReq {
 }
 
 /// InstanceGroupsAddInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupsAddInstancesRequest {
     /// The list of instances to add to the instance group.
     #[serde(default)]
@@ -1896,7 +1897,7 @@ pub struct InstanceGroupsAddInstancesRequest {
 }
 
 /// InstanceGroupsListInstances resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupsListInstances {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1919,7 +1920,7 @@ pub struct InstanceGroupsListInstances {
 }
 
 /// InstanceGroupsListInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupsListInstancesRequest {
     /// A filter for the state of the instances in the instance group. Valid
     #[serde(default, rename = "instanceState")]
@@ -1927,7 +1928,7 @@ pub struct InstanceGroupsListInstancesRequest {
 }
 
 /// InstanceGroupsRemoveInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupsRemoveInstancesRequest {
     /// The list of instances to remove from the instance group.
     #[serde(default)]
@@ -1935,7 +1936,7 @@ pub struct InstanceGroupsRemoveInstancesRequest {
 }
 
 /// InstanceGroupsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupsScopedList {
     /// Output only. [Output Only] The list ofinstance
     #[serde(default, rename = "instanceGroups")]
@@ -1946,7 +1947,7 @@ pub struct InstanceGroupsScopedList {
 }
 
 /// InstanceGroupsSetNamedPortsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupsSetNamedPortsRequest {
     /// The fingerprint of the named ports information for this instance group.
     #[serde(default)]
@@ -1957,7 +1958,7 @@ pub struct InstanceGroupsSetNamedPortsRequest {
 }
 
 /// Contains a list of instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -1980,7 +1981,7 @@ pub struct InstanceList {
 }
 
 /// Contains a list of instance referrers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceListReferrers {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2003,7 +2004,7 @@ pub struct InstanceListReferrers {
 }
 
 /// InstanceMoveRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceMoveRequest {
     /// The URL of the destination zone to move the instance. This can be a full or
     #[serde(default, rename = "destinationZone")]
@@ -2016,7 +2017,7 @@ pub struct InstanceMoveRequest {
 /// Represents a Instance Settings resource. You can use instance settings to
 /// configure default settings for Compute Engine VM instances. For example, you
 /// can use it to configure default machine type of Compute Engine VM instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceSettings {
     /// Specifies a fingerprint for instance settings, which is essentially a hash
     #[serde(default)]
@@ -2033,7 +2034,7 @@ pub struct InstanceSettings {
 }
 
 /// Contains a list of InstanceTemplatesScopedList.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceTemplateAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2056,7 +2057,7 @@ pub struct InstanceTemplateAggregatedList {
 }
 
 /// A list of instance templates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceTemplateList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2079,7 +2080,7 @@ pub struct InstanceTemplateList {
 }
 
 /// InstanceTemplatesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceTemplatesScopedList {
     /// [Output Only] A list of instance templates that are contained within
     #[serde(default, rename = "instanceTemplates")]
@@ -2090,7 +2091,7 @@ pub struct InstanceTemplatesScopedList {
 }
 
 /// InstancesAddResourcePoliciesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesAddResourcePoliciesRequest {
     /// Resource policies to be added to this instance.
     #[serde(default, rename = "resourcePolicies")]
@@ -2098,7 +2099,7 @@ pub struct InstancesAddResourcePoliciesRequest {
 }
 
 /// InstancesGetEffectiveFirewallsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesGetEffectiveFirewallsResponse {
     /// [Output Only] Effective firewalls from firewall policies.
     #[serde(default, rename = "firewallPolicys")]
@@ -2111,7 +2112,7 @@ pub struct InstancesGetEffectiveFirewallsResponse {
 }
 
 /// InstancesRemoveResourcePoliciesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesRemoveResourcePoliciesRequest {
     /// Resource policies to be removed from this instance.
     #[serde(default, rename = "resourcePolicies")]
@@ -2119,7 +2120,7 @@ pub struct InstancesRemoveResourcePoliciesRequest {
 }
 
 /// InstancesReportHostAsFaultyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesReportHostAsFaultyRequest {
     /// The disruption schedule for the VM. Required field, only allows IMMEDIATE. // TODO: enum values: ["DISRUPTION_SCHEDULE_UNSPECIFIED", "FUTURE", "IMMEDIATE"]
     #[serde(default, rename = "disruptionSchedule")]
@@ -2130,7 +2131,7 @@ pub struct InstancesReportHostAsFaultyRequest {
 }
 
 /// InstancesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesScopedList {
     /// [Output Only] A list of instances contained in this scope.
     #[serde(default)]
@@ -2141,7 +2142,7 @@ pub struct InstancesScopedList {
 }
 
 /// InstancesSetLabelsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesSetLabelsRequest {
     /// Fingerprint of the previous set of labels for this resource,
     #[serde(default, rename = "labelFingerprint")]
@@ -2151,7 +2152,7 @@ pub struct InstancesSetLabelsRequest {
 }
 
 /// InstancesSetMachineResourcesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesSetMachineResourcesRequest {
     /// A list of the type and count of accelerator cards attached to the instance.
     #[serde(default, rename = "guestAccelerators")]
@@ -2159,7 +2160,7 @@ pub struct InstancesSetMachineResourcesRequest {
 }
 
 /// InstancesSetMachineTypeRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesSetMachineTypeRequest {
     /// Full or partial URL of the machine type resource. See Machine Types for a full list of
     #[serde(default, rename = "machineType")]
@@ -2167,7 +2168,7 @@ pub struct InstancesSetMachineTypeRequest {
 }
 
 /// InstancesSetMinCpuPlatformRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesSetMinCpuPlatformRequest {
     /// Minimum cpu/platform this instance should be started at.
     #[serde(default, rename = "minCpuPlatform")]
@@ -2175,7 +2176,7 @@ pub struct InstancesSetMinCpuPlatformRequest {
 }
 
 /// InstancesSetNameRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesSetNameRequest {
     /// The current name of this resource, used to prevent conflicts. Provide the
     #[serde(default, rename = "currentName")]
@@ -2186,7 +2187,7 @@ pub struct InstancesSetNameRequest {
 }
 
 /// InstancesSetSecurityPolicyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesSetSecurityPolicyRequest {
     /// The network interfaces that the security policy will be applied to. Network
     #[serde(default, rename = "networkInterfaces")]
@@ -2197,7 +2198,7 @@ pub struct InstancesSetSecurityPolicyRequest {
 }
 
 /// InstancesSetServiceAccountRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesSetServiceAccountRequest {
     /// Email address of the service account.
     #[serde(default)]
@@ -2208,7 +2209,7 @@ pub struct InstancesSetServiceAccountRequest {
 }
 
 /// InstancesStartWithEncryptionKeyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesStartWithEncryptionKeyRequest {
     /// Array of disks associated with this instance that are protected with acustomer-supplied
     #[serde(default)]
@@ -2216,7 +2217,7 @@ pub struct InstancesStartWithEncryptionKeyRequest {
 }
 
 /// InstantSnapshotAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstantSnapshotAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2242,7 +2243,7 @@ pub struct InstantSnapshotAggregatedList {
 }
 
 /// Contains a list of InstantSnapshot resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstantSnapshotList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2265,7 +2266,7 @@ pub struct InstantSnapshotList {
 }
 
 /// InstantSnapshotsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstantSnapshotsScopedList {
     /// [Output Only] A list of instantSnapshots contained in this scope.
     #[serde(default, rename = "instantSnapshots")]
@@ -2276,11 +2277,11 @@ pub struct InstantSnapshotsScopedList {
 }
 
 /// Specify configuration for StrictPriorityPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectApplicationAwareInterconnectStrictPriorityPolicy {}
 
 /// InterconnectAttachmentAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2306,14 +2307,14 @@ pub struct InterconnectAttachmentAggregatedList {
 }
 
 /// An Attachment in this AttachmentGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupAttachment {
     #[serde(default)]
     pub attachment: ::core::option::Option<String>,
 }
 
 /// Response for the InterconnectAttachmentGroupsGetOperationalStatusResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupsGetOperationalStatusResponse {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -2322,7 +2323,7 @@ pub struct InterconnectAttachmentGroupsGetOperationalStatusResponse {
 }
 
 /// InterconnectAttachmentGroupsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupsListResponse {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -2349,7 +2350,7 @@ pub struct InterconnectAttachmentGroupsListResponse {
 }
 
 /// Two-level VLAN-to-Appliance mapping rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentL2ForwardingApplianceMapping {
     /// Optional. A single IPv4 or IPv6 address used as the destination IP
     #[serde(default, rename = "applianceIpAddress")]
@@ -2368,7 +2369,7 @@ pub struct InterconnectAttachmentL2ForwardingApplianceMapping {
 
 /// Response to the list request, and contains a list of interconnect
 /// attachments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2391,7 +2392,7 @@ pub struct InterconnectAttachmentList {
 }
 
 /// InterconnectAttachmentsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentsScopedList {
     /// A list of interconnect attachments contained in this scope.
     #[serde(default, rename = "interconnectAttachments")]
@@ -2402,7 +2403,7 @@ pub struct InterconnectAttachmentsScopedList {
 }
 
 /// An Interconnect in this InterconnectGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupInterconnect {
     /// The URL of an Interconnect in this group. All Interconnects in the group
     #[serde(default)]
@@ -2410,14 +2411,14 @@ pub struct InterconnectGroupInterconnect {
 }
 
 /// InterconnectGroupsCreateMembersRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupsCreateMembersRequest {
     #[serde(default)]
     pub request: ::core::option::Option<InterconnectGroupsCreateMembers>,
 }
 
 /// Response for the InterconnectGroupsGetOperationalStatusResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupsGetOperationalStatusResponse {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -2426,7 +2427,7 @@ pub struct InterconnectGroupsGetOperationalStatusResponse {
 }
 
 /// InterconnectGroupsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupsListResponse {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -2453,7 +2454,7 @@ pub struct InterconnectGroupsListResponse {
 }
 
 /// Response to the list request, and contains a list of interconnects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2476,7 +2477,7 @@ pub struct InterconnectList {
 }
 
 /// Response to the list request, and contains a list of interconnect locations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectLocationList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2500,7 +2501,7 @@ pub struct InterconnectLocationList {
 
 /// Response to the list request, and contains a list of interconnect remote
 /// locations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectRemoteLocationList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2523,14 +2524,14 @@ pub struct InterconnectRemoteLocationList {
 }
 
 /// Response for the InterconnectsGetDiagnosticsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectsGetDiagnosticsResponse {
     #[serde(default)]
     pub result: ::core::option::Option<InterconnectDiagnostics>,
 }
 
 /// Response for the InterconnectsGetMacsecConfigRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectsGetMacsecConfigResponse {
     /// end_interface: MixerGetResponseWithEtagBuilder
     #[serde(default)]
@@ -2546,7 +2547,7 @@ pub struct InterconnectsGetMacsecConfigResponse {
 ///  *Caution* This resource is intended for
 /// use only by third-party partners who are creatingCloud Marketplace
 /// images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LicenseCode {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -2578,7 +2579,7 @@ pub struct LicenseCode {
 }
 
 /// LicensesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LicensesListResponse {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2599,7 +2600,7 @@ pub struct LicensesListResponse {
 
 /// Provides a localized error message that is safe to return to the user
 /// which can be attached to an RPC error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedMessage {
     /// The locale used following the specification defined at
     #[serde(default)]
@@ -2610,7 +2611,7 @@ pub struct LocalizedMessage {
 }
 
 /// LocationPolicyLocation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationPolicyLocation {
     /// Constraints that the caller requires on the result distribution
     #[serde(default)]
@@ -2621,7 +2622,7 @@ pub struct LocationPolicyLocation {
 }
 
 /// A list of machine images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineImageList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2644,7 +2645,7 @@ pub struct MachineImageList {
 }
 
 /// MachineTypeAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineTypeAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2670,7 +2671,7 @@ pub struct MachineTypeAggregatedList {
 }
 
 /// Contains a list of machine types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineTypeList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2693,7 +2694,7 @@ pub struct MachineTypeList {
 }
 
 /// MachineTypesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineTypesScopedList {
     /// [Output Only] A list of machine types contained in this scope.
     #[serde(default, rename = "machineTypes")]
@@ -2704,7 +2705,7 @@ pub struct MachineTypesScopedList {
 }
 
 /// NatIpInfoResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NatIpInfoResponse {
     /// [Output Only] A list of NAT IP information.
     #[serde(default)]
@@ -2712,7 +2713,7 @@ pub struct NatIpInfoResponse {
 }
 
 /// Contains a list of NetworkAttachmentsScopedList.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkAttachmentAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2734,7 +2735,7 @@ pub struct NetworkAttachmentAggregatedList {
 }
 
 /// NetworkAttachmentList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkAttachmentList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2756,7 +2757,7 @@ pub struct NetworkAttachmentList {
 }
 
 /// NetworkAttachmentsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkAttachmentsScopedList {
     /// A list of NetworkAttachments contained in this scope.
     #[serde(default, rename = "networkAttachments")]
@@ -2767,7 +2768,7 @@ pub struct NetworkAttachmentsScopedList {
 }
 
 /// NetworkEdgeSecurityServiceAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEdgeSecurityServiceAggregatedList {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -2795,7 +2796,7 @@ pub struct NetworkEdgeSecurityServiceAggregatedList {
 }
 
 /// NetworkEdgeSecurityServicesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEdgeSecurityServicesScopedList {
     /// A list of NetworkEdgeSecurityServices contained in this scope.
     #[serde(default, rename = "networkEdgeSecurityServices")]
@@ -2807,7 +2808,7 @@ pub struct NetworkEdgeSecurityServicesScopedList {
 }
 
 /// NetworkEndpointGroupAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroupAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2833,7 +2834,7 @@ pub struct NetworkEndpointGroupAggregatedList {
 }
 
 /// NetworkEndpointGroupList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroupList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2856,7 +2857,7 @@ pub struct NetworkEndpointGroupList {
 }
 
 /// NetworkEndpointGroupsAttachEndpointsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroupsAttachEndpointsRequest {
     /// The list of network endpoints to be attached.
     #[serde(default, rename = "networkEndpoints")]
@@ -2864,7 +2865,7 @@ pub struct NetworkEndpointGroupsAttachEndpointsRequest {
 }
 
 /// NetworkEndpointGroupsDetachEndpointsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroupsDetachEndpointsRequest {
     /// The list of network endpoints to be detached.
     #[serde(default, rename = "networkEndpoints")]
@@ -2872,7 +2873,7 @@ pub struct NetworkEndpointGroupsDetachEndpointsRequest {
 }
 
 /// NetworkEndpointGroupsListEndpointsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroupsListEndpointsRequest {
     /// Optional query parameter for showing the health status of each network
     #[serde(default, rename = "healthStatus")]
@@ -2880,7 +2881,7 @@ pub struct NetworkEndpointGroupsListEndpointsRequest {
 }
 
 /// NetworkEndpointGroupsListNetworkEndpoints resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroupsListNetworkEndpoints {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2900,7 +2901,7 @@ pub struct NetworkEndpointGroupsListNetworkEndpoints {
 }
 
 /// NetworkEndpointGroupsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroupsScopedList {
     /// Output only. [Output Only] The list ofnetwork
     #[serde(default, rename = "networkEndpointGroups")]
@@ -2911,7 +2912,7 @@ pub struct NetworkEndpointGroupsScopedList {
 }
 
 /// NetworkFirewallPolicyAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkFirewallPolicyAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2937,7 +2938,7 @@ pub struct NetworkFirewallPolicyAggregatedList {
 }
 
 /// Contains a list of networks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -2960,7 +2961,7 @@ pub struct NetworkList {
 }
 
 /// Contains a list of network profiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkProfilesListResponse {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -2988,7 +2989,7 @@ pub struct NetworkProfilesListResponse {
 }
 
 /// NetworksAddPeeringRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworksAddPeeringRequest {
     /// This field will be deprecated soon. Useexchange_subnet_routes in network_peering
     #[serde(default, rename = "autoCreateRoutes")]
@@ -3005,7 +3006,7 @@ pub struct NetworksAddPeeringRequest {
 }
 
 /// NetworksGetEffectiveFirewallsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworksGetEffectiveFirewallsResponse {
     /// [Output Only] Effective firewalls from firewall policy. It returns Global
     #[serde(default, rename = "firewallPolicys")]
@@ -3018,7 +3019,7 @@ pub struct NetworksGetEffectiveFirewallsResponse {
 }
 
 /// NetworksRemovePeeringRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworksRemovePeeringRequest {
     /// Name of the peering, which should conform to RFC1035.
     #[serde(default)]
@@ -3026,7 +3027,7 @@ pub struct NetworksRemovePeeringRequest {
 }
 
 /// NetworksRequestRemovePeeringRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworksRequestRemovePeeringRequest {
     /// Name of the peering, which should conform to RFC1035.
     #[serde(default)]
@@ -3034,14 +3035,14 @@ pub struct NetworksRequestRemovePeeringRequest {
 }
 
 /// NetworksUpdatePeeringRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworksUpdatePeeringRequest {
     #[serde(default, rename = "networkPeering")]
     pub network_peering: ::core::option::Option<NetworkPeering>,
 }
 
 /// NodeGroupAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3067,7 +3068,7 @@ pub struct NodeGroupAggregatedList {
 }
 
 /// Contains a list of nodeGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3090,7 +3091,7 @@ pub struct NodeGroupList {
 }
 
 /// NodeGroupsAddNodesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupsAddNodesRequest {
     /// Count of additional nodes to be added to the node group.
     #[serde(default, rename = "additionalNodeCount")]
@@ -3098,7 +3099,7 @@ pub struct NodeGroupsAddNodesRequest {
 }
 
 /// NodeGroupsDeleteNodesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupsDeleteNodesRequest {
     /// Names of the nodes to delete.
     #[serde(default)]
@@ -3106,7 +3107,7 @@ pub struct NodeGroupsDeleteNodesRequest {
 }
 
 /// NodeGroupsListNodes resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupsListNodes {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3129,7 +3130,7 @@ pub struct NodeGroupsListNodes {
 }
 
 /// NodeGroupsPerformMaintenanceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupsPerformMaintenanceRequest {
     /// [Required] List of nodes affected by the call.
     #[serde(default)]
@@ -3140,7 +3141,7 @@ pub struct NodeGroupsPerformMaintenanceRequest {
 }
 
 /// NodeGroupsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupsScopedList {
     /// [Output Only] A list of node groups contained in this scope.
     #[serde(default, rename = "nodeGroups")]
@@ -3151,7 +3152,7 @@ pub struct NodeGroupsScopedList {
 }
 
 /// NodeGroupsSetNodeTemplateRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupsSetNodeTemplateRequest {
     /// Full or partial URL of the node template resource to be updated for this
     #[serde(default, rename = "nodeTemplate")]
@@ -3159,7 +3160,7 @@ pub struct NodeGroupsSetNodeTemplateRequest {
 }
 
 /// NodeGroupsSimulateMaintenanceEventRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupsSimulateMaintenanceEventRequest {
     /// Names of the nodes to go under maintenance simulation.
     #[serde(default)]
@@ -3167,7 +3168,7 @@ pub struct NodeGroupsSimulateMaintenanceEventRequest {
 }
 
 /// NodeTemplateAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTemplateAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3193,7 +3194,7 @@ pub struct NodeTemplateAggregatedList {
 }
 
 /// Contains a list of node templates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTemplateList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3216,7 +3217,7 @@ pub struct NodeTemplateList {
 }
 
 /// NodeTemplatesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTemplatesScopedList {
     /// [Output Only] A list of node templates contained in this scope.
     #[serde(default, rename = "nodeTemplates")]
@@ -3227,7 +3228,7 @@ pub struct NodeTemplatesScopedList {
 }
 
 /// NodeTypeAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTypeAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3253,7 +3254,7 @@ pub struct NodeTypeAggregatedList {
 }
 
 /// Contains a list of node types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTypeList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3276,7 +3277,7 @@ pub struct NodeTypeList {
 }
 
 /// NodeTypesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTypesScopedList {
     /// [Output Only] A list of node types contained in this scope.
     #[serde(default, rename = "nodeTypes")]
@@ -3287,7 +3288,7 @@ pub struct NodeTypesScopedList {
 }
 
 /// Contains a list of NotificationEndpointsScopedList.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationEndpointAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3313,7 +3314,7 @@ pub struct NotificationEndpointAggregatedList {
 }
 
 /// NotificationEndpointList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationEndpointList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3336,7 +3337,7 @@ pub struct NotificationEndpointList {
 }
 
 /// NotificationEndpointsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationEndpointsScopedList {
     /// A list of NotificationEndpoints contained in this scope.
     #[serde(default)]
@@ -3347,7 +3348,7 @@ pub struct NotificationEndpointsScopedList {
 }
 
 /// OperationAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationAggregatedList {
     /// [Output Only] The unique identifier for the resource. This identifier is
     #[serde(default)]
@@ -3373,7 +3374,7 @@ pub struct OperationAggregatedList {
 }
 
 /// Contains a list of Operation resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationList {
     /// [Output Only] The unique identifier for the resource. This identifier is
     #[serde(default)]
@@ -3396,7 +3397,7 @@ pub struct OperationList {
 }
 
 /// OperationsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationsScopedList {
     /// [Output Only] A list of operations contained in this scope.
     #[serde(default)]
@@ -3407,7 +3408,7 @@ pub struct OperationsScopedList {
 }
 
 /// OrganizationSecurityPoliciesListAssociationsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationSecurityPoliciesListAssociationsResponse {
     /// A list of associations.
     #[serde(default)]
@@ -3418,7 +3419,7 @@ pub struct OrganizationSecurityPoliciesListAssociationsResponse {
 }
 
 /// Contains a list of packetMirrorings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketMirroringAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3444,7 +3445,7 @@ pub struct PacketMirroringAggregatedList {
 }
 
 /// Contains a list of PacketMirroring resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketMirroringList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3467,7 +3468,7 @@ pub struct PacketMirroringList {
 }
 
 /// PacketMirroringsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketMirroringsScopedList {
     /// A list of packetMirrorings contained in this scope.
     #[serde(default, rename = "packetMirrorings")]
@@ -3478,7 +3479,7 @@ pub struct PacketMirroringsScopedList {
 }
 
 /// PreservedStatePreservedDisk resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreservedStatePreservedDisk {
     /// These stateful disks will never be deleted during autohealing,
     #[serde(default, rename = "autoDelete")]
@@ -3492,7 +3493,7 @@ pub struct PreservedStatePreservedDisk {
 }
 
 /// PreservedStatePreservedNetworkIp resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreservedStatePreservedNetworkIp {
     /// These stateful IPs will never be released during autohealing,
     #[serde(default, rename = "autoDelete")]
@@ -3503,7 +3504,7 @@ pub struct PreservedStatePreservedNetworkIp {
 }
 
 /// PreviewFeatureList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreviewFeatureList {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -3528,7 +3529,7 @@ pub struct PreviewFeatureList {
 }
 
 /// ProjectsDisableXpnResourceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsDisableXpnResourceRequest {
     /// Service resource (a.k.a service project) ID.
     #[serde(default, rename = "xpnResource")]
@@ -3536,7 +3537,7 @@ pub struct ProjectsDisableXpnResourceRequest {
 }
 
 /// ProjectsEnableXpnResourceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsEnableXpnResourceRequest {
     /// Service resource (a.k.a service project) ID.
     #[serde(default, rename = "xpnResource")]
@@ -3544,7 +3545,7 @@ pub struct ProjectsEnableXpnResourceRequest {
 }
 
 /// ProjectsGetXpnResources resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsGetXpnResources {
     /// Output only. [Output Only] Type of resource. Alwayscompute#projectsGetXpnResources for lists of service resources
     #[serde(default)]
@@ -3558,7 +3559,7 @@ pub struct ProjectsGetXpnResources {
 }
 
 /// ProjectsListXpnHostsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsListXpnHostsRequest {
     /// Optional organization ID managed by Cloud Resource Manager, for which to
     #[serde(default)]
@@ -3566,7 +3567,7 @@ pub struct ProjectsListXpnHostsRequest {
 }
 
 /// ProjectsSetCloudArmorTierRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsSetCloudArmorTierRequest {
     /// Managed protection tier to be set. // TODO: enum values: ["CA_ENTERPRISE_ANNUAL", "CA_ENTERPRISE_PAYGO", "CA_STANDARD"]
     #[serde(default, rename = "cloudArmorTier")]
@@ -3574,7 +3575,7 @@ pub struct ProjectsSetCloudArmorTierRequest {
 }
 
 /// ProjectsSetDefaultNetworkTierRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsSetDefaultNetworkTierRequest {
     /// Default network tier to be set. // TODO: enum values: ["FIXED_STANDARD", "PREMIUM", "STANDARD", "STANDARD_OVERRIDES_FIXED_STANDARD"]
     #[serde(default, rename = "networkTier")]
@@ -3582,7 +3583,7 @@ pub struct ProjectsSetDefaultNetworkTierRequest {
 }
 
 /// PublicAdvertisedPrefixList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublicAdvertisedPrefixList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3605,7 +3606,7 @@ pub struct PublicAdvertisedPrefixList {
 }
 
 /// PublicDelegatedPrefixAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublicDelegatedPrefixAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3631,7 +3632,7 @@ pub struct PublicDelegatedPrefixAggregatedList {
 }
 
 /// PublicDelegatedPrefixList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublicDelegatedPrefixList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3654,7 +3655,7 @@ pub struct PublicDelegatedPrefixList {
 }
 
 /// PublicDelegatedPrefixesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublicDelegatedPrefixesScopedList {
     /// [Output Only] A list of PublicDelegatedPrefixes contained in this scope.
     #[serde(default, rename = "publicDelegatedPrefixes")]
@@ -3665,7 +3666,7 @@ pub struct PublicDelegatedPrefixesScopedList {
 }
 
 /// Additional details for quota exceeded error for resource quota.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotaExceededInfo {
     /// The map holding related quota dimensions.
     #[serde(default)]
@@ -3688,7 +3689,7 @@ pub struct QuotaExceededInfo {
 }
 
 /// RegionAddressesMoveRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionAddressesMoveRequest {
     /// An optional destination address description if intended to be different
     #[serde(default)]
@@ -3699,7 +3700,7 @@ pub struct RegionAddressesMoveRequest {
 }
 
 /// Contains a list of autoscalers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionAutoscalerList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3722,7 +3723,7 @@ pub struct RegionAutoscalerList {
 }
 
 /// RegionDiskTypeList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionDiskTypeList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3745,7 +3746,7 @@ pub struct RegionDiskTypeList {
 }
 
 /// RegionDisksAddResourcePoliciesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionDisksAddResourcePoliciesRequest {
     /// Resource policies to be added to this disk.
     #[serde(default, rename = "resourcePolicies")]
@@ -3753,7 +3754,7 @@ pub struct RegionDisksAddResourcePoliciesRequest {
 }
 
 /// RegionDisksRemoveResourcePoliciesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionDisksRemoveResourcePoliciesRequest {
     /// Resource policies to be removed from this disk.
     #[serde(default, rename = "resourcePolicies")]
@@ -3761,7 +3762,7 @@ pub struct RegionDisksRemoveResourcePoliciesRequest {
 }
 
 /// RegionDisksResizeRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionDisksResizeRequest {
     /// The new size of the regional persistent disk, which is specified in GB.
     #[serde(default, rename = "sizeGb")]
@@ -3769,7 +3770,7 @@ pub struct RegionDisksResizeRequest {
 }
 
 /// RegionDisksStartAsyncReplicationRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionDisksStartAsyncReplicationRequest {
     /// The secondary disk to start asynchronous replication to.
     #[serde(default, rename = "asyncSecondaryDisk")]
@@ -3777,7 +3778,7 @@ pub struct RegionDisksStartAsyncReplicationRequest {
 }
 
 /// Contains a list of InstanceGroup resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupList {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3800,7 +3801,7 @@ pub struct RegionInstanceGroupList {
 }
 
 /// RegionInstanceGroupManagers.deletePerInstanceConfigs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagerDeleteInstanceConfigReq {
     /// The list of instance names for which we want to delete per-instance configs
     #[serde(default)]
@@ -3808,7 +3809,7 @@ pub struct RegionInstanceGroupManagerDeleteInstanceConfigReq {
 }
 
 /// Contains a list of managed instance groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagerList {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -3831,7 +3832,7 @@ pub struct RegionInstanceGroupManagerList {
 }
 
 /// RegionInstanceGroupManagers.patchPerInstanceConfigs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagerPatchInstanceConfigReq {
     /// The list of per-instance configurations to insert or patch on this managed
     #[serde(default, rename = "perInstanceConfigs")]
@@ -3839,7 +3840,7 @@ pub struct RegionInstanceGroupManagerPatchInstanceConfigReq {
 }
 
 /// RegionInstanceGroupManagers.updatePerInstanceConfigs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagerUpdateInstanceConfigReq {
     /// The list of per-instance configurations to insert or patch on this managed
     #[serde(default, rename = "perInstanceConfigs")]
@@ -3847,7 +3848,7 @@ pub struct RegionInstanceGroupManagerUpdateInstanceConfigReq {
 }
 
 /// RegionInstanceGroupManagersAbandonInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersAbandonInstancesRequest {
     /// The URLs of one or more instances to abandon. This can be a full URL or
     #[serde(default)]
@@ -3855,7 +3856,7 @@ pub struct RegionInstanceGroupManagersAbandonInstancesRequest {
 }
 
 /// RegionInstanceGroupManagers.applyUpdatesToInstances
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersApplyUpdatesRequest {
     /// Flag to update all instances instead of specified list of “instances”.
     #[serde(default, rename = "allInstances")]
@@ -3872,7 +3873,7 @@ pub struct RegionInstanceGroupManagersApplyUpdatesRequest {
 }
 
 /// RegionInstanceGroupManagers.createInstances
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersCreateInstancesRequest {
     /// [Required] List of specifications of per-instance configs.
     #[serde(default)]
@@ -3880,7 +3881,7 @@ pub struct RegionInstanceGroupManagersCreateInstancesRequest {
 }
 
 /// RegionInstanceGroupManagersDeleteInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersDeleteInstancesRequest {
     /// The URLs of one or more instances to delete. This can be a full URL or
     #[serde(default)]
@@ -3891,7 +3892,7 @@ pub struct RegionInstanceGroupManagersDeleteInstancesRequest {
 }
 
 /// RegionInstanceGroupManagersListErrorsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersListErrorsResponse {
     /// [Output Only] The list of errors of the managed instance group.
     #[serde(default)]
@@ -3902,7 +3903,7 @@ pub struct RegionInstanceGroupManagersListErrorsResponse {
 }
 
 /// RegionInstanceGroupManagersListInstanceConfigsResp resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersListInstanceConfigsResp {
     /// Output only. [Output Only] The list of PerInstanceConfig.
     #[serde(default)]
@@ -3916,7 +3917,7 @@ pub struct RegionInstanceGroupManagersListInstanceConfigsResp {
 }
 
 /// RegionInstanceGroupManagersListInstancesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersListInstancesResponse {
     /// A list of managed instances.
     #[serde(default, rename = "managedInstances")]
@@ -3927,7 +3928,7 @@ pub struct RegionInstanceGroupManagersListInstancesResponse {
 }
 
 /// RegionInstanceGroupManagersRecreateRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersRecreateRequest {
     /// The URLs of one or more instances to recreate. This can be a full URL or
     #[serde(default)]
@@ -3935,7 +3936,7 @@ pub struct RegionInstanceGroupManagersRecreateRequest {
 }
 
 /// RegionInstanceGroupManagersResumeInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersResumeInstancesRequest {
     /// The URLs of one or more instances to resume. This can be a full URL or
     #[serde(default)]
@@ -3943,7 +3944,7 @@ pub struct RegionInstanceGroupManagersResumeInstancesRequest {
 }
 
 /// RegionInstanceGroupManagersSetTargetPoolsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersSetTargetPoolsRequest {
     /// Fingerprint of the target pools information, which is a hash of the
     #[serde(default)]
@@ -3954,7 +3955,7 @@ pub struct RegionInstanceGroupManagersSetTargetPoolsRequest {
 }
 
 /// RegionInstanceGroupManagersSetTemplateRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersSetTemplateRequest {
     /// URL of the InstanceTemplate resource from which all new instances will be
     #[serde(default, rename = "instanceTemplate")]
@@ -3962,7 +3963,7 @@ pub struct RegionInstanceGroupManagersSetTemplateRequest {
 }
 
 /// RegionInstanceGroupManagersStartInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersStartInstancesRequest {
     /// The URLs of one or more instances to start. This can be a full URL or
     #[serde(default)]
@@ -3970,7 +3971,7 @@ pub struct RegionInstanceGroupManagersStartInstancesRequest {
 }
 
 /// RegionInstanceGroupManagersStopInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersStopInstancesRequest {
     /// If this flag is set to true, the Instance Group Manager will proceed to
     #[serde(default, rename = "forceStop")]
@@ -3981,7 +3982,7 @@ pub struct RegionInstanceGroupManagersStopInstancesRequest {
 }
 
 /// RegionInstanceGroupManagersSuspendInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupManagersSuspendInstancesRequest {
     /// If this flag is set to true, the Instance Group Manager will proceed to
     #[serde(default, rename = "forceSuspend")]
@@ -3992,7 +3993,7 @@ pub struct RegionInstanceGroupManagersSuspendInstancesRequest {
 }
 
 /// RegionInstanceGroupsListInstances resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupsListInstances {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4015,7 +4016,7 @@ pub struct RegionInstanceGroupsListInstances {
 }
 
 /// RegionInstanceGroupsListInstancesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupsListInstancesRequest {
     /// Instances in which state should be returned. Valid options are:
     #[serde(default, rename = "instanceState")]
@@ -4026,7 +4027,7 @@ pub struct RegionInstanceGroupsListInstancesRequest {
 }
 
 /// RegionInstanceGroupsSetNamedPortsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionInstanceGroupsSetNamedPortsRequest {
     /// The fingerprint of the named ports information for this instance group.
     #[serde(default)]
@@ -4037,7 +4038,7 @@ pub struct RegionInstanceGroupsSetNamedPortsRequest {
 }
 
 /// Contains a list of region resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4060,7 +4061,7 @@ pub struct RegionList {
 }
 
 /// RegionNetworkEndpointGroupsAttachEndpointsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionNetworkEndpointGroupsAttachEndpointsRequest {
     /// The list of network endpoints to be attached.
     #[serde(default, rename = "networkEndpoints")]
@@ -4068,7 +4069,7 @@ pub struct RegionNetworkEndpointGroupsAttachEndpointsRequest {
 }
 
 /// RegionNetworkEndpointGroupsDetachEndpointsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionNetworkEndpointGroupsDetachEndpointsRequest {
     /// The list of network endpoints to be detached.
     #[serde(default, rename = "networkEndpoints")]
@@ -4076,7 +4077,7 @@ pub struct RegionNetworkEndpointGroupsDetachEndpointsRequest {
 }
 
 /// RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponse {
     /// Output only. [Output only] Effective firewalls from firewall policy. It applies to
     #[serde(default, rename = "firewallPolicys")]
@@ -4091,7 +4092,7 @@ pub struct RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponse {
 }
 
 /// RegionSetLabelsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionSetLabelsRequest {
     /// The fingerprint of the previous set of labels for this resource,
     #[serde(default, rename = "labelFingerprint")]
@@ -4102,7 +4103,7 @@ pub struct RegionSetLabelsRequest {
 }
 
 /// RegionSetPolicyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionSetPolicyRequest {
     /// Flatten Policy to create a backwacd compatible wire-format.
     #[serde(default)]
@@ -4116,7 +4117,7 @@ pub struct RegionSetPolicyRequest {
 }
 
 /// RegionTargetHttpsProxiesSetSslCertificatesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionTargetHttpsProxiesSetSslCertificatesRequest {
     /// New set of SslCertificate resources to associate
     #[serde(default, rename = "sslCertificates")]
@@ -4124,7 +4125,7 @@ pub struct RegionTargetHttpsProxiesSetSslCertificatesRequest {
 }
 
 /// RegionUrlMapsValidateRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionUrlMapsValidateRequest {
     /// Content of the UrlMap to be validated.
     #[serde(default)]
@@ -4132,7 +4133,7 @@ pub struct RegionUrlMapsValidateRequest {
 }
 
 /// Contains a list of reservations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4158,14 +4159,14 @@ pub struct ReservationAggregatedList {
 }
 
 /// ReservationBlocksGetResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationBlocksGetResponse {
     #[serde(default)]
     pub resource: ::core::option::Option<ReservationBlock>,
 }
 
 /// A list of reservation blocks under a single reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationBlocksListResponse {
     /// Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4188,7 +4189,7 @@ pub struct ReservationBlocksListResponse {
 }
 
 /// ReservationList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationList {
     /// [Output Only] The unique identifier for the resource. This identifier is
     #[serde(default)]
@@ -4211,14 +4212,14 @@ pub struct ReservationList {
 }
 
 /// ReservationSlotsGetResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSlotsGetResponse {
     #[serde(default)]
     pub resource: ::core::option::Option<ReservationSlot>,
 }
 
 /// ReservationSlotsGetVersionRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSlotsGetVersionRequest {
     /// The SBOM selection to return. Duplicate values in the list will be ignored.
     #[serde(default, rename = "sbomSelections")]
@@ -4226,7 +4227,7 @@ pub struct ReservationSlotsGetVersionRequest {
 }
 
 /// A list of reservation slots within a single reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSlotsListResponse {
     /// The unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4249,14 +4250,14 @@ pub struct ReservationSlotsListResponse {
 }
 
 /// ReservationSubBlocksGetResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSubBlocksGetResponse {
     #[serde(default)]
     pub resource: ::core::option::Option<ReservationSubBlock>,
 }
 
 /// ReservationSubBlocksGetVersionRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSubBlocksGetVersionRequest {
     /// The SBOM selection to return.
     #[serde(default, rename = "sbomSelections")]
@@ -4264,7 +4265,7 @@ pub struct ReservationSubBlocksGetVersionRequest {
 }
 
 /// A list of reservation subBlocks under a single reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSubBlocksListResponse {
     /// Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4287,7 +4288,7 @@ pub struct ReservationSubBlocksListResponse {
 }
 
 /// ReservationSubBlocksReportFaultyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSubBlocksReportFaultyRequest {
     /// The disruption schedule for the subBlock. // TODO: enum values: ["DISRUPTION_SCHEDULE_UNSPECIFIED", "IMMEDIATE"]
     #[serde(default, rename = "disruptionSchedule")]
@@ -4302,7 +4303,7 @@ pub struct ReservationSubBlocksReportFaultyRequest {
 }
 
 /// ReservationsBlocksPerformMaintenanceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationsBlocksPerformMaintenanceRequest {
     /// Specifies if all, running or unused hosts are in scope for this request. // TODO: enum values: ["ALL", "MAINTENANCE_SCOPE_UNSPECIFIED", "RUNNING_VMS", "UNUSED_CAPACITY"]
     #[serde(default, rename = "maintenanceScope")]
@@ -4310,7 +4311,7 @@ pub struct ReservationsBlocksPerformMaintenanceRequest {
 }
 
 /// ReservationsPerformMaintenanceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationsPerformMaintenanceRequest {
     /// Specifies if all, running or unused hosts are in scope for this request. // TODO: enum values: ["ALL", "MAINTENANCE_SCOPE_UNSPECIFIED", "RUNNING_VMS", "UNUSED_CAPACITY"]
     #[serde(default, rename = "maintenanceScope")]
@@ -4318,7 +4319,7 @@ pub struct ReservationsPerformMaintenanceRequest {
 }
 
 /// ReservationsResizeRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationsResizeRequest {
     /// Number of allocated resources can be resized with minimum = 1 and
     #[serde(default, rename = "specificSkuCount")]
@@ -4326,7 +4327,7 @@ pub struct ReservationsResizeRequest {
 }
 
 /// ReservationsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationsScopedList {
     /// A list of reservations contained in this scope.
     #[serde(default)]
@@ -4337,7 +4338,7 @@ pub struct ReservationsScopedList {
 }
 
 /// ResourceGroupReference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceGroupReference {
     /// A URI referencing one of the instance groups or network endpoint groups
     #[serde(default)]
@@ -4345,7 +4346,7 @@ pub struct ResourceGroupReference {
 }
 
 /// ResourcePoliciesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePoliciesScopedList {
     /// A list of resourcePolicies contained in this scope.
     #[serde(default, rename = "resourcePolicies")]
@@ -4356,7 +4357,7 @@ pub struct ResourcePoliciesScopedList {
 }
 
 /// Contains a list of resourcePolicies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyAggregatedList {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -4384,11 +4385,11 @@ pub struct ResourcePolicyAggregatedList {
 }
 
 /// Resource policy for disk consistency groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyDiskConsistencyGroupPolicy {}
 
 /// ResourcePolicyList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyList {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -4413,7 +4414,7 @@ pub struct ResourcePolicyList {
 }
 
 /// Contains a list of Route resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouteList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4436,7 +4437,7 @@ pub struct RouteList {
 }
 
 /// Contains a list of routers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4462,7 +4463,7 @@ pub struct RouterAggregatedList {
 }
 
 /// Contains a list of Router resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4485,7 +4486,7 @@ pub struct RouterList {
 }
 
 /// RouterStatusResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterStatusResponse {
     /// Output only. Type of resource.
     #[serde(default)]
@@ -4495,14 +4496,14 @@ pub struct RouterStatusResponse {
 }
 
 /// RoutersGetRoutePolicyResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoutersGetRoutePolicyResponse {
     #[serde(default)]
     pub resource: ::core::option::Option<RoutePolicy>,
 }
 
 /// RoutersListBgpRoutes resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoutersListBgpRoutes {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -4530,7 +4531,7 @@ pub struct RoutersListBgpRoutes {
 }
 
 /// RoutersListRoutePolicies resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoutersListRoutePolicies {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -4558,7 +4559,7 @@ pub struct RoutersListRoutePolicies {
 }
 
 /// RoutersPreviewResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoutersPreviewResponse {
     /// Preview of given router.
     #[serde(default)]
@@ -4566,7 +4567,7 @@ pub struct RoutersPreviewResponse {
 }
 
 /// RoutersScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoutersScopedList {
     /// A list of routers contained in this scope.
     #[serde(default)]
@@ -4577,7 +4578,7 @@ pub struct RoutersScopedList {
 }
 
 /// ScalingScheduleStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScalingScheduleStatus {
     /// [Output Only] The last time the scaling schedule became active.
     #[serde(default, rename = "lastStartTime")]
@@ -4591,7 +4592,7 @@ pub struct ScalingScheduleStatus {
 }
 
 /// An instance''s screenshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Screenshot {
     /// [Output Only] The Base64-encoded screenshot data.
     #[serde(default)]
@@ -4602,7 +4603,7 @@ pub struct Screenshot {
 }
 
 /// SecurityPoliciesAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPoliciesAggregatedList {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -4630,14 +4631,14 @@ pub struct SecurityPoliciesAggregatedList {
 }
 
 /// SecurityPoliciesListPreconfiguredExpressionSetsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPoliciesListPreconfiguredExpressionSetsResponse {
     #[serde(default, rename = "preconfiguredExpressionSets")]
     pub preconfigured_expression_sets: ::core::option::Option<SecurityPoliciesWafConfig>,
 }
 
 /// SecurityPoliciesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPoliciesScopedList {
     /// A list of SecurityPolicies contained in this scope.
     #[serde(default, rename = "securityPolicies")]
@@ -4648,7 +4649,7 @@ pub struct SecurityPoliciesScopedList {
 }
 
 /// SecurityPolicyList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4668,14 +4669,14 @@ pub struct SecurityPolicyList {
 }
 
 /// SecurityPolicyReference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyReference {
     #[serde(default, rename = "securityPolicy")]
     pub security_policy: ::core::option::Option<String>,
 }
 
 /// An instance serial console output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SerialPortOutput {
     /// [Output Only] The contents of the console output.
     #[serde(default)]
@@ -4695,7 +4696,7 @@ pub struct SerialPortOutput {
 }
 
 /// Contains a list of ServiceAttachmentsScopedList.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAttachmentAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4721,7 +4722,7 @@ pub struct ServiceAttachmentAggregatedList {
 }
 
 /// ServiceAttachmentList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAttachmentList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4744,7 +4745,7 @@ pub struct ServiceAttachmentList {
 }
 
 /// ServiceAttachmentsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAttachmentsScopedList {
     /// A list of ServiceAttachments contained in this scope.
     #[serde(default, rename = "serviceAttachments")]
@@ -4755,7 +4756,7 @@ pub struct ServiceAttachmentsScopedList {
 }
 
 /// SetCommonInstanceMetadataOperationMetadataPerLocationOperationInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetCommonInstanceMetadataOperationMetadataPerLocationOperationInfo {
     /// [Output Only] If state is ABANDONED or FAILED, this field is
     #[serde(default)]
@@ -4766,7 +4767,7 @@ pub struct SetCommonInstanceMetadataOperationMetadataPerLocationOperationInfo {
 }
 
 /// Config for each project in the share settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShareSettingsProjectConfig {
     /// The project ID, should be same as the key of this project config in the
     #[serde(default, rename = "projectId")]
@@ -4774,7 +4775,7 @@ pub struct ShareSettingsProjectConfig {
 }
 
 /// A Shielded Instance Identity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShieldedInstanceIdentity {
     /// An Endorsement Key (EK) made by the ECC P256 algorithm
     #[serde(default, rename = "eccP256EncryptionKey")]
@@ -4794,7 +4795,7 @@ pub struct ShieldedInstanceIdentity {
 }
 
 /// Represents a customer-supplied Signing Key used by Cloud CDN Signed URLs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignedUrlKey {
     /// Name of the key. The name must be 1-63 characters long, and comply withRFC1035.
     #[serde(default, rename = "keyName")]
@@ -4805,7 +4806,7 @@ pub struct SignedUrlKey {
 }
 
 /// Contains a list of Snapshot resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4828,7 +4829,7 @@ pub struct SnapshotList {
 }
 
 /// SnapshotSettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotSettings {
     /// Policy of which storage location is going to be resolved, and additional
     #[serde(default, rename = "storageLocation")]
@@ -4836,7 +4837,7 @@ pub struct SnapshotSettings {
 }
 
 /// A structure for specifying storage locations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotSettingsStorageLocationSettingsStorageLocationPreference {
     /// Name of the location. It should be one of the Cloud Storage buckets.
     #[serde(default)]
@@ -4844,7 +4845,7 @@ pub struct SnapshotSettingsStorageLocationSettingsStorageLocationPreference {
 }
 
 /// SslCertificateAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCertificateAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4870,7 +4871,7 @@ pub struct SslCertificateAggregatedList {
 }
 
 /// Contains a list of SslCertificate resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCertificateList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4893,7 +4894,7 @@ pub struct SslCertificateList {
 }
 
 /// SslCertificatesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCertificatesScopedList {
     /// List of SslCertificates contained in this scope.
     #[serde(default, rename = "sslCertificates")]
@@ -4904,7 +4905,7 @@ pub struct SslCertificatesScopedList {
 }
 
 /// SslPoliciesAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslPoliciesAggregatedList {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -4932,7 +4933,7 @@ pub struct SslPoliciesAggregatedList {
 }
 
 /// SslPoliciesList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslPoliciesList {
     /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -4955,14 +4956,14 @@ pub struct SslPoliciesList {
 }
 
 /// SslPoliciesListAvailableFeaturesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslPoliciesListAvailableFeaturesResponse {
     #[serde(default)]
     pub features: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// SslPoliciesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslPoliciesScopedList {
     /// A list of SslPolicies contained in this scope.
     #[serde(default, rename = "sslPolicies")]
@@ -4973,7 +4974,7 @@ pub struct SslPoliciesScopedList {
 }
 
 /// SslPolicyReference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslPolicyReference {
     /// URL of the SSL policy resource. Set this to empty string to clear any
     #[serde(default, rename = "sslPolicy")]
@@ -4981,7 +4982,7 @@ pub struct SslPolicyReference {
 }
 
 /// StatefulPolicyPreservedStateDiskDevice resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatefulPolicyPreservedStateDiskDevice {
     /// These stateful disks will never be deleted during autohealing,
     #[serde(default, rename = "autoDelete")]
@@ -4989,7 +4990,7 @@ pub struct StatefulPolicyPreservedStateDiskDevice {
 }
 
 /// StatefulPolicyPreservedStateNetworkIp resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatefulPolicyPreservedStateNetworkIp {
     /// These stateful IPs will never be released during autohealing,
     #[serde(default, rename = "autoDelete")]
@@ -4997,7 +4998,7 @@ pub struct StatefulPolicyPreservedStateNetworkIp {
 }
 
 /// StoragePoolAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolAggregatedList {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -5025,7 +5026,7 @@ pub struct StoragePoolAggregatedList {
 }
 
 /// A list of StoragePool resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolList {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -5053,7 +5054,7 @@ pub struct StoragePoolList {
 }
 
 /// StoragePoolListDisks resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolListDisks {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -5081,7 +5082,7 @@ pub struct StoragePoolListDisks {
 }
 
 /// StoragePoolTypeAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolTypeAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5104,7 +5105,7 @@ pub struct StoragePoolTypeAggregatedList {
 }
 
 /// Contains a list of storage pool types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolTypeList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5127,7 +5128,7 @@ pub struct StoragePoolTypeList {
 }
 
 /// StoragePoolTypesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolTypesScopedList {
     /// [Output Only] A list of storage pool types contained in this scope.
     #[serde(default, rename = "storagePoolTypes")]
@@ -5138,7 +5139,7 @@ pub struct StoragePoolTypesScopedList {
 }
 
 /// StoragePoolsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolsScopedList {
     /// [Output Only] A list of storage pool contained in this scope.
     #[serde(default, rename = "storagePools")]
@@ -5149,7 +5150,7 @@ pub struct StoragePoolsScopedList {
 }
 
 /// SubnetworkAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworkAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5175,7 +5176,7 @@ pub struct SubnetworkAggregatedList {
 }
 
 /// Contains a list of Subnetwork resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworkList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5198,7 +5199,7 @@ pub struct SubnetworkList {
 }
 
 /// SubnetworksExpandIpCidrRangeRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworksExpandIpCidrRangeRequest {
     /// The IP (in CIDR format or netmask) of internal addresses that are legal on
     #[serde(default, rename = "ipCidrRange")]
@@ -5206,7 +5207,7 @@ pub struct SubnetworksExpandIpCidrRangeRequest {
 }
 
 /// SubnetworksScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworksScopedList {
     /// A list of subnetworks contained in this scope.
     #[serde(default)]
@@ -5217,14 +5218,14 @@ pub struct SubnetworksScopedList {
 }
 
 /// SubnetworksSetPrivateIpGoogleAccessRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworksSetPrivateIpGoogleAccessRequest {
     #[serde(default, rename = "privateIpGoogleAccess")]
     pub private_ip_google_access: ::core::option::Option<bool>,
 }
 
 /// TargetGrpcProxyList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetGrpcProxyList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5247,7 +5248,7 @@ pub struct TargetGrpcProxyList {
 }
 
 /// TargetHttpProxiesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetHttpProxiesScopedList {
     /// A list of TargetHttpProxies contained in this scope.
     #[serde(default, rename = "targetHttpProxies")]
@@ -5258,7 +5259,7 @@ pub struct TargetHttpProxiesScopedList {
 }
 
 /// TargetHttpProxyAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetHttpProxyAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5281,7 +5282,7 @@ pub struct TargetHttpProxyAggregatedList {
 }
 
 /// A list of TargetHttpProxy resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetHttpProxyList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5304,7 +5305,7 @@ pub struct TargetHttpProxyList {
 }
 
 /// TargetHttpsProxiesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetHttpsProxiesScopedList {
     /// A list of TargetHttpsProxies contained in this scope.
     #[serde(default, rename = "targetHttpsProxies")]
@@ -5315,7 +5316,7 @@ pub struct TargetHttpsProxiesScopedList {
 }
 
 /// TargetHttpsProxiesSetCertificateMapRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetHttpsProxiesSetCertificateMapRequest {
     /// URL of the Certificate Map to associate with this TargetHttpsProxy.
     #[serde(default, rename = "certificateMap")]
@@ -5323,7 +5324,7 @@ pub struct TargetHttpsProxiesSetCertificateMapRequest {
 }
 
 /// TargetHttpsProxiesSetQuicOverrideRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetHttpsProxiesSetQuicOverrideRequest {
     /// QUIC policy for the TargetHttpsProxy resource. // TODO: enum values: ["DISABLE", "ENABLE", "NONE"]
     #[serde(default, rename = "quicOverride")]
@@ -5331,7 +5332,7 @@ pub struct TargetHttpsProxiesSetQuicOverrideRequest {
 }
 
 /// TargetHttpsProxiesSetSslCertificatesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetHttpsProxiesSetSslCertificatesRequest {
     /// New set of SslCertificate resources to associate
     #[serde(default, rename = "sslCertificates")]
@@ -5339,7 +5340,7 @@ pub struct TargetHttpsProxiesSetSslCertificatesRequest {
 }
 
 /// TargetHttpsProxyAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetHttpsProxyAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5365,7 +5366,7 @@ pub struct TargetHttpsProxyAggregatedList {
 }
 
 /// Contains a list of TargetHttpsProxy resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetHttpsProxyList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5388,7 +5389,7 @@ pub struct TargetHttpsProxyList {
 }
 
 /// TargetInstanceAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetInstanceAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5414,7 +5415,7 @@ pub struct TargetInstanceAggregatedList {
 }
 
 /// Contains a list of TargetInstance resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetInstanceList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5437,7 +5438,7 @@ pub struct TargetInstanceList {
 }
 
 /// TargetInstancesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetInstancesScopedList {
     /// A list of target instances contained in this scope.
     #[serde(default, rename = "targetInstances")]
@@ -5448,7 +5449,7 @@ pub struct TargetInstancesScopedList {
 }
 
 /// TargetPoolAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetPoolAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5474,7 +5475,7 @@ pub struct TargetPoolAggregatedList {
 }
 
 /// TargetPoolInstanceHealth resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetPoolInstanceHealth {
     #[serde(default, rename = "healthStatus")]
     pub health_status: ::core::option::Option<::std::vec::Vec<HealthStatus>>,
@@ -5484,7 +5485,7 @@ pub struct TargetPoolInstanceHealth {
 }
 
 /// Contains a list of TargetPool resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetPoolList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5507,7 +5508,7 @@ pub struct TargetPoolList {
 }
 
 /// TargetPoolsAddHealthCheckRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetPoolsAddHealthCheckRequest {
     /// The HttpHealthCheck to add to the target pool.
     #[serde(default, rename = "healthChecks")]
@@ -5515,7 +5516,7 @@ pub struct TargetPoolsAddHealthCheckRequest {
 }
 
 /// TargetPoolsAddInstanceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetPoolsAddInstanceRequest {
     /// A full or partial URL to an instance to add to this target pool. This can
     #[serde(default)]
@@ -5523,7 +5524,7 @@ pub struct TargetPoolsAddInstanceRequest {
 }
 
 /// TargetPoolsRemoveHealthCheckRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetPoolsRemoveHealthCheckRequest {
     /// Health check URL to be removed. This can be a full or valid partial URL.
     #[serde(default, rename = "healthChecks")]
@@ -5531,7 +5532,7 @@ pub struct TargetPoolsRemoveHealthCheckRequest {
 }
 
 /// TargetPoolsRemoveInstanceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetPoolsRemoveInstanceRequest {
     /// URLs of the instances to be removed from target pool.
     #[serde(default)]
@@ -5539,7 +5540,7 @@ pub struct TargetPoolsRemoveInstanceRequest {
 }
 
 /// TargetPoolsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetPoolsScopedList {
     /// A list of target pools contained in this scope.
     #[serde(default, rename = "targetPools")]
@@ -5550,14 +5551,14 @@ pub struct TargetPoolsScopedList {
 }
 
 /// TargetReference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetReference {
     #[serde(default)]
     pub target: ::core::option::Option<String>,
 }
 
 /// TargetSslProxiesSetBackendServiceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetSslProxiesSetBackendServiceRequest {
     /// The URL of the new BackendService resource for the targetSslProxy.
     #[serde(default)]
@@ -5565,7 +5566,7 @@ pub struct TargetSslProxiesSetBackendServiceRequest {
 }
 
 /// TargetSslProxiesSetCertificateMapRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetSslProxiesSetCertificateMapRequest {
     /// URL of the Certificate Map to associate with this TargetSslProxy.
     #[serde(default, rename = "certificateMap")]
@@ -5573,7 +5574,7 @@ pub struct TargetSslProxiesSetCertificateMapRequest {
 }
 
 /// TargetSslProxiesSetProxyHeaderRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetSslProxiesSetProxyHeaderRequest {
     /// The new type of proxy header to append before sending data to the
     #[serde(default, rename = "proxyHeader")]
@@ -5581,7 +5582,7 @@ pub struct TargetSslProxiesSetProxyHeaderRequest {
 }
 
 /// TargetSslProxiesSetSslCertificatesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetSslProxiesSetSslCertificatesRequest {
     /// New set of URLs to SslCertificate resources to associate with this
     #[serde(default, rename = "sslCertificates")]
@@ -5589,7 +5590,7 @@ pub struct TargetSslProxiesSetSslCertificatesRequest {
 }
 
 /// Contains a list of TargetSslProxy resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetSslProxyList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5612,7 +5613,7 @@ pub struct TargetSslProxyList {
 }
 
 /// TargetTcpProxiesScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetTcpProxiesScopedList {
     /// A list of TargetTcpProxies contained in this scope.
     #[serde(default, rename = "targetTcpProxies")]
@@ -5623,7 +5624,7 @@ pub struct TargetTcpProxiesScopedList {
 }
 
 /// TargetTcpProxiesSetBackendServiceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetTcpProxiesSetBackendServiceRequest {
     /// The URL of the new BackendService resource for the targetTcpProxy.
     #[serde(default)]
@@ -5631,7 +5632,7 @@ pub struct TargetTcpProxiesSetBackendServiceRequest {
 }
 
 /// TargetTcpProxiesSetProxyHeaderRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetTcpProxiesSetProxyHeaderRequest {
     /// The new type of proxy header to append before sending data to the
     #[serde(default, rename = "proxyHeader")]
@@ -5639,7 +5640,7 @@ pub struct TargetTcpProxiesSetProxyHeaderRequest {
 }
 
 /// TargetTcpProxyAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetTcpProxyAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5665,7 +5666,7 @@ pub struct TargetTcpProxyAggregatedList {
 }
 
 /// Contains a list of TargetTcpProxy resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetTcpProxyList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5688,7 +5689,7 @@ pub struct TargetTcpProxyList {
 }
 
 /// TargetVpnGatewayAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetVpnGatewayAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5714,7 +5715,7 @@ pub struct TargetVpnGatewayAggregatedList {
 }
 
 /// Contains a list of TargetVpnGateway resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetVpnGatewayList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5737,7 +5738,7 @@ pub struct TargetVpnGatewayList {
 }
 
 /// TargetVpnGatewaysScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetVpnGatewaysScopedList {
     /// [Output Only] A list of target VPN gateways contained in this scope.
     #[serde(default, rename = "targetVpnGateways")]
@@ -5748,7 +5749,7 @@ pub struct TargetVpnGatewaysScopedList {
 }
 
 /// TestPermissionsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestPermissionsRequest {
     /// The set of permissions to check for the ''resource''. Permissions with
     #[serde(default)]
@@ -5756,7 +5757,7 @@ pub struct TestPermissionsRequest {
 }
 
 /// TestPermissionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is
     #[serde(default)]
@@ -5764,7 +5765,7 @@ pub struct TestPermissionsResponse {
 }
 
 /// Contains a list of UrlMap resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlMapList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5787,14 +5788,14 @@ pub struct UrlMapList {
 }
 
 /// UrlMapReference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlMapReference {
     #[serde(default, rename = "urlMap")]
     pub url_map: ::core::option::Option<String>,
 }
 
 /// UrlMapsAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlMapsAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5820,7 +5821,7 @@ pub struct UrlMapsAggregatedList {
 }
 
 /// UrlMapsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlMapsScopedList {
     /// A list of UrlMaps contained in this scope.
     #[serde(default, rename = "urlMaps")]
@@ -5831,7 +5832,7 @@ pub struct UrlMapsScopedList {
 }
 
 /// UrlMapsValidateRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlMapsValidateRequest {
     /// Specifies the load balancer type(s) this validation request is for. UseEXTERNAL_MANAGED for global external Application Load
     #[serde(default, rename = "loadBalancingSchemes")]
@@ -5842,14 +5843,14 @@ pub struct UrlMapsValidateRequest {
 }
 
 /// UrlMapsValidateResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlMapsValidateResponse {
     #[serde(default)]
     pub result: ::core::option::Option<UrlMapValidationResult>,
 }
 
 /// UsableSubnetworksAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsableSubnetworksAggregatedList {
     /// [Output Only] The unique identifier for the resource. This identifier is
     #[serde(default)]
@@ -5878,7 +5879,7 @@ pub struct UsableSubnetworksAggregatedList {
 }
 
 /// Contains a list of VmEndpointNatMappings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmEndpointNatMappingsList {
     /// [Output Only] The unique identifier for the resource. This identifier is
     #[serde(default)]
@@ -5901,7 +5902,7 @@ pub struct VmEndpointNatMappingsList {
 }
 
 /// VpnGatewayAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5927,7 +5928,7 @@ pub struct VpnGatewayAggregatedList {
 }
 
 /// Contains a list of VpnGateway resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5950,14 +5951,14 @@ pub struct VpnGatewayList {
 }
 
 /// VpnGatewaysGetStatusResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewaysGetStatusResponse {
     #[serde(default)]
     pub result: ::core::option::Option<VpnGatewayStatus>,
 }
 
 /// VpnGatewaysScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewaysScopedList {
     /// [Output Only] A list of VPN gateways contained in this scope.
     #[serde(default, rename = "vpnGateways")]
@@ -5968,7 +5969,7 @@ pub struct VpnGatewaysScopedList {
 }
 
 /// VpnTunnelAggregatedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnTunnelAggregatedList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -5994,7 +5995,7 @@ pub struct VpnTunnelAggregatedList {
 }
 
 /// Contains a list of VpnTunnel resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnTunnelList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -6017,7 +6018,7 @@ pub struct VpnTunnelList {
 }
 
 /// VpnTunnelsScopedList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnTunnelsScopedList {
     /// A list of VPN tunnels contained in this scope.
     #[serde(default, rename = "vpnTunnels")]
@@ -6030,7 +6031,7 @@ pub struct VpnTunnelsScopedList {
 /// A logical endpoint for the wire group. An endpoint represents a metro that
 /// contains redundant Interconnect connections. A wire group is created
 /// between two endpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WireGroupEndpoint {
     /// A map that contains the redundant Interconnect connections. Specify
     #[serde(default)]
@@ -6038,7 +6039,7 @@ pub struct WireGroupEndpoint {
 }
 
 /// The redundant Interconnect connections for this endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WireGroupEndpointInterconnect {
     /// Required. An Interconnect connection. You can specify the connection as
     #[serde(default)]
@@ -6049,7 +6050,7 @@ pub struct WireGroupEndpointInterconnect {
 }
 
 /// Response for the list request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WireGroupList {
     #[serde(default)]
     pub etag: ::core::option::Option<String>,
@@ -6077,7 +6078,7 @@ pub struct WireGroupList {
 }
 
 /// XpnHostList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XpnHostList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -6100,7 +6101,7 @@ pub struct XpnHostList {
 }
 
 /// Contains a list of zone resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZoneList {
     /// [Output Only] Unique identifier for the resource; defined by the server.
     #[serde(default)]
@@ -6123,7 +6124,7 @@ pub struct ZoneList {
 }
 
 /// ZoneSetLabelsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZoneSetLabelsRequest {
     /// The fingerprint of the previous set of labels for this resource,
     #[serde(default, rename = "labelFingerprint")]
@@ -6134,7 +6135,7 @@ pub struct ZoneSetLabelsRequest {
 }
 
 /// ZoneSetNestedPolicyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZoneSetNestedPolicyRequest {
     /// Flatten Policy to create a backwacd compatible wire-format.
     #[serde(default)]
@@ -6148,7 +6149,7 @@ pub struct ZoneSetNestedPolicyRequest {
 }
 
 /// ZoneSetPolicyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZoneSetPolicyRequest {
     /// Flatten Policy to create a backwacd compatible wire-format.
     #[serde(default)]
@@ -6166,7 +6167,7 @@ pub struct ZoneSetPolicyRequest {
 /// Google Cloud Platform provides graphics processing units (accelerators) that
 /// you can add to VM instances to improve or accelerate performance when working
 /// with intensive workloads. For more information, readGPUs on Compute Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorType {
     /// [Output Only] Creation timestamp inRFC3339 text format.
     #[serde(default, rename = "creationTimestamp")]
@@ -6208,7 +6209,7 @@ pub struct AcceleratorType {
 ///
 /// For more information, see
 /// Reserving a static external IP address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Address {
     /// The static IP address represented by this resource.
     #[serde(default)]
@@ -6279,7 +6280,7 @@ pub struct Address {
 ///
 /// This Cloud Storage bucket resource is referenced by a URL map of a load
 /// balancer. For more information, readBackend Buckets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendBucket {
     /// Cloud Storage bucket name.
     #[serde(default, rename = "bucketName")]
@@ -6346,7 +6347,7 @@ pub struct BackendBucket {
 ///
 /// For more information, seeBackend
 /// Services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendService {
     /// Lifetime of cookies in seconds. This setting is applicable to Application
     #[serde(default, rename = "affinityCookieTtlSec")]
@@ -6508,7 +6509,7 @@ pub struct BackendService {
 }
 
 /// A flexible specification of machine types for instances to create.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceFlexibilityPolicy {
     /// Specification of alternative, flexible instance subsets.
     #[serde(default, rename = "instanceSelections")]
@@ -6517,7 +6518,7 @@ pub struct InstanceFlexibilityPolicy {
 
 /// Configuration for location policy among multiple possible locations
 /// (e.g. preferences for zone selection among zones in a single region).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationPolicy {
     /// Location configurations mapped by location name.
     #[serde(default)]
@@ -6531,7 +6532,7 @@ pub struct LocationPolicy {
 }
 
 /// BulkSetLabelsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkSetLabelsRequest {
     /// The fingerprint of the previous set of labels for this resource,
     #[serde(default, rename = "labelFingerprint")]
@@ -6544,7 +6545,7 @@ pub struct BulkSetLabelsRequest {
 /// A single recommendation to create requested resources. Contains detailed
 /// recommendations for every future resources specification specified in
 /// CalendarModeAdviceRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CalendarModeRecommendation {
     /// Recommendations for every future resource specification passed in
     #[serde(default, rename = "recommendationsPerSpec")]
@@ -6558,7 +6559,7 @@ pub struct CalendarModeRecommendation {
 /// You can purchase resource-based commitments for both hardware and software
 /// resources. For more information, read
 /// Resource-based committed use discounts
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Commitment {
     /// Specifies whether to automatically renew the commitment at the end of its
     #[serde(default, rename = "autoRenew")]
@@ -6635,7 +6636,7 @@ pub struct Commitment {
 /// A composite health check resource specifies the health source resources and
 /// the health destination resource to which the aggregated health result from
 /// the health source resources is delivered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompositeHealthCheck {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -6676,7 +6677,7 @@ pub struct CompositeHealthCheck {
 ///
 /// You can use cross-site networks to connect your on-premises networks to
 /// each other through Interconnect connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrossSiteNetwork {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -6716,7 +6717,7 @@ pub struct CrossSiteNetwork {
 /// The regionDisks resource represents a
 /// regional persistent disk.  For more information, read
 /// Regional resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Disk {
     /// The access mode of the disk.
     #[serde(default, rename = "accessMode")]
@@ -6871,7 +6872,7 @@ pub struct Disk {
 }
 
 /// ExchangedPeeringRoute resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExchangedPeeringRoute {
     /// The destination range of the route.
     #[serde(default, rename = "destRange")]
@@ -6901,7 +6902,7 @@ pub struct ExchangedPeeringRoute {
 ///
 /// For more information about using external VPN gateways, see
 /// Creating an HA VPN gateway and tunnel pair to a peer VPN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalVpnGateway {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -6939,7 +6940,7 @@ pub struct ExternalVpnGateway {
 }
 
 /// Represents a Firewall Policy resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallPolicy {
     /// A list of associations that belong to this firewall policy.
     #[serde(default)]
@@ -7010,7 +7011,7 @@ pub struct FirewallPolicy {
 /// For more information, read
 /// Forwarding rule concepts and
 /// Using protocol forwarding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardingRule {
     /// IP address for which this forwarding rule accepts traffic. When a client
     #[serde(default, rename = "IPAddress")]
@@ -7133,7 +7134,7 @@ pub struct ForwardingRule {
 }
 
 /// FutureReservation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservation {
     /// Aggregate reservation details for the future reservation.
     #[serde(default, rename = "aggregateReservation")]
@@ -7213,7 +7214,7 @@ pub struct FutureReservation {
 }
 
 /// Specification of locations to create resources in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureResourcesSpecLocationPolicy {
     /// Preferences for specified locations.
     #[serde(default)]
@@ -7221,7 +7222,7 @@ pub struct FutureResourcesSpecLocationPolicy {
 }
 
 /// Specification of reserved resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureResourcesSpecTargetResources {
     #[serde(default, rename = "aggregateResources")]
     pub aggregate_resources: ::core::option::Option<FutureResourcesSpecAggregateResources>,
@@ -7233,7 +7234,7 @@ pub struct FutureResourcesSpecTargetResources {
 ///
 /// It is possible to specify a contradictory time range that cannot be matched
 /// by any Interval. This causes a validation error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlexibleTimeRange {
     #[serde(default, rename = "maxDuration")]
     pub max_duration: ::core::option::Option<String>,
@@ -7246,7 +7247,7 @@ pub struct FlexibleTimeRange {
 }
 
 /// Array of guest attribute namespace/key/value tuples.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestAttributesValue {
     #[serde(default)]
     pub items: ::core::option::Option<::std::vec::Vec<GuestAttributesEntry>>,
@@ -7258,7 +7259,7 @@ pub struct GuestAttributesValue {
 ///
 /// For more information, see
 /// Health checks overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthAggregationPolicy {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -7299,7 +7300,7 @@ pub struct HealthAggregationPolicy {
 }
 
 /// Represents a Health-Check as a Service resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheckService {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -7365,7 +7366,7 @@ pub struct HealthCheckService {
 ///
 /// For more information, seeHealth checks
 /// overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheck {
     /// How often (in seconds) to send a health check. The default value is 5
     #[serde(default, rename = "checkIntervalSec")]
@@ -7430,7 +7431,7 @@ pub struct HealthCheck {
 /// A health source resource specifies the source resources and the health
 /// aggregation policy applied to the source resources to determine the
 /// aggregated health status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthSource {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -7471,7 +7472,7 @@ pub struct HealthSource {
 }
 
 /// Describes a URL link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HelpLink {
     /// Describes what the link offers.
     #[serde(default)]
@@ -7490,7 +7491,7 @@ pub struct HelpLink {
 ///
 /// For more information, seeHealth checks
 /// overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpHealthCheck {
     /// How often (in seconds) to send a health check. The default value is5 seconds.
     #[serde(default, rename = "checkIntervalSec")]
@@ -7543,7 +7544,7 @@ pub struct HttpHealthCheck {
 ///
 /// For more information, seeHealth checks
 /// overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpsHealthCheck {
     /// How often (in seconds) to send a health check. The default value is 5
     #[serde(default, rename = "checkIntervalSec")]
@@ -7590,7 +7591,7 @@ pub struct HttpsHealthCheck {
 ///
 /// You can use images to create boot disks for your VM instances.
 /// For more information, read Images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// The architecture of the image. Valid values are
     #[serde(default)]
@@ -7704,7 +7705,7 @@ pub struct Image {
 /// specified time. This resize request is nested under InstanceGroupManager
 /// and the VMs created by this request are added to the owning
 /// InstanceGroupManager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerResizeRequest {
     /// Output only. [Output Only] The creation timestamp for this resize request inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -7745,7 +7746,7 @@ pub struct InstanceGroupManagerResizeRequest {
 }
 
 /// Represents a reference to a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reference {
     /// Output only. [Output Only] Type of the resource. Always compute#reference
     #[serde(default)]
@@ -7762,7 +7763,7 @@ pub struct Reference {
 }
 
 /// InstanceSettingsMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceSettingsMetadata {
     /// A metadata key/value items map.
     #[serde(default)]
@@ -7788,7 +7789,7 @@ pub struct InstanceSettingsMetadata {
 /// global or regional instance templates.
 ///
 /// For more information, readInstance Templates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceTemplate {
     /// Output only. [Output Only] The creation timestamp for this instance template inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -7823,7 +7824,7 @@ pub struct InstanceTemplate {
 }
 
 /// InstancesGetEffectiveFirewallsResponseEffectiveFirewallPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
     /// Output only. [Output Only] Deprecated, please use short name instead. The display name
     #[serde(default, rename = "displayName")]
@@ -7849,7 +7850,7 @@ pub struct InstancesGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
 }
 
 /// InstancesReportHostAsFaultyRequestFaultReason resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesReportHostAsFaultyRequestFaultReason {
     /// TODO: enum values: ["BEHAVIOR_UNSPECIFIED", "CHIP_ERROR", "PERFORMANCE", "SILENT_DATA_CORRUPTION", "UNRECOVERABLE_GPU_ERROR"]
     #[serde(default)]
@@ -7862,7 +7863,7 @@ pub struct InstancesReportHostAsFaultyRequestFaultReason {
 ///
 /// An instance is a virtual machine that is hosted on Google Cloud Platform.
 /// For more information, readVirtual Machine Instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// Controls for advanced machine-related behavior features.
     #[serde(default, rename = "advancedMachineFeatures")]
@@ -8003,7 +8004,7 @@ pub struct Instance {
 }
 
 /// CustomerEncryptionKeyProtectedDisk resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerEncryptionKeyProtectedDisk {
     /// Decrypts data associated with the disk with acustomer-supplied
     #[serde(default, rename = "diskEncryptionKey")]
@@ -8016,7 +8017,7 @@ pub struct CustomerEncryptionKeyProtectedDisk {
 /// Represents a InstantSnapshot resource.
 ///
 /// You can use instant snapshots to create disk rollback points quickly..
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstantSnapshot {
     /// Output only. [Output Only] The architecture of the instant snapshot. Valid values are
     #[serde(default)]
@@ -8081,7 +8082,7 @@ pub struct InstantSnapshot {
 }
 
 /// InterconnectAttachmentGroupsOperationalStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupsOperationalStatus {
     #[serde(default, rename = "attachmentStatuses")]
     pub attachment_statuses: ::core::option::Option<
@@ -8101,7 +8102,7 @@ pub struct InterconnectAttachmentGroupsOperationalStatus {
 
 /// An interconnect attachment group resource allows customers to create,
 /// analyze, and expand highly available deployments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroup {
     /// Attachments in the AttachmentGroup. Keys are arbitrary user-specified
     #[serde(default)]
@@ -8139,7 +8140,7 @@ pub struct InterconnectAttachmentGroup {
 }
 
 /// The inner VLAN-to-Appliance mapping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentL2ForwardingApplianceMappingInnerVlanToApplianceMapping {
     /// Required in this object. A single IPv4 or IPv6 address used as the
     #[serde(default, rename = "innerApplianceIpAddress")]
@@ -8155,7 +8156,7 @@ pub struct InterconnectAttachmentL2ForwardingApplianceMappingInnerVlanToApplianc
 /// Cloud networks to your on-premises networks through an Interconnect.
 /// For more information, read
 /// Creating VLAN Attachments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachment {
     /// Determines whether this Attachment will carry packets.
     #[serde(default, rename = "adminEnabled")]
@@ -8302,7 +8303,7 @@ pub struct InterconnectAttachment {
 }
 
 /// InterconnectGroupsCreateMembers resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupsCreateMembers {
     /// How to behave when configured.topologyCapability.supportedSLA would not
     #[serde(default, rename = "intentMismatchBehavior")]
@@ -8317,7 +8318,7 @@ pub struct InterconnectGroupsCreateMembers {
 }
 
 /// Request to get the status of the interconnect group with extra detail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupsOperationalStatus {
     /// Output only. The configuration analysis, as returned by Get.
     #[serde(default)]
@@ -8339,7 +8340,7 @@ pub struct InterconnectGroupsOperationalStatus {
 
 /// An interconnect group resource allows customers to create, analyze, and
 /// expand their redundant connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroup {
     #[serde(default)]
     pub configured: ::core::option::Option<InterconnectGroupConfigured>,
@@ -8378,7 +8379,7 @@ pub struct InterconnectGroup {
 /// An Interconnect resource is a dedicated connection between the Google
 /// Cloud network and your on-premises network. For more information, read the
 /// Dedicated Interconnect Overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interconnect {
     /// Enable or disable the application awareness feature on this Cloud
     #[serde(default, rename = "aaiEnabled")]
@@ -8496,7 +8497,7 @@ pub struct Interconnect {
 /// You can use this resource to find location details about an Interconnect
 /// attachment (VLAN). For more information about interconnect attachments, read
 /// Creating VLAN Attachments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectLocation {
     /// Output only. [Output Only] The postal address of the Point of Presence, each line in
     #[serde(default)]
@@ -8566,7 +8567,7 @@ pub struct InterconnectLocation {
 ///
 /// You can use this resource to find remote location details about an
 /// Interconnect attachment (VLAN).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectRemoteLocation {
     /// Output only. [Output Only] The postal address of the Point of Presence, each line in
     #[serde(default)]
@@ -8638,7 +8639,7 @@ pub struct InterconnectRemoteLocation {
 /// MACsec configuration information for the Interconnect connection. Contains
 /// the generated Connectivity Association Key Name (CKN) and the key (CAK) for
 /// this Interconnect connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectMacsecConfig {
     /// A keychain placeholder describing a set of named key objects
     #[serde(default, rename = "preSharedKeys")]
@@ -8647,7 +8648,7 @@ pub struct InterconnectMacsecConfig {
 }
 
 /// LicenseCodeLicenseAlias resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LicenseCodeLicenseAlias {
     /// Output only. [Output Only] Description of this License Code.
     #[serde(default)]
@@ -8663,7 +8664,7 @@ pub struct LicenseCodeLicenseAlias {
 ///  *Caution* This resource is intended for
 /// use only by third-party partners who are creatingCloud Marketplace
 /// images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct License {
     /// Specifies licenseCodes of licenses that can replace this license. Note:
     #[serde(default, rename = "allowedReplacementLicenses")]
@@ -8734,7 +8735,7 @@ pub struct License {
 }
 
 /// Per-zone constraints on location policy for this zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationPolicyLocationConstraints {
     /// Maximum number of items that are allowed to be placed in this zone.
     #[serde(default, rename = "maxCount")]
@@ -8746,7 +8747,7 @@ pub struct LocationPolicyLocationConstraints {
 /// A machine image is a Compute Engine resource that stores all the
 /// configuration, metadata, permissions, and data from one or more disks
 /// required to create a Virtual machine (VM) instance. For more information, seeMachine images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineImage {
     /// Output only. [Output Only] The creation timestamp for this machine image inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -8818,7 +8819,7 @@ pub struct MachineImage {
 ///
 /// You can use specific machine types for your VM instances based on performance
 /// and pricing requirements. For more information, readMachine Types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineType {
     /// [Output Only] A list of accelerator configurations assigned to this
     #[serde(default)]
@@ -8874,7 +8875,7 @@ pub struct MachineType {
 }
 
 /// Contains NAT IP information of a NAT config (i.e. usage status, mode).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NatIpInfo {
     /// Output only. A list of all NAT IPs assigned to this NAT config.
     #[serde(default, rename = "natIpInfoMappings")]
@@ -8886,7 +8887,7 @@ pub struct NatIpInfo {
 
 /// NetworkAttachments
 /// A network attachment resource ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkAttachment {
     /// Output only. [Output Only] An array of connections for all the producers connected
     #[serde(default, rename = "connectionEndpoints")]
@@ -8937,7 +8938,7 @@ pub struct NetworkAttachment {
 }
 
 /// Represents a Google Cloud Armor network edge security service resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEdgeSecurityService {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -8972,7 +8973,7 @@ pub struct NetworkEdgeSecurityService {
 }
 
 /// NetworkEndpointWithHealthStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointWithHealthStatus {
     /// Output only. [Output only] The health status of network endpoint.
     #[serde(default)]
@@ -9001,7 +9002,7 @@ pub struct NetworkEndpointWithHealthStatus {
 ///    -
 ///    To manage NEGs with global scope (such as global internet NEGs):global
 ///    API
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroup {
     /// Optional. Metadata defined as annotations on the network endpoint group.
     #[serde(default)]
@@ -9066,7 +9067,7 @@ pub struct NetworkEndpointGroup {
 ///
 /// Networks connect resources to each other and to the internet. For more
 /// information, readVirtual Private Cloud (VPC) Network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Network {
     /// Deprecated in favor of subnet mode networks.
     #[serde(default, rename = "IPv4Range")]
@@ -9131,7 +9132,7 @@ pub struct Network {
 }
 
 /// NetworkProfile represents a Google managed network profile resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkProfile {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -9166,7 +9167,7 @@ pub struct NetworkProfile {
 }
 
 /// NetworksGetEffectiveFirewallsResponseEffectiveFirewallPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworksGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
     /// Output only. [Output Only] Deprecated, please use short name instead. The display name
     #[serde(default, rename = "displayName")]
@@ -9192,7 +9193,7 @@ pub struct NetworksGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
 }
 
 /// NodeGroupNode resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupNode {
     /// Accelerators for this node.
     #[serde(default)]
@@ -9245,7 +9246,7 @@ pub struct NodeGroupNode {
 /// keep your instances physically separated from instances in other projects, or
 /// to group your instances together on the same host hardware. For more
 /// information, readSole-tenant nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroup {
     /// Specifies how autoscaling should behave.
     #[serde(default, rename = "autoscalingPolicy")]
@@ -9303,7 +9304,7 @@ pub struct NodeGroup {
 /// You can use a template to define properties for nodes in a node group. For
 /// more information, readCreating node groups
 /// and instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTemplate {
     #[serde(default)]
     pub accelerators: ::core::option::Option<::std::vec::Vec<AcceleratorConfig>>,
@@ -9360,7 +9361,7 @@ pub struct NodeTemplate {
 /// available node type is n1-node-96-624 node type that has 96
 /// vCPUs and 624 GB of memory, available in multiple zones. For more information
 /// readNode types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeType {
     /// [Output Only] The CPU platform used by this node type.
     #[serde(default, rename = "cpuPlatform")]
@@ -9411,7 +9412,7 @@ pub struct NodeType {
 ///
 /// For more information, see
 /// Health checks overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationEndpoint {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -9467,7 +9468,7 @@ pub struct NotificationEndpoint {
 ///
 /// Note that completed Operation resources have a limited
 /// retention period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// [Output Only] The value of requestId if you provided it in the request.
     #[serde(default, rename = "clientOperationId")]
@@ -9559,7 +9560,7 @@ pub struct Operation {
 /// such as an instance group of an internal TCP/UDP load balancer, for analysis
 /// or examination.
 /// For more information about setting up Packet Mirroring, seeUsing Packet Mirroring.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketMirroring {
     /// The Forwarding Rule resource of typeloadBalancingScheme=INTERNAL that will be used as collector
     #[serde(default, rename = "collectorIlb")]
@@ -9603,7 +9604,7 @@ pub struct PacketMirroring {
 }
 
 /// PreservedStatePreservedNetworkIpIpAddress resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreservedStatePreservedNetworkIpIpAddress {
     /// The URL of the reservation for this IP address.
     #[serde(default)]
@@ -9614,7 +9615,7 @@ pub struct PreservedStatePreservedNetworkIpIpAddress {
 }
 
 /// Represents a single Google Compute Engine preview feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreviewFeature {
     /// Specifies whether the feature is enabled or disabled. // TODO: enum values: ["ACTIVATION_STATE_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default, rename = "activationStatus")]
@@ -9646,7 +9647,7 @@ pub struct PreviewFeature {
 }
 
 /// Service resource (a.k.a service project) ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XpnResourceId {
     /// The ID of the service resource. In the case of projects, this field
     #[serde(default)]
@@ -9659,7 +9660,7 @@ pub struct XpnResourceId {
 /// A public advertised prefix represents an aggregated IP prefix or netblock
 /// which customers bring to cloud. The IP prefix is a single unit of route
 /// advertisement and is announced globally to the internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublicAdvertisedPrefix {
     /// Output only. [Output Only] The version of BYOIP API. // TODO: enum values: ["V1", "V2"]
     #[serde(default, rename = "byoipApiVersion")]
@@ -9714,7 +9715,7 @@ pub struct PublicAdvertisedPrefix {
 /// (global or region). IPs in the block can be allocated to resources within
 /// that scope. Public delegated prefixes may be further broken up into
 /// smaller IP blocks in the same scope as the parent block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublicDelegatedPrefix {
     /// The allocatable prefix length supported by this public delegated prefix.
     #[serde(default, rename = "allocatablePrefixLength")]
@@ -9788,7 +9789,7 @@ pub struct PublicDelegatedPrefix {
 /// resource.
 ///
 /// For regional managed instance groups, use theregionAutoscalers resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Autoscaler {
     /// The configuration parameters for the autoscaling algorithm. You can define
     #[serde(default, rename = "autoscalingPolicy")]
@@ -9850,7 +9851,7 @@ pub struct Autoscaler {
 ///
 /// The regionDiskTypes resource represents disk types for a
 /// regional persistent disk. For more information, read Regional persistent disks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskType {
     /// [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -9903,7 +9904,7 @@ pub struct DiskType {
 ///
 /// For more information, readInstance
 /// groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroup {
     /// Output only. [Output Only] The creation timestamp for this instance group inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -9955,7 +9956,7 @@ pub struct InstanceGroup {
 /// resource.
 ///
 /// For regional Managed Instance Group, use theregionInstanceGroupManagers resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManager {
     /// Specifies configuration that overrides the instance template configuration
     #[serde(default, rename = "allInstancesConfig")]
@@ -10062,7 +10063,7 @@ pub struct InstanceGroupManager {
 }
 
 /// InstanceManagedByIgmError resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceManagedByIgmError {
     /// Output only. [Output Only] Contents of the error.
     #[serde(default)]
@@ -10077,7 +10078,7 @@ pub struct InstanceManagedByIgmError {
 }
 
 /// PerInstanceConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerInstanceConfig {
     /// Fingerprint of this per-instance config. This field can be used in
     #[serde(default)]
@@ -10094,7 +10095,7 @@ pub struct PerInstanceConfig {
 }
 
 /// A Managed Instance resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedInstance {
     /// Output only. [Output Only] The current action that the managed instance group has
     #[serde(default, rename = "currentAction")]
@@ -10133,7 +10134,7 @@ pub struct ManagedInstance {
 }
 
 /// InstanceWithNamedPorts resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceWithNamedPorts {
     /// Output only. [Output Only] The URL of the instance.
     #[serde(default)]
@@ -10151,7 +10152,7 @@ pub struct InstanceWithNamedPorts {
 /// A region is a geographical area where a resource is located. For more
 /// information, readRegions
 /// and Zones.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Region {
     /// [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -10192,7 +10193,7 @@ pub struct Region {
 }
 
 /// RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponseEffectiveFirewallPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponseEffectiveFirewallPolicy {
     /// Output only. [Output Only] The display name of the firewall policy.
     #[serde(default, rename = "displayName")]
@@ -10218,7 +10219,7 @@ pub struct RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponseEffectiveFi
 ///
 /// Firewall rules allow or deny ingress traffic to, and egress traffic from your
 /// instances. For more information, readFirewall rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Firewall {
     /// The list of ALLOW rules specified by this firewall. Each rule specifies a
     #[serde(default)]
@@ -10283,7 +10284,7 @@ pub struct Firewall {
 }
 
 /// Represents a reservation block resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationBlock {
     /// Output only. [Output Only] The number of resources that are allocated in this
     #[serde(default)]
@@ -10336,7 +10337,7 @@ pub struct ReservationBlock {
 }
 
 /// Represents a reservation slot resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSlot {
     /// Output only. [Output Only] The creation timestamp, formatted asRFC3339 text.
     #[serde(default, rename = "creationTimestamp")]
@@ -10374,7 +10375,7 @@ pub struct ReservationSlot {
 }
 
 /// Represents a reservation subBlock resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSubBlock {
     /// Output only. [Output Only] Slice info for the reservation subBlock.
     #[serde(default, rename = "acceleratorTopologiesInfo")]
@@ -10424,7 +10425,7 @@ pub struct ReservationSubBlock {
 }
 
 /// The reason for the fault experienced with the subBlock.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSubBlocksReportFaultyRequestFaultReason {
     /// The behavior of the fault experienced with the subBlock. // TODO: enum values: ["FAULT_BEHAVIOR_UNSPECIFIED", "GPU_ERROR", "PERFORMANCE", "SILENT_DATA_CORRUPTION", "SWITCH_FAILURE"]
     #[serde(default)]
@@ -10438,7 +10439,7 @@ pub struct ReservationSubBlocksReportFaultyRequestFaultReason {
 /// schedule actions for some Compute Engine resources. For example, you can
 /// use them toschedule persistent disk
 /// snapshots.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicy {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -10483,7 +10484,7 @@ pub struct ResourcePolicy {
 }
 
 /// RouterStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterStatus {
     /// A list of the best dynamic routes for this Cloud Router''s Virtual Private
     #[serde(default, rename = "bestRoutes")]
@@ -10501,7 +10502,7 @@ pub struct RouterStatus {
 }
 
 /// BgpRoute resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BgpRoute {
     /// Output only. [Output only] AS-PATH for the route
     #[serde(default, rename = "asPaths")]
@@ -10521,7 +10522,7 @@ pub struct BgpRoute {
 }
 
 /// RoutePolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoutePolicy {
     /// An optional description of route policy.
     #[serde(default)]
@@ -10544,7 +10545,7 @@ pub struct RoutePolicy {
 ///
 /// For more information about Cloud Router, read theCloud
 /// Router overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Router {
     /// BGP information specific to this router.
     #[serde(default)]
@@ -10595,7 +10596,7 @@ pub struct Router {
 }
 
 /// SecurityPoliciesWafConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPoliciesWafConfig {
     #[serde(default, rename = "wafRules")]
     pub waf_rules: ::core::option::Option<PreconfiguredWafSet>,
@@ -10606,7 +10607,7 @@ pub struct SecurityPoliciesWafConfig {
 /// Only external backend services that use load balancers can
 /// reference a security policy. For more information, see
 /// Google Cloud Armor security policy overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicy {
     #[serde(default, rename = "adaptiveProtectionConfig")]
     pub adaptive_protection_config: ::core::option::Option<SecurityPolicyAdaptiveProtectionConfig>,
@@ -10673,7 +10674,7 @@ pub struct SecurityPolicy {
 /// It encapsulates the load balancer which fronts the service runs and
 /// a list of NAT IP ranges that the producers uses to represent
 /// the consumers connecting to the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAttachment {
     /// Output only. [Output Only] An array of connections for all the consumers connected to
     #[serde(default, rename = "connectedEndpoints")]
@@ -10749,7 +10750,7 @@ pub struct ServiceAttachment {
 ///
 /// You can find out more about this error model and how to work with it in the
 /// [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -10763,7 +10764,7 @@ pub struct Status {
 }
 
 /// A Shielded Instance Identity Entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShieldedInstanceIdentityEntry {
     /// A PEM-encoded X.509 certificate. This field can be empty.
     #[serde(default, rename = "ekCert")]
@@ -10778,7 +10779,7 @@ pub struct ShieldedInstanceIdentityEntry {
 /// You can use snapshots to back up data on a regular interval. For more
 /// information, read  Creating
 /// persistent disk snapshots.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Snapshot {
     /// Output only. [Output Only] The architecture of the snapshot. Valid values are
     #[serde(default)]
@@ -10897,7 +10898,7 @@ pub struct Snapshot {
 }
 
 /// SnapshotSettingsStorageLocationSettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotSettingsStorageLocationSettings {
     /// When the policy is SPECIFIC_LOCATIONS, snapshots will be stored
     #[serde(default)]
@@ -10940,7 +10941,7 @@ pub struct SnapshotSettingsStorageLocationSettings {
 /// Creating and using SSL certificates,SSL certificates
 /// quotas and limits, and
 /// Troubleshooting SSL certificates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCertificate {
     /// A value read into memory from a certificate file. The certificate file must
     #[serde(default)]
@@ -10992,7 +10993,7 @@ pub struct SslCertificate {
 /// suites, that are offered by Application Load Balancers and proxy Network Load
 /// Balancers. For more information, read
 /// SSL policies overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslPolicy {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -11036,7 +11037,7 @@ pub struct SslPolicy {
 }
 
 /// StoragePoolDisk resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolDisk {
     /// Output only. [Output Only] Instances this disk is attached to.
     #[serde(default, rename = "attachedInstances")]
@@ -11074,7 +11075,7 @@ pub struct StoragePoolDisk {
 }
 
 /// StoragePoolType resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolType {
     /// [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -11130,7 +11131,7 @@ pub struct StoragePoolType {
 }
 
 /// Represents a zonal storage pool resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePool {
     /// Provisioning type of the byte capacity of the pool. // TODO: enum values: ["ADVANCED", "STANDARD", "UNSPECIFIED"]
     #[serde(default, rename = "capacityProvisioningType")]
@@ -11204,7 +11205,7 @@ pub struct StoragePool {
 /// Private Cloud network with one primary IP range and zero or more secondary
 /// IP ranges. For more information, read
 /// Virtual Private Cloud (VPC) Network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subnetwork {
     /// Whether this subnetwork''s ranges can conflict with existing custom routes.
     #[serde(default, rename = "allowSubnetCidrRoutesOverlap")]
@@ -11314,7 +11315,7 @@ pub struct Subnetwork {
 /// scheme INTERNAL_SELF_MANAGED can reference a target gRPC proxy. The target
 /// gRPC Proxy references a URL map that specifies how traffic is routed to
 /// gRPC backend services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetGrpcProxy {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -11367,7 +11368,7 @@ pub struct TargetGrpcProxy {
 /// then references a URL map. For more information, readUsing Target Proxies
 /// and
 /// Forwarding rule concepts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetHttpProxy {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -11423,7 +11424,7 @@ pub struct TargetHttpProxy {
 /// then references a URL map. For more information, readUsing Target Proxies
 /// and
 /// Forwarding rule concepts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetHttpsProxy {
     /// Optional. A URL referring to a networksecurity.AuthorizationPolicy resource
     #[serde(default, rename = "authorizationPolicy")]
@@ -11488,7 +11489,7 @@ pub struct TargetHttpsProxy {
 /// single source. For example, ESP, AH, TCP, or UDP.
 /// For more information, readTarget
 /// instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetInstance {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -11526,7 +11527,7 @@ pub struct TargetInstance {
 }
 
 /// HealthStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthStatus {
     /// Metadata defined as annotations for network endpoint.
     #[serde(default)]
@@ -11562,7 +11563,7 @@ pub struct HealthStatus {
 }
 
 /// InstanceReference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceReference {
     /// The URL for a specific instance.
     #[serde(default)]
@@ -11575,7 +11576,7 @@ pub struct InstanceReference {
 /// A target pool references member instances, an associated legacy
 /// HttpHealthCheck resource, and, optionally, a backup target pool.
 /// For more information, readUsing target pools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetPool {
     /// The server-defined URL for the resource. This field is applicable only when
     #[serde(default, rename = "backupPool")]
@@ -11624,7 +11625,7 @@ pub struct TargetPool {
 /// The forwarding rule references the target SSL proxy, and the target proxy
 /// then references a backend service. For more information, readProxy Network
 /// Load Balancer overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetSslProxy {
     /// URL of a certificate map that identifies a certificate map associated with
     #[serde(default, rename = "certificateMap")]
@@ -11667,7 +11668,7 @@ pub struct TargetSslProxy {
 /// The forwarding rule references the target TCP proxy, and the target proxy
 /// then references a backend service. For more information, readProxy Network
 /// Load Balancer overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetTcpProxy {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -11706,7 +11707,7 @@ pub struct TargetTcpProxy {
 /// The target VPN gateway resource represents a Classic Cloud VPN gateway.
 /// For more information, read thethe
 /// Cloud VPN Overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetVpnGateway {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -11783,7 +11784,7 @@ pub struct TargetVpnGateway {
 /// the regionUrlMaps resource, the backend service must have aloadBalancingScheme of INTERNAL_MANAGED. For more
 /// information, read URL
 /// Map Concepts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlMap {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -11836,7 +11837,7 @@ pub struct UrlMap {
 }
 
 /// Message representing the validation result for a UrlMap.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlMapValidationResult {
     #[serde(default, rename = "loadErrors")]
     pub load_errors: ::core::option::Option<::std::vec::Vec<String>>,
@@ -11851,7 +11852,7 @@ pub struct UrlMapValidationResult {
 }
 
 /// Subnetwork which the current user has compute.subnetworks.use permission on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsableSubnetwork {
     /// Output only. [Output Only] The external IPv6 address range that is assigned to this
     #[serde(default, rename = "externalIpv6Prefix")]
@@ -11887,7 +11888,7 @@ pub struct UsableSubnetwork {
 }
 
 /// SubnetworksScopedWarning resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworksScopedWarning {
     /// Name of the scope containing this set of Subnetworks.
     #[serde(default, rename = "scopeName")]
@@ -11898,7 +11899,7 @@ pub struct SubnetworksScopedWarning {
 }
 
 /// Contain information of Nat mapping for a VM endpoint (i.e., NIC).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmEndpointNatMappings {
     /// Output only. Name of the VM instance which the endpoint belongs to
     #[serde(default, rename = "instanceName")]
@@ -11909,7 +11910,7 @@ pub struct VmEndpointNatMappings {
 }
 
 /// VpnGatewayStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayStatus {
     /// Output only. List of VPN connection for this VpnGateway.
     #[serde(default, rename = "vpnConnections")]
@@ -11923,7 +11924,7 @@ pub struct VpnGatewayStatus {
 /// network through an IPsec VPN connection in a single region.
 /// For more information about Cloud HA VPN solutions, see
 /// Cloud VPN topologies .
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGateway {
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
@@ -11973,7 +11974,7 @@ pub struct VpnGateway {
 ///
 /// For more information about VPN, read the
 /// the Cloud VPN Overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnTunnel {
     /// User specified list of ciphers to use for the phase 1 and phase 2 of the
     #[serde(default, rename = "cipherSuite")]
@@ -12056,7 +12057,7 @@ pub struct VpnTunnel {
 }
 
 /// A resource that represents a group of redundant wires.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WireGroup {
     /// Indicates whether the wires in the wire group are enabled. When false, the
     #[serde(default, rename = "adminEnabled")]
@@ -12101,7 +12102,7 @@ pub struct WireGroup {
 /// A project is used to organize resources in a Google Cloud Platform
 /// environment. For more information, read about the
 /// Resource Hierarchy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Project {
     /// Output only. [Output Only] The Cloud Armor tier for this project. It can be one of the
     #[serde(default, rename = "cloudArmorTier")]
@@ -12155,7 +12156,7 @@ pub struct Project {
 /// A zone is a deployment area. These deployment areas are subsets of a region.
 /// For example the zone us-east1-b is located in theus-east1 region. For more information, readRegions and
 /// Zones.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Zone {
     /// [Output Only] Available cpu/platform selections for the zone.
     #[serde(default, rename = "availableCpuPlatforms")]
@@ -12263,7 +12264,7 @@ pub struct Zone {
 ///
 /// For a description of IAM and its features, see the
 /// [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -12280,7 +12281,7 @@ pub struct Policy {
 }
 
 /// Message containing Cloud CDN configuration for a backend bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendBucketCdnPolicy {
     /// Bypass the cache when the specified request headers are matched - e.g.
     #[serde(default, rename = "bypassCacheOnRequestHeaders")]
@@ -12323,7 +12324,7 @@ pub struct BackendBucketCdnPolicy {
 }
 
 /// Additional Backend Bucket parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendBucketParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -12331,7 +12332,7 @@ pub struct BackendBucketParams {
 }
 
 /// BackendBucketUsedBy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendBucketUsedBy {
     /// Output only. [Output Only] Server-defined URL for UrlMaps referencing that
     #[serde(default)]
@@ -12339,7 +12340,7 @@ pub struct BackendBucketUsedBy {
 }
 
 /// Message containing information of one individual backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Backend {
     /// Specifies how to determine whether the backend of a load balancer can
     #[serde(default, rename = "balancingMode")]
@@ -12389,7 +12390,7 @@ pub struct Backend {
 }
 
 /// Message containing Cloud CDN configuration for a backend service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceCdnPolicy {
     /// Bypass the cache when the specified request headers are matched - e.g.
     #[serde(default, rename = "bypassCacheOnRequestHeaders")]
@@ -12433,7 +12434,7 @@ pub struct BackendServiceCdnPolicy {
 
 /// Settings controlling the volume of requests, connections and retries to this
 /// backend service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CircuitBreakers {
     /// The maximum number of connections to the backend service. If not specified,
     #[serde(default, rename = "maxConnections")]
@@ -12453,7 +12454,7 @@ pub struct CircuitBreakers {
 }
 
 /// Message containing connection draining configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionDraining {
     /// Configures a duration timeout for existing requests on a removed backend
     #[serde(default, rename = "drainingTimeoutSec")]
@@ -12461,7 +12462,7 @@ pub struct ConnectionDraining {
 }
 
 /// Connection Tracking configuration for this BackendService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceConnectionTrackingPolicy {
     /// Specifies connection persistence when backends are unhealthy. The default
     #[serde(default, rename = "connectionPersistenceOnUnhealthyBackends")]
@@ -12478,7 +12479,7 @@ pub struct BackendServiceConnectionTrackingPolicy {
 }
 
 /// This message defines settings for a consistent hash style load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsistentHashLoadBalancerSettings {
     /// Hash is based on HTTP Cookie. This field describes a HTTP cookie that will
     #[serde(default, rename = "httpCookie")]
@@ -12493,7 +12494,7 @@ pub struct ConsistentHashLoadBalancerSettings {
 
 /// Custom Metrics are used for WEIGHTED_ROUND_ROBIN
 /// locality_lb_policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceCustomMetric {
     /// If true, the metric data is not used for load balancing.
     #[serde(default, rename = "dryRun")]
@@ -12517,7 +12518,7 @@ pub struct BackendServiceCustomMetric {
 /// draining traffic. A setting of false allows existing TCP
 /// connections to persist, even on VMs no longer in the active pool, for up
 /// to the duration of the connection draining timeout (10 minutes).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceFailoverPolicy {
     /// This can be set to true if the protocol isTCP, UDP, or UNSPECIFIED.
     #[serde(default, rename = "disableConnectionDrainOnFailover")]
@@ -12531,7 +12532,7 @@ pub struct BackendServiceFailoverPolicy {
 }
 
 /// BackendServiceHAPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceHAPolicy {
     /// Specifies whether fast IP move is enabled, and if so, the mechanism to
     #[serde(default, rename = "fastIPMove")]
@@ -12542,7 +12543,7 @@ pub struct BackendServiceHAPolicy {
 }
 
 /// Identity-Aware Proxy
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceIAP {
     /// Whether the serving infrastructure will authenticate and authorize all
     #[serde(default)]
@@ -12560,7 +12561,7 @@ pub struct BackendServiceIAP {
 
 /// Container for either a built-in LB policy supported by gRPC or Envoy or
 /// a custom one implemented by the end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceLocalityLoadBalancingPolicyConfig {
     #[serde(default, rename = "customPolicy")]
     pub custom_policy:
@@ -12571,7 +12572,7 @@ pub struct BackendServiceLocalityLoadBalancingPolicyConfig {
 
 /// The available logging options for the load balancer traffic served by this
 /// backend service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceLogConfig {
     /// Denotes whether to enable logging for the load balancer
     #[serde(default)]
@@ -12588,7 +12589,7 @@ pub struct BackendServiceLogConfig {
 }
 
 /// BackendServiceNetworkPassThroughLbTrafficPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceNetworkPassThroughLbTrafficPolicy {
     /// When configured, new connections are load balanced across healthy backend
     #[serde(default, rename = "zonalAffinity")]
@@ -12598,7 +12599,7 @@ pub struct BackendServiceNetworkPassThroughLbTrafficPolicy {
 
 /// A message containing information about the resource or system that manages
 /// the backend service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceOrchestrationInfo {
     /// The resource URI of the resource or system that manages the backend
     #[serde(default, rename = "resourceUri")]
@@ -12607,7 +12608,7 @@ pub struct BackendServiceOrchestrationInfo {
 
 /// Settings controlling the eviction of unhealthy hosts from the load balancing
 /// pool for the backend service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutlierDetection {
     /// The base time that a backend endpoint is ejected for. Defaults to 30000ms
     #[serde(default, rename = "baseEjectionTime")]
@@ -12645,7 +12646,7 @@ pub struct OutlierDetection {
 }
 
 /// Additional Backend Service parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -12653,7 +12654,7 @@ pub struct BackendServiceParams {
 }
 
 /// The authentication and authorization settings for a BackendService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecuritySettings {
     /// The configuration needed to generate a signature for access to private
     #[serde(default, rename = "awsV4Authentication")]
@@ -12667,7 +12668,7 @@ pub struct SecuritySettings {
 }
 
 /// The HTTP cookie used for stateful session affinity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceHttpCookie {
     /// Name of the cookie.
     #[serde(default)]
@@ -12683,7 +12684,7 @@ pub struct BackendServiceHttpCookie {
 /// Subsetting configuration for this BackendService.
 /// Currently this is applicable only for Internal TCP/UDP load balancing,
 /// Internal HTTP(S) load balancing and Traffic Director.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subsetting {
     /// TODO: enum values: ["CONSISTENT_HASH_SUBSETTING", "NONE"]
     #[serde(default)]
@@ -12691,7 +12692,7 @@ pub struct Subsetting {
 }
 
 /// BackendServiceTlsSettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceTlsSettings {
     /// Reference to the BackendAuthenticationConfig resource from the
     #[serde(default, rename = "authenticationConfig")]
@@ -12706,7 +12707,7 @@ pub struct BackendServiceTlsSettings {
 }
 
 /// BackendServiceUsedBy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceUsedBy {
     /// Output only. [Output Only] Server-defined URL for resources referencing given
     #[serde(default)]
@@ -12714,7 +12715,7 @@ pub struct BackendServiceUsedBy {
 }
 
 /// LocationPolicyZoneConfiguration resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationPolicyZoneConfiguration {
     /// The URL of the zone.
     #[serde(default)]
@@ -12722,7 +12723,7 @@ pub struct LocationPolicyZoneConfiguration {
 }
 
 /// Commitment for a particular license resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LicenseResourceCommitment {
     /// The number of licenses you plan to purchase.
     #[serde(default)]
@@ -12739,7 +12740,7 @@ pub struct LicenseResourceCommitment {
 /// held in a specific zone even if the reserved VMs are not running. For more
 /// information, read  Reserving zonal
 /// resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reservation {
     /// Advanced control for cluster management, applicable only to DENSE
     #[serde(default, rename = "advancedDeploymentControl")]
@@ -12825,7 +12826,7 @@ pub struct Reservation {
 }
 
 /// [Output Only] Contains output only fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitmentResourceStatus {
     /// Output only. [Output Only] Indicates the end time of customer''s eligibility to send
     #[serde(default, rename = "customTermEligibilityEndTimestamp")]
@@ -12834,7 +12835,7 @@ pub struct CommitmentResourceStatus {
 
 /// Commitment for a particular hardware resource (a commitment is composed of
 /// one or more of these).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceCommitment {
     /// Name of the accelerator type or GPU resource. Specify this field only when
     #[serde(default, rename = "acceleratorType")]
@@ -12848,7 +12849,7 @@ pub struct ResourceCommitment {
 }
 
 /// DiskAsyncReplication resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskAsyncReplication {
     /// Output only. [Output Only] URL of the DiskConsistencyGroupPolicy if replication was
     #[serde(default, rename = "consistencyGroupPolicy")]
@@ -12865,7 +12866,7 @@ pub struct DiskAsyncReplication {
 }
 
 /// Additional disk params.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskParams {
     /// Input only. Resource manager tags to be bound to the disk. Tag keys and values
     #[serde(default, rename = "resourceManagerTags")]
@@ -12873,7 +12874,7 @@ pub struct DiskParams {
 }
 
 /// DiskResourceStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskResourceStatus {
     #[serde(default, rename = "asyncPrimaryDisk")]
     pub async_primary_disk: ::core::option::Option<DiskResourceStatusAsyncReplicationStatus>,
@@ -12883,7 +12884,7 @@ pub struct DiskResourceStatus {
 }
 
 /// The interface for the external VPN gateway.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalVpnGatewayInterface {
     /// The numeric ID of this interface.
     #[serde(default)]
@@ -12897,7 +12898,7 @@ pub struct ExternalVpnGatewayInterface {
 }
 
 /// ExternalVpnGatewayParams resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalVpnGatewayParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -12905,7 +12906,7 @@ pub struct ExternalVpnGatewayParams {
 }
 
 /// FirewallPolicyAssociation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallPolicyAssociation {
     /// The target that the firewall policy is attached to.
     #[serde(default, rename = "attachmentTarget")]
@@ -12927,7 +12928,7 @@ pub struct FirewallPolicyAssociation {
 /// Describes the auto-registration of the forwarding rule to Service Directory.
 /// The region and project of the Service Directory resource generated from
 /// this registration will be the same as this forwarding rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardingRuleServiceDirectoryRegistration {
     /// Service Directory namespace to register the forwarding rule under.
     #[serde(default)]
@@ -12941,7 +12942,7 @@ pub struct ForwardingRuleServiceDirectoryRegistration {
 }
 
 /// FutureReservationCommitmentInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservationCommitmentInfo {
     /// name of the commitment where capacity is being delivered to.
     #[serde(default, rename = "commitmentName")]
@@ -12955,7 +12956,7 @@ pub struct FutureReservationCommitmentInfo {
 }
 
 /// [Output only] Represents status related to the future reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservationStatus {
     /// Output only. [Output Only] The current status of the requested amendment. // TODO: enum values: ["AMENDMENT_APPROVED", "AMENDMENT_DECLINED", "AMENDMENT_IN_REVIEW", "AMENDMENT_STATUS_UNSPECIFIED"]
     #[serde(default, rename = "amendmentStatus")]
@@ -12985,7 +12986,7 @@ pub struct FutureReservationStatus {
 }
 
 /// FutureResourcesSpecAggregateResources resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureResourcesSpecAggregateResources {
     /// Size of the request, in accelerator (chip) count.
     #[serde(default, rename = "acceleratorCount")]
@@ -12999,7 +13000,7 @@ pub struct FutureResourcesSpecAggregateResources {
 }
 
 /// FutureResourcesSpecSpecificSKUResources resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureResourcesSpecSpecificSKUResources {
     /// Size of the request, in instance count.
     #[serde(default, rename = "instanceCount")]
@@ -13014,7 +13015,7 @@ pub struct FutureResourcesSpecSpecificSKUResources {
 }
 
 /// A guest attributes namespace/key/value entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestAttributesEntry {
     /// Key for the guest attribute entry.
     #[serde(default)]
@@ -13028,7 +13029,7 @@ pub struct GuestAttributesEntry {
 }
 
 /// GRPCHealthCheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GRPCHealthCheck {
     /// The gRPC service name for the health check. This field is optional. The
     #[serde(default, rename = "grpcServiceName")]
@@ -13045,7 +13046,7 @@ pub struct GRPCHealthCheck {
 }
 
 /// GRPCTLSHealthCheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GRPCTLSHealthCheck {
     /// The gRPC service name for the health check. This field is optional. The
     #[serde(default, rename = "grpcServiceName")]
@@ -13059,7 +13060,7 @@ pub struct GRPCTLSHealthCheck {
 }
 
 /// HTTP2HealthCheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HTTP2HealthCheck {
     /// The value of the host header in the HTTP/2 health check request. If left
     #[serde(default)]
@@ -13085,7 +13086,7 @@ pub struct HTTP2HealthCheck {
 }
 
 /// HTTPHealthCheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HTTPHealthCheck {
     /// The value of the host header in the HTTP health check request. If left
     #[serde(default)]
@@ -13111,7 +13112,7 @@ pub struct HTTPHealthCheck {
 }
 
 /// HTTPSHealthCheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HTTPSHealthCheck {
     /// The value of the host header in the HTTPS health check request. If left
     #[serde(default)]
@@ -13138,7 +13139,7 @@ pub struct HTTPSHealthCheck {
 
 /// Configuration of logging on a health check. If logging is enabled, logs
 /// will be exported to Stackdriver.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheckLogConfig {
     /// Indicates whether or not to export logs. This is false by default, which
     #[serde(default)]
@@ -13146,7 +13147,7 @@ pub struct HealthCheckLogConfig {
 }
 
 /// SSLHealthCheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SSLHealthCheck {
     /// The TCP port number to which the health check prober sends packets. The
     #[serde(default)]
@@ -13169,7 +13170,7 @@ pub struct SSLHealthCheck {
 }
 
 /// TCPHealthCheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TCPHealthCheck {
     /// The TCP port number to which the health check prober sends packets. The
     #[serde(default)]
@@ -13192,7 +13193,7 @@ pub struct TCPHealthCheck {
 }
 
 /// Additional image params.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageParams {
     /// Input only. Resource manager tags to be bound to the image. Tag keys and values have
     #[serde(default, rename = "resourceManagerTags")]
@@ -13200,7 +13201,7 @@ pub struct ImageParams {
 }
 
 /// InstanceGroupManagerResizeRequestStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerResizeRequestStatus {
     /// Output only. [Output only] Fatal errors encountered during the queueing or
     #[serde(default)]
@@ -13212,7 +13213,7 @@ pub struct InstanceGroupManagerResizeRequestStatus {
 
 /// A specification of the parameters to use when creating the instance template
 /// from a source instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceInstanceParams {
     /// Attached disks configuration. If not provided, defaults are applied:
     #[serde(default, rename = "diskConfigs")]
@@ -13220,7 +13221,7 @@ pub struct SourceInstanceParams {
 }
 
 /// A set of Display Device options
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisplayDevice {
     /// Defines whether the instance has Display enabled.
     #[serde(default, rename = "enableDisplay")]
@@ -13228,7 +13229,7 @@ pub struct DisplayDevice {
 }
 
 /// Additional instance params.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceParams {
     /// Relative deadline for waiting for capacity. Relevant only for
     #[serde(default, rename = "requestValidForDuration")]
@@ -13241,7 +13242,7 @@ pub struct InstanceParams {
 /// Contains output only fields.
 /// Use this sub-message for actual values set on Instance attributes as compared
 /// to the value requested by the user (intent) in their instance CRUD calls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceStatus {
     /// Output only. [Output Only] Effective metadata is a field that consolidates project,
     #[serde(default, rename = "effectiveInstanceMetadata")]
@@ -13265,7 +13266,7 @@ pub struct ResourceStatus {
 
 /// The policy describes the baseline against which
 /// Instance boot integrity is measured.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShieldedInstanceIntegrityPolicy {
     /// Updates the integrity policy baseline using the
     #[serde(default, rename = "updateAutoLearnPolicy")]
@@ -13273,7 +13274,7 @@ pub struct ShieldedInstanceIntegrityPolicy {
 }
 
 /// Additional instant snapshot params.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstantSnapshotParams {
     /// Input only. Resource manager tags to be bound to the instant snapshot. Tag keys and
     #[serde(default, rename = "resourceManagerTags")]
@@ -13281,7 +13282,7 @@ pub struct InstantSnapshotParams {
 }
 
 /// InstantSnapshotResourceStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstantSnapshotResourceStatus {
     /// [Output Only] The storage size of this instant snapshot.
     #[serde(default, rename = "storageSizeBytes")]
@@ -13289,7 +13290,7 @@ pub struct InstantSnapshotResourceStatus {
 }
 
 /// The status of one Attachment in the group. List order is arbitrary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupsOperationalStatusAttachmentStatus {
     /// Output only. Whether this Attachment is enabled. This becomes false when the customer
     #[serde(default, rename = "adminEnabled")]
@@ -13308,7 +13309,7 @@ pub struct InterconnectAttachmentGroupsOperationalStatusAttachmentStatus {
 /// [Output Only] The redundancy this group is configured to support. The way a
 /// user queries what SLA their Attachment gets is by looking at this field of
 /// the Attachment''s AttachmentGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupConfigured {
     #[serde(default, rename = "availabilitySla")]
     pub availability_sla:
@@ -13317,7 +13318,7 @@ pub struct InterconnectAttachmentGroupConfigured {
 
 /// The user''s intent for this AttachmentGroup. This is the only required field
 /// besides the name that must be specified on group creation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupIntent {
     /// TODO: enum values: ["AVAILABILITY_SLA_UNSPECIFIED", "NO_SLA", "PRODUCTION_CRITICAL", "PRODUCTION_NON_CRITICAL"]
     #[serde(default, rename = "availabilitySla")]
@@ -13326,7 +13327,7 @@ pub struct InterconnectAttachmentGroupIntent {
 
 /// [Output Only] An analysis of the logical layout of Attachments in this
 /// group. Every Attachment in the group is shown once in this structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupLogicalStructure {
     #[serde(default)]
     pub regions:
@@ -13334,7 +13335,7 @@ pub struct InterconnectAttachmentGroupLogicalStructure {
 }
 
 /// L2 Interconnect Attachment related configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentL2Forwarding {
     /// Optional. A map of VLAN tags to appliances and optional inner mapping
     #[serde(default, rename = "applianceMappings")]
@@ -13354,7 +13355,7 @@ pub struct InterconnectAttachmentL2Forwarding {
 }
 
 /// Additional interconnect attachment parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -13364,7 +13365,7 @@ pub struct InterconnectAttachmentParams {
 /// Informational metadata about Partner attachments from Partners to display
 /// to customers.  These fields are propagated from PARTNER_PROVIDER
 /// attachments to their corresponding PARTNER attachments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentPartnerMetadata {
     /// Plain text name of the Interconnect this attachment is connected to, as
     #[serde(default, rename = "interconnectName")]
@@ -13379,7 +13380,7 @@ pub struct InterconnectAttachmentPartnerMetadata {
 
 /// Information for an interconnect attachment when this belongs to an
 /// interconnect of type DEDICATED.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentPrivateInfo {
     /// [Output Only] 802.1q encapsulation tag to be used for traffic between
     #[serde(default)]
@@ -13387,7 +13388,7 @@ pub struct InterconnectAttachmentPrivateInfo {
 }
 
 /// LINT.IfChange
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupsCreateMembersInterconnectInput {
     /// Administrative status of the interconnect. When this is set to true, the
     #[serde(default, rename = "adminEnabled")]
@@ -13425,7 +13426,7 @@ pub struct InterconnectGroupsCreateMembersInterconnectInput {
 }
 
 /// The status of one Interconnect in the group. The order is arbitrary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupsOperationalStatusInterconnectStatus {
     /// Output only. Whether the Interconnect is enabled.
     #[serde(default, rename = "adminEnabled")]
@@ -13445,7 +13446,7 @@ pub struct InterconnectGroupsOperationalStatusInterconnectStatus {
 /// structure as the operational field reported by the OperationalStatus
 /// method, but does not take into account the operational status of each
 /// resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupConfigured {
     #[serde(default, rename = "topologyCapability")]
     pub topology_capability: ::core::option::Option<InterconnectGroupConfiguredTopologyCapability>,
@@ -13453,7 +13454,7 @@ pub struct InterconnectGroupConfigured {
 
 /// The user''s intent for this group. This is the only required field besides
 /// the name that must be specified on group creation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupIntent {
     /// TODO: enum values: ["NO_SLA", "PRODUCTION_CRITICAL", "PRODUCTION_NON_CRITICAL", "UNSPECIFIED"]
     #[serde(default, rename = "topologyCapability")]
@@ -13462,7 +13463,7 @@ pub struct InterconnectGroupIntent {
 
 /// [Output Only] An analysis of the physical layout of Interconnects in this
 /// group. Every Interconnect in the group is shown once in this structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupPhysicalStructure {
     #[serde(default)]
     pub metros: ::core::option::Option<::std::vec::Vec<InterconnectGroupPhysicalStructureMetros>>,
@@ -13470,7 +13471,7 @@ pub struct InterconnectGroupPhysicalStructure {
 
 /// Configuration information for application awareness on this Cloud
 /// Interconnect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectApplicationAwareInterconnect {
     #[serde(default, rename = "bandwidthPercentagePolicy")]
     pub bandwidth_percentage_policy:
@@ -13489,7 +13490,7 @@ pub struct InterconnectApplicationAwareInterconnect {
 
 /// Describes a single physical circuit between the Customer and Google.
 /// CircuitInfo objects are created by Google, so all fields are output only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectCircuitInfo {
     /// Customer-side demarc ID for this circuit.
     #[serde(default, rename = "customerDemarcId")]
@@ -13503,7 +13504,7 @@ pub struct InterconnectCircuitInfo {
 }
 
 /// Description of a planned outage on this Interconnect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectOutageNotification {
     /// If issue_type is IT_PARTIAL_OUTAGE, a list of the Google-side circuit
     #[serde(default, rename = "affectedCircuits")]
@@ -13534,7 +13535,7 @@ pub struct InterconnectOutageNotification {
 /// Configuration information for enabling Media Access Control security
 /// (MACsec) on this Cloud Interconnect connection between Google and your
 /// on-premises router.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectMacsec {
     /// If set to true, the Interconnect connection is configured with ashould-secure MACsec security policy, that allows the Google
     #[serde(default, rename = "failOpen")]
@@ -13545,7 +13546,7 @@ pub struct InterconnectMacsec {
 }
 
 /// Additional interconnect parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -13554,7 +13555,7 @@ pub struct InterconnectParams {
 
 /// Information about Cross-Site Interconnect wires which may be created
 /// between the containing location and another remote location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectLocationCrossSiteInterconnectInfo {
     /// Output only. The remote location for Cross-Site Interconnect wires. This specifies an
     #[serde(default)]
@@ -13564,7 +13565,7 @@ pub struct InterconnectLocationCrossSiteInterconnectInfo {
 /// Information about any potential InterconnectAttachments between an
 /// Interconnect at a specific InterconnectLocation, and a specific Cloud
 /// Region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectLocationRegionInfo {
     /// Output only. Expected round-trip time in milliseconds, from this InterconnectLocation
     #[serde(default, rename = "expectedRttMs")]
@@ -13581,7 +13582,7 @@ pub struct InterconnectLocationRegionInfo {
 }
 
 /// InterconnectAttachmentConfigurationConstraints resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentConfigurationConstraints {
     /// Output only. [Output Only] Whether the attachment''s BGP session
     #[serde(default, rename = "bgpMd5")]
@@ -13594,7 +13595,7 @@ pub struct InterconnectAttachmentConfigurationConstraints {
 }
 
 /// InterconnectRemoteLocationConstraints resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectRemoteLocationConstraints {
     /// Output only. [Output Only] Port pair remote location constraints, which can take one
     #[serde(default, rename = "portPairRemoteLocation")]
@@ -13609,7 +13610,7 @@ pub struct InterconnectRemoteLocationConstraints {
 }
 
 /// InterconnectRemoteLocationPermittedConnections resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectRemoteLocationPermittedConnections {
     /// Output only. [Output Only] URL of an Interconnect location that is permitted to
     #[serde(default, rename = "interconnectLocation")]
@@ -13618,7 +13619,7 @@ pub struct InterconnectRemoteLocationPermittedConnections {
 
 /// Describes a pre-shared key used to setup MACsec in static connectivity
 /// association key (CAK) mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectMacsecConfigPreSharedKey {
     /// An auto-generated Connectivity Association Key (CAK) for this key.
     #[serde(default)]
@@ -13635,7 +13636,7 @@ pub struct InterconnectMacsecConfigPreSharedKey {
 }
 
 /// Additional license params.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LicenseParams {
     /// Input only. Resource manager tags to be bound to the license. Tag keys and values
     #[serde(default, rename = "resourceManagerTags")]
@@ -13643,7 +13644,7 @@ pub struct LicenseParams {
 }
 
 /// LicenseResourceRequirements resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LicenseResourceRequirements {
     /// [Input Only] Deprecated. This field no longer reflects the minimum number
     #[serde(default, rename = "minGuestCpuCount")]
@@ -13654,7 +13655,7 @@ pub struct LicenseResourceRequirements {
 }
 
 /// InstanceProperties resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceProperties {
     /// Controls for advanced machine-related behavior features.
     #[serde(default, rename = "advancedMachineFeatures")]
@@ -13724,7 +13725,7 @@ pub struct InstanceProperties {
 }
 
 /// Machine Image parameters
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineImageParams {
     /// Input only. Resource manager tags to be bound to the machine image. Tag keys and values
     #[serde(default, rename = "resourceManagerTags")]
@@ -13732,7 +13733,7 @@ pub struct MachineImageParams {
 }
 
 /// An instance-attached disk resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SavedDisk {
     /// Output only. [Output Only] The architecture of the attached disk. // TODO: enum values: ["ARCHITECTURE_UNSPECIFIED", "ARM64", "X86_64"]
     #[serde(default)]
@@ -13752,7 +13753,7 @@ pub struct SavedDisk {
 }
 
 /// SourceDiskEncryptionKey resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceDiskEncryptionKey {
     /// Thecustomer-supplied
     #[serde(default, rename = "diskEncryptionKey")]
@@ -13764,7 +13765,7 @@ pub struct SourceDiskEncryptionKey {
 
 /// DEPRECATED: Please use compute#instanceProperties instead.
 /// New properties will not be added to this field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceInstanceProperties {
     /// Enables instances created based on this machine image to send packets with
     #[serde(default, rename = "canIpForward")]
@@ -13814,7 +13815,7 @@ pub struct SourceInstanceProperties {
 }
 
 /// BundledLocalSsds resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BundledLocalSsds {
     /// The default disk interface if the interface is not specified.
     #[serde(default, rename = "defaultInterface")]
@@ -13825,7 +13826,7 @@ pub struct BundledLocalSsds {
 }
 
 /// Contains information of a NAT IP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NatIpInfoNatIpInfoMapping {
     /// Output only. Specifies whether NAT IP is auto or manual. // TODO: enum values: ["AUTO", "MANUAL"]
     #[serde(default)]
@@ -13839,7 +13840,7 @@ pub struct NatIpInfoNatIpInfoMapping {
 }
 
 /// [Output Only] A connection connected to this network attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkAttachmentConnectedEndpoint {
     /// The IPv4 address assigned to the producer instance network interface.
     #[serde(default, rename = "ipAddress")]
@@ -13865,7 +13866,7 @@ pub struct NetworkAttachmentConnectedEndpoint {
 }
 
 /// HealthStatusForNetworkEndpoint resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthStatusForNetworkEndpoint {
     /// URL of the backend service associated with the health state of the network
     #[serde(default, rename = "backendService")]
@@ -13888,7 +13889,7 @@ pub struct HealthStatusForNetworkEndpoint {
 }
 
 /// The network endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpoint {
     /// Optional metadata defined as annotations on the network endpoint.
     #[serde(default)]
@@ -13920,7 +13921,7 @@ pub struct NetworkEndpoint {
 ///
 /// Note: App Engine service must be in the same project and located in the
 /// same region as the Serverless NEG.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroupAppEngine {
     /// Optional serving service.
     #[serde(default)]
@@ -13938,7 +13939,7 @@ pub struct NetworkEndpointGroupAppEngine {
 ///
 /// Note: Cloud Function must be in the same project and located in the same
 /// region as the Serverless NEG.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroupCloudFunction {
     /// A user-defined name of the Cloud Function.
     #[serde(default)]
@@ -13955,7 +13956,7 @@ pub struct NetworkEndpointGroupCloudFunction {
 ///
 /// Note: Cloud Run service must be in the same project and located in the same
 /// region as the Serverless NEG.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroupCloudRun {
     /// Cloud Run service is the main resource of Cloud Run.
     #[serde(default)]
@@ -13970,7 +13971,7 @@ pub struct NetworkEndpointGroupCloudRun {
 
 /// All data that is specifically relevant to only network endpoint groups of
 /// type PRIVATE_SERVICE_CONNECT.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpointGroupPscData {
     /// Output only. [Output Only] Address allocated from given subnetwork for PSC. This IP
     #[serde(default, rename = "consumerPscAddress")]
@@ -13987,7 +13988,7 @@ pub struct NetworkEndpointGroupPscData {
 }
 
 /// Additional network parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -13997,7 +13998,7 @@ pub struct NetworkParams {
 /// A network peering attached to a network resource. The message includes the
 /// peering name, peer network, peering state, and a flag indicating whether
 /// Google Compute Engine should automatically create routes for the peering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPeering {
     /// This field will be deprecated soon. Use theexchange_subnet_routes field instead.
     #[serde(default, rename = "autoCreateRoutes")]
@@ -14046,7 +14047,7 @@ pub struct NetworkPeering {
 /// A routing configuration attached to a network resource. The message
 /// includes the list of routers associated with the network, and a flag
 /// indicating the type of routing behavior to enforce network-wide.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkRoutingConfig {
     /// Enable comparison of Multi-Exit Discriminators (MED) across routes with
     #[serde(default, rename = "bgpAlwaysCompareMed")]
@@ -14069,7 +14070,7 @@ pub struct NetworkRoutingConfig {
 }
 
 /// NetworkProfileNetworkFeatures resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkProfileNetworkFeatures {
     /// Specifies what address purposes are supported. If empty, all address
     #[serde(default, rename = "addressPurposes")]
@@ -14189,7 +14190,7 @@ pub struct NetworkProfileNetworkFeatures {
 }
 
 /// NetworkProfileLocation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkProfileLocation {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -14199,7 +14200,7 @@ pub struct NetworkProfileLocation {
 }
 
 /// NetworkProfileProfileType resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkProfileProfileType {
     /// TODO: enum values: ["RDMA", "ULL", "VPC"]
     #[serde(default, rename = "networkType")]
@@ -14216,7 +14217,7 @@ pub struct NetworkProfileProfileType {
 }
 
 /// InstanceConsumptionData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceConsumptionData {
     /// Output only. Resources consumed by the instance.
     #[serde(default, rename = "consumptionInfo")]
@@ -14227,7 +14228,7 @@ pub struct InstanceConsumptionData {
 }
 
 /// NodeGroupAutoscalingPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupAutoscalingPolicy {
     /// The maximum number of nodes that the group should have. Must be set if
     #[serde(default, rename = "maxNodes")]
@@ -14242,7 +14243,7 @@ pub struct NodeGroupAutoscalingPolicy {
 
 /// Time window specified for daily maintenance operations. GCE''s internal
 /// maintenance will be performed within this window.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeGroupMaintenanceWindow {
     /// Output only. [Output only] A predetermined duration for the window, automatically
     #[serde(default, rename = "maintenanceDuration")]
@@ -14253,7 +14254,7 @@ pub struct NodeGroupMaintenanceWindow {
 }
 
 /// LocalDisk resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalDisk {
     /// Specifies the number of such disks.
     #[serde(default, rename = "diskCount")]
@@ -14267,7 +14268,7 @@ pub struct LocalDisk {
 }
 
 /// NodeTemplateNodeTypeFlexibility resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTemplateNodeTypeFlexibility {
     #[serde(default)]
     pub cpus: ::core::option::Option<String>,
@@ -14278,7 +14279,7 @@ pub struct NodeTemplateNodeTypeFlexibility {
 }
 
 /// ServerBinding resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServerBinding {
     /// TODO: enum values: ["RESTART_NODE_ON_ANY_SERVER", "RESTART_NODE_ON_MINIMAL_SERVERS", "SERVER_BINDING_TYPE_UNSPECIFIED"]
     #[serde(default, rename = "type")]
@@ -14287,7 +14288,7 @@ pub struct ServerBinding {
 
 /// Represents a gRPC setting that describes one gRPC notification endpoint and
 /// the retry duration attempting to send notification to this endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationEndpointGrpcSettings {
     /// Optional. If specified, this field is used to set the authority header by
     #[serde(default)]
@@ -14307,14 +14308,14 @@ pub struct NotificationEndpointGrpcSettings {
 }
 
 /// GetVersionOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetVersionOperationMetadata {
     #[serde(default, rename = "inlineSbomInfo")]
     pub inline_sbom_info: ::core::option::Option<GetVersionOperationMetadataSbomInfo>,
 }
 
 /// InstancesBulkInsertOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancesBulkInsertOperationMetadata {
     /// Status information per location (location name is key).
     #[serde(default, rename = "perLocationStatus")]
@@ -14322,7 +14323,7 @@ pub struct InstancesBulkInsertOperationMetadata {
 }
 
 /// SetCommonInstanceMetadataOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetCommonInstanceMetadataOperationMetadata {
     /// [Output Only] The client operation id.
     #[serde(default, rename = "clientOperationId")]
@@ -14333,7 +14334,7 @@ pub struct SetCommonInstanceMetadataOperationMetadata {
 }
 
 /// PacketMirroringForwardingRuleInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketMirroringForwardingRuleInfo {
     /// Output only. [Output Only] Unique identifier for the forwarding rule; defined by the
     #[serde(default, rename = "canonicalUrl")]
@@ -14344,7 +14345,7 @@ pub struct PacketMirroringForwardingRuleInfo {
 }
 
 /// PacketMirroringFilter resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketMirroringFilter {
     /// Protocols that apply as filter on mirrored traffic.
     #[serde(default, rename = "IPProtocols")]
@@ -14358,7 +14359,7 @@ pub struct PacketMirroringFilter {
 }
 
 /// PacketMirroringMirroredResourceInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketMirroringMirroredResourceInfo {
     /// A set of virtual machine instances that are being mirrored.
     #[serde(default)]
@@ -14374,7 +14375,7 @@ pub struct PacketMirroringMirroredResourceInfo {
 }
 
 /// PacketMirroringNetworkInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketMirroringNetworkInfo {
     /// Output only. [Output Only] Unique identifier for the network; defined by the server.
     #[serde(default, rename = "canonicalUrl")]
@@ -14385,7 +14386,7 @@ pub struct PacketMirroringNetworkInfo {
 }
 
 /// Represents the rollout operation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreviewFeatureRolloutOperation {
     /// Input only. The input for the rollout operation.
     #[serde(default, rename = "rolloutInput")]
@@ -14393,7 +14394,7 @@ pub struct PreviewFeatureRolloutOperation {
 }
 
 /// [Output Only] The status of the feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreviewFeatureStatus {
     /// Output only. [Output Only] The description of the feature.
     #[serde(default)]
@@ -14406,7 +14407,7 @@ pub struct PreviewFeatureStatus {
 }
 
 /// Represents a CIDR range which can be used to assign addresses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublicAdvertisedPrefixPublicDelegatedPrefix {
     /// The IP address range of the public delegated prefix
     #[serde(default, rename = "ipRange")]
@@ -14426,7 +14427,7 @@ pub struct PublicAdvertisedPrefixPublicDelegatedPrefix {
 }
 
 /// Represents a sub PublicDelegatedPrefix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublicDelegatedPrefixPublicDelegatedSubPrefix {
     /// The allocatable prefix length supported by this PublicDelegatedSubPrefix.
     #[serde(default, rename = "allocatablePrefixLength")]
@@ -14464,7 +14465,7 @@ pub struct PublicDelegatedPrefixPublicDelegatedSubPrefix {
 }
 
 /// Cloud Autoscaler policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingPolicy {
     /// The number of seconds that your application takes to initialize on a VM
     #[serde(default, rename = "coolDownPeriodSec")]
@@ -14497,7 +14498,7 @@ pub struct AutoscalingPolicy {
 }
 
 /// AutoscalerStatusDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalerStatusDetails {
     /// The status message.
     #[serde(default)]
@@ -14508,7 +14509,7 @@ pub struct AutoscalerStatusDetails {
 }
 
 /// InstanceGroupManagerAllInstancesConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerAllInstancesConfig {
     /// Properties to set on all instances in the group.
     #[serde(default)]
@@ -14516,7 +14517,7 @@ pub struct InstanceGroupManagerAllInstancesConfig {
 }
 
 /// InstanceGroupManagerAutoHealingPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerAutoHealingPolicy {
     /// The URL for the health check that signals autohealing.
     #[serde(default, rename = "healthCheck")]
@@ -14527,7 +14528,7 @@ pub struct InstanceGroupManagerAutoHealingPolicy {
 }
 
 /// InstanceGroupManagerActionsSummary resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerActionsSummary {
     /// Output only. [Output Only] The total number of instances in the managed instance group
     #[serde(default)]
@@ -14571,7 +14572,7 @@ pub struct InstanceGroupManagerActionsSummary {
 }
 
 /// DistributionPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DistributionPolicy {
     /// The distribution shape to which the group converges either proactively or
     #[serde(default, rename = "targetShape")]
@@ -14582,7 +14583,7 @@ pub struct DistributionPolicy {
 }
 
 /// InstanceGroupManagerInstanceFlexibilityPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerInstanceFlexibilityPolicy {
     /// Named instance selections configuring properties that the group will use
     #[serde(default, rename = "instanceSelections")]
@@ -14590,7 +14591,7 @@ pub struct InstanceGroupManagerInstanceFlexibilityPolicy {
 }
 
 /// InstanceGroupManagerInstanceLifecyclePolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerInstanceLifecyclePolicy {
     /// The action that a MIG performs on a failed or an unhealthy VM.
     #[serde(default, rename = "defaultActionOnFailure")]
@@ -14604,7 +14605,7 @@ pub struct InstanceGroupManagerInstanceLifecyclePolicy {
 }
 
 /// InstanceGroupManagerResourcePolicies resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerResourcePolicies {
     /// The URL of the workload policy that is specified for this managed
     #[serde(default, rename = "workloadPolicy")]
@@ -14612,7 +14613,7 @@ pub struct InstanceGroupManagerResourcePolicies {
 }
 
 /// InstanceGroupManagerStandbyPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStandbyPolicy {
     /// Specifies the number of seconds that the MIG should wait to suspend or
     #[serde(default, rename = "initialDelaySec")]
@@ -14623,14 +14624,14 @@ pub struct InstanceGroupManagerStandbyPolicy {
 }
 
 /// StatefulPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatefulPolicy {
     #[serde(default, rename = "preservedState")]
     pub preserved_state: ::core::option::Option<StatefulPolicyPreservedState>,
 }
 
 /// InstanceGroupManagerStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatus {
     /// Output only. [Output only] Status of all-instances configuration on the group.
     #[serde(default, rename = "allInstancesConfig")]
@@ -14658,7 +14659,7 @@ pub struct InstanceGroupManagerStatus {
 }
 
 /// InstanceGroupManagerTargetSizePolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerTargetSizePolicy {
     /// The mode of target size policy based on which the MIG creates its VMs
     #[serde(default)]
@@ -14666,7 +14667,7 @@ pub struct InstanceGroupManagerTargetSizePolicy {
 }
 
 /// InstanceGroupManagerUpdatePolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerUpdatePolicy {
     /// The
     #[serde(default, rename = "instanceRedistributionType")]
@@ -14692,7 +14693,7 @@ pub struct InstanceGroupManagerUpdatePolicy {
 }
 
 /// InstanceGroupManagerVersion resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerVersion {
     /// The URL of the instance template that is specified for this managed
     #[serde(default, rename = "instanceTemplate")]
@@ -14706,7 +14707,7 @@ pub struct InstanceGroupManagerVersion {
 }
 
 /// InstanceManagedByIgmErrorManagedInstanceError resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceManagedByIgmErrorManagedInstanceError {
     /// Output only. [Output Only] Error code.
     #[serde(default)]
@@ -14717,7 +14718,7 @@ pub struct InstanceManagedByIgmErrorManagedInstanceError {
 }
 
 /// InstanceManagedByIgmErrorInstanceActionDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceManagedByIgmErrorInstanceActionDetails {
     /// Output only. [Output Only] Action that managed instance group was executing on
     #[serde(default)]
@@ -14731,7 +14732,7 @@ pub struct InstanceManagedByIgmErrorInstanceActionDetails {
 }
 
 /// ManagedInstanceInstanceHealth resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedInstanceInstanceHealth {
     /// Output only. [Output Only] The current detailed instance health state. // TODO: enum values: ["DRAINING", "HEALTHY", "TIMEOUT", "UNHEALTHY", "UNKNOWN"]
     #[serde(default, rename = "detailedHealthState")]
@@ -14742,7 +14743,7 @@ pub struct ManagedInstanceInstanceHealth {
 }
 
 /// ManagedInstanceLastAttempt resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedInstanceLastAttempt {
     /// Output only. [Output Only] Encountered errors during the last attempt to create or
     #[serde(default)]
@@ -14750,7 +14751,7 @@ pub struct ManagedInstanceLastAttempt {
 }
 
 /// Preserved state for a given instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreservedState {
     /// Preserved disks defined for this instance.
     #[serde(default)]
@@ -14767,7 +14768,7 @@ pub struct PreservedState {
 }
 
 /// ManagedInstancePropertiesFromFlexibilityPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedInstancePropertiesFromFlexibilityPolicy {
     /// Output only. The machine type to be used for this instance.
     #[serde(default, rename = "machineType")]
@@ -14775,7 +14776,7 @@ pub struct ManagedInstancePropertiesFromFlexibilityPolicy {
 }
 
 /// The named port. For example: &lt;"http", 80&gt;.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NamedPort {
     /// The name for this named port.
     #[serde(default)]
@@ -14787,7 +14788,7 @@ pub struct NamedPort {
 
 /// Represents a rule that describes one or more match conditions along with
 /// the action to be taken when traffic matches this condition (allow or deny).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallPolicyRule {
     /// The Action to perform when the client connection triggers the rule.
     #[serde(default)]
@@ -14837,7 +14838,7 @@ pub struct FirewallPolicyRule {
 }
 
 /// The available logging options for a firewall rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallLogConfig {
     /// This field denotes whether to enable logging for a particular firewall
     #[serde(default)]
@@ -14848,7 +14849,7 @@ pub struct FirewallLogConfig {
 }
 
 /// Additional firewall parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -14856,7 +14857,7 @@ pub struct FirewallParams {
 }
 
 /// Health information for the reservation block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationBlockHealthInfo {
     /// The number of subBlocks that are degraded.
     #[serde(default, rename = "degradedSubBlockCount")]
@@ -14870,7 +14871,7 @@ pub struct ReservationBlockHealthInfo {
 }
 
 /// ReservationBlockPhysicalTopology resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationBlockPhysicalTopology {
     /// The hash of the capacity block within the cluster.
     #[serde(default)]
@@ -14885,7 +14886,7 @@ pub struct ReservationBlockPhysicalTopology {
 }
 
 /// ReservationSlotStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSlotStatus {
     /// Output only. [Output Only] The physical topology of the reservation sub-block.
     #[serde(default, rename = "physicalTopology")]
@@ -14899,7 +14900,7 @@ pub struct ReservationSlotStatus {
 }
 
 /// Info for accelerator topologies within a densely packed reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorTopologiesInfo {
     /// Info for each accelerator topology.
     #[serde(default, rename = "acceleratorTopologyInfos")]
@@ -14908,7 +14909,7 @@ pub struct AcceleratorTopologiesInfo {
 }
 
 /// Health information for the reservation subBlock.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSubBlockHealthInfo {
     /// The number of degraded hosts in the reservation subBlock.
     #[serde(default, rename = "degradedHostCount")]
@@ -14928,7 +14929,7 @@ pub struct ReservationSubBlockHealthInfo {
 }
 
 /// ReservationSubBlockPhysicalTopology resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSubBlockPhysicalTopology {
     /// The hash of the capacity block within the cluster.
     #[serde(default)]
@@ -14943,7 +14944,7 @@ pub struct ReservationSubBlockPhysicalTopology {
 
 /// A GroupPlacementPolicy specifies resource placement configuration.
 /// It specifies the failure bucket separation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyGroupPlacementPolicy {
     /// Specifies the connection mode for the accelerator topology. If not
     #[serde(default, rename = "acceleratorTopologyMode")]
@@ -14964,7 +14965,7 @@ pub struct ResourcePolicyGroupPlacementPolicy {
 
 /// An InstanceSchedulePolicy specifies when and how frequent certain
 /// operations are performed on the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyInstanceSchedulePolicy {
     /// The expiration time of the schedule. The timestamp is an RFC3339 string.
     #[serde(default, rename = "expirationTime")]
@@ -14987,7 +14988,7 @@ pub struct ResourcePolicyInstanceSchedulePolicy {
 /// Use this sub-message for all output fields set on ResourcePolicy.
 /// The internal structure of this "status" field should mimic the structure
 /// of ResourcePolicy proto specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyResourceStatus {
     /// Output only. [Output Only] Specifies a set of output values reffering to
     #[serde(default, rename = "instanceSchedulePolicy")]
@@ -14998,7 +14999,7 @@ pub struct ResourcePolicyResourceStatus {
 /// A snapshot schedule policy specifies when and how frequently snapshots are
 /// to be created for the target disk. Also specifies how many and how long
 /// these scheduled snapshots should be retained.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicySnapshotSchedulePolicy {
     /// Retention policy applied to snapshots created by this resource policy.
     #[serde(default, rename = "retentionPolicy")]
@@ -15014,7 +15015,7 @@ pub struct ResourcePolicySnapshotSchedulePolicy {
 }
 
 /// Represents the workload policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyWorkloadPolicy {
     /// Specifies the topology required to create a partition for VMs that have
     #[serde(default, rename = "acceleratorTopology")]
@@ -15031,7 +15032,7 @@ pub struct ResourcePolicyWorkloadPolicy {
 }
 
 /// RouterStatusBgpPeerStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterStatusBgpPeerStatus {
     /// Routes that were advertised to the remote BGP peer
     #[serde(default, rename = "advertisedRoutes")]
@@ -15095,7 +15096,7 @@ pub struct RouterStatusBgpPeerStatus {
 }
 
 /// Status of a NAT contained in this router.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterStatusNatStatus {
     /// Output only. A list of IPs auto-allocated for NAT. Example: ["1.1.1.1", "129.2.16.89"]
     #[serde(default, rename = "autoAllocatedNatIps")]
@@ -15127,7 +15128,7 @@ pub struct RouterStatusNatStatus {
 }
 
 /// BgpRouteAsPath resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BgpRouteAsPath {
     /// Output only. [Output only] ASNs in the path segment. When type is SEQUENCE, these are
     #[serde(default)]
@@ -15141,7 +15142,7 @@ pub struct BgpRouteAsPath {
 }
 
 /// Network Layer Reachability Information (NLRI) for a route.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BgpRouteNetworkLayerReachabilityInformation {
     /// If the BGP session supports multiple paths (RFC 7911), the path
     #[serde(default, rename = "pathId")]
@@ -15152,7 +15153,7 @@ pub struct BgpRouteNetworkLayerReachabilityInformation {
 }
 
 /// RoutePolicyPolicyTerm resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoutePolicyPolicyTerm {
     /// CEL expressions to evaluate to modify a route when this term matches.
     #[serde(default)]
@@ -15166,7 +15167,7 @@ pub struct RoutePolicyPolicyTerm {
 }
 
 /// RouterBgp resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterBgp {
     /// User-specified flag to indicate which mode to use for advertisement.
     #[serde(default, rename = "advertiseMode")]
@@ -15189,7 +15190,7 @@ pub struct RouterBgp {
 }
 
 /// RouterBgpPeer resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterBgpPeer {
     /// User-specified flag to indicate which mode to use for advertisement. // TODO: enum values: ["CUSTOM", "DEFAULT"]
     #[serde(default, rename = "advertiseMode")]
@@ -15267,7 +15268,7 @@ pub struct RouterBgpPeer {
 }
 
 /// RouterInterface resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterInterface {
     /// IP address and range of the interface.
     #[serde(default, rename = "ipRange")]
@@ -15299,7 +15300,7 @@ pub struct RouterInterface {
 }
 
 /// RouterMd5AuthenticationKey resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterMd5AuthenticationKey {
     /// [Input only] Value of the key.
     #[serde(default)]
@@ -15314,7 +15315,7 @@ pub struct RouterMd5AuthenticationKey {
 /// a list of subnetworks (and the ranges within) that want to use NAT.
 /// Customers can also provide the external IPs that would be used for NAT. GCP
 /// would auto-allocate ephemeral IPs if no external IPs are provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterNat {
     /// The network tier to use when automatically reserving NAT IP addresses.
     #[serde(default, rename = "autoNetworkTier")]
@@ -15384,7 +15385,7 @@ pub struct RouterNat {
 }
 
 /// Additional router parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -15392,7 +15393,7 @@ pub struct RouterParams {
 }
 
 /// PreconfiguredWafSet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreconfiguredWafSet {
     /// List of entities that are currently supported for WAF rules.
     #[serde(default, rename = "expressionSets")]
@@ -15400,7 +15401,7 @@ pub struct PreconfiguredWafSet {
 }
 
 /// Configuration options for Cloud Armor Adaptive Protection (CAAP).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyAdaptiveProtectionConfig {
     /// If set to true, enables Cloud Armor Machine Learning.
     #[serde(default, rename = "layer7DdosDefenseConfig")]
@@ -15409,7 +15410,7 @@ pub struct SecurityPolicyAdaptiveProtectionConfig {
 }
 
 /// SecurityPolicyAdvancedOptionsConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyAdvancedOptionsConfig {
     /// Custom configuration to apply the JSON parsing. Only applicable when
     #[serde(default, rename = "jsonCustomConfig")]
@@ -15430,7 +15431,7 @@ pub struct SecurityPolicyAdvancedOptionsConfig {
 }
 
 /// SecurityPolicyAssociation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyAssociation {
     /// The resource that the security policy is attached to.
     #[serde(default, rename = "attachmentId")]
@@ -15456,7 +15457,7 @@ pub struct SecurityPolicyAssociation {
 }
 
 /// SecurityPolicyDdosProtectionConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyDdosProtectionConfig {
     /// TODO: enum values: ["ADVANCED", "ADVANCED_PREVIEW", "STANDARD"]
     #[serde(default, rename = "ddosProtection")]
@@ -15464,7 +15465,7 @@ pub struct SecurityPolicyDdosProtectionConfig {
 }
 
 /// SecurityPolicyRecaptchaOptionsConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRecaptchaOptionsConfig {
     /// An optional field to supply a reCAPTCHA site key to be used for all the
     #[serde(default, rename = "redirectSiteKey")]
@@ -15473,7 +15474,7 @@ pub struct SecurityPolicyRecaptchaOptionsConfig {
 
 /// Represents a rule that describes one or more match conditions along with
 /// the action to be taken when traffic matches this condition (allow or deny).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRule {
     /// The Action to perform when the rule is matched.
     #[serde(default)]
@@ -15511,7 +15512,7 @@ pub struct SecurityPolicyRule {
 }
 
 /// SecurityPolicyUserDefinedField resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyUserDefinedField {
     /// The base relative to which ''offset'' is measured. Possible values are:
     #[serde(default)]
@@ -15531,7 +15532,7 @@ pub struct SecurityPolicyUserDefinedField {
 }
 
 /// [Output Only] A connection connected to this service attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAttachmentConnectedEndpoint {
     /// The url of the consumer network.
     #[serde(default, rename = "consumerNetwork")]
@@ -15557,7 +15558,7 @@ pub struct ServiceAttachmentConnectedEndpoint {
 }
 
 /// ServiceAttachmentConsumerProjectLimit resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAttachmentConsumerProjectLimit {
     /// The value of the limit to set. For endpoint_url, the limit should be no
     #[serde(default, rename = "connectionLimit")]
@@ -15574,7 +15575,7 @@ pub struct ServiceAttachmentConsumerProjectLimit {
 }
 
 /// Additional snapshot params.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotParams {
     /// Input only. Resource manager tags to be bound to the snapshot. Tag keys and values have
     #[serde(default, rename = "resourceManagerTags")]
@@ -15582,7 +15583,7 @@ pub struct SnapshotParams {
 }
 
 /// Configuration and status of a managed SSL certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCertificateManagedSslCertificate {
     /// Output only. [Output only] Detailed statuses of the domains specified for managed
     #[serde(default, rename = "domainStatus")]
@@ -15596,7 +15597,7 @@ pub struct SslCertificateManagedSslCertificate {
 }
 
 /// Configuration and status of a self-managed SSL certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslCertificateSelfManagedSslCertificate {
     /// A local certificate file. The certificate must be in
     #[serde(default)]
@@ -15607,7 +15608,7 @@ pub struct SslCertificateSelfManagedSslCertificate {
 }
 
 /// Exapool provisioned capacities for each SKU type
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolExapoolProvisionedCapacityGb {
     /// Size, in GiB, of provisioned capacity-optimized capacity for this Exapool
     #[serde(default, rename = "capacityOptimized")]
@@ -15621,7 +15622,7 @@ pub struct StoragePoolExapoolProvisionedCapacityGb {
 }
 
 /// Additional storage pool params.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolParams {
     /// Input only. Resource manager tags to be bound to the storage pool. Tag keys and values
     #[serde(default, rename = "resourceManagerTags")]
@@ -15629,7 +15630,7 @@ pub struct StoragePoolParams {
 }
 
 /// [Output Only] Contains output only fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoragePoolResourceStatus {
     /// [Output Only] Number of disks used.
     #[serde(default, rename = "diskCount")]
@@ -15676,7 +15677,7 @@ pub struct StoragePoolResourceStatus {
 }
 
 /// The available logging options for this subnetwork.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworkLogConfig {
     /// Can only be specified if VPC flow logging for this subnetwork is enabled.
     #[serde(default, rename = "aggregationInterval")]
@@ -15699,7 +15700,7 @@ pub struct SubnetworkLogConfig {
 }
 
 /// Additional subnetwork parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworkParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -15707,7 +15708,7 @@ pub struct SubnetworkParams {
 }
 
 /// Represents a secondary IP range of a subnetwork.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworkSecondaryRange {
     /// The range of IP addresses belonging to this subnetwork secondary range.
     #[serde(default, rename = "ipCidrRange")]
@@ -15722,7 +15723,7 @@ pub struct SubnetworkSecondaryRange {
 
 /// The current IP utilization of all subnetwork ranges. Contains the total
 /// number of allocated and free IPs in each range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworkUtilizationDetails {
     /// Utilizations of external IPV6 IP range.
     #[serde(default, rename = "externalIpv6InstanceUtilization")]
@@ -15743,7 +15744,7 @@ pub struct SubnetworkUtilizationDetails {
 }
 
 /// TargetVpnGatewayParams resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetVpnGatewayParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -15752,7 +15753,7 @@ pub struct TargetVpnGatewayParams {
 
 /// UrlMaps
 /// A host-matching rule for a URL. If matched, will use the namedPathMatcher to select the BackendService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HostRule {
     /// An optional description of this resource. Provide this property when you
     #[serde(default)]
@@ -15768,7 +15769,7 @@ pub struct HostRule {
 /// A matcher for the path portion of the URL. The BackendService
 /// from the longest-matched rule will serve the URL. If no rule was matched, the
 /// default service is used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PathMatcher {
     /// defaultCustomErrorResponsePolicy specifies how the Load
     #[serde(default, rename = "defaultCustomErrorResponsePolicy")]
@@ -15800,7 +15801,7 @@ pub struct PathMatcher {
 }
 
 /// Message for the expected URL mappings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlMapTest {
     /// Description of this test case.
     #[serde(default)]
@@ -15826,7 +15827,7 @@ pub struct UrlMapTest {
 }
 
 /// TestFailure resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestFailure {
     /// The actual output URL evaluated by a load balancer containing the scheme,
     #[serde(default, rename = "actualOutputUrl")]
@@ -15858,7 +15859,7 @@ pub struct TestFailure {
 }
 
 /// Secondary IP range of a usable subnetwork.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsableSubnetworkSecondaryRange {
     /// The range of IP addresses belonging to this subnetwork secondary range.
     #[serde(default, rename = "ipCidrRange")]
@@ -15869,7 +15870,7 @@ pub struct UsableSubnetworkSecondaryRange {
 }
 
 /// Contain information of Nat mapping for an interface of this endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmEndpointNatMappingsInterfaceNatMappings {
     /// Output only. List of all drain IP:port-range mappings assigned to this interface.
     #[serde(default, rename = "drainNatIpPortRanges")]
@@ -15899,7 +15900,7 @@ pub struct VmEndpointNatMappingsInterfaceNatMappings {
 /// A VPN connection contains all VPN tunnels connected from this VpnGateway
 /// to the same peer gateway. The peer gateway could either be an external VPN
 /// gateway or a Google Cloud VPN gateway.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayStatusVpnConnection {
     /// Output only. URL reference to the peer external VPN gateways to which the VPN tunnels
     #[serde(default, rename = "peerExternalGateway")]
@@ -15916,7 +15917,7 @@ pub struct VpnGatewayStatusVpnConnection {
 }
 
 /// VpnGatewayParams resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -15924,7 +15925,7 @@ pub struct VpnGatewayParams {
 }
 
 /// A VPN gateway interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayVpnGatewayInterface {
     /// Output only. [Output Only] Numeric identifier for this VPN interface associated with
     #[serde(default)]
@@ -15941,7 +15942,7 @@ pub struct VpnGatewayVpnGatewayInterface {
 }
 
 /// VpnTunnelCipherSuite resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnTunnelCipherSuite {
     #[serde(default)]
     pub phase1: ::core::option::Option<VpnTunnelPhase1Algorithms>,
@@ -15950,7 +15951,7 @@ pub struct VpnTunnelCipherSuite {
 }
 
 /// VpnTunnelParams resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnTunnelParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -15958,7 +15959,7 @@ pub struct VpnTunnelParams {
 }
 
 /// Topology details for the wire group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WireGroupTopology {
     /// Output only. Topology details for all endpoints in the wire group.
     #[serde(default)]
@@ -15966,7 +15967,7 @@ pub struct WireGroupTopology {
 }
 
 /// A pseudowire that connects two Interconnect connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Wire {
     /// Output only. [Output Only] Indicates whether the wire is enabled.
     #[serde(default, rename = "adminEnabled")]
@@ -15983,7 +15984,7 @@ pub struct Wire {
 }
 
 /// A quotas entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Quota {
     /// [Output Only] Quota limit for this metric.
     #[serde(default)]
@@ -16001,7 +16002,7 @@ pub struct Quota {
 
 /// The location in Cloud Storage and naming method of the daily usage
 /// report. Contains bucket_name and report_name prefix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsageExportLocation {
     /// The name of an existing bucket in Cloud Storage where the usage report
     #[serde(default, rename = "bucketName")]
@@ -16012,7 +16013,7 @@ pub struct UsageExportLocation {
 }
 
 /// Deprecation status for a public resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeprecationStatus {
     /// An optional RFC3339 timestamp on or after which the state of this
     #[serde(default)]
@@ -16082,7 +16083,7 @@ pub struct DeprecationStatus {
 /// For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ
 /// logging. It also exempts jose@example.com from DATA_READ logging, and
 /// aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -16093,7 +16094,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding.
     #[serde(default)]
@@ -16109,7 +16110,7 @@ pub struct Binding {
 /// Bypass the cache when the specified request headers are present,
 /// e.g. Pragma or Authorization headers. Values are case insensitive.
 /// The presence of such a header overrides the cache_mode setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendBucketCdnPolicyBypassCacheOnRequestHeader {
     /// The header field name to match on when bypassing cache.
     #[serde(default, rename = "headerName")]
@@ -16118,7 +16119,7 @@ pub struct BackendBucketCdnPolicyBypassCacheOnRequestHeader {
 
 /// Message containing what to include in the cache key for a request for
 /// Cloud CDN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendBucketCdnPolicyCacheKeyPolicy {
     /// Allows HTTP request headers (by name) to be used in the cache key.
     #[serde(default, rename = "includeHttpHeaders")]
@@ -16129,7 +16130,7 @@ pub struct BackendBucketCdnPolicyCacheKeyPolicy {
 }
 
 /// Specify CDN TTLs for response error codes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendBucketCdnPolicyNegativeCachingPolicy {
     /// The HTTP status code to define a TTL against. Only HTTP status codes
     #[serde(default)]
@@ -16140,7 +16141,7 @@ pub struct BackendBucketCdnPolicyNegativeCachingPolicy {
 }
 
 /// Custom Metrics are used for CUSTOM_METRICS balancing_mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendCustomMetric {
     /// If true, the metric data is collected and reported to Cloud
     #[serde(default, rename = "dryRun")]
@@ -16155,7 +16156,7 @@ pub struct BackendCustomMetric {
 
 /// A message containing information about the resource or system that manages
 /// the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendBackendOrchestrationInfo {
     /// The URI of the resource or system that manages the backend.
     #[serde(default, rename = "resourceUri")]
@@ -16165,7 +16166,7 @@ pub struct BackendBackendOrchestrationInfo {
 /// Bypass the cache when the specified request headers are present,
 /// e.g. Pragma or Authorization headers. Values are case insensitive.
 /// The presence of such a header overrides the cache_mode setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceCdnPolicyBypassCacheOnRequestHeader {
     /// The header field name to match on when bypassing cache.
     #[serde(default, rename = "headerName")]
@@ -16174,7 +16175,7 @@ pub struct BackendServiceCdnPolicyBypassCacheOnRequestHeader {
 
 /// Message containing what to include in the cache key for a request for Cloud
 /// CDN.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CacheKeyPolicy {
     /// If true, requests to different hosts will be cached separately.
     #[serde(default, rename = "includeHost")]
@@ -16200,7 +16201,7 @@ pub struct CacheKeyPolicy {
 }
 
 /// Specify CDN TTLs for response error codes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceCdnPolicyNegativeCachingPolicy {
     /// The HTTP status code to define a TTL against. Only HTTP status codes
     #[serde(default)]
@@ -16212,7 +16213,7 @@ pub struct BackendServiceCdnPolicyNegativeCachingPolicy {
 
 /// The information about the HTTP Cookie on which the hash function is based
 /// for load balancing policies that use a consistent hash.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsistentHashLoadBalancerSettingsHttpCookie {
     /// Name of the cookie.
     #[serde(default)]
@@ -16226,7 +16227,7 @@ pub struct ConsistentHashLoadBalancerSettingsHttpCookie {
 }
 
 /// BackendServiceHAPolicyLeader resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceHAPolicyLeader {
     /// A fully-qualified URL (starting with https://www.googleapis.com/)
     #[serde(default, rename = "backendGroup")]
@@ -16238,7 +16239,7 @@ pub struct BackendServiceHAPolicyLeader {
 
 /// The configuration for a custom policy implemented by the user and
 /// deployed with the client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceLocalityLoadBalancingPolicyConfigCustomPolicy {
     /// An optional, arbitrary JSON object with configuration data, understood
     #[serde(default)]
@@ -16249,7 +16250,7 @@ pub struct BackendServiceLocalityLoadBalancingPolicyConfigCustomPolicy {
 }
 
 /// The configuration for a built-in load balancing policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceLocalityLoadBalancingPolicyConfigPolicy {
     /// The name of a locality load-balancing policy. Valid values include
     #[serde(default)]
@@ -16257,7 +16258,7 @@ pub struct BackendServiceLocalityLoadBalancingPolicyConfigPolicy {
 }
 
 /// BackendServiceNetworkPassThroughLbTrafficPolicyZonalAffinity resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceNetworkPassThroughLbTrafficPolicyZonalAffinity {
     /// This field indicates whether zonal affinity is enabled or not. The
     #[serde(default)]
@@ -16271,7 +16272,7 @@ pub struct BackendServiceNetworkPassThroughLbTrafficPolicyZonalAffinity {
 /// private storage buckets that support Signature Version 4 for authentication.
 /// The service name for generating the authentication header will always default
 /// to ''s3''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AWSV4Signature {
     /// The access key used for s3 bucket authentication. Required for updating or
     #[serde(default, rename = "accessKey")]
@@ -16290,7 +16291,7 @@ pub struct AWSV4Signature {
 /// A Subject Alternative Name that the load balancer matches against the SAN
 /// field in the TLS certificate provided by the backend, specified as either
 /// a DNS name or a URI, in accordance with RFC 5280 4.2.1.6
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceTlsSettingsSubjectAltName {
     /// The SAN specified as a DNS Name.
     #[serde(default, rename = "dnsName")]
@@ -16302,7 +16303,7 @@ pub struct BackendServiceTlsSettingsSubjectAltName {
 
 /// Advance control for cluster management, applicable only to DENSE deployment
 /// type reservations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationAdvancedDeploymentControl {
     /// Indicates chosen reservation operational mode for the reservation. // TODO: enum values: ["ALL_CAPACITY", "HIGHLY_AVAILABLE_CAPACITY", "RESERVATION_OPERATIONAL_MODE_UNSPECIFIED"]
     #[serde(default, rename = "reservationOperationalMode")]
@@ -16312,7 +16313,7 @@ pub struct ReservationAdvancedDeploymentControl {
 /// This reservation type is specified by total resource amounts (e.g. total
 /// count of CPUs) and can account for multiple instance SKUs. In other words,
 /// one can create instances of varying shapes against this reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationAggregateReservation {
     /// Output only. [Output only] List of resources currently in use.
     #[serde(default, rename = "inUseResources")]
@@ -16331,7 +16332,7 @@ pub struct AllocationAggregateReservation {
 }
 
 /// Additional reservation params.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationParams {
     /// Input only. Resource manager tags to be bound to the reservation. Tag keys and
     #[serde(default, rename = "resourceManagerTags")]
@@ -16339,7 +16340,7 @@ pub struct ReservationParams {
 }
 
 /// AllocationReservationSharingPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationReservationSharingPolicy {
     /// Sharing config for all Google Cloud services. // TODO: enum values: ["ALLOW_ALL", "DISALLOW_ALL", "SERVICE_SHARE_TYPE_UNSPECIFIED"]
     #[serde(default, rename = "serviceShareType")]
@@ -16347,7 +16348,7 @@ pub struct AllocationReservationSharingPolicy {
 }
 
 /// [Output Only] Contains output only fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationResourceStatus {
     /// [Output only] Health information for the reservation.
     #[serde(default, rename = "healthInfo")]
@@ -16366,7 +16367,7 @@ pub struct AllocationResourceStatus {
 
 /// This reservation type allows to pre allocate specific instance
 ///  configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationSpecificSKUReservation {
     /// Output only. [Output Only] Indicates how many instances are actually usable currently.
     #[serde(default, rename = "assuredCount")]
@@ -16387,7 +16388,7 @@ pub struct AllocationSpecificSKUReservation {
 }
 
 /// DiskResourceStatusAsyncReplicationStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskResourceStatusAsyncReplicationStatus {
     /// TODO: enum values: ["ACTIVE", "CREATED", "STARTING", "STATE_UNSPECIFIED", "STOPPED", "STOPPING"]
     #[serde(default)]
@@ -16396,7 +16397,7 @@ pub struct DiskResourceStatusAsyncReplicationStatus {
 
 /// The state that the future reservation will be reverted to should the
 /// amendment be declined.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservationStatusLastKnownGoodState {
     /// Output only. [Output Only] The description of the FutureReservation before an
     #[serde(default)]
@@ -16420,7 +16421,7 @@ pub struct FutureReservationStatusLastKnownGoodState {
 }
 
 /// Properties to be set for the Future Reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservationStatusSpecificSKUProperties {
     /// ID of the instance template used to populate the Future Reservation
     #[serde(default, rename = "sourceInstanceTemplateId")]
@@ -16428,7 +16429,7 @@ pub struct FutureReservationStatusSpecificSKUProperties {
 }
 
 /// FutureResourcesSpecLocalSsdPartition resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureResourcesSpecLocalSsdPartition {
     /// Disk interface. Defaults to SCSI. // TODO: enum values: ["NVME", "SCSI"]
     #[serde(default, rename = "diskInterface")]
@@ -16439,7 +16440,7 @@ pub struct FutureResourcesSpecLocalSsdPartition {
 }
 
 /// InstanceGroupManagerResizeRequestStatusLastAttempt resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerResizeRequestStatusLastAttempt {
     /// Output only. Errors that prevented the ResizeRequest to be fulfilled.
     #[serde(default)]
@@ -16448,7 +16449,7 @@ pub struct InstanceGroupManagerResizeRequestStatusLastAttempt {
 
 /// A specification of the desired way to instantiate a disk in the instance
 /// template when its created from a source instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskInstantiationConfig {
     /// Specifies whether the disk will be auto-deleted when the instance is
     #[serde(default, rename = "autoDelete")]
@@ -16465,7 +16466,7 @@ pub struct DiskInstantiationConfig {
 }
 
 /// Effective values of predefined metadata keys for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceStatusEffectiveInstanceMetadata {
     /// Effective block-project-ssh-keys value at Instance level.
     #[serde(default, rename = "blockProjectSshKeysMetadataValue")]
@@ -16498,7 +16499,7 @@ pub struct ResourceStatusEffectiveInstanceMetadata {
 
 /// Represents the physical host topology of the host on which the VM is
 /// running.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceStatusPhysicalHostTopology {
     /// [Output Only] The ID of the block in which the running instance is
     #[serde(default)]
@@ -16515,7 +16516,7 @@ pub struct ResourceStatusPhysicalHostTopology {
 }
 
 /// Reservation consumption information that the instance is consuming from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceStatusReservationConsumptionInfo {
     /// Output only. [Output Only] The full resource name of the reservation that this
     #[serde(default, rename = "consumedReservation")]
@@ -16523,7 +16524,7 @@ pub struct ResourceStatusReservationConsumptionInfo {
 }
 
 /// ResourceStatusScheduling resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceStatusScheduling {
     /// Specifies the availability domain to place the instance in. The value
     #[serde(default, rename = "availabilityDomain")]
@@ -16532,7 +16533,7 @@ pub struct ResourceStatusScheduling {
 
 /// [Output Only] Which SLA this group is configured to support, and why this
 /// group does or does not meet that SLA''s requirements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLA {
     /// TODO: enum values: ["EFFECTIVE_SLA_UNSPECIFIED", "NO_SLA", "PRODUCTION_CRITICAL", "PRODUCTION_NON_CRITICAL"]
     #[serde(default, rename = "effectiveSla")]
@@ -16544,7 +16545,7 @@ pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLA {
 }
 
 /// [Output Only] The regions Attachments in this group are in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupLogicalStructureRegion {
     #[serde(default)]
     pub metros: ::core::option::Option<
@@ -16556,7 +16557,7 @@ pub struct InterconnectAttachmentGroupLogicalStructureRegion {
 }
 
 /// GeneveHeader related configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentL2ForwardingGeneveHeader {
     /// Optional. VNI is a 24-bit unique virtual network identifier, from 0 to
     #[serde(default)]
@@ -16566,7 +16567,7 @@ pub struct InterconnectAttachmentL2ForwardingGeneveHeader {
 /// Diagnostics information about the Interconnect connection, which contains
 /// detailed and current technical information about Google''s side of the
 /// connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectDiagnostics {
     /// A list of InterconnectDiagnostics.ARPEntry objects,
     #[serde(default, rename = "arpCaches")]
@@ -16588,7 +16589,7 @@ pub struct InterconnectDiagnostics {
 /// [Output Only] How reliable this topology is configured to be, and why
 /// this group does or does not meet the requirements for the intended
 /// capability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupConfiguredTopologyCapability {
     #[serde(default, rename = "intendedCapabilityBlockers")]
     pub intended_capability_blockers: ::core::option::Option<
@@ -16600,7 +16601,7 @@ pub struct InterconnectGroupConfiguredTopologyCapability {
 }
 
 /// [Output Only] The metros Interconnects in this group are in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupPhysicalStructureMetros {
     #[serde(default)]
     pub facilities:
@@ -16611,7 +16612,7 @@ pub struct InterconnectGroupPhysicalStructureMetros {
 }
 
 /// InterconnectApplicationAwareInterconnectBandwidthPercentagePolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectApplicationAwareInterconnectBandwidthPercentagePolicy {
     /// Specify bandwidth percentages for various traffic classes for queuing
     #[serde(default, rename = "bandwidthPercentages")]
@@ -16622,7 +16623,7 @@ pub struct InterconnectApplicationAwareInterconnectBandwidthPercentagePolicy {
 
 /// Describes a pre-shared key used to setup MACsec in static connectivity
 /// association key (CAK) mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectMacsecPreSharedKey {
     /// Required. A name for this pre-shared key.
     #[serde(default)]
@@ -16633,7 +16634,7 @@ pub struct InterconnectMacsecPreSharedKey {
 }
 
 /// InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange {
     #[serde(default)]
     pub max: ::core::option::Option<i64>,
@@ -16642,7 +16643,7 @@ pub struct InterconnectAttachmentConfigurationConstraintsBgpPeerASNRange {
 }
 
 /// InterconnectRemoteLocationConstraintsSubnetLengthRange resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectRemoteLocationConstraintsSubnetLengthRange {
     #[serde(default)]
     pub max: ::core::option::Option<i32>,
@@ -16655,7 +16656,7 @@ pub struct InterconnectRemoteLocationConstraintsSubnetLengthRange {
 /// here. Features that require operating system support may have
 /// corresponding entries in the GuestOsFeatures of anImage (e.g., whether or not the OS in theImage supports nested virtualization being enabled or
 /// disabled).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvancedMachineFeatures {
     /// Whether to enable nested virtualization or not (default is false).
     #[serde(default, rename = "enableNestedVirtualization")]
@@ -16678,7 +16679,7 @@ pub struct AdvancedMachineFeatures {
 }
 
 /// A set of Confidential Instance options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfidentialInstanceConfig {
     /// Defines the type of technology used by the confidential instance. // TODO: enum values: ["CONFIDENTIAL_INSTANCE_TYPE_UNSPECIFIED", "SEV", "SEV_SNP", "TDX"]
     #[serde(default, rename = "confidentialInstanceType")]
@@ -16689,7 +16690,7 @@ pub struct ConfidentialInstanceConfig {
 }
 
 /// An instance-attached disk resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttachedDisk {
     /// Output only. [Output Only] The architecture of the attached disk. Valid values are ARM64
     #[serde(default)]
@@ -16748,7 +16749,7 @@ pub struct AttachedDisk {
 }
 
 /// NetworkPerformanceConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPerformanceConfig {
     /// TODO: enum values: ["DEFAULT", "TIER_1"]
     #[serde(default, rename = "totalEgressBandwidthTier")]
@@ -16756,7 +16757,7 @@ pub struct NetworkPerformanceConfig {
 }
 
 /// Specifies the reservations that this instance can consume from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationAffinity {
     /// Specifies the type of reservation from which this instance can consume
     #[serde(default, rename = "consumeReservationType")]
@@ -16770,7 +16771,7 @@ pub struct ReservationAffinity {
 }
 
 /// A set of Shielded Instance options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShieldedInstanceConfig {
     /// Defines whether the instance has integrity monitoring enabled.Enabled by
     #[serde(default, rename = "enableIntegrityMonitoring")]
@@ -16784,7 +16785,7 @@ pub struct ShieldedInstanceConfig {
 }
 
 /// WorkloadIdentityConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadIdentityConfig {
     #[serde(default)]
     pub identity: ::core::option::Option<String>,
@@ -16794,7 +16795,7 @@ pub struct WorkloadIdentityConfig {
 
 /// DEPRECATED: Please use compute#savedDisk instead.
 /// An instance-attached disk resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SavedAttachedDisk {
     /// Specifies whether the disk will be auto-deleted when the instance is
     #[serde(default, rename = "autoDelete")]
@@ -16847,7 +16848,7 @@ pub struct SavedAttachedDisk {
 }
 
 /// A metadata key/value entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// Specifies a fingerprint for this request, which is essentially a hash of
     #[serde(default)]
@@ -16861,7 +16862,7 @@ pub struct Metadata {
 }
 
 /// A network interface resource attached to an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkInterface {
     /// An array of configurations for this interface. Currently, only one access
     #[serde(default, rename = "accessConfigs")]
@@ -16926,7 +16927,7 @@ pub struct NetworkInterface {
 }
 
 /// Sets the scheduling options for an Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Scheduling {
     /// Specifies whether the instance should be automatically restarted if it is
     #[serde(default, rename = "automaticRestart")]
@@ -16975,7 +16976,7 @@ pub struct Scheduling {
 }
 
 /// A service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccount {
     /// Email address of the service account.
     #[serde(default)]
@@ -16986,7 +16987,7 @@ pub struct ServiceAccount {
 }
 
 /// A set of instance tags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tags {
     /// Specifies a fingerprint for this request, which is essentially a hash of
     #[serde(default)]
@@ -16997,14 +16998,14 @@ pub struct Tags {
 }
 
 /// BackendServiceReference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceReference {
     #[serde(default, rename = "backendService")]
     pub backend_service: ::core::option::Option<String>,
 }
 
 /// ForwardingRuleReference resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardingRuleReference {
     #[serde(default, rename = "forwardingRule")]
     pub forwarding_rule: ::core::option::Option<String>,
@@ -17016,7 +17017,7 @@ pub struct ForwardingRuleReference {
 ///    - https://www.googleapis.com/compute/beta/projects/project-id/global/httpHealthChecks/health-check
 ///    - projects/project-id/global/httpHealthChecks/health-check
 ///    - global/httpHealthChecks/health-check
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheckReference {
     #[serde(default, rename = "healthCheck")]
     pub health_check: ::core::option::Option<String>,
@@ -17028,7 +17029,7 @@ pub struct HealthCheckReference {
 ///    - https://www.googleapis.com/compute/beta/projects/project-id/regions/us-west1/healthCheckServices/health-check-service
 ///    - projects/project-id/regions/us-west1/healthCheckServices/health-check-service
 ///    - regions/us-west1/healthCheckServices/health-check-service
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheckServiceReference {
     #[serde(default, rename = "healthCheckService")]
     pub health_check_service: ::core::option::Option<String>,
@@ -17038,7 +17039,7 @@ pub struct HealthCheckServiceReference {
 /// local peering. This field provides information about the effective settings
 /// for the connection as a whole, including pending delete/update requests for
 /// CONSENSUS peerings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPeeringConnectionStatus {
     /// The consensus state contains information about the status of update
     #[serde(default, rename = "consensusState")]
@@ -17053,7 +17054,7 @@ pub struct NetworkPeeringConnectionStatus {
 }
 
 /// NetworkProfileNetworkFeaturesPredefinedSubnetworkRange resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkProfileNetworkFeaturesPredefinedSubnetworkRange {
     /// The IPv6 range of the predefined subnetwork.
     #[serde(default, rename = "ipv6Range")]
@@ -17064,7 +17065,7 @@ pub struct NetworkProfileNetworkFeaturesPredefinedSubnetworkRange {
 }
 
 /// InstanceConsumptionInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceConsumptionInfo {
     /// Output only. The number of virtual CPUs that are available to the instance.
     #[serde(default, rename = "guestCpus")]
@@ -17081,7 +17082,7 @@ pub struct InstanceConsumptionInfo {
 }
 
 /// GetVersionOperationMetadataSbomInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetVersionOperationMetadataSbomInfo {
     /// SBOM versions currently applied to the resource. The key is the component
     #[serde(default, rename = "currentComponentVersions")]
@@ -17092,7 +17093,7 @@ pub struct GetVersionOperationMetadataSbomInfo {
 }
 
 /// PacketMirroringMirroredResourceInfoInstanceInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketMirroringMirroredResourceInfoInstanceInfo {
     /// Output only. [Output Only] Unique identifier for the instance; defined by the
     #[serde(default, rename = "canonicalUrl")]
@@ -17103,7 +17104,7 @@ pub struct PacketMirroringMirroredResourceInfoInstanceInfo {
 }
 
 /// PacketMirroringMirroredResourceInfoSubnetInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketMirroringMirroredResourceInfoSubnetInfo {
     /// Output only. [Output Only] Unique identifier for the subnetwork; defined by the
     #[serde(default, rename = "canonicalUrl")]
@@ -17114,7 +17115,7 @@ pub struct PacketMirroringMirroredResourceInfoSubnetInfo {
 }
 
 /// Represents the input for the rollout operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreviewFeatureRolloutOperationRolloutInput {
     /// The name of the rollout plan
     #[serde(default)]
@@ -17125,7 +17126,7 @@ pub struct PreviewFeatureRolloutOperationRolloutInput {
 }
 
 /// [Output Only] The release status of the feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreviewFeatureStatusReleaseStatus {
     /// Output only. [Output Only] The stage of the feature. // TODO: enum values: ["DEPRECATED", "GA", "PREVIEW", "STAGE_UNSPECIFIED"]
     #[serde(default)]
@@ -17136,7 +17137,7 @@ pub struct PreviewFeatureStatusReleaseStatus {
 }
 
 /// CPU utilization policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingPolicyCpuUtilization {
     /// Indicates whether predictive autoscaling based on CPU metric is enabled.
     #[serde(default, rename = "predictiveMethod")]
@@ -17147,7 +17148,7 @@ pub struct AutoscalingPolicyCpuUtilization {
 }
 
 /// Custom utilization metric policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingPolicyCustomMetricUtilization {
     /// A filter string, compatible with a Stackdriver Monitoringfilter string forTimeSeries.list API call. This filter is
     #[serde(default)]
@@ -17167,7 +17168,7 @@ pub struct AutoscalingPolicyCustomMetricUtilization {
 }
 
 /// Configuration parameters of autoscaling based on load balancing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingPolicyLoadBalancingUtilization {
     /// Fraction of backend capacity utilization (set in HTTP(S) load balancing
     #[serde(default, rename = "utilizationTarget")]
@@ -17177,7 +17178,7 @@ pub struct AutoscalingPolicyLoadBalancingUtilization {
 /// Configuration that allows for slower scale in so that even if Autoscaler
 /// recommends an abrupt scale in of a MIG, it will be throttled as specified
 /// by the parameters below.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingPolicyScaleInControl {
     /// Maximum allowed number (or %) of VMs that can be deducted from the peak
     #[serde(default, rename = "maxScaledInReplicas")]
@@ -17188,7 +17189,7 @@ pub struct AutoscalingPolicyScaleInControl {
 }
 
 /// Represents the change that you want to make to the instance properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancePropertiesPatch {
     /// The label key-value pairs that you want to patch onto the instance.
     #[serde(default)]
@@ -17199,7 +17200,7 @@ pub struct InstancePropertiesPatch {
 }
 
 /// DistributionPolicyZoneConfiguration resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DistributionPolicyZoneConfiguration {
     /// The URL of thezone.
     #[serde(default)]
@@ -17207,7 +17208,7 @@ pub struct DistributionPolicyZoneConfiguration {
 }
 
 /// Configuration of preserved resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatefulPolicyPreservedState {
     /// Disks created on the instances that will be preserved on instance
     #[serde(default)]
@@ -17221,7 +17222,7 @@ pub struct StatefulPolicyPreservedState {
 }
 
 /// InstanceGroupManagerStatusAllInstancesConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusAllInstancesConfig {
     /// Output only. [Output Only] Current all-instances configuration revision.
     #[serde(default, rename = "currentRevision")]
@@ -17232,7 +17233,7 @@ pub struct InstanceGroupManagerStatusAllInstancesConfig {
 }
 
 /// InstanceGroupManagerStatusAcceleratorTopology resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusAcceleratorTopology {
     /// Output only. [Output Only] Topology in the format of: "16x16", "4x4x4", etc.
     #[serde(default, rename = "acceleratorTopology")]
@@ -17249,7 +17250,7 @@ pub struct InstanceGroupManagerStatusAcceleratorTopology {
 
 /// Bulk instance operation is the creation of VMs in a MIG when the
 /// targetSizePolicy.mode is set to BULK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusBulkInstanceOperation {
     /// Output only. [Output Only] Informs whether bulk instance operation is in progress.
     #[serde(default, rename = "inProgress")]
@@ -17261,7 +17262,7 @@ pub struct InstanceGroupManagerStatusBulkInstanceOperation {
 }
 
 /// InstanceGroupManagerStatusStateful resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusStateful {
     /// Output only. [Output Only] A bit indicating whether the managed instance group
     #[serde(default, rename = "hasStatefulConfig")]
@@ -17273,7 +17274,7 @@ pub struct InstanceGroupManagerStatusStateful {
 }
 
 /// InstanceGroupManagerStatusVersionTarget resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusVersionTarget {
     /// Output only. [Output Only] A bit indicating whether version target has been reached
     #[serde(default, rename = "isReached")]
@@ -17281,7 +17282,7 @@ pub struct InstanceGroupManagerStatusVersionTarget {
 }
 
 /// ManagedInstanceVersion resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedInstanceVersion {
     /// Output only. [Output Only] The intended template of the instance. This field is empty
     #[serde(default, rename = "instanceTemplate")]
@@ -17293,7 +17294,7 @@ pub struct ManagedInstanceVersion {
 
 /// Represents a match condition that incoming traffic is evaluated against.
 /// Exactly one field must be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallPolicyRuleMatcher {
     /// Address groups which should be matched against the traffic destination.
     #[serde(default, rename = "destAddressGroups")]
@@ -17350,7 +17351,7 @@ pub struct FirewallPolicyRuleMatcher {
 }
 
 /// The instances information for a given Block
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationBlockPhysicalTopologyInstance {
     /// The InstanceId of the instance
     #[serde(default, rename = "instanceId")]
@@ -17365,7 +17366,7 @@ pub struct ReservationBlockPhysicalTopologyInstance {
 }
 
 /// ReservationSlotPhysicalTopology resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationSlotPhysicalTopology {
     /// The unique identifier of the capacity block within the cluster.
     #[serde(default)]
@@ -17382,7 +17383,7 @@ pub struct ReservationSlotPhysicalTopology {
 }
 
 /// Info for a slice of a given topology.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorTopologiesInfoAcceleratorTopologyInfo {
     /// The accelerator topology.
     #[serde(default, rename = "acceleratorTopology")]
@@ -17395,7 +17396,7 @@ pub struct AcceleratorTopologiesInfoAcceleratorTopologyInfo {
 }
 
 /// Schedule for an instance operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyInstanceSchedulePolicySchedule {
     /// Specifies the frequency for the operation, using the unix-cron format.
     #[serde(default)]
@@ -17403,7 +17404,7 @@ pub struct ResourcePolicyInstanceSchedulePolicySchedule {
 }
 
 /// ResourcePolicyResourceStatusInstanceSchedulePolicyStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyResourceStatusInstanceSchedulePolicyStatus {
     /// Output only. [Output Only] The last time the schedule successfully ran.
     #[serde(default, rename = "lastRunStartTime")]
@@ -17414,7 +17415,7 @@ pub struct ResourcePolicyResourceStatusInstanceSchedulePolicyStatus {
 }
 
 /// Policy for retention of scheduled snapshots.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicySnapshotSchedulePolicyRetentionPolicy {
     /// Maximum age of the snapshot that is allowed to be kept.
     #[serde(default, rename = "maxRetentionDays")]
@@ -17425,7 +17426,7 @@ pub struct ResourcePolicySnapshotSchedulePolicyRetentionPolicy {
 }
 
 /// A schedule for disks where the schedueled operations are performed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicySnapshotSchedulePolicySchedule {
     #[serde(default, rename = "dailySchedule")]
     pub daily_schedule: ::core::option::Option<ResourcePolicyDailyCycle>,
@@ -17437,7 +17438,7 @@ pub struct ResourcePolicySnapshotSchedulePolicySchedule {
 
 /// Specified snapshot properties for scheduled snapshots created by this
 /// policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicySnapshotSchedulePolicySnapshotProperties {
     /// Chain name that the snapshot is created in.
     #[serde(default, rename = "chainName")]
@@ -17458,7 +17459,7 @@ pub struct ResourcePolicySnapshotSchedulePolicySnapshotProperties {
 /// A route defines a path from VM instances in the VPC network to a specific
 /// destination. This destination can be inside or outside the VPC network.
 /// For more information, read theRoutes overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Route {
     /// Output only. [Output Only] AS path.
     #[serde(default, rename = "asPaths")]
@@ -17544,7 +17545,7 @@ pub struct Route {
 }
 
 /// Next free: 15
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BfdStatus {
     /// The BFD session initialization mode for this BGP peer.
     #[serde(default, rename = "bfdSessionInitializationMode")]
@@ -17579,7 +17580,7 @@ pub struct BfdStatus {
 }
 
 /// Status of a NAT Rule contained in this NAT.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterStatusNatStatusNatRuleStatus {
     /// Output only. A list of active IPs for NAT.
     #[serde(default, rename = "activeNatIps")]
@@ -17599,7 +17600,7 @@ pub struct RouterStatusNatStatusNatRuleStatus {
 }
 
 /// Description-tagged IP ranges for the router to advertise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterAdvertisedIpRange {
     /// User-specified description for the IP range.
     #[serde(default)]
@@ -17610,7 +17611,7 @@ pub struct RouterAdvertisedIpRange {
 }
 
 /// RouterBgpPeerBfd resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterBgpPeerBfd {
     /// The minimum interval, in milliseconds, between BFD control packets
     #[serde(default, rename = "minReceiveInterval")]
@@ -17627,7 +17628,7 @@ pub struct RouterBgpPeerBfd {
 }
 
 /// RouterBgpPeerCustomLearnedIpRange resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterBgpPeerCustomLearnedIpRange {
     /// The custom learned route IP address range. Must be a valid
     #[serde(default)]
@@ -17635,7 +17636,7 @@ pub struct RouterBgpPeerCustomLearnedIpRange {
 }
 
 /// Configuration of logging on a NAT.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterNatLogConfig {
     /// Indicates whether or not to export logs. This is false by default.
     #[serde(default)]
@@ -17646,7 +17647,7 @@ pub struct RouterNatLogConfig {
 }
 
 /// Specifies a subnetwork to enable NAT64.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterNatSubnetworkToNat64 {
     /// URL for the subnetwork resource that will use NAT64.
     #[serde(default)]
@@ -17654,7 +17655,7 @@ pub struct RouterNatSubnetworkToNat64 {
 }
 
 /// RouterNatRule resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterNatRule {
     /// The action to be enforced for traffic that matches this rule.
     #[serde(default)]
@@ -17671,7 +17672,7 @@ pub struct RouterNatRule {
 }
 
 /// Defines the IP ranges that want to use NAT for a subnetwork.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterNatSubnetworkToNat {
     /// URL for the subnetwork resource that will use NAT.
     #[serde(default)]
@@ -17685,7 +17686,7 @@ pub struct RouterNatSubnetworkToNat {
 }
 
 /// WafExpressionSet resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafExpressionSet {
     /// A list of alternate IDs. The format should be:
     #[serde(default)]
@@ -17701,7 +17702,7 @@ pub struct WafExpressionSet {
 /// Configuration options for L7 DDoS detection.
 /// This field is only supported in Global Security Policies of type
 /// CLOUD_ARMOR.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfig {
     /// If set to true, enables CAAP for L7 DDoS detection.
     #[serde(default)]
@@ -17719,7 +17720,7 @@ pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfig {
 }
 
 /// SecurityPolicyAdvancedOptionsConfigJsonCustomConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyAdvancedOptionsConfigJsonCustomConfig {
     /// A list of custom Content-Type header values to apply the JSON parsing.
     #[serde(default, rename = "contentTypes")]
@@ -17727,7 +17728,7 @@ pub struct SecurityPolicyAdvancedOptionsConfigJsonCustomConfig {
 }
 
 /// SecurityPolicyRuleHttpHeaderAction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleHttpHeaderAction {
     /// The list of request headers to add or overwrite if they''re already
     #[serde(default, rename = "requestHeadersToAdds")]
@@ -17737,7 +17738,7 @@ pub struct SecurityPolicyRuleHttpHeaderAction {
 
 /// Represents a match condition that incoming traffic is evaluated against.
 /// Exactly one field must be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleMatcher {
     /// The configuration options available when specifying versioned_expr.
     #[serde(default)]
@@ -17755,7 +17756,7 @@ pub struct SecurityPolicyRuleMatcher {
 
 /// Represents a match condition that incoming network traffic is evaluated
 /// against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleNetworkMatcher {
     /// Destination IPv4/IPv6 addresses or CIDR prefixes, in standard text
     #[serde(default, rename = "destIpRanges")]
@@ -17786,7 +17787,7 @@ pub struct SecurityPolicyRuleNetworkMatcher {
 }
 
 /// SecurityPolicyRulePreconfiguredWafConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRulePreconfiguredWafConfig {
     /// A list of exclusions to apply during preconfigured WAF evaluation.
     #[serde(default)]
@@ -17795,7 +17796,7 @@ pub struct SecurityPolicyRulePreconfiguredWafConfig {
 }
 
 /// SecurityPolicyRuleRateLimitOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleRateLimitOptions {
     /// Can only be specified if the action for the rule is
     #[serde(default, rename = "banDurationSec")]
@@ -17829,7 +17830,7 @@ pub struct SecurityPolicyRuleRateLimitOptions {
 }
 
 /// The IPV6 utilization of a single IP range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworkUtilizationDetailsIPV6Utilization {
     #[serde(default, rename = "totalAllocatedIp")]
     pub total_allocated_ip: ::core::option::Option<Uint128>,
@@ -17838,7 +17839,7 @@ pub struct SubnetworkUtilizationDetailsIPV6Utilization {
 }
 
 /// The IPV4 utilization of a single IP range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubnetworkUtilizationDetailsIPV4Utilization {
     /// Will be set for secondary range. Empty for primary IPv4 range.
     #[serde(default, rename = "rangeName")]
@@ -17850,7 +17851,7 @@ pub struct SubnetworkUtilizationDetailsIPV4Utilization {
 }
 
 /// A path-matching rule for a URL. If matched, will use the specifiedBackendService to handle the traffic arriving at this URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PathRule {
     /// customErrorResponsePolicy specifies how the Load
     #[serde(default, rename = "customErrorResponsePolicy")]
@@ -17871,7 +17872,7 @@ pub struct PathRule {
 
 /// The HttpRouteRule setting specifies how to match an HTTP request
 /// and the corresponding routing action that load balancing proxies perform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteRule {
     /// customErrorResponsePolicy specifies how the Load
     #[serde(default, rename = "customErrorResponsePolicy")]
@@ -17900,7 +17901,7 @@ pub struct HttpRouteRule {
 }
 
 /// HTTP headers used in UrlMapTests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlMapTestHeader {
     /// Header name.
     #[serde(default)]
@@ -17911,7 +17912,7 @@ pub struct UrlMapTestHeader {
 }
 
 /// Contains information of NAT Mappings provided by a NAT Rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmEndpointNatMappingsInterfaceNatMappingsNatRuleMappings {
     /// Output only. List of all drain IP:port-range mappings assigned to this interface
     #[serde(default, rename = "drainNatIpPortRanges")]
@@ -17932,7 +17933,7 @@ pub struct VmEndpointNatMappingsInterfaceNatMappingsNatRuleMappings {
 
 /// Describes the high availability requirement state for the VPN connection
 /// between this Cloud VPN gateway and a peer gateway.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayStatusHighAvailabilityRequirementState {
     /// Indicates the high availability requirement state for the VPN connection.
     #[serde(default)]
@@ -17943,7 +17944,7 @@ pub struct VpnGatewayStatusHighAvailabilityRequirementState {
 }
 
 /// Contains some information about a VPN tunnel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayStatusTunnel {
     /// Output only. The VPN gateway interface this VPN tunnel is associated with.
     #[serde(default, rename = "localGatewayInterface")]
@@ -17957,7 +17958,7 @@ pub struct VpnGatewayStatusTunnel {
 }
 
 /// VpnTunnelPhase1Algorithms resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnTunnelPhase1Algorithms {
     #[serde(default)]
     pub dh: ::core::option::Option<::std::vec::Vec<String>>,
@@ -17970,7 +17971,7 @@ pub struct VpnTunnelPhase1Algorithms {
 }
 
 /// VpnTunnelPhase2Algorithms resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnTunnelPhase2Algorithms {
     #[serde(default)]
     pub encryption: ::core::option::Option<::std::vec::Vec<String>>,
@@ -17981,7 +17982,7 @@ pub struct VpnTunnelPhase2Algorithms {
 }
 
 /// Topology details for a single wire group endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WireGroupTopologyEndpoint {
     /// Output only. The InterconnectLocation.city (metropolitan area designator) that all
     #[serde(default)]
@@ -17992,7 +17993,7 @@ pub struct WireGroupTopologyEndpoint {
 }
 
 /// Wire endpoints are specific Interconnect connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WireEndpoint {
     #[serde(default)]
     pub interconnect: ::core::option::Option<String>,
@@ -18001,7 +18002,7 @@ pub struct WireEndpoint {
 }
 
 /// The properties of a wire.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WireProperties {
     /// The configuration of the bandwidth allocation, one of the following:
     #[serde(default, rename = "bandwidthAllocation")]
@@ -18033,7 +18034,7 @@ pub struct WireProperties {
 ///
 /// This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting
 /// jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of
     #[serde(default, rename = "exemptedMembers")]
@@ -18044,7 +18045,7 @@ pub struct AuditLogConfig {
 }
 
 /// BackendServiceHAPolicyLeaderNetworkEndpoint resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendServiceHAPolicyLeaderNetworkEndpoint {
     /// The name of the VM instance of the leader network endpoint. The
     #[serde(default)]
@@ -18052,7 +18053,7 @@ pub struct BackendServiceHAPolicyLeaderNetworkEndpoint {
 }
 
 /// AllocationAggregateReservationReservedResourceInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationAggregateReservationReservedResourceInfo {
     /// Properties of accelerator resources in this reservation.
     #[serde(default)]
@@ -18061,7 +18062,7 @@ pub struct AllocationAggregateReservationReservedResourceInfo {
 }
 
 /// Health information for the reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationResourceStatusHealthInfo {
     /// The number of reservation blocks that are degraded.
     #[serde(default, rename = "degradedBlockCount")]
@@ -18075,7 +18076,7 @@ pub struct AllocationResourceStatusHealthInfo {
 }
 
 /// Maintenance Info for ReservationBlocks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupMaintenanceInfo {
     /// Describes number of instances that have ongoing maintenance.
     #[serde(default, rename = "instanceMaintenanceOngoingCount")]
@@ -18104,7 +18105,7 @@ pub struct GroupMaintenanceInfo {
 }
 
 /// Contains Properties set for the reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationResourceStatusSpecificSKUAllocation {
     /// ID of the instance template used to populate reservation properties.
     #[serde(default, rename = "sourceInstanceTemplateId")]
@@ -18116,7 +18117,7 @@ pub struct AllocationResourceStatusSpecificSKUAllocation {
 
 /// [Output Only] Represents the existing matching usage for the future
 /// reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservationStatusExistingMatchingUsageInfo {
     /// Output only. Count to represent min(FR total_count,
     #[serde(default)]
@@ -18127,7 +18128,7 @@ pub struct FutureReservationStatusExistingMatchingUsageInfo {
 }
 
 /// The properties of the last known good state for the Future Reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservationStatusLastKnownGoodStateFutureReservationSpecs {
     /// Output only. [Output Only] The previous share settings of the Future Reservation.
     #[serde(default, rename = "shareSettings")]
@@ -18143,7 +18144,7 @@ pub struct FutureReservationStatusLastKnownGoodStateFutureReservationSpecs {
 /// [Output Only] Reasons why configuration.availabilitySLA.sla differs from
 /// intent.availabilitySLA. This list is empty if and only if those are the
 /// same.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlockers {
     /// Output only. [Output Only] URLs of any particular Attachments to explain this
     #[serde(default)]
@@ -18169,7 +18170,7 @@ pub struct InterconnectAttachmentGroupConfiguredAvailabilitySLAIntendedSlaBlocke
 }
 
 /// [Output Only] The metros of Attachments in this group in this region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupLogicalStructureRegionMetro {
     #[serde(default)]
     pub facilities: ::core::option::Option<
@@ -18181,7 +18182,7 @@ pub struct InterconnectAttachmentGroupLogicalStructureRegionMetro {
 }
 
 /// InterconnectDiagnosticsLinkStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectDiagnosticsLinkStatus {
     /// A list of InterconnectDiagnostics.ARPEntry objects,
     #[serde(default, rename = "arpCaches")]
@@ -18211,7 +18212,7 @@ pub struct InterconnectDiagnosticsLinkStatus {
 /// [Output Only] Reasons why configuration.topologyCapability.sla differs
 /// from intent.topologyCapability. This list is empty if and only if those
 /// are the same.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlockers {
     /// TODO: enum values: ["INCOMPATIBLE_METROS", "NOT_AVAILABLE", "NO_INTERCONNECTS", "NO_INTERCONNECTS_IN_METRO_AND_ZONE", "OTHER", "UNSPECIFIED"]
     #[serde(default, rename = "blockerType")]
@@ -18238,7 +18239,7 @@ pub struct InterconnectGroupConfiguredTopologyCapabilityIntendedCapabilityBlocke
 
 /// [Output Only] The facilities Interconnects in this metro are present
 /// in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupPhysicalStructureMetrosFacilities {
     /// Output only. [Output Only] The ID of this facility, as a numeric string like
     #[serde(default)]
@@ -18252,7 +18253,7 @@ pub struct InterconnectGroupPhysicalStructureMetrosFacilities {
 /// Specify bandwidth percentages [1-100] for various traffic classes in
 /// BandwidthPercentagePolicy. The sum of all percentages must equal 100.
 /// All traffic classes must have a percentage value specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectApplicationAwareInterconnectBandwidthPercentage {
     /// Bandwidth percentage for a specific traffic class.
     #[serde(default)]
@@ -18271,7 +18272,7 @@ pub struct InterconnectApplicationAwareInterconnectBandwidthPercentage {
 ///
 /// This property is mutually exclusive with the source property;
 /// you can only define one or the other, but not both.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttachedDiskInitializeParams {
     /// The architecture of the attached disk. Valid values are
     #[serde(default)]
@@ -18334,7 +18335,7 @@ pub struct AttachedDiskInitializeParams {
 
 /// Initial State for shielded instance,
 /// these are public keys which are safe to store in public
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitialStateConfig {
     /// The Key Database (db).
     #[serde(default)]
@@ -18351,7 +18352,7 @@ pub struct InitialStateConfig {
 }
 
 /// Guest OS features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestOsFeature {
     /// The ID of a supported feature. To add multiple values, use commas to
     #[serde(default, rename = "type")]
@@ -18360,7 +18361,7 @@ pub struct GuestOsFeature {
 
 /// An access configuration attached to an instance''s network interface.
 /// Only one access config per instance is supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessConfig {
     /// Applies to ipv6AccessConfigs only.
     #[serde(default, rename = "externalIpv6")]
@@ -18395,7 +18396,7 @@ pub struct AccessConfig {
 }
 
 /// An alias IP range attached to an instance''s network interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AliasIpRange {
     /// The IP alias ranges to allocate for this interface. This IP CIDR range
     #[serde(default, rename = "ipCidrRange")]
@@ -18407,7 +18408,7 @@ pub struct AliasIpRange {
 
 /// Node Affinity: the configuration of desired nodes onto which this Instance
 ///  could be scheduled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchedulingNodeAffinity {
     /// Corresponds to the label key of Node resource.
     #[serde(default)]
@@ -18421,7 +18422,7 @@ pub struct SchedulingNodeAffinity {
 }
 
 /// Defines the behaviour for instances with the instance_termination_actionSTOP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchedulingOnInstanceStopAction {
     /// If true, the contents of any attached Local SSD disks will be discarded
     #[serde(default, rename = "discardLocalSsd")]
@@ -18431,7 +18432,7 @@ pub struct SchedulingOnInstanceStopAction {
 /// The status of update/delete for a consensus peering connection. Only set
 /// when connection_status.update_strategy isCONSENSUS or a network peering is proposing to update the
 /// strategy to CONSENSUS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPeeringConnectionStatusConsensusState {
     /// The status of the delete request. // TODO: enum values: ["DELETE_ACKNOWLEDGED", "DELETE_STATUS_UNSPECIFIED", "LOCAL_DELETE_REQUESTED", "PEER_DELETE_REQUESTED"]
     #[serde(default, rename = "deleteStatus")]
@@ -18442,7 +18443,7 @@ pub struct NetworkPeeringConnectionStatusConsensusState {
 }
 
 /// NetworkPeeringConnectionStatusTrafficConfiguration resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPeeringConnectionStatusTrafficConfiguration {
     /// Whether custom routes are being exported to the peer network.
     #[serde(default, rename = "exportCustomRoutesToPeer")]
@@ -18477,7 +18478,7 @@ pub struct NetworkPeeringConnectionStatusTrafficConfiguration {
 /// * google.type.TimeOfDay
 /// * google.type.DateTime
 /// * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0
     #[serde(default)]
@@ -18491,7 +18492,7 @@ pub struct Date {
 }
 
 /// Encapsulates numeric value that can be either absolute or relative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FixedOrPercent {
     /// Output only. [Output Only] Absolute value of VM instances calculated based on the
     #[serde(default)]
@@ -18505,7 +18506,7 @@ pub struct FixedOrPercent {
 }
 
 /// InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyStateDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyStateDetails {
     /// Output only. [Output Only] Encountered errors.
     #[serde(default)]
@@ -18516,7 +18517,7 @@ pub struct InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyState
 }
 
 /// InstanceGroupManagerStatusBulkInstanceOperationLastProgressCheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusBulkInstanceOperationLastProgressCheck {
     /// Output only. [Output Only] Errors encountered during bulk instance operation.
     #[serde(default)]
@@ -18527,7 +18528,7 @@ pub struct InstanceGroupManagerStatusBulkInstanceOperationLastProgressCheck {
 }
 
 /// InstanceGroupManagerStatusStatefulPerInstanceConfigs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusStatefulPerInstanceConfigs {
     /// Output only. A bit indicating if all of the group''s per-instance configurations
     #[serde(default, rename = "allEffective")]
@@ -18535,7 +18536,7 @@ pub struct InstanceGroupManagerStatusStatefulPerInstanceConfigs {
 }
 
 /// FirewallPolicyRuleMatcherLayer4Config resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallPolicyRuleMatcherLayer4Config {
     /// The IP protocol to which this rule applies. The protocol type is
     #[serde(default, rename = "ipProtocol")]
@@ -18546,7 +18547,7 @@ pub struct FirewallPolicyRuleMatcherLayer4Config {
 }
 
 /// FirewallPolicyRuleSecureTag resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallPolicyRuleSecureTag {
     /// Name of the secure tag, created with TagManager''s TagValue API.
     #[serde(default)]
@@ -18557,7 +18558,7 @@ pub struct FirewallPolicyRuleSecureTag {
 }
 
 /// The PhysicalHostTopology of the instance within a Block resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationBlockPhysicalTopologyInstancePhysicalHostTopology {
     /// Host hash for a given instance
     #[serde(default)]
@@ -18568,7 +18569,7 @@ pub struct ReservationBlockPhysicalTopologyInstancePhysicalHostTopology {
 }
 
 /// Info for each topology state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorTopologiesInfoAcceleratorTopologyInfoInfoPerTopologyState {
     /// The number of accelerator topologies in this state.
     #[serde(default)]
@@ -18579,7 +18580,7 @@ pub struct AcceleratorTopologiesInfoAcceleratorTopologyInfoInfoPerTopologyState 
 }
 
 /// Time window specified for daily operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyDailyCycle {
     /// Defines a schedule with units measured in days. The value determines
     #[serde(default, rename = "daysInCycle")]
@@ -18593,7 +18594,7 @@ pub struct ResourcePolicyDailyCycle {
 }
 
 /// Time window specified for hourly operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyHourlyCycle {
     /// Output only. [Output only] Duration of the time window, automatically chosen to be
     #[serde(default)]
@@ -18607,7 +18608,7 @@ pub struct ResourcePolicyHourlyCycle {
 }
 
 /// Time window specified for weekly operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyWeeklyCycle {
     /// Up to 7 intervals/windows, one for each day of the week.
     #[serde(default, rename = "dayOfWeeks")]
@@ -18615,7 +18616,7 @@ pub struct ResourcePolicyWeeklyCycle {
 }
 
 /// RouteAsPath resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouteAsPath {
     /// [Output Only] The AS numbers of the AS Path.
     #[serde(default, rename = "asLists")]
@@ -18626,7 +18627,7 @@ pub struct RouteAsPath {
 }
 
 /// Additional route parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouteParams {
     /// Tag keys/values directly bound to this resource.
     #[serde(default, rename = "resourceManagerTags")]
@@ -18634,7 +18635,7 @@ pub struct RouteParams {
 }
 
 /// BfdStatusPacketCounts resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BfdStatusPacketCounts {
     /// Number of packets received since the beginning of the current BFD
     #[serde(default, rename = "numRx")]
@@ -18651,7 +18652,7 @@ pub struct BfdStatusPacketCounts {
 }
 
 /// Next free: 7
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PacketIntervals {
     /// Average observed inter-packet interval in milliseconds.
     #[serde(default, rename = "avgMs")]
@@ -18674,7 +18675,7 @@ pub struct PacketIntervals {
 }
 
 /// BfdPacket resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BfdPacket {
     /// The Authentication Present bit of the BFD packet. This is specified in
     #[serde(default, rename = "authenticationPresent")]
@@ -18727,7 +18728,7 @@ pub struct BfdPacket {
 }
 
 /// RouterNatRuleAction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterNatRuleAction {
     /// A list of URLs of the IP resources used for this NAT rule. These IP
     #[serde(default, rename = "sourceNatActiveIps")]
@@ -18744,7 +18745,7 @@ pub struct RouterNatRuleAction {
 }
 
 /// WafExpressionSetExpression resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WafExpressionSetExpression {
     /// Expression ID should uniquely identify the origin of the expression.
     #[serde(default)]
@@ -18755,7 +18756,7 @@ pub struct WafExpressionSetExpression {
 }
 
 /// SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfig {
     #[serde(default, rename = "autoDeployConfidenceThreshold")]
     pub auto_deploy_confidence_threshold: ::core::option::Option<f32>,
@@ -18780,7 +18781,7 @@ pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThreshol
 }
 
 /// SecurityPolicyRuleHttpHeaderActionHttpHeaderOption resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleHttpHeaderActionHttpHeaderOption {
     /// The name of the header to set.
     #[serde(default, rename = "headerName")]
@@ -18791,7 +18792,7 @@ pub struct SecurityPolicyRuleHttpHeaderActionHttpHeaderOption {
 }
 
 /// SecurityPolicyRuleMatcherConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleMatcherConfig {
     /// CIDR IP address range.
     #[serde(default, rename = "srcIpRanges")]
@@ -18829,7 +18830,7 @@ pub struct SecurityPolicyRuleMatcherConfig {
 /// The exact variables and functions that may be referenced within an expression
 /// are determined by the service that evaluates it. See the service
 /// documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which
     #[serde(default)]
@@ -18846,7 +18847,7 @@ pub struct Expr {
 }
 
 /// SecurityPolicyRuleMatcherExprOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleMatcherExprOptions {
     /// reCAPTCHA configuration options to be applied for the rule. If the
     #[serde(default, rename = "recaptchaOptions")]
@@ -18855,7 +18856,7 @@ pub struct SecurityPolicyRuleMatcherExprOptions {
 }
 
 /// SecurityPolicyRuleNetworkMatcherUserDefinedFieldMatch resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleNetworkMatcherUserDefinedFieldMatch {
     /// Name of the user-defined field, as given in the definition.
     #[serde(default)]
@@ -18866,7 +18867,7 @@ pub struct SecurityPolicyRuleNetworkMatcherUserDefinedFieldMatch {
 }
 
 /// SecurityPolicyRulePreconfiguredWafConfigExclusion resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRulePreconfiguredWafConfigExclusion {
     /// A list of request cookie names whose value will be excluded from
     #[serde(default, rename = "requestCookiesToExclude")]
@@ -18897,7 +18898,7 @@ pub struct SecurityPolicyRulePreconfiguredWafConfigExclusion {
 }
 
 /// SecurityPolicyRuleRateLimitOptionsThreshold resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleRateLimitOptionsThreshold {
     /// Number of HTTP(S) requests for calculating the threshold.
     #[serde(default)]
@@ -18908,7 +18909,7 @@ pub struct SecurityPolicyRuleRateLimitOptionsThreshold {
 }
 
 /// SecurityPolicyRuleRateLimitOptionsEnforceOnKeyConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleRateLimitOptionsEnforceOnKeyConfig {
     /// Rate limit key name applicable only for the following key types:
     #[serde(default, rename = "enforceOnKeyName")]
@@ -18919,7 +18920,7 @@ pub struct SecurityPolicyRuleRateLimitOptionsEnforceOnKeyConfig {
 }
 
 /// SecurityPolicyRuleRedirectOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleRedirectOptions {
     /// Target for the redirect action. This is required if the type is
     #[serde(default)]
@@ -18930,7 +18931,7 @@ pub struct SecurityPolicyRuleRedirectOptions {
 }
 
 /// Uint128 resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Uint128 {
     #[serde(default)]
     pub high: ::core::option::Option<String>,
@@ -18940,7 +18941,7 @@ pub struct Uint128 {
 
 /// Specifies the custom error response policy that must be applied when the
 /// backend service or backend bucket responds with an error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomErrorResponsePolicy {
     /// Specifies rules for returning error responses.
     #[serde(default, rename = "errorResponseRules")]
@@ -18954,7 +18955,7 @@ pub struct CustomErrorResponsePolicy {
 /// HttpRouteRuleMatch specifies a set of criteria for matching
 /// requests to an HttpRouteRule. All specified criteria must
 /// be satisfied for a match to occur.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteRuleMatch {
     /// For satisfying the matchRule condition, the path of the
     #[serde(default, rename = "fullPathMatch")]
@@ -18983,7 +18984,7 @@ pub struct HttpRouteRuleMatch {
 }
 
 /// HttpRouteAction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteAction {
     /// The specification for allowing client-side cross-origin requests. For more
     #[serde(default, rename = "corsPolicy")]
@@ -19012,7 +19013,7 @@ pub struct HttpRouteAction {
 }
 
 /// Specifies settings for an HTTP redirect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRedirectAction {
     /// The host that is used in the redirect response instead of the one that
     #[serde(default, rename = "hostRedirect")]
@@ -19035,7 +19036,7 @@ pub struct HttpRedirectAction {
 }
 
 /// AllocationAggregateReservationReservedResourceInfoAccelerator resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationAggregateReservationReservedResourceInfoAccelerator {
     /// Number of accelerators of specified type.
     #[serde(default, rename = "acceleratorCount")]
@@ -19046,7 +19047,7 @@ pub struct AllocationAggregateReservationReservedResourceInfoAccelerator {
 }
 
 /// Upcoming Maintenance notification information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpcomingMaintenance {
     /// Indicates if the maintenance can be customer triggered.
     #[serde(default, rename = "canReschedule")]
@@ -19075,7 +19076,7 @@ pub struct UpcomingMaintenance {
 }
 
 /// The share setting for reservations and sole tenancy node groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShareSettings {
     /// A map of project id and project config. This is only valid when
     #[serde(default, rename = "projectMap")]
@@ -19086,7 +19087,7 @@ pub struct ShareSettings {
 }
 
 /// FutureReservationSpecificSKUProperties resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservationSpecificSKUProperties {
     /// Properties of the SKU instances being reserved.
     #[serde(default, rename = "instanceProperties")]
@@ -19101,7 +19102,7 @@ pub struct FutureReservationSpecificSKUProperties {
 }
 
 /// FutureReservationTimeWindow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FutureReservationTimeWindow {
     #[serde(default)]
     pub duration: ::core::option::Option<Duration>,
@@ -19114,7 +19115,7 @@ pub struct FutureReservationTimeWindow {
 
 /// [Output Only] The facilities used for this group''s Attachments''
 /// Interconnects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupLogicalStructureRegionMetroFacility {
     /// Output only. [Output Only] The name of a facility, like "iad-1234".
     #[serde(default)]
@@ -19126,7 +19127,7 @@ pub struct InterconnectAttachmentGroupLogicalStructureRegionMetroFacility {
 }
 
 /// Describing the ARP neighbor entries seen on this link
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectDiagnosticsARPEntry {
     /// The IP address of this ARP neighbor.
     #[serde(default, rename = "ipAddress")]
@@ -19137,7 +19138,7 @@ pub struct InterconnectDiagnosticsARPEntry {
 }
 
 /// InterconnectDiagnosticsLinkLACPStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectDiagnosticsLinkLACPStatus {
     /// System ID of the port on Google''s side of the LACP exchange.
     #[serde(default, rename = "googleSystemId")]
@@ -19151,7 +19152,7 @@ pub struct InterconnectDiagnosticsLinkLACPStatus {
 }
 
 /// Describes the status of MACsec encryption on the link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectDiagnosticsMacsecStatus {
     /// Indicates the Connectivity Association Key Name (CKN)
     #[serde(default)]
@@ -19162,7 +19163,7 @@ pub struct InterconnectDiagnosticsMacsecStatus {
 }
 
 /// InterconnectDiagnosticsLinkOpticalPower resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectDiagnosticsLinkOpticalPower {
     /// The status of the current value when compared to the warning and alarm
     #[serde(default)]
@@ -19174,7 +19175,7 @@ pub struct InterconnectDiagnosticsLinkOpticalPower {
 
 /// [Output Only] The zones that Interconnects in this facility are
 /// present in.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectGroupPhysicalStructureMetrosFacilitiesZones {
     /// Output only. [Output Only] URLs of Interconnects in this redundancy group in the
     #[serde(default)]
@@ -19185,7 +19186,7 @@ pub struct InterconnectGroupPhysicalStructureMetrosFacilitiesZones {
 }
 
 /// CustomerEncryptionKey resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerEncryptionKey {
     /// The name of the encryption key that is stored in Google Cloud KMS.
     #[serde(default, rename = "kmsKeyName")]
@@ -19205,7 +19206,7 @@ pub struct CustomerEncryptionKey {
 }
 
 /// FileContentBuffer resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileContentBuffer {
     /// The raw content in the secure keys file.
     #[serde(default)]
@@ -19216,7 +19217,7 @@ pub struct FileContentBuffer {
 }
 
 /// ResourcePolicyWeeklyCycleDayOfWeek resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePolicyWeeklyCycleDayOfWeek {
     /// Defines a schedule that runs on specific days of the week. Specify
     #[serde(default)]
@@ -19231,7 +19232,7 @@ pub struct ResourcePolicyWeeklyCycleDayOfWeek {
 
 /// Configurations to specifc granular traffic units processed by
 /// Adaptive Protection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThresholdConfigTrafficGranularityConfig
 {
     /// If enabled, traffic matching each unique value for the specified
@@ -19246,7 +19247,7 @@ pub struct SecurityPolicyAdaptiveProtectionConfigLayer7DdosDefenseConfigThreshol
 }
 
 /// SecurityPolicyRuleMatcherExprOptionsRecaptchaOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRuleMatcherExprOptionsRecaptchaOptions {
     /// A list of site keys to be used during the validation of reCAPTCHA
     #[serde(default, rename = "actionTokenSiteKeys")]
@@ -19257,7 +19258,7 @@ pub struct SecurityPolicyRuleMatcherExprOptionsRecaptchaOptions {
 }
 
 /// SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams {
     /// The match operator for the field. // TODO: enum values: ["CONTAINS", "ENDS_WITH", "EQUALS", "EQUALS_ANY", "STARTS_WITH"]
     #[serde(default)]
@@ -19270,7 +19271,7 @@ pub struct SecurityPolicyRulePreconfiguredWafConfigExclusionFieldParams {
 /// Specifies the mapping between the response code that will be returned along
 /// with the custom error content and the response code returned by the backend
 /// service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomErrorResponsePolicyCustomErrorResponseRule {
     /// Valid values include:
     #[serde(default, rename = "matchResponseCodes")]
@@ -19284,7 +19285,7 @@ pub struct CustomErrorResponsePolicyCustomErrorResponseRule {
 }
 
 /// matchRule criteria for request header matches.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpHeaderMatch {
     /// The value should exactly match contents of exactMatch.
     #[serde(default, rename = "exactMatch")]
@@ -19328,7 +19329,7 @@ pub struct HttpHeaderMatch {
 /// An example for using metadataFilters would be: if
 /// load balancing involves
 /// Envoys, they receive routing configuration when values inmetadataFilters match values supplied in  of their XDS requests to loadbalancers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetadataFilter {
     /// The list of label value pairs that must match labels in the provided
     #[serde(default, rename = "filterLabels")]
@@ -19339,7 +19340,7 @@ pub struct MetadataFilter {
 }
 
 /// HttpRouteRuleMatch criteria for a request''s query parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpQueryParameterMatch {
     /// The queryParameterMatch matches if the value of the
     #[serde(default, rename = "exactMatch")]
@@ -19359,7 +19360,7 @@ pub struct HttpQueryParameterMatch {
 /// information about the W3C recommendation for cross-origin resource sharing
 /// (CORS), see Fetch API Living
 /// Standard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CorsPolicy {
     /// In response to a preflight request, setting this to true
     #[serde(default, rename = "allowCredentials")]
@@ -19393,7 +19394,7 @@ pub struct CorsPolicy {
 /// introduced by the load balancer on a percentage of requests before sending
 /// those request to the backend service. Similarly requests from clients can be
 /// aborted by the load balancer for a percentage of requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpFaultInjection {
     /// The specification for how client requests are aborted as part of fault
     #[serde(default)]
@@ -19407,7 +19408,7 @@ pub struct HttpFaultInjection {
 /// are shadowed to a separate mirrored backend service. The load balancer
 /// doesn''t wait for responses from the shadow service. Before sending traffic
 /// to the shadow service, the host or authority header is suffixed with-shadow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestMirrorPolicy {
     /// The full or partial URL to the BackendService resource being
     #[serde(default, rename = "backendService")]
@@ -19418,7 +19419,7 @@ pub struct RequestMirrorPolicy {
 }
 
 /// The retry policy associates with HttpRouteRule
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRetryPolicy {
     /// Specifies the allowed number retries. This number must be &gt; 0.
     #[serde(default, rename = "numRetries")]
@@ -19433,7 +19434,7 @@ pub struct HttpRetryPolicy {
 
 /// The spec for modifying the path before sending the request to the matched
 /// backend service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlRewrite {
     /// Before forwarding the request to the selected service, the request''s
     #[serde(default, rename = "hostRewrite")]
@@ -19451,7 +19452,7 @@ pub struct UrlRewrite {
 /// multiple backend services. The volume of traffic for each
 /// backend service is proportional to the weight specified
 /// in each WeightedBackendService
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeightedBackendService {
     /// The full or partial URL to the default BackendService
     #[serde(default, rename = "backendService")]
@@ -19466,7 +19467,7 @@ pub struct WeightedBackendService {
 
 /// Properties of the SKU instances being reserved.
 /// Next ID: 10
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationSpecificSKUAllocationReservedInstanceProperties {
     /// Specifies accelerator type and count.
     #[serde(default, rename = "guestAccelerators")]
@@ -19490,7 +19491,7 @@ pub struct AllocationSpecificSKUAllocationReservedInstanceProperties {
 /// [Output Only] The zones that Attachments in this group are present
 /// in, in the given facilities.  This is inherited from their
 /// Interconnects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentGroupLogicalStructureRegionMetroFacilityZone {
     /// Output only. [Output Only] URLs of Attachments in the given zone, to the given
     #[serde(default)]
@@ -19502,7 +19503,7 @@ pub struct InterconnectAttachmentGroupLogicalStructureRegionMetroFacilityZone {
 
 /// HttpRouteRuleMatch criteria for field values that must stay
 /// within the specified integer range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Int64RangeMatch {
     /// The end of the range (exclusive) in signed long integer format.
     #[serde(default, rename = "rangeEnd")]
@@ -19514,7 +19515,7 @@ pub struct Int64RangeMatch {
 
 /// MetadataFilter label name value pairs that are expected
 /// to match corresponding labels presented as metadata to the load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetadataFilterLabelMatch {
     /// Name of metadata label.
     #[serde(default)]
@@ -19525,7 +19526,7 @@ pub struct MetadataFilterLabelMatch {
 }
 
 /// Specification for how requests are aborted as part of fault injection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpFaultAbort {
     /// The HTTP status code used to abort the request.
     #[serde(default, rename = "httpStatus")]
@@ -19537,7 +19538,7 @@ pub struct HttpFaultAbort {
 
 /// Specifies the delay introduced by the load balancer before forwarding the
 /// request to the backend service as part of fault injection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpFaultDelay {
     /// Specifies the value of the fixed delay interval.
     #[serde(default, rename = "fixedDelay")]
@@ -19549,7 +19550,7 @@ pub struct HttpFaultDelay {
 
 /// The request and response header transformations that take effect before
 /// the request is passed along to the selected backendService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpHeaderAction {
     /// Headers to add to a matching request before forwarding the request to thebackendService.
     #[serde(default, rename = "requestHeadersToAdd")]
@@ -19567,7 +19568,7 @@ pub struct HttpHeaderAction {
 
 /// A specification of the type and number of accelerator cards attached to the
 /// instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorConfig {
     /// The number of the guest accelerator cards exposed to this instance.
     #[serde(default, rename = "acceleratorCount")]
@@ -19578,7 +19579,7 @@ pub struct AcceleratorConfig {
 }
 
 /// AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDisk {
     /// Specifies the size of the disk in base-2 GB.
     #[serde(default, rename = "diskSizeGb")]
@@ -19592,7 +19593,7 @@ pub struct AllocationSpecificSKUAllocationAllocatedInstancePropertiesReservedDis
 /// as a count of seconds and fractions of seconds at nanosecond
 /// resolution. It is independent of any calendar and concepts like "day"
 /// or "month". Range is approximately 10,000 years.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Duration {
     /// Span of time that''s a fraction of a second at nanosecond resolution.
     #[serde(default)]
@@ -19603,7 +19604,7 @@ pub struct Duration {
 }
 
 /// Specification determining how headers are added to requests or responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpHeaderOption {
     /// The name of the header.
     #[serde(default, rename = "headerName")]

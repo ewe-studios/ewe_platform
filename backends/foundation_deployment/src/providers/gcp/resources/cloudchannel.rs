@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for CloudChannelService.ActivateEntitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ActivateEntitlementRequest {
     /// Optional. You can specify an optional unique request ID, and if you need to retry your request, the server will know to ignore the request if it''s complete. For example, you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if it received the original operation with the same request ID. If it did, it will ignore the second request. The request ID must be a valid [UUID](https://tools.ietf.org/html/rfc4122) with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -19,7 +20,7 @@ pub struct GoogleCloudChannelV1ActivateEntitlementRequest {
 }
 
 /// Request message for CloudChannelService.CancelEntitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1CancelEntitlementRequest {
     /// Optional. You can specify an optional unique request ID, and if you need to retry your request, the server will know to ignore the request if it''s complete. For example, you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if it received the original operation with the same request ID. If it did, it will ignore the second request. The request ID must be a valid [UUID](https://tools.ietf.org/html/rfc4122) with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -27,7 +28,7 @@ pub struct GoogleCloudChannelV1CancelEntitlementRequest {
 }
 
 /// Request message for CloudChannelService.ChangeOffer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ChangeOfferRequest {
     /// Optional. The billing account resource name that is used to pay for this entitlement when setting up billing on a trial subscription. This field is only relevant for multi-currency accounts. It should be left empty for single currency accounts.
     #[serde(default, rename = "billingAccount")]
@@ -50,7 +51,7 @@ pub struct GoogleCloudChannelV1ChangeOfferRequest {
 }
 
 /// Request message for CloudChannelService.ChangeParameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ChangeParametersRequest {
     /// Required. Entitlement parameters to update. You can only change editable parameters. To view the available Parameters for a request, refer to the Offer.parameter_definitions from the desired offer.
     #[serde(default)]
@@ -64,7 +65,7 @@ pub struct GoogleCloudChannelV1ChangeParametersRequest {
 }
 
 /// Request message for CloudChannelService.ChangeRenewalSettings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ChangeRenewalSettingsRequest {
     /// Required. New renewal settings.
     #[serde(default, rename = "renewalSettings")]
@@ -75,7 +76,7 @@ pub struct GoogleCloudChannelV1ChangeRenewalSettingsRequest {
 }
 
 /// Request message for CloudChannelService.CheckCloudIdentityAccountsExist.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1CheckCloudIdentityAccountsExistRequest {
     /// Required. Domain to fetch for Cloud Identity account customers, including domain and team customers. For team customers, please use the domain for their emails.
     #[serde(default)]
@@ -86,7 +87,7 @@ pub struct GoogleCloudChannelV1CheckCloudIdentityAccountsExistRequest {
 }
 
 /// Response message for CloudChannelService.CheckCloudIdentityAccountsExist.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1CheckCloudIdentityAccountsExistResponse {
     /// The Cloud Identity accounts associated with the domain.
     #[serde(default, rename = "cloudIdentityAccounts")]
@@ -95,7 +96,7 @@ pub struct GoogleCloudChannelV1CheckCloudIdentityAccountsExistResponse {
 }
 
 /// Request message for CloudChannelService.CreateEntitlement
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1CreateEntitlementRequest {
     /// Required. The entitlement to create.
     #[serde(default)]
@@ -106,7 +107,7 @@ pub struct GoogleCloudChannelV1CreateEntitlementRequest {
 }
 
 /// Request message for CloudChannelReportsService.FetchReportResults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1FetchReportResultsRequest {
     /// Optional. Requested page size of the report. The server may return fewer results than requested. If you don''t specify a page size, the server uses a sensible default (may change over time). The maximum value is 30,000; the server will change larger values to 30,000.
     #[serde(default, rename = "pageSize")]
@@ -120,7 +121,7 @@ pub struct GoogleCloudChannelV1FetchReportResultsRequest {
 }
 
 /// Response message for CloudChannelReportsService.FetchReportResults. Contains a tabular representation of the report results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1FetchReportResultsResponse {
     /// Pass this token to FetchReportResultsRequest.page_token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -134,7 +135,7 @@ pub struct GoogleCloudChannelV1FetchReportResultsResponse {
 }
 
 /// Request message for CloudChannelService.ImportCustomer
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ImportCustomerRequest {
     /// Optional. The super admin of the resold customer generates this token to authorize a reseller to access their Cloud Identity and purchase entitlements on their behalf. You can omit this token after authorization. See https://support.google.com/a/answer/7643790 for more details.
     #[serde(default, rename = "authToken")]
@@ -160,7 +161,7 @@ pub struct GoogleCloudChannelV1ImportCustomerRequest {
 }
 
 /// Response message for CloudChannelService.ListChannelPartnerLinks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListChannelPartnerLinksResponse {
     /// The Channel partner links for a reseller.
     #[serde(default, rename = "channelPartnerLinks")]
@@ -172,7 +173,7 @@ pub struct GoogleCloudChannelV1ListChannelPartnerLinksResponse {
 }
 
 /// Response message for CloudChannelService.ListChannelPartnerRepricingConfigs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListChannelPartnerRepricingConfigsResponse {
     /// The repricing configs for this channel partner.
     #[serde(default, rename = "channelPartnerRepricingConfigs")]
@@ -184,7 +185,7 @@ pub struct GoogleCloudChannelV1ListChannelPartnerRepricingConfigsResponse {
 }
 
 /// Response message for CloudChannelService.ListCustomerRepricingConfigs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListCustomerRepricingConfigsResponse {
     /// The repricing configs for this channel partner.
     #[serde(default, rename = "customerRepricingConfigs")]
@@ -196,7 +197,7 @@ pub struct GoogleCloudChannelV1ListCustomerRepricingConfigsResponse {
 }
 
 /// Response message for CloudChannelService.ListCustomers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListCustomersResponse {
     /// The customers belonging to a reseller or distributor.
     #[serde(default)]
@@ -207,7 +208,7 @@ pub struct GoogleCloudChannelV1ListCustomersResponse {
 }
 
 /// Response message for CloudChannelService.ListEntitlementChanges
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListEntitlementChangesResponse {
     /// The list of entitlement changes.
     #[serde(default, rename = "entitlementChanges")]
@@ -219,7 +220,7 @@ pub struct GoogleCloudChannelV1ListEntitlementChangesResponse {
 }
 
 /// Response message for CloudChannelService.ListEntitlements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListEntitlementsResponse {
     /// The reseller customer''s entitlements.
     #[serde(default)]
@@ -230,7 +231,7 @@ pub struct GoogleCloudChannelV1ListEntitlementsResponse {
 }
 
 /// Response message for ListOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListOffersResponse {
     /// A token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -241,7 +242,7 @@ pub struct GoogleCloudChannelV1ListOffersResponse {
 }
 
 /// Response message for ListProducts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListProductsResponse {
     /// A token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -252,7 +253,7 @@ pub struct GoogleCloudChannelV1ListProductsResponse {
 }
 
 /// Response message for ListPurchasableOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListPurchasableOffersResponse {
     /// A token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -264,7 +265,7 @@ pub struct GoogleCloudChannelV1ListPurchasableOffersResponse {
 }
 
 /// Response message for ListPurchasableSkus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListPurchasableSkusResponse {
     /// A token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -276,7 +277,7 @@ pub struct GoogleCloudChannelV1ListPurchasableSkusResponse {
 }
 
 /// Response message for CloudChannelReportsService.ListReports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListReportsResponse {
     /// Pass this token to FetchReportResultsRequest.page_token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -287,7 +288,7 @@ pub struct GoogleCloudChannelV1ListReportsResponse {
 }
 
 /// Response message for ListSkuGroupBillableSkus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListSkuGroupBillableSkusResponse {
     /// The list of billable SKUs in the requested SKU group.
     #[serde(default, rename = "billableSkus")]
@@ -298,7 +299,7 @@ pub struct GoogleCloudChannelV1ListSkuGroupBillableSkusResponse {
 }
 
 /// Response message for ListSkuGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListSkuGroupsResponse {
     /// A token to retrieve the next page of results. Pass to ListSkuGroupsRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -309,7 +310,7 @@ pub struct GoogleCloudChannelV1ListSkuGroupsResponse {
 }
 
 /// Response message for ListSkus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListSkusResponse {
     /// A token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -320,7 +321,7 @@ pub struct GoogleCloudChannelV1ListSkusResponse {
 }
 
 /// Response Message for ListSubscribers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListSubscribersResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -334,7 +335,7 @@ pub struct GoogleCloudChannelV1ListSubscribersResponse {
 }
 
 /// Request message for CloudChannelService.ListTransferableOffers
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListTransferableOffersRequest {
     /// Optional. The Billing Account to look up Offers for. Format: accounts/{account_id}/billingAccounts/{billing_account_id}. This field is only relevant for multi-currency accounts. It should be left empty for single currency accounts.
     #[serde(default, rename = "billingAccount")]
@@ -360,7 +361,7 @@ pub struct GoogleCloudChannelV1ListTransferableOffersRequest {
 }
 
 /// Response message for CloudChannelService.ListTransferableOffers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListTransferableOffersResponse {
     /// A token to retrieve the next page of results. Pass to ListTransferableOffersRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -372,7 +373,7 @@ pub struct GoogleCloudChannelV1ListTransferableOffersResponse {
 }
 
 /// Request message for CloudChannelService.ListTransferableSkus
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListTransferableSkusRequest {
     /// Optional. The super admin of the resold customer generates this token to authorize a reseller to access their Cloud Identity and purchase entitlements on their behalf. You can omit this token after authorization. See https://support.google.com/a/answer/7643790 for more details.
     #[serde(default, rename = "authToken")]
@@ -395,7 +396,7 @@ pub struct GoogleCloudChannelV1ListTransferableSkusRequest {
 }
 
 /// Response message for CloudChannelService.ListTransferableSkus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ListTransferableSkusResponse {
     /// A token to retrieve the next page of results. Pass to ListTransferableSkusRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -407,7 +408,7 @@ pub struct GoogleCloudChannelV1ListTransferableSkusResponse {
 }
 
 /// Provides contextual information about a google.longrunning.Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1OperationMetadata {
     /// The RPC that initiated this Long Running Operation. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "CREATE_ENTITLEMENT", "CHANGE_RENEWAL_SETTINGS", "START_PAID_SERVICE", "ACTIVATE_ENTITLEMENT", "SUSPEND_ENTITLEMENT", "CANCEL_ENTITLEMENT", "TRANSFER_ENTITLEMENTS", "TRANSFER_ENTITLEMENTS_TO_GOOGLE", "CHANGE_OFFER", "CHANGE_PARAMETERS", "PROVISION_CLOUD_IDENTITY"]
     #[serde(default, rename = "operationType")]
@@ -415,7 +416,7 @@ pub struct GoogleCloudChannelV1OperationMetadata {
 }
 
 /// Request message for CloudChannelService.ProvisionCloudIdentity
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ProvisionCloudIdentityRequest {
     /// CloudIdentity-specific customer information.
     #[serde(default, rename = "cloudIdentityInfo")]
@@ -429,7 +430,7 @@ pub struct GoogleCloudChannelV1ProvisionCloudIdentityRequest {
 }
 
 /// Response message for QueryEligibleBillingAccounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1QueryEligibleBillingAccountsResponse {
     /// List of SKU purchase groups where each group represents a set of SKUs that must be purchased using the same billing account. Each SKU from [QueryEligibleBillingAccountsRequest.skus] will appear in exactly one SKU group.
     #[serde(default, rename = "skuPurchaseGroups")]
@@ -438,7 +439,7 @@ pub struct GoogleCloudChannelV1QueryEligibleBillingAccountsResponse {
 }
 
 /// Request Message for RegisterSubscriber.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RegisterSubscriberRequest {
     /// Optional. Resource name of the account. Required if integrator is not provided. Otherwise, leave this field empty/unset.
     #[serde(default)]
@@ -452,7 +453,7 @@ pub struct GoogleCloudChannelV1RegisterSubscriberRequest {
 }
 
 /// Response Message for RegisterSubscriber.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RegisterSubscriberResponse {
     /// Name of the topic the subscriber will listen to.
     #[serde(default)]
@@ -460,11 +461,11 @@ pub struct GoogleCloudChannelV1RegisterSubscriberResponse {
 }
 
 /// Applies the repricing configuration at the channel partner level. The channel partner value is derived from the resource name. Takes an empty json object. Deprecated: This is no longer supported. Use RepricingConfig.EntitlementGranularity instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RepricingConfigChannelPartnerGranularity {}
 
 /// Request message for CloudChannelReportsService.RunReportJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RunReportJobRequest {
     /// Optional. The range of usage or invoice dates to include in the result.
     #[serde(default, rename = "dateRange")]
@@ -478,7 +479,7 @@ pub struct GoogleCloudChannelV1RunReportJobRequest {
 }
 
 /// Response message for CloudChannelReportsService.RunReportJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RunReportJobResponse {
     /// Pass report_job.name to FetchReportResultsRequest.report_job to retrieve the report''s results.
     #[serde(default, rename = "reportJob")]
@@ -489,7 +490,7 @@ pub struct GoogleCloudChannelV1RunReportJobResponse {
 }
 
 /// Request message for CloudChannelService.StartPaidService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1StartPaidServiceRequest {
     /// Optional. You can specify an optional unique request ID, and if you need to retry your request, the server will know to ignore the request if it''s complete. For example, you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if it received the original operation with the same request ID. If it did, it will ignore the second request. The request ID must be a valid [UUID](https://tools.ietf.org/html/rfc4122) with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -497,7 +498,7 @@ pub struct GoogleCloudChannelV1StartPaidServiceRequest {
 }
 
 /// Represents information which resellers will get as part of notification from Pub/Sub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1SubscriberEvent {
     /// Customer event sent as part of Pub/Sub event to partners.
     #[serde(default, rename = "customerEvent")]
@@ -508,7 +509,7 @@ pub struct GoogleCloudChannelV1SubscriberEvent {
 }
 
 /// Request message for CloudChannelService.SuspendEntitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1SuspendEntitlementRequest {
     /// Optional. You can specify an optional unique request ID, and if you need to retry your request, the server will know to ignore the request if it''s complete. For example, you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if it received the original operation with the same request ID. If it did, it will ignore the second request. The request ID must be a valid [UUID](https://tools.ietf.org/html/rfc4122) with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -516,7 +517,7 @@ pub struct GoogleCloudChannelV1SuspendEntitlementRequest {
 }
 
 /// Request message for CloudChannelService.TransferEntitlements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1TransferEntitlementsRequest {
     /// The super admin of the resold customer generates this token to authorize a reseller to access their Cloud Identity and purchase entitlements on their behalf. You can omit this token after authorization. See https://support.google.com/a/answer/7643790 for more details.
     #[serde(default, rename = "authToken")]
@@ -530,7 +531,7 @@ pub struct GoogleCloudChannelV1TransferEntitlementsRequest {
 }
 
 /// Response message for CloudChannelService.TransferEntitlements. This is put in the response field of google.longrunning.Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1TransferEntitlementsResponse {
     /// The transferred entitlements.
     #[serde(default)]
@@ -538,7 +539,7 @@ pub struct GoogleCloudChannelV1TransferEntitlementsResponse {
 }
 
 /// Request message for CloudChannelService.TransferEntitlementsToGoogle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1TransferEntitlementsToGoogleRequest {
     /// Required. The entitlements to transfer to Google.
     #[serde(default)]
@@ -549,7 +550,7 @@ pub struct GoogleCloudChannelV1TransferEntitlementsToGoogleRequest {
 }
 
 /// Request Message for UnregisterSubscriber.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1UnregisterSubscriberRequest {
     /// Optional. Resource name of the account. Required if integrator is not provided. Otherwise, leave this field empty/unset.
     #[serde(default)]
@@ -563,7 +564,7 @@ pub struct GoogleCloudChannelV1UnregisterSubscriberRequest {
 }
 
 /// Response Message for UnregisterSubscriber.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1UnregisterSubscriberResponse {
     /// Name of the topic the service account subscriber access was removed from.
     #[serde(default)]
@@ -571,7 +572,7 @@ pub struct GoogleCloudChannelV1UnregisterSubscriberResponse {
 }
 
 /// Request message for CloudChannelService.UpdateChannelPartnerLink
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1UpdateChannelPartnerLinkRequest {
     /// Required. The channel partner link to update. Only channel_partner_link.link_state is allowed for updates.
     #[serde(default, rename = "channelPartnerLink")]
@@ -582,7 +583,7 @@ pub struct GoogleCloudChannelV1UpdateChannelPartnerLinkRequest {
 }
 
 /// Provides contextual information about a google.longrunning.Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1OperationMetadata {
     /// The RPC that initiated this Long Running Operation. // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "CREATE_ENTITLEMENT", "CHANGE_QUANTITY", "CHANGE_RENEWAL_SETTINGS", "CHANGE_PLAN", "START_PAID_SERVICE", "CHANGE_SKU", "ACTIVATE_ENTITLEMENT", "SUSPEND_ENTITLEMENT", "CANCEL_ENTITLEMENT", "TRANSFER_ENTITLEMENTS", "TRANSFER_ENTITLEMENTS_TO_GOOGLE", "CHANGE_OFFER", "CHANGE_PARAMETERS", "PROVISION_CLOUD_IDENTITY"]
     #[serde(default, rename = "operationType")]
@@ -590,7 +591,7 @@ pub struct GoogleCloudChannelV1alpha1OperationMetadata {
 }
 
 /// Response message for CloudChannelReportsService.RunReportJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1RunReportJobResponse {
     /// Pass report_job.name to FetchReportResultsRequest.report_job to retrieve the report''s results.
     #[serde(default, rename = "reportJob")]
@@ -601,7 +602,7 @@ pub struct GoogleCloudChannelV1alpha1RunReportJobResponse {
 }
 
 /// Represents information which resellers will get as part of notification from Pub/Sub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1SubscriberEvent {
     /// Channel Partner event sent as part of Pub/Sub event to partners.
     #[serde(default, rename = "channelPartnerEvent")]
@@ -619,7 +620,7 @@ pub struct GoogleCloudChannelV1alpha1SubscriberEvent {
 }
 
 /// Response message for CloudChannelService.TransferEntitlements. This is put in the response field of google.longrunning.Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1TransferEntitlementsResponse {
     /// The transferred entitlements.
     #[serde(default)]
@@ -628,11 +629,11 @@ pub struct GoogleCloudChannelV1alpha1TransferEntitlementsResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -646,11 +647,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Entity representing a Cloud Identity account that may be associated with a Channel Services API partner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1CloudIdentityCustomerAccount {
     /// If existing = true, and is 2-tier customer, the channel partner of the customer.
     #[serde(default, rename = "channelPartnerCloudIdentityId")]
@@ -673,7 +674,7 @@ pub struct GoogleCloudChannelV1CloudIdentityCustomerAccount {
 }
 
 /// A row of report values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Row {
     /// The key for the partition this row belongs to. This field is empty if the report is not partitioned.
     #[serde(default, rename = "partitionKey")]
@@ -684,7 +685,7 @@ pub struct GoogleCloudChannelV1Row {
 }
 
 /// Configuration for how a distributor will rebill a channel partner (also known as a distributor-authorized reseller).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ChannelPartnerRepricingConfig {
     /// Output only. Resource name of the ChannelPartnerRepricingConfig. Format: accounts/{account_id}/channelPartnerLinks/{channel_partner_id}/channelPartnerRepricingConfigs/{id}.
     #[serde(default)]
@@ -698,7 +699,7 @@ pub struct GoogleCloudChannelV1ChannelPartnerRepricingConfig {
 }
 
 /// Configuration for how a reseller will reprice a Customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1CustomerRepricingConfig {
     /// Output only. Resource name of the CustomerRepricingConfig. Format: accounts/{account_id}/customers/{customer_id}/customerRepricingConfigs/{id}.
     #[serde(default)]
@@ -712,7 +713,7 @@ pub struct GoogleCloudChannelV1CustomerRepricingConfig {
 }
 
 /// Entity representing a customer of a reseller or distributor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Customer {
     /// Secondary contact email. You need to provide an alternate email to create different domains if a primary contact email already exists. Users will receive a notification with credentials when you create an admin.google.com account. Secondary emails are also recovery email addresses. Alternate emails are optional when you create Team customers.
     #[serde(default, rename = "alternateEmail")]
@@ -759,7 +760,7 @@ pub struct GoogleCloudChannelV1Customer {
 }
 
 /// Change event entry for Entitlement order history
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1EntitlementChange {
     /// The Entitlement''s activation reason // TODO: enum values: ["ACTIVATION_REASON_UNSPECIFIED", "RESELLER_REVOKED_SUSPENSION", "CUSTOMER_ACCEPTED_PENDING_TOS", "RENEWAL_SETTINGS_CHANGED", "OTHER_ACTIVATION_REASON"]
     #[serde(default, rename = "activationReason")]
@@ -800,7 +801,7 @@ pub struct GoogleCloudChannelV1EntitlementChange {
 }
 
 /// Offer that you can purchase for a customer. This is used in the ListPurchasableOffer API response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1PurchasableOffer {
     /// Offer.
     #[serde(default)]
@@ -811,7 +812,7 @@ pub struct GoogleCloudChannelV1PurchasableOffer {
 }
 
 /// SKU that you can purchase. This is used in ListPurchasableSku API response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1PurchasableSku {
     /// SKU
     #[serde(default)]
@@ -819,7 +820,7 @@ pub struct GoogleCloudChannelV1PurchasableSku {
 }
 
 /// Represents the Billable SKU information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1BillableSku {
     /// Resource name of Service which contains Repricing SKU. Format: services/{service}. Example: "services/B7D9-FDCB-15D8".
     #[serde(default)]
@@ -836,7 +837,7 @@ pub struct GoogleCloudChannelV1BillableSku {
 }
 
 /// Represents the SKU group information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1SkuGroup {
     /// Unique human readable identifier for the SKU group.
     #[serde(default, rename = "displayName")]
@@ -847,7 +848,7 @@ pub struct GoogleCloudChannelV1SkuGroup {
 }
 
 /// TransferableOffer represents an Offer that can be used in Transfer. Read-only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1TransferableOffer {
     /// Offer with parameter constraints updated to allow the Transfer.
     #[serde(default)]
@@ -858,7 +859,7 @@ pub struct GoogleCloudChannelV1TransferableOffer {
 }
 
 /// TransferableSku represents information a reseller needs to view existing provisioned services for a customer that they do not own. Read-only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1TransferableSku {
     /// Optional. The customer to transfer has an entitlement with the populated legacy SKU.
     #[serde(default, rename = "legacySku")]
@@ -872,7 +873,7 @@ pub struct GoogleCloudChannelV1TransferableSku {
 }
 
 /// Information needed to create an Admin User for Google Workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1AdminUser {
     /// Primary email of the admin user.
     #[serde(default)]
@@ -886,7 +887,7 @@ pub struct GoogleCloudChannelV1AdminUser {
 }
 
 /// Represents a set of SKUs that must be purchased using the same billing account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1SkuPurchaseGroup {
     /// List of billing accounts that are eligible to purhcase these SKUs.
     #[serde(default, rename = "billingAccountPurchaseInfos")]
@@ -898,7 +899,7 @@ pub struct GoogleCloudChannelV1SkuPurchaseGroup {
 }
 
 /// The result of a RunReportJob operation. Contains the name to use in FetchReportResultsRequest.report_job and the status of the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ReportJob {
     /// Required. The resource name of a report job. Name uses the format: accounts/{account_id}/reportJobs/{report_job_id}
     #[serde(default)]
@@ -909,7 +910,7 @@ pub struct GoogleCloudChannelV1ReportJob {
 }
 
 /// The features describing the data. Returned by CloudChannelReportsService.RunReportJob and CloudChannelReportsService.FetchReportResults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ReportResultsMetadata {
     /// The date range of reported usage.
     #[serde(default, rename = "dateRange")]
@@ -926,7 +927,7 @@ pub struct GoogleCloudChannelV1ReportResultsMetadata {
 }
 
 /// Represents Pub/Sub message content describing customer update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1CustomerEvent {
     /// Resource name of the customer. Format: accounts/{account_id}/customers/{customer_id}
     #[serde(default)]
@@ -937,7 +938,7 @@ pub struct GoogleCloudChannelV1CustomerEvent {
 }
 
 /// Represents Pub/Sub message content describing entitlement update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1EntitlementEvent {
     /// Resource name of an entitlement of the form: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}
     #[serde(default)]
@@ -948,7 +949,7 @@ pub struct GoogleCloudChannelV1EntitlementEvent {
 }
 
 /// An entitlement is a representation of a customer''s ability to use a service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Entitlement {
     /// Association information to other entitlements.
     #[serde(default, rename = "associationInfo")]
@@ -995,7 +996,7 @@ pub struct GoogleCloudChannelV1Entitlement {
 }
 
 /// Entity representing a link between distributors and their indirect resellers in an n-tier resale channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ChannelPartnerLink {
     /// Output only. Cloud Identity info of the channel partner (IR).
     #[serde(default, rename = "channelPartnerCloudIdentityInfo")]
@@ -1025,7 +1026,7 @@ pub struct GoogleCloudChannelV1ChannelPartnerLink {
 }
 
 /// The result of a RunReportJob operation. Contains the name to use in FetchReportResultsRequest.report_job and the status of the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1ReportJob {
     /// Required. The resource name of a report job. Name uses the format: accounts/{account_id}/reportJobs/{report_job_id}
     #[serde(default)]
@@ -1036,7 +1037,7 @@ pub struct GoogleCloudChannelV1alpha1ReportJob {
 }
 
 /// The features describing the data. Returned by CloudChannelReportsService.RunReportJob and CloudChannelReportsService.FetchReportResults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1ReportResultsMetadata {
     /// The date range of reported usage.
     #[serde(default, rename = "dateRange")]
@@ -1053,7 +1054,7 @@ pub struct GoogleCloudChannelV1alpha1ReportResultsMetadata {
 }
 
 /// Represents Pub/Sub messages about updates to a Channel Partner. You can retrieve updated values through the ChannelPartnerLinks API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1ChannelPartnerEvent {
     /// Resource name for the Channel Partner Link. Channel_partner uses the format: accounts/{account_id}/channelPartnerLinks/{channel_partner_id}
     #[serde(default, rename = "channelPartner")]
@@ -1064,7 +1065,7 @@ pub struct GoogleCloudChannelV1alpha1ChannelPartnerEvent {
 }
 
 /// Represents Pub/Sub message content describing customer update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1CustomerEvent {
     /// Resource name of the customer. Format: accounts/{account_id}/customers/{customer_id}
     #[serde(default)]
@@ -1075,7 +1076,7 @@ pub struct GoogleCloudChannelV1alpha1CustomerEvent {
 }
 
 /// Represents Pub/Sub message content describing entitlement update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1EntitlementEvent {
     /// Resource name of an entitlement of the form: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}
     #[serde(default)]
@@ -1086,7 +1087,7 @@ pub struct GoogleCloudChannelV1alpha1EntitlementEvent {
 }
 
 /// Represents Pub/Sub message content describing opportunity updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1OpportunityEvent {
     /// Type of event which happened for the opportunity. // TODO: enum values: ["TYPE_UNSPECIFIED", "CREATED", "UPDATED", "PARTNER_DETACHED"]
     #[serde(default, rename = "eventType")]
@@ -1100,7 +1101,7 @@ pub struct GoogleCloudChannelV1alpha1OpportunityEvent {
 }
 
 /// An entitlement is a representation of a customer''s ability to use a service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1Entitlement {
     /// The current number of users that are assigned a license for the product defined in provisioned_service.skuId. Read-only. Deprecated: Use parameters instead.
     #[serde(default, rename = "assignedUnits")]
@@ -1159,7 +1160,7 @@ pub struct GoogleCloudChannelV1alpha1Entitlement {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1179,7 +1180,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// A single report value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ReportValue {
     /// A value of type google.type.DateTime (year, month, day, hour, minute, second, and UTC offset or timezone.)
     #[serde(default, rename = "dateTimeValue")]
@@ -1202,7 +1203,7 @@ pub struct GoogleCloudChannelV1ReportValue {
 }
 
 /// Configuration for repricing a Google bill over a period of time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RepricingConfig {
     /// Required. Information about the adjustment.
     #[serde(default)]
@@ -1227,7 +1228,7 @@ pub struct GoogleCloudChannelV1RepricingConfig {
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypePostalAddress {
     /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
     #[serde(default, rename = "addressLines")]
@@ -1265,7 +1266,7 @@ pub struct GoogleTypePostalAddress {
 }
 
 /// Contact information for a customer account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ContactInfo {
     /// Output only. The customer account contact''s display name, formatted as a combination of the customer''s first and last name.
     #[serde(default, rename = "displayName")]
@@ -1288,7 +1289,7 @@ pub struct GoogleCloudChannelV1ContactInfo {
 }
 
 /// Represents an offer made to resellers for purchase. An offer is associated with a Sku, has a plan for payment, a price, and defines the constraints for buying.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Offer {
     /// Constraints on transacting the Offer.
     #[serde(default)]
@@ -1325,7 +1326,7 @@ pub struct GoogleCloudChannelV1Offer {
 }
 
 /// Specifies transfer eligibility of a SKU.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1TransferEligibility {
     /// Localized description if reseller is not eligible to transfer the SKU.
     #[serde(default)]
@@ -1339,7 +1340,7 @@ pub struct GoogleCloudChannelV1TransferEligibility {
 }
 
 /// Represents a billing account that can be used to make a purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1BillingAccountPurchaseInfo {
     /// The billing account resource.
     #[serde(default, rename = "billingAccount")]
@@ -1347,7 +1348,7 @@ pub struct GoogleCloudChannelV1BillingAccountPurchaseInfo {
 }
 
 /// Status of a report generation process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ReportStatus {
     /// The report generation''s completion time.
     #[serde(default, rename = "endTime")]
@@ -1361,7 +1362,7 @@ pub struct GoogleCloudChannelV1ReportStatus {
 }
 
 /// A representation of usage or invoice date ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1DateRange {
     /// The latest invoice date (inclusive). If this value is not the last day of a month, this will move it forward to the last day of the given month.
     #[serde(default, rename = "invoiceEndDate")]
@@ -1378,7 +1379,7 @@ pub struct GoogleCloudChannelV1DateRange {
 }
 
 /// The ID and description of a report that was used to generate report data. For example, "Google Cloud Daily Spend", "Google Workspace License Activity", etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Report {
     /// The list of columns included in the report. This defines the schema of the report results.
     #[serde(default)]
@@ -1395,7 +1396,7 @@ pub struct GoogleCloudChannelV1Report {
 }
 
 /// Association links that an entitlement has to other entitlements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1AssociationInfo {
     /// The name of the base entitlement, for which this entitlement is an add-on.
     #[serde(default, rename = "baseEntitlement")]
@@ -1403,7 +1404,7 @@ pub struct GoogleCloudChannelV1AssociationInfo {
 }
 
 /// Commitment settings for commitment-based offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1CommitmentSettings {
     /// Output only. Commitment end timestamp.
     #[serde(default, rename = "endTime")]
@@ -1417,7 +1418,7 @@ pub struct GoogleCloudChannelV1CommitmentSettings {
 }
 
 /// Definition for extended entitlement parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Parameter {
     /// Output only. Specifies whether this parameter is allowed to be changed. For example, for a Google Workspace Business Starter entitlement in commitment plan, num_units is editable when entitlement is active.
     #[serde(default)]
@@ -1431,7 +1432,7 @@ pub struct GoogleCloudChannelV1Parameter {
 }
 
 /// Service provisioned for an entitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ProvisionedService {
     /// Output only. The product pertaining to the provisioning resource as specified in the Offer.
     #[serde(default, rename = "productId")]
@@ -1445,7 +1446,7 @@ pub struct GoogleCloudChannelV1ProvisionedService {
 }
 
 /// Settings for trial offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1TrialSettings {
     /// Date when the trial ends. The value is in milliseconds using the UNIX Epoch format. See an example [Epoch converter](https://www.epochconverter.com).
     #[serde(default, rename = "endTime")]
@@ -1456,7 +1457,7 @@ pub struct GoogleCloudChannelV1TrialSettings {
 }
 
 /// Cloud Identity information for the Cloud Channel Customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1CloudIdentityInfo {
     /// Output only. URI of Customer''s Admin console dashboard.
     #[serde(default, rename = "adminConsoleUri")]
@@ -1485,7 +1486,7 @@ pub struct GoogleCloudChannelV1CloudIdentityInfo {
 }
 
 /// Status of a report generation process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1ReportStatus {
     /// The report generation''s completion time.
     #[serde(default, rename = "endTime")]
@@ -1499,7 +1500,7 @@ pub struct GoogleCloudChannelV1alpha1ReportStatus {
 }
 
 /// A representation of usage or invoice date ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1DateRange {
     /// The latest invoice date (inclusive). If this value is not the last day of a month, this will move it forward to the last day of the given month.
     #[serde(default, rename = "invoiceEndDate")]
@@ -1516,7 +1517,7 @@ pub struct GoogleCloudChannelV1alpha1DateRange {
 }
 
 /// The ID and description of a report that was used to generate report data. For example, "Google Cloud Daily Spend", "Google Workspace License Activity", etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1Report {
     /// The list of columns included in the report. This defines the schema of the report results.
     #[serde(default)]
@@ -1533,7 +1534,7 @@ pub struct GoogleCloudChannelV1alpha1Report {
 }
 
 /// Association links that an entitlement has to other entitlements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1AssociationInfo {
     /// The name of the base entitlement, for which this entitlement is an add-on.
     #[serde(default, rename = "baseEntitlement")]
@@ -1541,7 +1542,7 @@ pub struct GoogleCloudChannelV1alpha1AssociationInfo {
 }
 
 /// Commitment settings for commitment-based offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1CommitmentSettings {
     /// Output only. Commitment end timestamp.
     #[serde(default, rename = "endTime")]
@@ -1555,7 +1556,7 @@ pub struct GoogleCloudChannelV1alpha1CommitmentSettings {
 }
 
 /// Definition for extended entitlement parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1Parameter {
     /// Output only. Specifies whether this parameter is allowed to be changed. For example, for a Google Workspace Business Starter entitlement in commitment plan, num_units is editable when entitlement is active.
     #[serde(default)]
@@ -1569,7 +1570,7 @@ pub struct GoogleCloudChannelV1alpha1Parameter {
 }
 
 /// Service provisioned for an entitlement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1ProvisionedService {
     /// Output only. The product pertaining to the provisioning resource as specified in the Offer.
     #[serde(default, rename = "productId")]
@@ -1583,7 +1584,7 @@ pub struct GoogleCloudChannelV1alpha1ProvisionedService {
 }
 
 /// Settings for trial offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1TrialSettings {
     /// Date when the trial ends. The value is in milliseconds using the UNIX Epoch format. See an example [Epoch converter](https://www.epochconverter.com).
     #[serde(default, rename = "endTime")]
@@ -1594,7 +1595,7 @@ pub struct GoogleCloudChannelV1alpha1TrialSettings {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1608,7 +1609,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Specifies the override to conditionally apply.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ConditionalOverride {
     /// Required. Information about the applied override''s adjustment.
     #[serde(default)]
@@ -1622,7 +1623,7 @@ pub struct GoogleCloudChannelV1ConditionalOverride {
 }
 
 /// Applies the repricing configuration at the entitlement level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RepricingConfigEntitlementGranularity {
     /// Resource name of the entitlement. Format: accounts/{account_id}/customers/{customer_id}/entitlements/{entitlement_id}
     #[serde(default)]
@@ -1630,7 +1631,7 @@ pub struct GoogleCloudChannelV1RepricingConfigEntitlementGranularity {
 }
 
 /// Represents the constraints for buying the Offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Constraints {
     /// Represents constraints required to purchase the Offer for a customer.
     #[serde(default, rename = "customerConstraints")]
@@ -1638,7 +1639,7 @@ pub struct GoogleCloudChannelV1Constraints {
 }
 
 /// Parameter''s definition. Specifies what parameter is required to use the current Offer to purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1ParameterDefinition {
     /// If not empty, parameter values must be drawn from this list. For example, [us-west1, us-west2, ...] Applicable to STRING parameter type.
     #[serde(default, rename = "allowedValues")]
@@ -1661,7 +1662,7 @@ pub struct GoogleCloudChannelV1ParameterDefinition {
 }
 
 /// The payment plan for the Offer. Describes how to make a payment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Plan {
     /// Reseller Billing account to charge after an offer transaction. Only present for Google Cloud offers.
     #[serde(default, rename = "billingAccount")]
@@ -1681,7 +1682,7 @@ pub struct GoogleCloudChannelV1Plan {
 }
 
 /// Represents price by resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1PriceByResource {
     /// Price of the Offer. Present if there are no price phases.
     #[serde(default)]
@@ -1695,7 +1696,7 @@ pub struct GoogleCloudChannelV1PriceByResource {
 }
 
 /// Represents a product''s purchasable Stock Keeping Unit (SKU). SKUs represent the different variations of the product. For example, Google Workspace Business Standard and Google Workspace Business Plus are Google Workspace product SKUs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Sku {
     /// Marketing information for the SKU.
     #[serde(default, rename = "marketingInfo")]
@@ -1709,7 +1710,7 @@ pub struct GoogleCloudChannelV1Sku {
 }
 
 /// Represents a billing account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1BillingAccount {
     /// Output only. The time when this billing account was created.
     #[serde(default, rename = "createTime")]
@@ -1729,7 +1730,7 @@ pub struct GoogleCloudChannelV1BillingAccount {
 }
 
 /// The definition of a report column. Specifies the data properties in the corresponding position of the report rows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Column {
     /// The unique name of the column (for example, customer_domain, channel_partner, customer_cost). You can use column IDs in RunReportJobRequest.filter. To see all reports and their columns, call CloudChannelReportsService.ListReports.
     #[serde(default, rename = "columnId")]
@@ -1743,7 +1744,7 @@ pub struct GoogleCloudChannelV1Column {
 }
 
 /// Renewal settings for renewable Offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RenewalSettings {
     /// If false, the plan will be completed at the end date.
     #[serde(default, rename = "enableRenewal")]
@@ -1760,7 +1761,7 @@ pub struct GoogleCloudChannelV1RenewalSettings {
 }
 
 /// Required Edu Attributes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1EduData {
     /// Size of the institute. // TODO: enum values: ["INSTITUTE_SIZE_UNSPECIFIED", "SIZE_1_100", "SIZE_101_500", "SIZE_501_1000", "SIZE_1001_2000", "SIZE_2001_5000", "SIZE_5001_10000", "SIZE_10001_OR_MORE"]
     #[serde(default, rename = "instituteSize")]
@@ -1774,7 +1775,7 @@ pub struct GoogleCloudChannelV1EduData {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -1788,7 +1789,7 @@ pub struct GoogleTypeDate {
 }
 
 /// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDateTime {
     /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
     #[serde(default)]
@@ -1820,7 +1821,7 @@ pub struct GoogleTypeDateTime {
 }
 
 /// The definition of a report column. Specifies the data properties in the corresponding position of the report rows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1Column {
     /// The unique name of the column (for example, customer_domain, channel_partner, customer_cost). You can use column IDs in RunReportJobRequest.filter. To see all reports and their columns, call CloudChannelReportsService.ListReports.
     #[serde(default, rename = "columnId")]
@@ -1834,7 +1835,7 @@ pub struct GoogleCloudChannelV1alpha1Column {
 }
 
 /// Renewal settings for renewable Offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1RenewalSettings {
     /// If true, disables commitment-based offer on renewal and switches to flexible or pay as you go. Deprecated: Use payment_plan instead.
     #[serde(default, rename = "disableCommitment")]
@@ -1860,7 +1861,7 @@ pub struct GoogleCloudChannelV1alpha1RenewalSettings {
 }
 
 /// Data type and value of a parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1Value {
     /// Represents a boolean value.
     #[serde(default, rename = "boolValue")]
@@ -1880,7 +1881,7 @@ pub struct GoogleCloudChannelV1alpha1Value {
 }
 
 /// A type that represents the various adjustments you can apply to a bill.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RepricingAdjustment {
     /// Flat markup or markdown on an entire bill.
     #[serde(default, rename = "percentageAdjustment")]
@@ -1888,7 +1889,7 @@ pub struct GoogleCloudChannelV1RepricingAdjustment {
 }
 
 /// Represents the various repricing conditions you can use for a conditional override.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RepricingCondition {
     /// SKU Group condition for override.
     #[serde(default, rename = "skuGroupCondition")]
@@ -1896,7 +1897,7 @@ pub struct GoogleCloudChannelV1RepricingCondition {
 }
 
 /// Represents constraints required to purchase the Offer for a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1CustomerConstraints {
     /// Allowed Customer Type.
     #[serde(default, rename = "allowedCustomerTypes")]
@@ -1910,7 +1911,7 @@ pub struct GoogleCloudChannelV1CustomerConstraints {
 }
 
 /// Data type and value of a parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Value {
     /// Represents a boolean value.
     #[serde(default, rename = "boolValue")]
@@ -1930,7 +1931,7 @@ pub struct GoogleCloudChannelV1Value {
 }
 
 /// Specifies the price by the duration of months. For example, a 20% discount for the first six months, then a 10% discount starting on the seventh month.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1PricePhase {
     /// Defines first period for the phase.
     #[serde(default, rename = "firstPeriod")]
@@ -1950,7 +1951,7 @@ pub struct GoogleCloudChannelV1PricePhase {
 }
 
 /// A Product is the entity a customer uses when placing an order. For example, Google Workspace, Google Voice, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Product {
     /// Marketing information for the product.
     #[serde(default, rename = "marketingInfo")]
@@ -1961,7 +1962,7 @@ pub struct GoogleCloudChannelV1Product {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeTimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
@@ -1972,7 +1973,7 @@ pub struct GoogleTypeTimeZone {
 }
 
 /// Represents period in days/months/years.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1alpha1Period {
     /// Total duration of Period Type defined.
     #[serde(default)]
@@ -1983,7 +1984,7 @@ pub struct GoogleCloudChannelV1alpha1Period {
 }
 
 /// An adjustment that applies a flat markup or markdown to an entire bill.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1PercentageAdjustment {
     /// The percentage of the bill to adjust. For example: Mark down by 1% =&gt; "-1.00" Mark up by 1% =&gt; "1.00" Pass-Through =&gt; "0.00"
     #[serde(default)]
@@ -1991,7 +1992,7 @@ pub struct GoogleCloudChannelV1PercentageAdjustment {
 }
 
 /// A condition that applies the override if a line item SKU is found in the SKU group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1SkuGroupCondition {
     /// Specifies a SKU group (https://cloud.google.com/skus/sku-groups). Resource name of SKU group. Format: accounts/{account}/skuGroups/{sku_group}. Example: "accounts/C01234/skuGroups/3d50fd57-3157-4577-a5a9-a219b8490041".
     #[serde(default, rename = "skuGroup")]
@@ -1999,7 +2000,7 @@ pub struct GoogleCloudChannelV1SkuGroupCondition {
 }
 
 /// Defines price at resource tier level. For example, an offer with following definition : * Tier 1: Provide 25% discount for all seats between 1 and 25. * Tier 2: Provide 10% discount for all seats between 26 and 100. * Tier 3: Provide flat 15% discount for all seats above 100. Each of these tiers is represented as a PriceTier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1PriceTier {
     /// First resource for which the tier price applies.
     #[serde(default, rename = "firstResource")]
@@ -2013,7 +2014,7 @@ pub struct GoogleCloudChannelV1PriceTier {
 }
 
 /// Represents the marketing information for a Product, SKU or Offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1MarketingInfo {
     /// Default logo.
     #[serde(default, rename = "defaultLogo")]
@@ -2027,7 +2028,7 @@ pub struct GoogleCloudChannelV1MarketingInfo {
 }
 
 /// A representation of a decimal value, such as 2.5. Clients may convert values into language-native decimal formats, such as Java''s [BigDecimal](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/BigDecimal.html) or Python''s [decimal.Decimal](https://docs.python.org/3/library/decimal.html).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDecimal {
     /// The decimal value, as a string. The string representation consists of an optional sign, + (U+002B) or - (U+002D), followed by a sequence of zero or more decimal digits ("the integer"), optionally followed by a fraction, optionally followed by an exponent. An empty string **should** be interpreted as 0. The fraction consists of a decimal point followed by zero or more decimal digits. The string must contain at least one digit in either the integer or the fraction. The number formed by the sign, the integer and the fraction is referred to as the significand. The exponent consists of the character e (U+0065) or E (U+0045) followed by one or more decimal digits. Services **should** normalize decimal values before storing them by: - Removing an explicitly-provided + sign (+2.5 -&gt; 2.5). - Replacing a zero-length integer value with 0 (.5 -&gt; 0.5). - Coercing the exponent character to upper-case, with explicit sign (2.5e8 -&gt; 2.5E+8). - Removing an explicitly-provided zero exponent (2.5E0 -&gt; 2.5). Services **may** perform additional normalization based on its own needs and the internal decimal implementation selected, such as shifting the decimal point and exponent value together (example: 2.5E-1 &lt;-&gt; 0.25). Additionally, services **may** preserve trailing zeroes in the fraction to indicate increased precision, but are not required to do so. Note that only the . character is supported to divide the integer and the fraction; , **should not** be supported regardless of locale. Additionally, thousand separators **should not** be supported. If a service does support them, values **must** be normalized. The ENBF grammar is: DecimalString = '''' | [Sign] Significand [Exponent]; Sign = ''+'' | ''-''; Significand = Digits ''.'' | [Digits] ''.'' Digits; Exponent = (''e'' | ''E'') [Sign] Digits; Digits = { ''0'' | ''1'' | ''2'' | ''3'' | ''4'' | ''5'' | ''6'' | ''7'' | ''8'' | ''9'' }; Services **should** clearly document the range of supported values, the maximum supported precision (total number of digits), and, if applicable, the scale (number of digits after the decimal point), as well as how it behaves when receiving out-of-bounds values. Services **may** choose to accept values passed as input even when the value has a higher precision or scale than the service supports, and **should** round the value to fit the supported scale. Alternatively, the service **may** error with 400 Bad Request (INVALID_ARGUMENT in gRPC) if precision would be lost. Services **should** error with 400 Bad Request (INVALID_ARGUMENT in gRPC) if the service receives a value outside of the supported range.
     #[serde(default)]
@@ -2035,7 +2036,7 @@ pub struct GoogleTypeDecimal {
 }
 
 /// Represents the price of the Offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Price {
     /// Base price.
     #[serde(default, rename = "basePrice")]
@@ -2059,7 +2060,7 @@ pub struct GoogleCloudChannelV1Price {
 }
 
 /// Represents media information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Media {
     /// URL of the media.
     #[serde(default)]
@@ -2073,7 +2074,7 @@ pub struct GoogleCloudChannelV1Media {
 }
 
 /// Represents a single component of the total discount applicable on a Price.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1DiscountComponent {
     /// Fixed value discount.
     #[serde(default, rename = "discountAbsolute")]
@@ -2087,7 +2088,7 @@ pub struct GoogleCloudChannelV1DiscountComponent {
 }
 
 /// Represents period in days/months/years.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1Period {
     /// Total duration of Period Type defined.
     #[serde(default)]
@@ -2098,7 +2099,7 @@ pub struct GoogleCloudChannelV1Period {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeMoney {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request to generate an AdMob Mediation report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateMediationReportRequest {
     /// Network report specification.
     #[serde(default, rename = "reportSpec")]
@@ -19,7 +20,7 @@ pub struct GenerateMediationReportRequest {
 }
 
 /// The streaming response for the AdMob Mediation report where the first response contains the report header, then a stream of row responses, and finally a footer as the last response message. For example: [{ "header": { "date_range": { "start_date": {"year": 2018, "month": 9, "day": 1}, "end_date": {"year": 2018, "month": 9, "day": 1} }, "localization_settings": { "currency_code": "USD", "language_code": "en-US" } } }, { "row": { "dimension_values": { "DATE": {"value": "20180918"}, "APP": { "value": "ca-app-pub-8123415297019784~1001342552", "display_label": "My app name!" } }, "metric_values": { "ESTIMATED_EARNINGS": {"decimal_value": "1324746"} } } }, { "footer": {"matching_row_count": 1} }]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateMediationReportResponse {
     /// Additional information about the generated report, such as warnings about the data.
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct GenerateMediationReportResponse {
 }
 
 /// Request to generate an AdMob Network report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateNetworkReportRequest {
     /// Network report specification.
     #[serde(default, rename = "reportSpec")]
@@ -41,7 +42,7 @@ pub struct GenerateNetworkReportRequest {
 }
 
 /// The streaming response for the AdMob Network report where the first response contains the report header, then a stream of row responses, and finally a footer as the last response message. For example: [{ "header": { "dateRange": { "startDate": {"year": 2018, "month": 9, "day": 1}, "endDate": {"year": 2018, "month": 9, "day": 1} }, "localizationSettings": { "currencyCode": "USD", "languageCode": "en-US" } } }, { "row": { "dimensionValues": { "DATE": {"value": "20180918"}, "APP": { "value": "ca-app-pub-8123415297019784~1001342552", displayLabel: "My app name!" } }, "metricValues": { "ESTIMATED_EARNINGS": {"microsValue": 6500000} } } }, { "footer": {"matchingRowCount": 1} }]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateNetworkReportResponse {
     /// Additional information about the generated report, such as warnings about the data.
     #[serde(default)]
@@ -55,7 +56,7 @@ pub struct GenerateNetworkReportResponse {
 }
 
 /// Response for the ad units list request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdUnitsResponse {
     /// The resulting ad units for the requested account.
     #[serde(default, rename = "adUnits")]
@@ -66,7 +67,7 @@ pub struct ListAdUnitsResponse {
 }
 
 /// Response for the apps list request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAppsResponse {
     /// The resulting apps for the requested account.
     #[serde(default)]
@@ -77,7 +78,7 @@ pub struct ListAppsResponse {
 }
 
 /// Response for the publisher account list request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPublisherAccountsResponse {
     /// Publisher that the client credentials can access.
     #[serde(default)]
@@ -88,7 +89,7 @@ pub struct ListPublisherAccountsResponse {
 }
 
 /// Representation of a dimension value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportRowDimensionValue {
     /// The localized string representation of the value. If unspecified, the display label should be derived from the value.
     #[serde(default, rename = "displayLabel")]
@@ -99,7 +100,7 @@ pub struct ReportRowDimensionValue {
 }
 
 /// Representation of a metric value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportRowMetricValue {
     /// Double precision (approximate) decimal values. Rates are from 0 to 1.
     #[serde(default, rename = "doubleValue")]
@@ -113,7 +114,7 @@ pub struct ReportRowMetricValue {
 }
 
 /// List of string values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StringList {
     /// The string values.
     #[serde(default)]
@@ -121,7 +122,7 @@ pub struct StringList {
 }
 
 /// The specification for generating an AdMob Mediation report. For example, the specification to get observed ECPM sliced by ad source and app for the ''US'' and ''CN'' countries can look like the following example: { "date_range": { "start_date": {"year": 2021, "month": 9, "day": 1}, "end_date": {"year": 2021, "month": 9, "day": 30} }, "dimensions": ["AD_SOURCE", "APP", "COUNTRY"], "metrics": ["OBSERVED_ECPM"], "dimension_filters": [ { "dimension": "COUNTRY", "matches_any": {"values": [{"value": "US", "value": "CN"}]} } ], "sort_conditions": [ {"dimension":"APP", order: "ASCENDING"} ], "localization_settings": { "currency_code": "USD", "language_code": "en-US" } } For a better understanding, you can treat the preceding specification like the following pseudo SQL: SELECT AD_SOURCE, APP, COUNTRY, OBSERVED_ECPM FROM MEDIATION_REPORT WHERE DATE &gt;= ''2021-09-01'' AND DATE &lt;= ''2021-09-30'' AND COUNTRY IN (''US'', ''CN'') GROUP BY AD_SOURCE, APP, COUNTRY ORDER BY APP ASC;
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MediationReportSpec {
     /// The date range for which the report is generated.
     #[serde(default, rename = "dateRange")]
@@ -151,7 +152,7 @@ pub struct MediationReportSpec {
 }
 
 /// The specification for generating an AdMob Network report. For example, the specification to get clicks and estimated earnings for only the ''US'' and ''CN'' countries can look like the following example: { ''date_range'': { ''start_date'': {''year'': 2021, ''month'': 9, ''day'': 1}, ''end_date'': {''year'': 2021, ''month'': 9, ''day'': 30} }, ''dimensions'': [''DATE'', ''APP'', ''COUNTRY''], ''metrics'': [''CLICKS'', ''ESTIMATED_EARNINGS''], ''dimension_filters'': [ { ''dimension'': ''COUNTRY'', ''matches_any'': {''values'': [{''value'': ''US'', ''value'': ''CN''}]} } ], ''sort_conditions'': [ {''dimension'':''APP'', order: ''ASCENDING''}, {''metric'':''CLICKS'', order: ''DESCENDING''} ], ''localization_settings'': { ''currency_code'': ''USD'', ''language_code'': ''en-US'' } } For a better understanding, you can treat the preceding specification like the following pseudo SQL: SELECT DATE, APP, COUNTRY, CLICKS, ESTIMATED_EARNINGS FROM NETWORK_REPORT WHERE DATE &gt;= ''2021-09-01'' AND DATE &lt;= ''2021-09-30'' AND COUNTRY IN (''US'', ''CN'') GROUP BY DATE, APP, COUNTRY ORDER BY APP ASC, CLICKS DESC;
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkReportSpec {
     /// The date range for which the report is generated.
     #[serde(default, rename = "dateRange")]
@@ -181,7 +182,7 @@ pub struct NetworkReportSpec {
 }
 
 /// Groups data available after report generation, for example, warnings and row counts. Always sent as the last message in the stream response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportFooter {
     /// Total number of rows that matched the request. Warning: This count does NOT always match the number of rows in the response. Do not make that assumption when processing the response.
     #[serde(default, rename = "matchingRowCount")]
@@ -192,7 +193,7 @@ pub struct ReportFooter {
 }
 
 /// Groups data helps to treat the generated report. Always sent as a first message in the stream response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportHeader {
     /// The date range for which the report is generated. This is identical to the range specified in the report request.
     #[serde(default, rename = "dateRange")]
@@ -206,7 +207,7 @@ pub struct ReportHeader {
 }
 
 /// A row of the returning report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportRow {
     /// Map of dimension values in a row, with keys as enum name of the dimensions.
     #[serde(default, rename = "dimensionValues")]
@@ -217,7 +218,7 @@ pub struct ReportRow {
 }
 
 /// Describes an AdMob ad unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdUnit {
     /// AdFormat of the ad unit. Possible values are as follows: "APP_OPEN" - App Open ad format. "BANNER" - Banner ad format. "BANNER_INTERSTITIAL" - Legacy format that can be used as either banner or interstitial. This format can no longer be created but can be targeted by mediation groups. "INTERSTITIAL" - A full screen ad. Supported ad types are "RICH_MEDIA" and "VIDEO". "NATIVE" - Native ad format. "REWARDED" - An ad that, once viewed, gets a callback verifying the view so that a reward can be given to the user. Supported ad types are "RICH_MEDIA" (interactive) and video where video can not be excluded. "REWARDED_INTERSTITIAL" - Rewarded Interstitial ad format. Only supports video ad type. See https://support.google.com/admob/answer/9884467.
     #[serde(default, rename = "adFormat")]
@@ -240,7 +241,7 @@ pub struct AdUnit {
 }
 
 /// Describes an AdMob app for a specific platform (For example: Android or iOS).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct App {
     /// Output only. The approval state for the app. The field is read-only. // TODO: enum values: ["APP_APPROVAL_STATE_UNSPECIFIED", "ACTION_REQUIRED", "IN_REVIEW", "APPROVED"]
     #[serde(default, rename = "appApprovalState")]
@@ -263,7 +264,7 @@ pub struct App {
 }
 
 /// A publisher account contains information relevant to the use of this API, such as the time zone used for the reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublisherAccount {
     /// Currency code of the earning-related metrics, which is the 3-letter code defined in ISO 4217. The daily average rate is used for the currency conversion.
     #[serde(default, rename = "currencyCode")]
@@ -280,7 +281,7 @@ pub struct PublisherAccount {
 }
 
 /// Describes which report rows to match based on their dimension values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MediationReportSpecDimensionFilter {
     /// Applies the filter criterion to the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_SOURCE", "AD_SOURCE_INSTANCE", "AD_UNIT", "APP", "MEDIATION_GROUP", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
     #[serde(default)]
@@ -291,7 +292,7 @@ pub struct MediationReportSpecDimensionFilter {
 }
 
 /// Sorting direction to be applied on a dimension or a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MediationReportSpecSortCondition {
     /// Sort by the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_SOURCE", "AD_SOURCE_INSTANCE", "AD_UNIT", "APP", "MEDIATION_GROUP", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
     #[serde(default)]
@@ -305,7 +306,7 @@ pub struct MediationReportSpecSortCondition {
 }
 
 /// Describes which report rows to match based on their dimension values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkReportSpecDimensionFilter {
     /// Applies the filter criterion to the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_UNIT", "APP", "AD_TYPE", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
     #[serde(default)]
@@ -316,7 +317,7 @@ pub struct NetworkReportSpecDimensionFilter {
 }
 
 /// Sorting direction to be applied on a dimension or a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkReportSpecSortCondition {
     /// Sort by the specified dimension. // TODO: enum values: ["DIMENSION_UNSPECIFIED", "DATE", "MONTH", "WEEK", "AD_UNIT", "APP", "AD_TYPE", "COUNTRY", "FORMAT", "PLATFORM", "MOBILE_OS_VERSION", "GMA_SDK_VERSION", "APP_VERSION_NAME", "SERVING_RESTRICTION"]
     #[serde(default)]
@@ -330,7 +331,7 @@ pub struct NetworkReportSpecSortCondition {
 }
 
 /// Warnings associated with generation of the report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportWarning {
     /// Describes the details of the warning message, in English.
     #[serde(default)]
@@ -341,7 +342,7 @@ pub struct ReportWarning {
 }
 
 /// Specification of a single date range. Both dates are inclusive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateRange {
     /// End date of the date range, inclusive. Must be greater than or equal to the start date.
     #[serde(default, rename = "endDate")]
@@ -352,7 +353,7 @@ pub struct DateRange {
 }
 
 /// Localization settings for reports, such as currency and language. It affects how metrics are calculated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizationSettings {
     /// Currency code of the earning related metrics, which is the 3-letter code defined in ISO 4217. The daily average rate is used for the currency conversion. Defaults to the account currency code if unspecified.
     #[serde(default, rename = "currencyCode")]
@@ -363,7 +364,7 @@ pub struct LocalizationSettings {
 }
 
 /// Information from the app store if the app is linked to an app store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppLinkedAppInfo {
     /// The app store ID of the app; present if and only if the app is linked to an app store. If the app is added to the Google Play store, it will be the application ID of the app. For example: "com.example.myapp". See https://developer.android.com/studio/build/application-id. If the app is added to the Apple App Store, it will be app store ID. For example "105169111". Note that setting the app store id is considered an irreversible action. Once an app is linked, it cannot be unlinked.
     #[serde(default, rename = "appStoreId")]
@@ -374,7 +375,7 @@ pub struct AppLinkedAppInfo {
 }
 
 /// Information provided for manual apps which are not linked to an application store (Example: Google Play, App Store).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppManualAppInfo {
     /// The display name of the app as shown in the AdMob UI, which is provided by the user. The maximum length allowed is 80 characters.
     #[serde(default, rename = "displayName")]
@@ -382,7 +383,7 @@ pub struct AppManualAppInfo {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]

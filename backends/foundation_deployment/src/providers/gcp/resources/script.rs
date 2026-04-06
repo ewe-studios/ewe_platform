@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The Content resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Content {
     /// The list of script project files. One of the files is a script manifest; it must be named "appsscript", must have type of JSON, and include the manifest configurations for the project.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct Content {
 }
 
 /// Request to create a script project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateProjectRequest {
     /// The Drive ID of a parent file that the created script project is bound to. This is usually the ID of a Google Doc, Google Sheet, Google Form, or Google Slides file. If not set, a standalone script project is created.
     #[serde(default, rename = "parentId")]
@@ -33,11 +34,11 @@ pub struct CreateProjectRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// An object that provides information about the nature of an error resulting from an attempted execution of a script function using the Apps Script API. If a run call succeeds but the script function (or Apps Script itself) throws an exception, the response body''s error field contains a Status object. The Status object''s details field contains an array with a single one of these ExecutionError objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionError {
     /// The error message thrown by Apps Script, usually localized into the user''s language.
     #[serde(default, rename = "errorMessage")]
@@ -52,7 +53,7 @@ pub struct ExecutionError {
 }
 
 /// A request to run the function in a script. The script is identified by the specified script_id. Executing a function on a script returns results based on the implementation of the script.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionRequest {
     /// If true and the user is an owner of the script, the script runs at the most recently saved version rather than the version deployed for use with the Apps Script API. Optional; default is false.
     #[serde(default, rename = "devMode")]
@@ -69,7 +70,7 @@ pub struct ExecutionRequest {
 }
 
 /// An object that provides the return value of a function executed using the Apps Script API. If the script function returns successfully, the response body''s response field contains this ExecutionResponse object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionResponse {
     /// The return value of the script function. The type matches the object type returned in Apps Script. Functions called using the Apps Script API cannot return Apps Script-specific objects (such as a Document or a Calendar); they can only return primitive types such as a string, number, array, object, or boolean.
     #[serde(default)]
@@ -77,7 +78,7 @@ pub struct ExecutionResponse {
 }
 
 /// Response with the list of deployments for the specified Apps Script project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDeploymentsResponse {
     /// The list of deployments.
     #[serde(default)]
@@ -88,7 +89,7 @@ pub struct ListDeploymentsResponse {
 }
 
 /// Response with the list of Process resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListScriptProcessesResponse {
     /// Token for the next page of results. If empty, there are no more pages remaining.
     #[serde(default, rename = "nextPageToken")]
@@ -99,7 +100,7 @@ pub struct ListScriptProcessesResponse {
 }
 
 /// Response with the list of Process resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUserProcessesResponse {
     /// Token for the next page of results. If empty, there are no more pages remaining.
     #[serde(default, rename = "nextPageToken")]
@@ -110,7 +111,7 @@ pub struct ListUserProcessesResponse {
 }
 
 /// Response with the list of the versions for the specified script project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVersionsResponse {
     /// The token use to fetch the next page of records. if not exist in the response, that means no more versions to list.
     #[serde(default, rename = "nextPageToken")]
@@ -121,7 +122,7 @@ pub struct ListVersionsResponse {
 }
 
 /// Resource containing usage stats for a given script, based on the supplied filter and mask present in the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metrics {
     /// Number of active users.
     #[serde(default, rename = "activeUsers")]
@@ -135,7 +136,7 @@ pub struct Metrics {
 }
 
 /// A representation of an execution of an Apps Script function started with run. The execution response does not arrive until the function finishes executing. The maximum execution runtime is listed in the [Apps Script quotas guide](/apps-script/guides/services/quotas#current_limitations). After execution has started, it can have one of four outcomes: - If the script function returns successfully, the response field contains an ExecutionResponse object with the function''s return value in the object''s result field. - If the script function (or Apps Script itself) throws an exception, the error field contains a Status object. The Status object''s details field contains an array with a single ExecutionError object that provides information about the nature of the error. - If the execution has not yet completed, the done field is false and the neither the response nor error fields are present. - If the run call itself fails (for example, because of a malformed request or an authorization error), the method returns an HTTP response code in the 4XX range with a different format for the response body. Client libraries automatically convert a 4XX response into an exception class.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// This field indicates whether the script execution has completed. A completed execution has a populated response field containing the ExecutionResponse from function that was executed.
     #[serde(default)]
@@ -149,7 +150,7 @@ pub struct Operation {
 }
 
 /// The script project resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Project {
     /// When the script was created.
     #[serde(default, rename = "createTime")]
@@ -175,7 +176,7 @@ pub struct Project {
 }
 
 /// Request with deployment information to update an existing deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateDeploymentRequest {
     /// The deployment configuration.
     #[serde(default, rename = "deploymentConfig")]
@@ -183,7 +184,7 @@ pub struct UpdateDeploymentRequest {
 }
 
 /// An individual file within a script project. A file is a third-party source code created by one or more developers. It can be a server-side JS code, HTML, or a configuration file. Each script project can contain multiple files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct File {
     /// Creation date timestamp.
     #[serde(default, rename = "createTime")]
@@ -209,7 +210,7 @@ pub struct File {
 }
 
 /// A stack trace through the script that shows where the execution failed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScriptStackTraceElement {
     /// The name of the function that failed.
     #[serde(default)]
@@ -220,7 +221,7 @@ pub struct ScriptStackTraceElement {
 }
 
 /// Representation of a single script deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Deployment {
     /// The deployment configuration.
     #[serde(default, rename = "deploymentConfig")]
@@ -237,7 +238,7 @@ pub struct Deployment {
 }
 
 /// Representation of a single script process execution that was started from the script editor, a trigger, an application, or using the Apps Script API. This is distinct from the Operation resource, which only represents executions started via the Apps Script API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsScriptTypeProcess {
     /// Duration the execution spent executing.
     #[serde(default)]
@@ -266,7 +267,7 @@ pub struct GoogleAppsScriptTypeProcess {
 }
 
 /// A resource representing a script project version. A version is a "snapshot" of a script project and is similar to a read-only branched release. When creating deployments, the version to use must be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Version {
     /// When the version was created.
     #[serde(default, rename = "createTime")]
@@ -283,7 +284,7 @@ pub struct Version {
 }
 
 /// Metrics value that holds number of executions counted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricsValue {
     /// Required field indicating the end time of the interval.
     #[serde(default, rename = "endTime")]
@@ -297,7 +298,7 @@ pub struct MetricsValue {
 }
 
 /// If a run call succeeds but the script function (or Apps Script itself) throws an exception, the response body''s error field contains this Status object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code. For this API, this value either: - 10, indicating a SCRIPT_TIMEOUT error, - 3, indicating an INVALID_ARGUMENT error, or - 1, indicating a CANCELLED execution.
     #[serde(default)]
@@ -311,7 +312,7 @@ pub struct Status {
 }
 
 /// A set of functions. No duplicates are permitted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsScriptTypeFunctionSet {
     /// A list of functions composing the set.
     #[serde(default)]
@@ -319,7 +320,7 @@ pub struct GoogleAppsScriptTypeFunctionSet {
 }
 
 /// A simple user profile resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsScriptTypeUser {
     /// The user''s domain.
     #[serde(default)]
@@ -336,7 +337,7 @@ pub struct GoogleAppsScriptTypeUser {
 }
 
 /// Metadata the defines how a deployment is configured.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeploymentConfig {
     /// The description for this deployment.
     #[serde(default)]
@@ -353,7 +354,7 @@ pub struct DeploymentConfig {
 }
 
 /// A configuration that defines how a deployment is accessed externally.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntryPoint {
     /// Add-on properties.
     #[serde(default, rename = "addOn")]
@@ -370,7 +371,7 @@ pub struct EntryPoint {
 }
 
 /// Represents a function in a script project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsScriptTypeFunction {
     /// The function name in the script project.
     #[serde(default)]
@@ -381,7 +382,7 @@ pub struct GoogleAppsScriptTypeFunction {
 }
 
 /// An add-on entry point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsScriptTypeAddOnEntryPoint {
     /// The add-on''s required list of supported container types. // TODO: enum values: ["UNKNOWN_ADDON_TYPE", "GMAIL", "DATA_STUDIO"]
     #[serde(default, rename = "addOnType")]
@@ -404,7 +405,7 @@ pub struct GoogleAppsScriptTypeAddOnEntryPoint {
 }
 
 /// An API executable entry point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsScriptTypeExecutionApiEntryPoint {
     /// The entry point''s configuration.
     #[serde(default, rename = "entryPointConfig")]
@@ -412,7 +413,7 @@ pub struct GoogleAppsScriptTypeExecutionApiEntryPoint {
 }
 
 /// A web application entry point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsScriptTypeWebAppEntryPoint {
     /// The entry point''s configuration.
     #[serde(default, rename = "entryPointConfig")]
@@ -423,7 +424,7 @@ pub struct GoogleAppsScriptTypeWebAppEntryPoint {
 }
 
 /// API executable entry point configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsScriptTypeExecutionApiConfig {
     /// Who has permission to run the API executable. // TODO: enum values: ["UNKNOWN_ACCESS", "MYSELF", "DOMAIN", "ANYONE", "ANYONE_ANONYMOUS"]
     #[serde(default)]
@@ -431,7 +432,7 @@ pub struct GoogleAppsScriptTypeExecutionApiConfig {
 }
 
 /// Web app entry point configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsScriptTypeWebAppConfig {
     /// Who has permission to run the web app. // TODO: enum values: ["UNKNOWN_ACCESS", "MYSELF", "DOMAIN", "ANYONE", "ANYONE_ANONYMOUS"]
     #[serde(default)]

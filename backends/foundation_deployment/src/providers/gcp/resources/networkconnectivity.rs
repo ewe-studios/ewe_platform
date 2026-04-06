@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request for HubService.AcceptHubSpoke.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceptHubSpokeRequest {
     /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server knows to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check to see whether the original operation was received. If it was, the server ignores the second request. This behavior prevents clients from mistakenly creating duplicate commitments. The request ID must be a valid UUID, with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -22,7 +23,7 @@ pub struct AcceptHubSpokeRequest {
 }
 
 /// The response for HubService.AcceptHubSpoke.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceptHubSpokeResponse {
     /// The spoke that was operated on.
     #[serde(default)]
@@ -30,7 +31,7 @@ pub struct AcceptHubSpokeResponse {
 }
 
 /// The request for HubService.AcceptSpokeUpdate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceptSpokeUpdateRequest {
     /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server knows to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check to see whether the original operation was received. If it was, the server ignores the second request. This behavior prevents clients from mistakenly creating duplicate commitments. The request ID must be a valid UUID, with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -44,7 +45,7 @@ pub struct AcceptSpokeUpdateRequest {
 }
 
 /// Request for CheckConsumerConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckConsumerConfigRequest {
     /// Required. Full resource name of the consumer network. Example: - projects/{project}/global/networks/{network}.
     #[serde(default, rename = "consumerNetwork")]
@@ -61,7 +62,7 @@ pub struct CheckConsumerConfigRequest {
 }
 
 /// Response for CheckConsumerConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckConsumerConfigResponse {
     /// List of validation errors. If the list is empty, the consumer config is valid.
     #[serde(default)]
@@ -69,15 +70,15 @@ pub struct CheckConsumerConfigResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -91,7 +92,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// Response for ListAutomatedDnsRecords.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAutomatedDnsRecordsResponse {
     /// AutomatedDnsRecords to be returned.
     #[serde(default, rename = "automatedDnsRecords")]
@@ -105,7 +106,7 @@ pub struct ListAutomatedDnsRecordsResponse {
 }
 
 /// Response message to list Destination resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDestinationsResponse {
     /// The list of Destination resources to be listed.
     #[serde(default)]
@@ -119,7 +120,7 @@ pub struct ListDestinationsResponse {
 }
 
 /// Response for HubService.ListGroups method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGroupsResponse {
     /// The requested groups.
     #[serde(default)]
@@ -133,7 +134,7 @@ pub struct ListGroupsResponse {
 }
 
 /// The response for HubService.ListHubSpokes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHubSpokesResponse {
     /// The token for the next page of the response. To see more results, use this value as the page_token for your next request. If this value is empty, there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -147,7 +148,7 @@ pub struct ListHubSpokesResponse {
 }
 
 /// Response for HubService.ListHubs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHubsResponse {
     /// The requested hubs.
     #[serde(default)]
@@ -161,7 +162,7 @@ pub struct ListHubsResponse {
 }
 
 /// Response for InternalRange.ListInternalRanges
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInternalRangesResponse {
     /// Internal ranges to be returned.
     #[serde(default, rename = "internalRanges")]
@@ -175,7 +176,7 @@ pub struct ListInternalRangesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -186,7 +187,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message to list MulticloudDataTransferConfig resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMulticloudDataTransferConfigsResponse {
     /// The list of MulticloudDataTransferConfig resources to be listed.
     #[serde(default, rename = "multicloudDataTransferConfigs")]
@@ -201,7 +202,7 @@ pub struct ListMulticloudDataTransferConfigsResponse {
 }
 
 /// Response message to list the services in your project in regions that are eligible for Data Transfer Essentials configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMulticloudDataTransferSupportedServicesResponse {
     /// The list of supported services.
     #[serde(default, rename = "multicloudDataTransferSupportedServices")]
@@ -213,7 +214,7 @@ pub struct ListMulticloudDataTransferSupportedServicesResponse {
 }
 
 /// Response for PolicyBasedRoutingService.ListPolicyBasedRoutes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPolicyBasedRoutesResponse {
     /// The next pagination token in the List response. It should be used as page_token for the following request. An empty value means no more result.
     #[serde(default, rename = "nextPageToken")]
@@ -227,7 +228,7 @@ pub struct ListPolicyBasedRoutesResponse {
 }
 
 /// Response for ListRegionalEndpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRegionalEndpointsResponse {
     /// The next pagination token in the List response. It should be used as page_token for the following request. An empty value means no more result.
     #[serde(default, rename = "nextPageToken")]
@@ -241,7 +242,7 @@ pub struct ListRegionalEndpointsResponse {
 }
 
 /// Message for response to listing RemoteTransportProfiles
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRemoteTransportProfilesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -255,7 +256,7 @@ pub struct ListRemoteTransportProfilesResponse {
 }
 
 /// Response for HubService.ListRouteTables method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRouteTablesResponse {
     /// The token for the next page of the response. To see more results, use this value as the page_token for your next request. If this value is empty, there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -269,7 +270,7 @@ pub struct ListRouteTablesResponse {
 }
 
 /// Response for HubService.ListRoutes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRoutesResponse {
     /// The token for the next page of the response. To see more results, use this value as the page_token for your next request. If this value is empty, there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -283,7 +284,7 @@ pub struct ListRoutesResponse {
 }
 
 /// Response for ListServiceClasses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServiceClassesResponse {
     /// The next pagination token in the List response. It should be used as page_token for the following request. An empty value means no more result.
     #[serde(default, rename = "nextPageToken")]
@@ -297,7 +298,7 @@ pub struct ListServiceClassesResponse {
 }
 
 /// Response for ListServiceConnectionMaps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServiceConnectionMapsResponse {
     /// The next pagination token in the List response. It should be used as page_token for the following request. An empty value means no more result.
     #[serde(default, rename = "nextPageToken")]
@@ -311,7 +312,7 @@ pub struct ListServiceConnectionMapsResponse {
 }
 
 /// Response for ListServiceConnectionPolicies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServiceConnectionPoliciesResponse {
     /// The next pagination token in the List response. It should be used as page_token for the following request. An empty value means no more result.
     #[serde(default, rename = "nextPageToken")]
@@ -326,7 +327,7 @@ pub struct ListServiceConnectionPoliciesResponse {
 }
 
 /// Response for ListServiceConnectionTokens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServiceConnectionTokensResponse {
     /// The next pagination token in the List response. It should be used as page_token for the following request. An empty value means no more result.
     #[serde(default, rename = "nextPageToken")]
@@ -340,7 +341,7 @@ pub struct ListServiceConnectionTokensResponse {
 }
 
 /// The response for HubService.ListSpokes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSpokesResponse {
     /// The token for the next page of the response. To see more results, use this value as the page_token for your next request. If this value is empty, there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -354,7 +355,7 @@ pub struct ListSpokesResponse {
 }
 
 /// Message for response to listing Transports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTransportsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -368,7 +369,7 @@ pub struct ListTransportsResponse {
 }
 
 /// Metadata about locations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationMetadata {
     /// List of supported features
     #[serde(default, rename = "locationFeatures")]
@@ -376,7 +377,7 @@ pub struct LocationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -402,7 +403,7 @@ pub struct OperationMetadata {
 }
 
 /// The response for HubService.QueryHubStatus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryHubStatusResponse {
     /// The list of hub status.
     #[serde(default, rename = "hubStatusEntries")]
@@ -413,7 +414,7 @@ pub struct QueryHubStatusResponse {
 }
 
 /// The request for HubService.RejectHubSpoke.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RejectHubSpokeRequest {
     /// Optional. Additional information provided by the hub administrator.
     #[serde(default)]
@@ -427,7 +428,7 @@ pub struct RejectHubSpokeRequest {
 }
 
 /// The response for HubService.RejectHubSpoke.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RejectHubSpokeResponse {
     /// The spoke that was operated on.
     #[serde(default)]
@@ -435,7 +436,7 @@ pub struct RejectHubSpokeResponse {
 }
 
 /// The request for HubService.RejectSpokeUpdate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RejectSpokeUpdateRequest {
     /// Optional. Additional information provided by the hub administrator.
     #[serde(default)]
@@ -452,7 +453,7 @@ pub struct RejectSpokeUpdateRequest {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -463,7 +464,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -471,7 +472,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -479,7 +480,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -499,7 +500,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// Represents a DNS record managed by the AutomatedDnsRecord API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomatedDnsRecord {
     /// Required. Immutable. The full resource path of the consumer network this AutomatedDnsRecord is visible to. Example: "projects/{projectNumOrId}/global/networks/{networkName}".
     #[serde(default, rename = "consumerNetwork")]
@@ -558,7 +559,7 @@ pub struct AutomatedDnsRecord {
 }
 
 /// The Destination resource. It specifies the IP prefix and the associated autonomous system numbers (ASN) that you want to include in a MulticloudDataTransferConfig resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Destination {
     /// Output only. Time when the Destination resource was created.
     #[serde(default, rename = "createTime")]
@@ -593,7 +594,7 @@ pub struct Destination {
 }
 
 /// A group represents a subset of spokes attached to a hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Group {
     /// Optional. The auto-accept setting for this group.
     #[serde(default, rename = "autoAccept")]
@@ -625,7 +626,7 @@ pub struct Group {
 }
 
 /// A Network Connectivity Center hub is a global management resource to which you attach spokes. A single hub can contain spokes from multiple regions. However, if any of a hub''s spokes use the site-to-site data transfer feature, the resources associated with those spokes must all be in the same VPC network. Spokes that do not use site-to-site data transfer can be associated with any VPC network in your project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hub {
     /// Output only. The time the hub was created.
     #[serde(default, rename = "createTime")]
@@ -669,7 +670,7 @@ pub struct Hub {
 }
 
 /// The internal range resource for IPAM operations within a VPC network. Used to represent a private address range along with behavioral characteristics of that range (its usage and peering behavior). Networking resources can link to this range if they are created as belonging to it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InternalRange {
     /// Optional. Range auto-allocation options, may be set only when auto-allocation is selected by not setting ip_cidr_range (and setting prefix_length).
     #[serde(default, rename = "allocationOptions")]
@@ -725,7 +726,7 @@ pub struct InternalRange {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -745,7 +746,7 @@ pub struct Location {
 }
 
 /// The MulticloudDataTransferConfig resource. It lists the services that you configure for Data Transfer Essentials billing and metering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MulticloudDataTransferConfig {
     /// Output only. Time when the MulticloudDataTransferConfig resource was created.
     #[serde(default, rename = "createTime")]
@@ -780,7 +781,7 @@ pub struct MulticloudDataTransferConfig {
 }
 
 /// A service in your project in a region that is eligible for Data Transfer Essentials configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MulticloudDataTransferSupportedService {
     /// Identifier. The name of the service.
     #[serde(default)]
@@ -791,7 +792,7 @@ pub struct MulticloudDataTransferSupportedService {
 }
 
 /// Policy-based routes route L4 network traffic based on not just destination IP address, but also source IP address, protocol, and more. If a policy-based route conflicts with other types of routes, the policy-based route always takes precedence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyBasedRoute {
     /// Output only. Time when the policy-based route was created.
     #[serde(default, rename = "createTime")]
@@ -841,7 +842,7 @@ pub struct PolicyBasedRoute {
 }
 
 /// The RegionalEndpoint resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionalEndpoint {
     /// Required. The access type of this regional endpoint. This field is reflected in the PSC Forwarding Rule configuration to enable global access. // TODO: enum values: ["ACCESS_TYPE_UNSPECIFIED", "GLOBAL", "REGIONAL"]
     #[serde(default, rename = "accessType")]
@@ -882,7 +883,7 @@ pub struct RegionalEndpoint {
 }
 
 /// Message describing RemoteTransportProfile object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoteTransportProfile {
     /// Output only. Description of the profile.
     #[serde(default)]
@@ -917,7 +918,7 @@ pub struct RemoteTransportProfile {
 }
 
 /// RouteTable resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouteTable {
     /// Output only. The time the route table was created.
     #[serde(default, rename = "createTime")]
@@ -943,7 +944,7 @@ pub struct RouteTable {
 }
 
 /// A route defines a path from VM instances within a spoke to a specific destination resource. Only VPC spokes have routes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Route {
     /// Output only. The time the route was created.
     #[serde(default, rename = "createTime")]
@@ -999,7 +1000,7 @@ pub struct Route {
 }
 
 /// The ServiceClass resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceClass {
     /// Output only. Time when the ServiceClass was created.
     #[serde(default, rename = "createTime")]
@@ -1025,7 +1026,7 @@ pub struct ServiceClass {
 }
 
 /// The ServiceConnectionMap resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceConnectionMap {
     /// The PSC configurations on consumer side.
     #[serde(default, rename = "consumerPscConfigs")]
@@ -1069,7 +1070,7 @@ pub struct ServiceConnectionMap {
 }
 
 /// The ServiceConnectionPolicy resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceConnectionPolicy {
     /// Output only. Information for the automatically created subnetwork and its associated IR.
     #[serde(default, rename = "autoCreatedSubnetInfo")]
@@ -1110,7 +1111,7 @@ pub struct ServiceConnectionPolicy {
 }
 
 /// The ServiceConnectionToken resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceConnectionToken {
     /// Output only. Time when the ServiceConnectionToken was created.
     #[serde(default, rename = "createTime")]
@@ -1142,7 +1143,7 @@ pub struct ServiceConnectionToken {
 }
 
 /// Message describing Transport object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Transport {
     /// Optional. List of IP Prefixes that will be advertised to the remote provider. Both IPv4 and IPv6 addresses are supported.
     #[serde(default, rename = "advertisedRoutes")]
@@ -1195,7 +1196,7 @@ pub struct Transport {
 }
 
 /// A hub status entry represents the status of a set of propagated Private Service Connect connections grouped by certain fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HubStatusEntry {
     /// The number of propagated Private Service Connect connections with this status. If the group_by field was not set in the request message, the value of this field is 1.
     #[serde(default)]
@@ -1209,7 +1210,7 @@ pub struct HubStatusEntry {
 }
 
 /// A Network Connectivity Center spoke represents one or more network connectivity resources. When you create a spoke, you associate it with a hub. You must also identify a value for exactly one of the following fields: * linked_vpn_tunnels * linked_interconnect_attachments * linked_router_appliance_instances * linked_vpc_network
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Spoke {
     /// Output only. The time the spoke was created.
     #[serde(default, rename = "createTime")]
@@ -1268,7 +1269,7 @@ pub struct Spoke {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -1285,7 +1286,7 @@ pub struct Policy {
 }
 
 /// Defines the configuration of a DNS record.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Config {
     /// Required. The list of resource record data strings. The content and format of these strings depend on the AutomatedDnsRecord.type. For many common record types, this list may contain multiple strings. As defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1) -- see examples. Examples: A record: ["192.0.2.1"] or ["192.0.2.1", "192.0.2.2"] TXT record: ["This is a text record"] CNAME record: ["target.example.com."] AAAA record: ["::1"] or ["2001:0db8:85a3:0000:0000:8a2e:0370:7334", "2001:0db8:85a3:0000:0000:8a2e:0370:7335"]
     #[serde(default)]
@@ -1296,7 +1297,7 @@ pub struct Config {
 }
 
 /// The metadata for a DestinationEndpoint resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationEndpoint {
     /// Required. The ASN of the remote IP prefix.
     #[serde(default)]
@@ -1313,7 +1314,7 @@ pub struct DestinationEndpoint {
 }
 
 /// The timeline of the pending states for a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StateTimeline {
     /// Output only. The state and activation time details of the resource state.
     #[serde(default)]
@@ -1321,7 +1322,7 @@ pub struct StateTimeline {
 }
 
 /// The auto-accept setting for a group controls whether proposed spokes are automatically attached to the hub. If auto-accept is enabled, the spoke immediately is attached to the hub and becomes part of the group. In this case, the new spoke is in the ACTIVE state. If auto-accept is disabled, the spoke goes to the INACTIVE state, and it must be reviewed and accepted by a hub administrator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoAccept {
     /// Optional. A list of project ids or project numbers for which you want to enable auto-accept. The auto-accept setting is applied to spokes being created or updated in these projects.
     #[serde(default, rename = "autoAcceptProjects")]
@@ -1329,7 +1330,7 @@ pub struct AutoAccept {
 }
 
 /// RoutingVPC contains information about the VPC networks associated with the spokes of a Network Connectivity Center hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoutingVPC {
     /// Output only. If true, indicates that this VPC network is currently associated with spokes that use the data transfer feature (spokes where the site_to_site_data_transfer field is set to true). If you create new spokes that use data transfer, they must be associated with this VPC network. At most, one VPC network will have this field set to true.
     #[serde(default, rename = "requiredForNewSiteToSiteDataTransferSpokes")]
@@ -1340,7 +1341,7 @@ pub struct RoutingVPC {
 }
 
 /// Summarizes information about the spokes associated with a hub. The summary includes a count of spokes according to type and according to state. If any spokes are inactive, the summary also lists the reasons they are inactive, including a count for each reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpokeSummary {
     /// Output only. Counts the number of spokes that are in each state and associated with a given hub.
     #[serde(default, rename = "spokeStateCounts")]
@@ -1354,7 +1355,7 @@ pub struct SpokeSummary {
 }
 
 /// Range auto-allocation options, to be optionally used when CIDR block is not explicitly set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationOptions {
     /// Optional. Allocation strategy Not setting this field when the allocation is requested means an implementation defined strategy is used. // TODO: enum values: ["ALLOCATION_STRATEGY_UNSPECIFIED", "RANDOM", "FIRST_AVAILABLE", "RANDOM_FIRST_N_AVAILABLE", "FIRST_SMALLEST_FITTING"]
     #[serde(default, rename = "allocationStrategy")]
@@ -1365,7 +1366,7 @@ pub struct AllocationOptions {
 }
 
 /// Specification for migration with source and target resource names.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Migration {
     /// Immutable. Resource path as an URI of the source resource, for example a subnet. The project for the source resource should match the project for the InternalRange. An example: /projects/{project}/regions/{region}/subnetworks/{subnet}
     #[serde(default)]
@@ -1376,7 +1377,7 @@ pub struct Migration {
 }
 
 /// Specifies eligibility information for the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceConfig {
     /// Output only. The eligibility criteria for the service. // TODO: enum values: ["ELIGIBILITY_CRITERIA_UNSPECIFIED", "NETWORK_SERVICE_TIER_PREMIUM_ONLY", "NETWORK_SERVICE_TIER_STANDARD_ONLY", "REQUEST_ENDPOINT_REGIONAL_ENDPOINT_ONLY"]
     #[serde(default, rename = "eligibilityCriteria")]
@@ -1387,7 +1388,7 @@ pub struct ServiceConfig {
 }
 
 /// Filter matches L4 traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Filter {
     /// Optional. The destination IP range of outgoing packets that this policy-based route applies to. Default is "0.0.0.0/0" if protocol version is IPv4 and "::/0" if protocol version is IPv6.
     #[serde(default, rename = "destRange")]
@@ -1404,7 +1405,7 @@ pub struct Filter {
 }
 
 /// InterconnectAttachment that this route applies to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachment {
     /// Optional. Cloud region to install this policy-based route on interconnect attachment. Use all to install it on all interconnect attachments.
     #[serde(default)]
@@ -1412,7 +1413,7 @@ pub struct InterconnectAttachment {
 }
 
 /// VM instances that this policy-based route applies to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VirtualMachine {
     /// Optional. A list of VM instance tags that this policy-based route applies to. VM instances that have ANY of tags specified here installs this PBR.
     #[serde(default)]
@@ -1420,7 +1421,7 @@ pub struct VirtualMachine {
 }
 
 /// Informational warning message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Warnings {
     /// Output only. A warning code, if applicable. // TODO: enum values: ["WARNING_UNSPECIFIED", "RESOURCE_NOT_ACTIVE", "RESOURCE_BEING_MODIFIED"]
     #[serde(default)]
@@ -1434,7 +1435,7 @@ pub struct Warnings {
 }
 
 /// A route next hop that leads to an interconnect attachment resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NextHopInterconnectAttachment {
     /// Indicates whether site-to-site data transfer is allowed for this interconnect attachment resource. Data transfer is available only in [supported locations](https://cloud.google.com/network-connectivity/docs/network-connectivity-center/concepts/locations).
     #[serde(default, rename = "siteToSiteDataTransfer")]
@@ -1448,7 +1449,7 @@ pub struct NextHopInterconnectAttachment {
 }
 
 /// A route next hop that leads to a Router appliance instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NextHopRouterApplianceInstance {
     /// Indicates whether site-to-site data transfer is allowed for this Router appliance instance resource. Data transfer is available only in [supported locations](https://cloud.google.com/network-connectivity/docs/network-connectivity-center/concepts/locations).
     #[serde(default, rename = "siteToSiteDataTransfer")]
@@ -1462,7 +1463,7 @@ pub struct NextHopRouterApplianceInstance {
 }
 
 /// A route next hop that leads to a spoke resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NextHopSpoke {
     /// Indicates whether site-to-site data transfer is allowed for this spoke resource. Data transfer is available only in [supported locations](https://cloud.google.com/network-connectivity/docs/network-connectivity-center/concepts/locations). Whether this route is accessible to other hybrid spokes with site-to-site data transfer enabled. If this is false, the route is only accessible to VPC spokes of the connected Hub.
     #[serde(default, rename = "siteToSiteDataTransfer")]
@@ -1473,7 +1474,7 @@ pub struct NextHopSpoke {
 }
 
 /// NextHopVpcNetwork resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NextHopVpcNetwork {
     /// The URI of the VPC network resource
     #[serde(default)]
@@ -1481,7 +1482,7 @@ pub struct NextHopVpcNetwork {
 }
 
 /// A route next hop that leads to a VPN tunnel resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NextHopVPNTunnel {
     /// Indicates whether site-to-site data transfer is allowed for this VPN tunnel resource. Data transfer is available only in [supported locations](https://cloud.google.com/network-connectivity/docs/network-connectivity-center/concepts/locations).
     #[serde(default, rename = "siteToSiteDataTransfer")]
@@ -1495,7 +1496,7 @@ pub struct NextHopVPNTunnel {
 }
 
 /// Allow the producer to specify which consumers can connect to it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsumerPscConfig {
     /// Required. The project ID or project number of the consumer project. This project is the one that the consumer uses to interact with the producer instance. From the perspective of a consumer who''s created a producer instance, this is the project of the producer instance. Format: ''projects/'' Eg. ''projects/consumer-project'' or ''projects/1234''
     #[serde(default, rename = "consumerInstanceProject")]
@@ -1527,7 +1528,7 @@ pub struct ConsumerPscConfig {
 }
 
 /// PSC connection details on consumer side.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsumerPscConnection {
     /// Output only. The status of DNS automation for this PSC connection.
     #[serde(default, rename = "dnsAutomationStatus")]
@@ -1580,7 +1581,7 @@ pub struct ConsumerPscConnection {
 }
 
 /// The PSC configurations on producer side.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProducerPscConfig {
     /// Optional. The specification for automatically creating a DNS record for this PSC connection.
     #[serde(default, rename = "automatedDnsCreationSpec")]
@@ -1591,7 +1592,7 @@ pub struct ProducerPscConfig {
 }
 
 /// Information for the automatically created subnetwork and its associated IR.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoCreatedSubnetworkInfo {
     /// Output only. Indicates whether the subnetwork is delinked from the Service Connection Policy. Only set if the subnetwork mode is AUTO_CREATED during creation.
     #[serde(default)]
@@ -1611,7 +1612,7 @@ pub struct AutoCreatedSubnetworkInfo {
 }
 
 /// Configuration used for Private Service Connect connections. Used when Infrastructure is PSC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PscConfig {
     /// Optional. List of Projects, Folders, or Organizations from where the Producer instance can be within. For example, a network administrator can provide both ''organizations/foo'' and ''projects/bar'' as allowed_google_producers_resource_hierarchy_levels. This allowlists this network to connect with any Producer instance within the ''foo'' organization or the ''bar'' project. By default, allowed_google_producers_resource_hierarchy_level is empty. The format for each allowed_google_producers_resource_hierarchy_level is / where is one of ''projects'', ''folders'', or ''organizations'' and is either the ID or the number of the resource type. Format for each allowed_google_producers_resource_hierarchy_level value: ''projects/'' or ''folders/'' or ''organizations/'' Eg. [projects/my-project-id, projects/567, folders/891, organizations/123]
     #[serde(default, rename = "allowedGoogleProducersResourceHierarchyLevel")]
@@ -1629,7 +1630,7 @@ pub struct PscConfig {
 }
 
 /// Information about a specific Private Service Connect connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PscConnection {
     /// The resource reference of the consumer address.
     #[serde(default, rename = "consumerAddress")]
@@ -1676,7 +1677,7 @@ pub struct PscConnection {
 }
 
 /// The status of one or more propagated Private Service Connect connections in a hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PscPropagationStatus {
     /// The propagation status. // TODO: enum values: ["CODE_UNSPECIFIED", "READY", "PROPAGATING", "ERROR_PRODUCER_PROPAGATED_CONNECTION_LIMIT_EXCEEDED", "ERROR_PRODUCER_NAT_IP_SPACE_EXHAUSTED", "ERROR_PRODUCER_QUOTA_EXCEEDED", "ERROR_CONSUMER_QUOTA_EXCEEDED"]
     #[serde(default)]
@@ -1702,7 +1703,7 @@ pub struct PscPropagationStatus {
 }
 
 /// A collection of VLAN attachment resources. These resources should be redundant attachments that all advertise the same prefixes to Google Cloud. Alternatively, in active/passive configurations, all attachments should be capable of advertising the same prefixes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedInterconnectAttachments {
     /// Optional. Dynamic routes overlapped/encompassed by exclude export ranges are excluded during export to hub.
     #[serde(default, rename = "excludeExportRanges")]
@@ -1728,7 +1729,7 @@ pub struct LinkedInterconnectAttachments {
 }
 
 /// LinkedProducerVpcNetwork resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedProducerVpcNetwork {
     /// Optional. IP ranges encompassing the subnets to be excluded from peering.
     #[serde(default, rename = "excludeExportRanges")]
@@ -1757,7 +1758,7 @@ pub struct LinkedProducerVpcNetwork {
 }
 
 /// A collection of router appliance instances. If you configure multiple router appliance instances to receive data from the same set of sites outside of Google Cloud, we recommend that you associate those instances with the same spoke.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedRouterApplianceInstances {
     /// Optional. Dynamic routes overlapped/encompassed by exclude export ranges are excluded during export to hub.
     #[serde(default, rename = "excludeExportRanges")]
@@ -1783,7 +1784,7 @@ pub struct LinkedRouterApplianceInstances {
 }
 
 /// An existing VPC network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedVpcNetwork {
     /// Optional. IP ranges encompassing the subnets to be excluded from peering.
     #[serde(default, rename = "excludeExportRanges")]
@@ -1806,7 +1807,7 @@ pub struct LinkedVpcNetwork {
 }
 
 /// A collection of Cloud VPN tunnel resources. These resources should be redundant HA VPN tunnels that all advertise the same prefixes to Google Cloud. Alternatively, in a passive/active configuration, all tunnels should be capable of advertising the same prefixes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedVpnTunnels {
     /// Optional. Dynamic routes overlapped/encompassed by exclude export ranges are excluded during export to hub.
     #[serde(default, rename = "excludeExportRanges")]
@@ -1832,7 +1833,7 @@ pub struct LinkedVpnTunnels {
 }
 
 /// The reason for the current state of the spoke.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StateReason {
     /// The code associated with this reason. // TODO: enum values: ["CODE_UNSPECIFIED", "PENDING_REVIEW", "REJECTED", "PAUSED", "FAILED", "UPDATE_PENDING_REVIEW", "UPDATE_REJECTED", "UPDATE_FAILED"]
     #[serde(default)]
@@ -1846,7 +1847,7 @@ pub struct StateReason {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1857,7 +1858,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1871,7 +1872,7 @@ pub struct Binding {
 }
 
 /// The state and activation time details of the resource state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StateMetadata {
     /// Output only. Accompanies only the transient states, which include ADDING, DELETING, and SUSPENDING, to denote the time until which the transient state of the resource will be effective. For instance, if the state is ADDING, this field shows the time when the resource state transitions to ACTIVE.
     #[serde(default, rename = "effectiveTime")]
@@ -1882,7 +1883,7 @@ pub struct StateMetadata {
 }
 
 /// The number of spokes that are in a particular state and associated with a given hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpokeStateCount {
     /// Output only. The total number of spokes that are in this state and associated with a given hub.
     #[serde(default)]
@@ -1893,7 +1894,7 @@ pub struct SpokeStateCount {
 }
 
 /// The number of spokes in the hub that are inactive for this reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpokeStateReasonCount {
     /// Output only. The total number of spokes that are inactive for a particular reason and associated with a given hub.
     #[serde(default)]
@@ -1904,7 +1905,7 @@ pub struct SpokeStateReasonCount {
 }
 
 /// The number of spokes of a given type that are associated with a specific hub. The type indicates what kind of resource is associated with the spoke.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpokeTypeCount {
     /// Output only. The total number of spokes of this type that are associated with the hub.
     #[serde(default)]
@@ -1915,7 +1916,7 @@ pub struct SpokeTypeCount {
 }
 
 /// The status of DNS automation for a PSC connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsAutomationStatus {
     /// Output only. The error details if the state is CREATE_FAILED or DELETE_FAILED.
     #[serde(default)]
@@ -1929,7 +1930,7 @@ pub struct DnsAutomationStatus {
 }
 
 /// The specification for automatically creating a DNS record.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomatedDnsCreationSpec {
     /// Required. The DNS suffix to use for the DNS record. Must end with a dot. This should be a valid DNS domain name as per RFC 1035. Each label (between dots) can contain letters, digits, and hyphens, and must not start or end with a hyphen. Example: "my-service.example.com.", "internal."
     #[serde(default, rename = "dnsSuffix")]
@@ -1943,7 +1944,7 @@ pub struct AutomatedDnsCreationSpec {
 }
 
 /// Describes the cause of the error with structured details. Example of an error when contacting the "pubsub.googleapis.com" API when it is not enabled: { "reason": "API_DISABLED" "domain": "googleapis.com" "metadata": { "resource": "projects/123", "service": "pubsub.googleapis.com" } } This response indicates that the pubsub.googleapis.com API is not enabled. Example of an error that is returned when attempting to create a Spanner instance in a region that is out of stock: { "reason": "STOCKOUT" "domain": "spanner.googleapis.com", "metadata": { "availableRegions": "us-central1,us-east2" } }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcErrorInfo {
     /// The logical grouping to which the "reason" belongs. The error domain is typically the registered service name of the tool or product that generates the error. Example: "pubsub.googleapis.com". If the error is generated by some common infrastructure, the error domain must be a globally unique value that identifies the infrastructure. For Google API infrastructure, the error domain is "googleapis.com".
     #[serde(default)]
@@ -1957,7 +1958,7 @@ pub struct GoogleRpcErrorInfo {
 }
 
 /// A router appliance instance is a Compute Engine virtual machine (VM) instance that acts as a BGP speaker. A router appliance instance is specified by the URI of the VM and the internal IP address of one of the VM''s network interfaces.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouterApplianceInstance {
     /// The IP address on the VM to use for peering.
     #[serde(default, rename = "ipAddress")]
@@ -1968,7 +1969,7 @@ pub struct RouterApplianceInstance {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1979,7 +1980,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1996,7 +1997,7 @@ pub struct Expr {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]

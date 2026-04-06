@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// LRO response metadata for InboundSamlSsoProfilesService.AddIdpCredential.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddIdpCredentialOperationMetadata {
     /// State of this Operation Will be "awaiting-multi-party-approval" when the operation is deferred due to the target customer having enabled [Multi-party approval for sensitive actions](https://support.google.com/a/answer/13790448).
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct AddIdpCredentialOperationMetadata {
 }
 
 /// The request for creating an IdpCredential with its associated payload. An InboundSamlSsoProfile can own up to 2 credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddIdpCredentialRequest {
     /// PEM encoded x509 certificate containing the public key for verifying IdP signatures.
     #[serde(default, rename = "pemData")]
@@ -27,11 +28,11 @@ pub struct AddIdpCredentialRequest {
 }
 
 /// Request to cancel sent invitation for target email in UserInvitation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelUserInvitationRequest {}
 
 /// The response message for MembershipsService.CheckTransitiveMembership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckTransitiveMembershipResponse {
     /// Response does not include the possible roles of a member since the behavior of this rpc is not all-or-nothing unlike the other rpcs. So, it may not be possible to list all the roles definitively, due to possible lack of authorization in some of the paths.
     #[serde(default, rename = "hasMembership")]
@@ -39,11 +40,11 @@ pub struct CheckTransitiveMembershipResponse {
 }
 
 /// Metadata for CreateGroup LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateGroupMetadata {}
 
 /// LRO response metadata for InboundOidcSsoProfilesService.CreateInboundOidcSsoProfile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateInboundOidcSsoProfileOperationMetadata {
     /// State of this Operation Will be "awaiting-multi-party-approval" when the operation is deferred due to the target customer having enabled [Multi-party approval for sensitive actions](https://support.google.com/a/answer/13790448).
     #[serde(default)]
@@ -51,7 +52,7 @@ pub struct CreateInboundOidcSsoProfileOperationMetadata {
 }
 
 /// LRO response metadata for InboundSamlSsoProfilesService.CreateInboundSamlSsoProfile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateInboundSamlSsoProfileOperationMetadata {
     /// State of this Operation Will be "awaiting-multi-party-approval" when the operation is deferred due to the target customer having enabled [Multi-party approval for sensitive actions](https://support.google.com/a/answer/13790448).
     #[serde(default)]
@@ -59,43 +60,43 @@ pub struct CreateInboundSamlSsoProfileOperationMetadata {
 }
 
 /// LRO response metadata for InboundSsoAssignmentsService.CreateInboundSsoAssignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateInboundSsoAssignmentOperationMetadata {}
 
 /// Metadata for CreateMembership LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateMembershipMetadata {}
 
 /// Metadata for DeleteGroup LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteGroupMetadata {}
 
 /// LRO response metadata for InboundSamlSsoProfilesService.DeleteIdpCredential.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteIdpCredentialOperationMetadata {}
 
 /// LRO response metadata for InboundOidcSsoProfilesService.DeleteInboundOidcSsoProfile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteInboundOidcSsoProfileOperationMetadata {}
 
 /// LRO response metadata for InboundSamlSsoProfilesService.DeleteInboundSamlSsoProfile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteInboundSamlSsoProfileOperationMetadata {}
 
 /// LRO response metadata for InboundSsoAssignmentsService.DeleteInboundSsoAssignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteInboundSsoAssignmentOperationMetadata {}
 
 /// Metadata for DeleteMembership LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteMembershipMetadata {}
 
 /// Metadata of GetMembershipGraphResponse LRO. This is currently empty to permit future extensibility.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetMembershipGraphMetadata {}
 
 /// The response message for MembershipsService.GetMembershipGraph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetMembershipGraphResponse {
     /// The membership graph''s path information represented as an adjacency list.
     #[serde(default, rename = "adjacencyList")]
@@ -106,11 +107,11 @@ pub struct GetMembershipGraphResponse {
 }
 
 /// Metadata for ApproveDeviceUser LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1ApproveDeviceUserMetadata {}
 
 /// Request message for approving the device to access user data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1ApproveDeviceUserRequest {
     /// Optional. [Resource name](https://cloud.google.com/apis/design/resource_names) of the customer. If you''re using this API for your own organization, use customers/my_customer If you''re using this API to manage another organization, use customers/{customer}, where customer is the customer to whom the device belongs.
     #[serde(default)]
@@ -118,7 +119,7 @@ pub struct GoogleAppsCloudidentityDevicesV1ApproveDeviceUserRequest {
 }
 
 /// Response message for approving the device to access user data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1ApproveDeviceUserResponse {
     /// Resultant DeviceUser object for the action.
     #[serde(default, rename = "deviceUser")]
@@ -126,11 +127,11 @@ pub struct GoogleAppsCloudidentityDevicesV1ApproveDeviceUserResponse {
 }
 
 /// Metadata for BlockDeviceUser LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserMetadata {}
 
 /// Request message for blocking account on device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserRequest {
     /// Optional. [Resource name](https://cloud.google.com/apis/design/resource_names) of the customer. If you''re using this API for your own organization, use customers/my_customer If you''re using this API to manage another organization, use customers/{customer}, where customer is the customer to whom the device belongs.
     #[serde(default)]
@@ -138,7 +139,7 @@ pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserRequest {
 }
 
 /// Response message for blocking the device from accessing user data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserResponse {
     /// Resultant DeviceUser object for the action.
     #[serde(default, rename = "deviceUser")]
@@ -146,11 +147,11 @@ pub struct GoogleAppsCloudidentityDevicesV1BlockDeviceUserResponse {
 }
 
 /// Metadata for CancelWipeDevice LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceMetadata {}
 
 /// Request message for cancelling an unfinished device wipe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceRequest {
     /// Optional. [Resource name](https://cloud.google.com/apis/design/resource_names) of the customer. If you''re using this API for your own organization, use customers/my_customer If you''re using this API to manage another organization, use customers/{customer}, where customer is the customer to whom the device belongs.
     #[serde(default)]
@@ -158,7 +159,7 @@ pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceRequest {
 }
 
 /// Response message for cancelling an unfinished device wipe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceResponse {
     /// Resultant Device object for the action. Note that asset tags will not be returned in the device object.
     #[serde(default)]
@@ -166,11 +167,11 @@ pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceResponse {
 }
 
 /// Metadata for CancelWipeDeviceUser LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserMetadata {}
 
 /// Request message for cancelling an unfinished user account wipe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserRequest {
     /// Optional. [Resource name](https://cloud.google.com/apis/design/resource_names) of the customer. If you''re using this API for your own organization, use customers/my_customer If you''re using this API to manage another organization, use customers/{customer}, where customer is the customer to whom the device belongs.
     #[serde(default)]
@@ -178,7 +179,7 @@ pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserRequest {
 }
 
 /// Response message for cancelling an unfinished user account wipe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserResponse {
     /// Resultant DeviceUser object for the action.
     #[serde(default, rename = "deviceUser")]
@@ -186,11 +187,11 @@ pub struct GoogleAppsCloudidentityDevicesV1CancelWipeDeviceUserResponse {
 }
 
 /// Metadata for CreateDevice LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1CreateDeviceMetadata {}
 
 /// Additional custom attribute values may be one of these types
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1CustomAttributeValue {
     /// Represents a boolean value.
     #[serde(default, rename = "boolValue")]
@@ -204,15 +205,15 @@ pub struct GoogleAppsCloudidentityDevicesV1CustomAttributeValue {
 }
 
 /// Metadata for DeleteDevice LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1DeleteDeviceMetadata {}
 
 /// Metadata for DeleteDeviceUser LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1DeleteDeviceUserMetadata {}
 
 /// Response message that is returned in ListClientStates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1ListClientStatesResponse {
     /// Client states meeting the list restrictions.
     #[serde(default, rename = "clientStates")]
@@ -224,7 +225,7 @@ pub struct GoogleAppsCloudidentityDevicesV1ListClientStatesResponse {
 }
 
 /// Response message that is returned from the ListDeviceUsers method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse {
     /// Devices meeting the list restrictions.
     #[serde(default, rename = "deviceUsers")]
@@ -236,7 +237,7 @@ pub struct GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse {
 }
 
 /// Response message that is returned from the ListDevices method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1ListDevicesResponse {
     /// Devices meeting the list restrictions.
     #[serde(default)]
@@ -247,11 +248,11 @@ pub struct GoogleAppsCloudidentityDevicesV1ListDevicesResponse {
 }
 
 /// Metadata for ListEndpointApps LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1ListEndpointAppsMetadata {}
 
 /// Response containing resource names of the DeviceUsers associated with the caller''s credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse {
     /// The customer resource name that may be passed back to other Devices API methods such as List, Get, etc.
     #[serde(default)]
@@ -265,23 +266,23 @@ pub struct GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse {
 }
 
 /// Metadata for SignoutDeviceUser LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1SignoutDeviceUserMetadata {}
 
 /// Metadata for UpdateClientState LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1UpdateClientStateMetadata {}
 
 /// Metadata for UpdateDevice LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1UpdateDeviceMetadata {}
 
 /// Metadata for WipeDevice LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceMetadata {}
 
 /// Request message for wiping all data on the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceRequest {
     /// Optional. [Resource name](https://cloud.google.com/apis/design/resource_names) of the customer. If you''re using this API for your own organization, use customers/my_customer If you''re using this API to manage another organization, use customers/{customer}, where customer is the customer to whom the device belongs.
     #[serde(default)]
@@ -292,7 +293,7 @@ pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceRequest {
 }
 
 /// Response message for wiping all data on the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceResponse {
     /// Resultant Device object for the action. Note that asset tags will not be returned in the device object.
     #[serde(default)]
@@ -300,11 +301,11 @@ pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceResponse {
 }
 
 /// Metadata for WipeDeviceUser LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserMetadata {}
 
 /// Request message for starting an account wipe on device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserRequest {
     /// Optional. [Resource name](https://cloud.google.com/apis/design/resource_names) of the customer. If you''re using this API for your own organization, use customers/my_customer If you''re using this API to manage another organization, use customers/{customer}, where customer is the customer to whom the device belongs.
     #[serde(default)]
@@ -312,7 +313,7 @@ pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserRequest {
 }
 
 /// Response message for wiping the user''s account from the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserResponse {
     /// Resultant DeviceUser object for the action.
     #[serde(default, rename = "deviceUser")]
@@ -320,7 +321,7 @@ pub struct GoogleAppsCloudidentityDevicesV1WipeDeviceUserResponse {
 }
 
 /// Response for IsInvitableUser RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IsInvitableUserResponse {
     /// Returns true if the email address is invitable.
     #[serde(default, rename = "isInvitableUser")]
@@ -328,7 +329,7 @@ pub struct IsInvitableUserResponse {
 }
 
 /// Response message for ListGroups operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGroupsResponse {
     /// Groups returned in response to list request. The results are not sorted.
     #[serde(default)]
@@ -339,7 +340,7 @@ pub struct ListGroupsResponse {
 }
 
 /// Response of the InboundSamlSsoProfilesService.ListIdpCredentials method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListIdpCredentialsResponse {
     /// The IdpCredentials from the specified InboundSamlSsoProfile.
     #[serde(default, rename = "idpCredentials")]
@@ -350,7 +351,7 @@ pub struct ListIdpCredentialsResponse {
 }
 
 /// Response of the InboundOidcSsoProfilesService.ListInboundOidcSsoProfiles method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInboundOidcSsoProfilesResponse {
     /// List of InboundOidcSsoProfiles.
     #[serde(default, rename = "inboundOidcSsoProfiles")]
@@ -361,7 +362,7 @@ pub struct ListInboundOidcSsoProfilesResponse {
 }
 
 /// Response of the InboundSamlSsoProfilesService.ListInboundSamlSsoProfiles method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInboundSamlSsoProfilesResponse {
     /// List of InboundSamlSsoProfiles.
     #[serde(default, rename = "inboundSamlSsoProfiles")]
@@ -372,7 +373,7 @@ pub struct ListInboundSamlSsoProfilesResponse {
 }
 
 /// Response of the InboundSsoAssignmentsService.ListInboundSsoAssignments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInboundSsoAssignmentsResponse {
     /// The assignments.
     #[serde(default, rename = "inboundSsoAssignments")]
@@ -383,7 +384,7 @@ pub struct ListInboundSsoAssignmentsResponse {
 }
 
 /// The response message for MembershipsService.ListMemberships.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMembershipsResponse {
     /// The Memberships under the specified parent.
     #[serde(default)]
@@ -394,7 +395,7 @@ pub struct ListMembershipsResponse {
 }
 
 /// The response message for PoliciesService.ListPolicies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPoliciesResponse {
     /// The pagination token to retrieve the next page of results. If this field is empty, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -405,7 +406,7 @@ pub struct ListPoliciesResponse {
 }
 
 /// Response message for UserInvitation listing request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUserInvitationsResponse {
     /// The token for the next page. If not empty, indicates that there may be more UserInvitation resources that match the listing request; this value can be used in a subsequent ListUserInvitationsRequest to get continued results with the current list call.
     #[serde(default, rename = "nextPageToken")]
@@ -416,7 +417,7 @@ pub struct ListUserInvitationsResponse {
 }
 
 /// The response message for GroupsService.LookupGroupName.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupGroupNameResponse {
     /// The [resource name](https://cloud.google.com/apis/design/resource_names) of the looked-up Group.
     #[serde(default)]
@@ -424,7 +425,7 @@ pub struct LookupGroupNameResponse {
 }
 
 /// The response message for MembershipsService.LookupMembershipName.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupMembershipNameResponse {
     /// The [resource name](https://cloud.google.com/apis/design/resource_names) of the looked-up Membership. Must be of the form groups/{group}/memberships/{membership}.
     #[serde(default)]
@@ -432,7 +433,7 @@ pub struct LookupMembershipNameResponse {
 }
 
 /// The request message for MembershipsService.ModifyMembershipRoles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyMembershipRolesRequest {
     /// The MembershipRoles to be added. Adding or removing roles in the same request as updating roles is not supported. Must not be set if update_roles_params is set.
     #[serde(default, rename = "addRoles")]
@@ -446,7 +447,7 @@ pub struct ModifyMembershipRolesRequest {
 }
 
 /// The response message for MembershipsService.ModifyMembershipRoles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyMembershipRolesResponse {
     /// The Membership resource after modifying its MembershipRoles.
     #[serde(default)]
@@ -454,7 +455,7 @@ pub struct ModifyMembershipRolesResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -474,7 +475,7 @@ pub struct Operation {
 }
 
 /// The response message for MembershipsService.SearchDirectGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchDirectGroupsResponse {
     /// List of direct groups satisfying the query.
     #[serde(default)]
@@ -485,7 +486,7 @@ pub struct SearchDirectGroupsResponse {
 }
 
 /// The response message for GroupsService.SearchGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchGroupsResponse {
     /// The Group resources that match the search query.
     #[serde(default)]
@@ -496,7 +497,7 @@ pub struct SearchGroupsResponse {
 }
 
 /// The response message for MembershipsService.SearchTransitiveGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchTransitiveGroupsResponse {
     /// List of transitive groups satisfying the query.
     #[serde(default)]
@@ -507,7 +508,7 @@ pub struct SearchTransitiveGroupsResponse {
 }
 
 /// The response message for MembershipsService.SearchTransitiveMemberships.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchTransitiveMembershipsResponse {
     /// List of transitive members satisfying the query.
     #[serde(default)]
@@ -518,7 +519,7 @@ pub struct SearchTransitiveMembershipsResponse {
 }
 
 /// The definition of security settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecuritySettings {
     /// The Member Restriction value
     #[serde(default, rename = "memberRestriction")]
@@ -529,15 +530,15 @@ pub struct SecuritySettings {
 }
 
 /// A request to send email for inviting target user corresponding to the UserInvitation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendUserInvitationRequest {}
 
 /// Metadata for UpdateGroup LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateGroupMetadata {}
 
 /// LRO response metadata for InboundOidcSsoProfilesService.UpdateInboundOidcSsoProfile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateInboundOidcSsoProfileOperationMetadata {
     /// State of this Operation Will be "awaiting-multi-party-approval" when the operation is deferred due to the target customer having enabled [Multi-party approval for sensitive actions](https://support.google.com/a/answer/13790448).
     #[serde(default)]
@@ -545,7 +546,7 @@ pub struct UpdateInboundOidcSsoProfileOperationMetadata {
 }
 
 /// LRO response metadata for InboundSamlSsoProfilesService.UpdateInboundSamlSsoProfile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateInboundSamlSsoProfileOperationMetadata {
     /// State of this Operation Will be "awaiting-multi-party-approval" when the operation is deferred due to the target customer having enabled [Multi-party approval for sensitive actions](https://support.google.com/a/answer/13790448).
     #[serde(default)]
@@ -553,15 +554,15 @@ pub struct UpdateInboundSamlSsoProfileOperationMetadata {
 }
 
 /// LRO response metadata for InboundSsoAssignmentsService.UpdateInboundSsoAssignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateInboundSsoAssignmentOperationMetadata {}
 
 /// Metadata for UpdateMembership LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateMembershipMetadata {}
 
 /// Membership graph''s path information as an adjacency list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipAdjacencyList {
     /// Each edge contains information about the member that belongs to this group. Note: Fields returned here will help identify the specific Membership resource (e.g name, preferred_member_key and role), but may not be a comprehensive list of all fields.
     #[serde(default)]
@@ -572,7 +573,7 @@ pub struct MembershipAdjacencyList {
 }
 
 /// Represents the state associated with an API client calling the Devices API. Resource representing ClientState and supports updates from API users
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1ClientState {
     /// The caller can specify asset tags for this resource
     #[serde(default, rename = "assetTags")]
@@ -613,7 +614,7 @@ pub struct GoogleAppsCloudidentityDevicesV1ClientState {
 }
 
 ///  A Device within the Cloud Identity Devices API. Represents a Device known to Google Cloud, independent of the device ownership, type, and whether it is assigned or in use by a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1Device {
     /// Output only. Attributes specific to Android devices.
     #[serde(default, rename = "androidSpecificAttributes")]
@@ -717,7 +718,7 @@ pub struct GoogleAppsCloudidentityDevicesV1Device {
 }
 
 /// Represents a user''s use of a Device in the Cloud Identity Devices API. A DeviceUser is a resource representing a user''s use of a Device
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1DeviceUser {
     /// Compromised State of the DeviceUser object // TODO: enum values: ["COMPROMISED_STATE_UNSPECIFIED", "COMPROMISED", "NOT_COMPROMISED"]
     #[serde(default, rename = "compromisedState")]
@@ -752,7 +753,7 @@ pub struct GoogleAppsCloudidentityDevicesV1DeviceUser {
 }
 
 /// Credential for verifying signatures produced by the Identity Provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdpCredential {
     /// Output only. Information of a DSA public key.
     #[serde(default, rename = "dsaKeyInfo")]
@@ -769,7 +770,7 @@ pub struct IdpCredential {
 }
 
 /// An [OIDC](https://openid.net/developers/how-connect-works/) federation between a Google enterprise customer and an OIDC identity provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InboundOidcSsoProfile {
     /// Immutable. The customer. For example: customers/C0123abc.
     #[serde(default)]
@@ -789,7 +790,7 @@ pub struct InboundOidcSsoProfile {
 }
 
 /// A [SAML 2.0](https://www.oasis-open.org/standards#samlv2.0) federation between a Google enterprise customer and a SAML identity provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InboundSamlSsoProfile {
     /// Immutable. The customer. For example: customers/C0123abc.
     #[serde(default)]
@@ -809,7 +810,7 @@ pub struct InboundSamlSsoProfile {
 }
 
 /// Targets with "set" SSO assignments and their respective assignments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InboundSsoAssignment {
     /// Immutable. The customer. For example: customers/C0123abc.
     #[serde(default)]
@@ -841,7 +842,7 @@ pub struct InboundSsoAssignment {
 }
 
 /// A Policy resource binds an instance of a single Setting with the scope of a PolicyQuery. The Setting instance will be applied to all entities that satisfy the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Immutable. Customer that the Policy belongs to. The value is in the format ''customers/{customerId}''. The customerId must begin with "C" To find your customer ID in Admin Console see https://support.google.com/a/answer/10070793.
     #[serde(default)]
@@ -861,7 +862,7 @@ pub struct Policy {
 }
 
 /// The UserInvitation resource represents an email that can be sent to an unmanaged user account inviting them to join the customer''s Google Workspace or Cloud Identity account. An unmanaged account shares an email address domain with the Google Workspace or Cloud Identity account but is not managed by it yet. If the user accepts the UserInvitation, the user account will become managed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserInvitation {
     /// Number of invitation emails sent to the user.
     #[serde(default, rename = "mailsSentCount")]
@@ -878,7 +879,7 @@ pub struct UserInvitation {
 }
 
 /// The details of an update to a MembershipRole.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateMembershipRolesParams {
     /// The fully-qualified names of fields to update. May only contain the field expiry_detail.expire_time.
     #[serde(default, rename = "fieldMask")]
@@ -889,7 +890,7 @@ pub struct UpdateMembershipRolesParams {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -903,7 +904,7 @@ pub struct Status {
 }
 
 /// Message containing membership relation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipRelation {
     /// An extended description to help users determine the purpose of a Group.
     #[serde(default)]
@@ -929,7 +930,7 @@ pub struct MembershipRelation {
 }
 
 /// A group within the Cloud Identity Groups API. A Group is a collection of entities, where each entity is either a user, another group, or a service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Group {
     /// Output only. Additional group keys associated with the Group.
     #[serde(default, rename = "additionalGroupKeys")]
@@ -964,7 +965,7 @@ pub struct Group {
 }
 
 /// Message representing a transitive group of a user or a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupRelation {
     /// Display name for this group.
     #[serde(default, rename = "displayName")]
@@ -987,7 +988,7 @@ pub struct GroupRelation {
 }
 
 /// Message representing a transitive membership of a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemberRelation {
     /// Resource name for this member.
     #[serde(default)]
@@ -1004,7 +1005,7 @@ pub struct MemberRelation {
 }
 
 /// The definition of MemberRestriction
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemberRestriction {
     /// The evaluated state of this restriction on a group.
     #[serde(default)]
@@ -1015,7 +1016,7 @@ pub struct MemberRestriction {
 }
 
 /// A membership within the Cloud Identity Groups API. A Membership defines a relationship between a Group and an entity belonging to that Group, referred to as a "member".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Membership {
     /// Output only. The time when the Membership was created.
     #[serde(default, rename = "createTime")]
@@ -1041,7 +1042,7 @@ pub struct Membership {
 }
 
 /// Resource representing the Android specific attributes of a Device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1AndroidAttributes {
     /// Whether the device passes Android CTS compliance.
     #[serde(default, rename = "ctsProfileMatch")]
@@ -1070,7 +1071,7 @@ pub struct GoogleAppsCloudidentityDevicesV1AndroidAttributes {
 }
 
 /// Resource representing the [Endpoint Verification-specific attributes](https://cloud.google.com/endpoint-verification/docs/device-information) of a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1EndpointVerificationSpecificAttributes {
     /// [Additional signals](https://cloud.google.com/endpoint-verification/docs/device-information) reported by Endpoint Verification. It includes the following attributes: * Non-configurable attributes: hotfixes, av_installed, av_enabled, windows_domain_name, is_os_native_firewall_enabled, and is_secure_boot_enabled. * [Configurable attributes](https://cloud.google.com/endpoint-verification/docs/collect-config-attributes): file, folder, and binary attributes; registry entries; and properties in a plist.
     #[serde(default, rename = "additionalSignals")]
@@ -1087,7 +1088,7 @@ pub struct GoogleAppsCloudidentityDevicesV1EndpointVerificationSpecificAttribute
 }
 
 /// Information of a DSA public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DsaPublicKeyInfo {
     /// Key size in bits (size of parameter P).
     #[serde(default, rename = "keySize")]
@@ -1095,7 +1096,7 @@ pub struct DsaPublicKeyInfo {
 }
 
 /// Information of a RSA public key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RsaPublicKeyInfo {
     /// Key size in bits (size of the modulus).
     #[serde(default, rename = "keySize")]
@@ -1103,7 +1104,7 @@ pub struct RsaPublicKeyInfo {
 }
 
 /// OIDC IDP (identity provider) configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OidcIdpConfig {
     /// The **Change Password URL** of the identity provider. Users will be sent to this URL when changing their passwords at myaccount.google.com. This takes precedence over the change password URL configured at customer-level. Must use HTTPS.
     #[serde(default, rename = "changePasswordUri")]
@@ -1114,7 +1115,7 @@ pub struct OidcIdpConfig {
 }
 
 /// OIDC RP (relying party) configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OidcRpConfig {
     /// OAuth2 client ID for OIDC.
     #[serde(default, rename = "clientId")]
@@ -1128,7 +1129,7 @@ pub struct OidcRpConfig {
 }
 
 /// SAML IDP (identity provider) configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SamlIdpConfig {
     /// The **Change Password URL** of the identity provider. Users will be sent to this URL when changing their passwords at myaccount.google.com. This takes precedence over the change password URL configured at customer-level. Must use HTTPS.
     #[serde(default, rename = "changePasswordUri")]
@@ -1145,7 +1146,7 @@ pub struct SamlIdpConfig {
 }
 
 /// SAML SP (service provider) configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SamlSpConfig {
     /// Output only. The SAML **Assertion Consumer Service (ACS) URL** to be used for the IDP-initiated login. Assumed to accept response messages via the HTTP-POST binding.
     #[serde(default, rename = "assertionConsumerServiceUri")]
@@ -1156,7 +1157,7 @@ pub struct SamlSpConfig {
 }
 
 /// Details that are applicable when sso_mode is set to OIDC_SSO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OidcSsoInfo {
     /// Required. Name of the InboundOidcSsoProfile to use. Must be of the form inboundOidcSsoProfiles/{inbound_oidc_sso_profile}.
     #[serde(default, rename = "inboundOidcSsoProfile")]
@@ -1164,7 +1165,7 @@ pub struct OidcSsoInfo {
 }
 
 /// Details that are applicable when sso_mode == SAML_SSO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SamlSsoInfo {
     /// Required. Name of the InboundSamlSsoProfile to use. Must be of the form inboundSamlSsoProfiles/{inbound_saml_sso_profile}.
     #[serde(default, rename = "inboundSamlSsoProfile")]
@@ -1172,7 +1173,7 @@ pub struct SamlSsoInfo {
 }
 
 /// Controls sign-in behavior.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignInBehavior {
     /// When to redirect sign-ins to the IdP. // TODO: enum values: ["REDIRECT_CONDITION_UNSPECIFIED", "NEVER"]
     #[serde(default, rename = "redirectCondition")]
@@ -1180,7 +1181,7 @@ pub struct SignInBehavior {
 }
 
 /// PolicyQuery
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyQuery {
     /// Immutable. The group that the query applies to. This field is only set if there is a single value for group that satisfies all clauses of the query. If no group applies, this will be the empty string.
     #[serde(default)]
@@ -1197,7 +1198,7 @@ pub struct PolicyQuery {
 }
 
 /// Setting
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Setting {
     /// Required. Immutable. The type of the Setting. .
     #[serde(default, rename = "type")]
@@ -1208,7 +1209,7 @@ pub struct Setting {
 }
 
 /// Dynamic group metadata like queries and status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicGroupMetadata {
     /// Memberships will be the union of all queries. Only one entry with USER resource is currently supported. Customers can create up to 500 dynamic groups.
     #[serde(default)]
@@ -1219,7 +1220,7 @@ pub struct DynamicGroupMetadata {
 }
 
 /// Message representing the role of a TransitiveMembership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitiveMembershipRole {
     /// TransitiveMembershipRole in string format. Currently supported TransitiveMembershipRoles: "MEMBER", "OWNER", and "MANAGER".
     #[serde(default)]
@@ -1227,7 +1228,7 @@ pub struct TransitiveMembershipRole {
 }
 
 /// The evaluated state of this restriction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestrictionEvaluation {
     /// Output only. The current state of the restriction // TODO: enum values: ["STATE_UNSPECIFIED", "EVALUATING", "COMPLIANT", "FORWARD_COMPLIANT", "NON_COMPLIANT"]
     #[serde(default)]
@@ -1235,7 +1236,7 @@ pub struct RestrictionEvaluation {
 }
 
 /// A unique identifier for an entity in the Cloud Identity Groups API. An entity can represent either a group with an optional namespace or a user without a namespace. The combination of id and namespace must be unique; however, the same id can be used with different namespaces.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityKey {
     /// The ID of the entity. For Google-managed entities, the id should be the email address of an existing group or user. Email addresses need to adhere to [name guidelines for users and groups](https://support.google.com/a/answer/9193374). For external-identity-mapped entities, the id must be a string conforming to the Identity Source''s requirements. Must be unique within a namespace.
     #[serde(default)]
@@ -1246,7 +1247,7 @@ pub struct EntityKey {
 }
 
 /// A membership role within the Cloud Identity Groups API. A MembershipRole defines the privileges granted to a Membership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipRole {
     /// The expiry details of the MembershipRole. Expiry details are only supported for MEMBER MembershipRoles. May be set if name is MEMBER. Must not be set if name is any other value.
     #[serde(default, rename = "expiryDetail")]
@@ -1260,7 +1261,7 @@ pub struct MembershipRole {
 }
 
 /// Contains information about browser profiles reported by the [Endpoint Verification extension](https://chromewebstore.google.com/detail/endpoint-verification/callobklhcbilhphinckomhgkigmfocg?pli=1).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1BrowserAttributes {
     /// Represents the current state of the [Chrome browser attributes](https://cloud.google.com/access-context-manager/docs/browser-attributes) sent by the [Endpoint Verification extension](https://chromewebstore.google.com/detail/endpoint-verification/callobklhcbilhphinckomhgkigmfocg?pli=1).
     #[serde(default, rename = "chromeBrowserInfo")]
@@ -1274,7 +1275,7 @@ pub struct GoogleAppsCloudidentityDevicesV1BrowserAttributes {
 }
 
 /// Stores information about a certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1CertificateAttributes {
     /// The X.509 extension for CertificateTemplate.
     #[serde(default, rename = "certificateTemplate")]
@@ -1307,7 +1308,7 @@ pub struct GoogleAppsCloudidentityDevicesV1CertificateAttributes {
 }
 
 /// Defines a query on a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicGroupQuery {
     /// Query that determines the memberships of the dynamic group. Examples: All users with at least one organizations.department of engineering. user.organizations.exists(org, org.department==''engineering'') All users with at least one location that has area of foo and building_id of bar. user.locations.exists(loc, loc.area==''foo'' && loc.building_id==''bar'') All users with any variation of the name John Doe (case-insensitive queries add equalsIgnoreCase() to the value being queried). user.name.value.equalsIgnoreCase(''jOhn DoE'')
     #[serde(default)]
@@ -1318,7 +1319,7 @@ pub struct DynamicGroupQuery {
 }
 
 /// The current status of a dynamic group along with timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicGroupStatus {
     /// Status of the dynamic group. // TODO: enum values: ["STATUS_UNSPECIFIED", "UP_TO_DATE", "UPDATING_MEMBERSHIPS", "INVALID_QUERY"]
     #[serde(default)]
@@ -1329,7 +1330,7 @@ pub struct DynamicGroupStatus {
 }
 
 /// The MembershipRole expiry details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExpiryDetail {
     /// The time at which the MembershipRole will expire.
     #[serde(default, rename = "expireTime")]
@@ -1337,7 +1338,7 @@ pub struct ExpiryDetail {
 }
 
 /// Evaluations of restrictions applied to parent group on this membership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestrictionEvaluations {
     /// Evaluation of the member restriction applied to this membership. Empty if the user lacks permission to view the restriction evaluation.
     #[serde(default, rename = "memberRestrictionEvaluation")]
@@ -1345,7 +1346,7 @@ pub struct RestrictionEvaluations {
 }
 
 /// Browser-specific fields reported by the [Endpoint Verification extension](https://chromewebstore.google.com/detail/endpoint-verification/callobklhcbilhphinckomhgkigmfocg?pli=1).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1BrowserInfo {
     /// Output only. Browser''s management state. // TODO: enum values: ["UNSPECIFIED", "UNMANAGED", "MANAGED_BY_OTHER_DOMAIN", "PROFILE_MANAGED", "BROWSER_MANAGED"]
     #[serde(default, rename = "browserManagementState")]
@@ -1392,7 +1393,7 @@ pub struct GoogleAppsCloudidentityDevicesV1BrowserInfo {
 }
 
 /// CertificateTemplate (v3 Extension in X.509).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCloudidentityDevicesV1CertificateTemplate {
     /// The template id of the template. Example: "1.3.6.1.4.1.311.21.8.15608621.11768144.5720724.16068415.6889630.81.2472537.7784047".
     #[serde(default)]
@@ -1406,7 +1407,7 @@ pub struct GoogleAppsCloudidentityDevicesV1CertificateTemplate {
 }
 
 /// The evaluated state of this restriction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipRoleRestrictionEvaluation {
     /// Output only. The current state of the restriction // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLIANT", "FORWARD_COMPLIANT", "NON_COMPLIANT", "EVALUATING"]
     #[serde(default)]

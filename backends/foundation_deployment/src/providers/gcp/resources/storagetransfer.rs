@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Google service account
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleServiceAccount {
     /// Email address of the service account.
     #[serde(default, rename = "accountEmail")]
@@ -30,7 +31,7 @@ pub struct GoogleServiceAccount {
 }
 
 /// Response from ListAgentPools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAgentPoolsResponse {
     /// A list of agent pools.
     #[serde(default, rename = "agentPools")]
@@ -41,7 +42,7 @@ pub struct ListAgentPoolsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -55,7 +56,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response from ListTransferJobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTransferJobsResponse {
     /// The list next page token.
     #[serde(default, rename = "nextPageToken")]
@@ -66,15 +67,15 @@ pub struct ListTransferJobsResponse {
 }
 
 /// Request passed to PauseTransferOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PauseTransferOperationRequest {}
 
 /// Request passed to ResumeTransferOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResumeTransferOperationRequest {}
 
 /// Request passed to RunTransferJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunTransferJobRequest {
     /// Required. The ID of the Google Cloud project that owns the transfer job.
     #[serde(default, rename = "projectId")]
@@ -82,7 +83,7 @@ pub struct RunTransferJobRequest {
 }
 
 /// A description of the execution of a transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferOperation {
     /// Information about the progress of the transfer operation.
     #[serde(default)]
@@ -120,7 +121,7 @@ pub struct TransferOperation {
 }
 
 /// Request passed to UpdateTransferJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateTransferJobRequest {
     /// Required. The ID of the Google Cloud project that owns the job.
     #[serde(default, rename = "projectId")]
@@ -134,7 +135,7 @@ pub struct UpdateTransferJobRequest {
 }
 
 /// Represents an agent pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentPool {
     /// Specifies the bandwidth limit details. If this field is unspecified, the default value is set as ''No Limit''.
     #[serde(default, rename = "bandwidthLimit")]
@@ -151,7 +152,7 @@ pub struct AgentPool {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -171,7 +172,7 @@ pub struct Operation {
 }
 
 /// A collection of counters that report the progress of a transfer operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferCounters {
     /// Bytes that are copied to the data sink.
     #[serde(default, rename = "bytesCopiedToSink")]
@@ -245,7 +246,7 @@ pub struct TransferCounters {
 }
 
 /// A summary of errors by error code, plus a count and sample error log entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorSummary {
     /// Required. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
     #[serde(default, rename = "errorCode")]
@@ -259,7 +260,7 @@ pub struct ErrorSummary {
 }
 
 /// This resource represents the configuration of a transfer job that runs periodically.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferJob {
     /// Output only. The time that the transfer job was created.
     #[serde(default, rename = "creationTime")]
@@ -309,7 +310,7 @@ pub struct TransferJob {
 }
 
 /// Specifies a bandwidth limit for an agent pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BandwidthLimit {
     /// Bandwidth rate in megabytes per second, distributed across all the agents in the pool.
     #[serde(default, rename = "limitMbps")]
@@ -317,7 +318,7 @@ pub struct BandwidthLimit {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -331,7 +332,7 @@ pub struct Status {
 }
 
 /// LINT.IfChange An entry describing an error that has occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorLogEntry {
     /// Optional. A list of messages that carry the error details.
     #[serde(default, rename = "errorDetails")]
@@ -342,7 +343,7 @@ pub struct ErrorLogEntry {
 }
 
 /// Specifies the Event-driven transfer options. Event-driven transfers listen to an event stream to transfer updated files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventStream {
     /// Specifies the data and time at which Storage Transfer Service stops listening for events from this stream. After this time, any transfers in progress will complete, but no new transfers are initiated.
     #[serde(default, rename = "eventStreamExpirationTime")]
@@ -356,7 +357,7 @@ pub struct EventStream {
 }
 
 /// Specifies the logging behavior for transfer operations. Logs can be sent to Cloud Logging for all transfer types. See [Read transfer logs](https://cloud.google.com/storage-transfer/docs/read-transfer-logs) for details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingConfig {
     /// For PosixFilesystem transfers, enables [file system transfer logs](https://cloud.google.com/storage-transfer/docs/on-prem-transfer-log-format) instead of, or in addition to, Cloud Logging. This option ignores [LoggableAction] and [LoggableActionState]. If these are set, Cloud Logging will also be enabled for this transfer.
     #[serde(default, rename = "enableOnpremGcsTransferLogs")]
@@ -370,7 +371,7 @@ pub struct LoggingConfig {
 }
 
 /// Specification to configure notifications published to Pub/Sub. Notifications are published to the customer-provided topic using the following PubsubMessage.attributes: * "eventType": one of the EventType values * "payloadFormat": one of the PayloadFormat values * "projectId": the project_id of the TransferOperation * "transferJobName": the transfer_job_name of the TransferOperation * "transferOperationName": the name of the TransferOperation The PubsubMessage.data contains a TransferOperation resource formatted according to the specified PayloadFormat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationConfig {
     /// Event types for which a notification is desired. If empty, send notifications for all event types.
     #[serde(default, rename = "eventTypes")]
@@ -384,7 +385,7 @@ pub struct NotificationConfig {
 }
 
 /// Specifies the configuration for a cross-bucket replication job. Cross-bucket replication copies new or updated objects from a source Cloud Storage bucket to a destination Cloud Storage bucket. Existing objects in the source bucket are not copied by a new cross-bucket replication job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicationSpec {
     /// The Cloud Storage bucket to which to replicate objects.
     #[serde(default, rename = "gcsDataSink")]
@@ -401,7 +402,7 @@ pub struct ReplicationSpec {
 }
 
 /// Transfers can be scheduled to recur or to run just once.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schedule {
     /// The time in UTC that no further transfer operations are scheduled. Combined with schedule_end_date, end_time_of_day specifies the end date and time for starting new transfer operations. This field must be greater than or equal to the timestamp corresponding to the combination of schedule_start_date and start_time_of_day, and is subject to the following: * If end_time_of_day is not set and schedule_end_date is set, then a default value of 23:59:59 is used for end_time_of_day. * If end_time_of_day is set and schedule_end_date is not set, then INVALID_ARGUMENT is returned.
     #[serde(default, rename = "endTimeOfDay")]
@@ -421,7 +422,7 @@ pub struct Schedule {
 }
 
 /// Configuration for running a transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferSpec {
     /// Optional. An AWS S3 compatible data source.
     #[serde(default, rename = "awsS3CompatibleDataSource")]
@@ -471,7 +472,7 @@ pub struct TransferSpec {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -488,7 +489,7 @@ pub struct TimeOfDay {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -502,7 +503,7 @@ pub struct Date {
 }
 
 /// An AwsS3CompatibleData resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsS3CompatibleData {
     /// Required. Specifies the name of the bucket.
     #[serde(default, rename = "bucketName")]
@@ -522,7 +523,7 @@ pub struct AwsS3CompatibleData {
 }
 
 /// An AwsS3Data resource can be a data source, but not a data sink. In an AwsS3Data resource, an object''s name is the S3 object''s key name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsS3Data {
     /// Input only. AWS access key used to sign the API requests to the AWS S3 bucket. Permissions on the bucket must be granted to the access ID of the AWS access key. For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).
     #[serde(default, rename = "awsAccessKey")]
@@ -551,7 +552,7 @@ pub struct AwsS3Data {
 }
 
 /// An AzureBlobStorageData resource can be a data source, but not a data sink. An AzureBlobStorageData resource represents one Azure container. The storage account determines the [Azure endpoint](https://docs.microsoft.com/en-us/azure/storage/common/storage-create-storage-account#storage-account-endpoints). In an AzureBlobStorageData resource, a blobs''s name is the [Azure Blob Storage blob''s key name](https://docs.microsoft.com/en-us/rest/api/storageservices/naming-and-referencing-containers--blobs--and-metadata#blob-names).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureBlobStorageData {
     /// Required. Input only. Credentials used to authenticate API requests to Azure. For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).
     #[serde(default, rename = "azureCredentials")]
@@ -577,7 +578,7 @@ pub struct AzureBlobStorageData {
 }
 
 /// In a GcsData resource, an object''s name is the Cloud Storage object''s name and its "last modification time" refers to the object''s updated property of Cloud Storage objects, which changes when the content or the metadata of the object is updated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsData {
     /// Required. Cloud Storage bucket name. Must meet [Bucket Name Requirements](/storage/docs/naming#requirements).
     #[serde(default, rename = "bucketName")]
@@ -591,7 +592,7 @@ pub struct GcsData {
 }
 
 /// An HdfsData resource specifies a path within an HDFS entity (e.g. a cluster). All cluster-specific settings, such as namenodes and ports, are configured on the transfer agents servicing requests, so HdfsData only contains the root path to the data in our transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HdfsData {
     /// Root path to transfer files.
     #[serde(default)]
@@ -599,7 +600,7 @@ pub struct HdfsData {
 }
 
 /// An HttpData resource specifies a list of objects on the web to be transferred over HTTP. The information of the objects to be transferred is contained in a file referenced by a URL. The first line in the file must be "TsvHttpData-1.0", which specifies the format of the file. Subsequent lines specify the information of the list of objects, one object per list entry. Each entry has the following tab-delimited fields: * **HTTP URL** — The location of the object. * **Length** — The size of the object in bytes. * **MD5** — The base64-encoded MD5 hash of the object. For an example of a valid TSV file, see [Transferring data from URLs](https://cloud.google.com/storage-transfer/docs/create-url-list). When transferring data based on a URL list, keep the following in mind: * When an object located at http(s)://hostname:port/ is transferred to a data sink, the name of the object at the data sink is /. * If the specified size of an object does not match the actual size of the object fetched, the object is not transferred. * If the specified MD5 does not match the MD5 computed from the transferred bytes, the object transfer fails. * Ensure that each URL you specify is publicly accessible. For example, in Cloud Storage you can [share an object publicly] (/storage/docs/cloud-console#_sharingdata) and get a link to it. * Storage Transfer Service obeys robots.txt rules and requires the source HTTP server to support Range requests and to return a Content-Length header in each response. * ObjectConditions have no effect when filtering objects to transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpData {
     /// Required. The URL that points to the file that stores the object list entries. This file must allow public access. The URL is either an HTTP/HTTPS address (e.g. https://example.com/urllist.tsv) or a Cloud Storage path (e.g. gs://my-bucket/urllist.tsv).
     #[serde(default, rename = "listUrl")]
@@ -607,7 +608,7 @@ pub struct HttpData {
 }
 
 /// Conditions that determine which objects are transferred. Applies only to Cloud Data Sources such as S3, Azure, and Cloud Storage. The "last modification time" refers to the time of the last change to the object''s content or metadata — specifically, this is the updated property of Cloud Storage objects, the LastModified field of S3 objects, and the Last-Modified header of Azure blobs. For S3 objects, the LastModified value is the time the object begins uploading. If the object meets your "last modification time" criteria, but has not finished uploading, the object is not transferred. See [Transfer from Amazon S3 to Cloud Storage](https://cloud.google.com/storage-transfer/docs/create-transfers/agentless/s3#transfer_options) for more information. Transfers with a PosixFilesystem source or destination don''t support ObjectConditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectConditions {
     /// If you specify exclude_prefixes, Storage Transfer Service uses the items in the exclude_prefixes array to determine which objects to exclude from a transfer. Objects must not start with one of the matching exclude_prefixes for inclusion in a transfer. The following are requirements of exclude_prefixes: * Each exclude-prefix can contain any sequence of Unicode characters, to a max length of 1024 bytes when UTF8-encoded, and must not contain Carriage Return or Line Feed characters. Wildcard matching and regular expression matching are not supported. * Each exclude-prefix must omit the leading slash. For example, to exclude the object s3://my-aws-bucket/logs/y=2015/requests.gz, specify the exclude-prefix as logs/y=2015/requests.gz. * None of the exclude-prefix values can be empty, if specified. * Each exclude-prefix must exclude a distinct portion of the object namespace. No exclude-prefix may be a prefix of another exclude-prefix. * If include_prefixes is specified, then each exclude-prefix must start with the value of a path explicitly included by include_prefixes. The max size of exclude_prefixes is 1000. For more information, see [Filtering objects from transfers](/storage-transfer/docs/filtering-objects-from-transfers).
     #[serde(default, rename = "excludePrefixes")]
@@ -633,7 +634,7 @@ pub struct ObjectConditions {
 }
 
 /// A POSIX filesystem resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PosixFilesystem {
     /// Root directory path to the filesystem.
     #[serde(default, rename = "rootDirectory")]
@@ -641,7 +642,7 @@ pub struct PosixFilesystem {
 }
 
 /// Specifies where the manifest is located.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferManifest {
     /// Specifies the path to the manifest in Cloud Storage. The Google-managed service account for the transfer must have storage.objects.get permission for this object. An example path is gs://bucket_name/path/manifest.csv.
     #[serde(default)]
@@ -649,7 +650,7 @@ pub struct TransferManifest {
 }
 
 /// TransferOptions define the actions to be performed on objects in a transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferOptions {
     /// Whether objects should be deleted from the source after they are transferred to the sink. **Note:** This option and delete_objects_unique_in_sink are mutually exclusive.
     #[serde(default, rename = "deleteObjectsFromSourceAfterTransfer")]
@@ -669,7 +670,7 @@ pub struct TransferOptions {
 }
 
 /// S3CompatibleMetadata contains the metadata fields that apply to the basic types of S3-compatible data providers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct S3CompatibleMetadata {
     /// Specifies the authentication and authorization method used by the storage service. When not specified, Transfer Service will attempt to determine right auth method to use. // TODO: enum values: ["AUTH_METHOD_UNSPECIFIED", "AUTH_METHOD_AWS_SIGNATURE_V4", "AUTH_METHOD_AWS_SIGNATURE_V2"]
     #[serde(default, rename = "authMethod")]
@@ -686,7 +687,7 @@ pub struct S3CompatibleMetadata {
 }
 
 /// AWS access key (see [AWS Security Credentials](https://docs.aws.amazon.com/general/latest/gr/aws-security-credentials.html)). For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsAccessKey {
     /// Required. AWS access key ID.
     #[serde(default, rename = "accessKeyId")]
@@ -697,7 +698,7 @@ pub struct AwsAccessKey {
 }
 
 /// Azure credentials For information on our data retention policy for user credentials, see [User credentials](/storage-transfer/docs/data-retention#user-credentials).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureCredentials {
     /// Required. Azure shared access signature (SAS). For more information about SAS, see [Grant limited access to Azure Storage resources using shared access signatures (SAS)](https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview).
     #[serde(default, rename = "sasToken")]
@@ -705,7 +706,7 @@ pub struct AzureCredentials {
 }
 
 /// The identity of an Azure application through which Storage Transfer Service can authenticate requests using Azure workload identity federation. Storage Transfer Service can issue requests to Azure Storage through registered Azure applications, eliminating the need to pass credentials to Storage Transfer Service directly. To configure federated identity, see [Configure access to Microsoft Azure Storage](https://cloud.google.com/storage-transfer/docs/source-microsoft-azure#option_3_authenticate_using_federated_identity).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FederatedIdentityConfig {
     /// Required. The client (application) ID of the application with federated credentials.
     #[serde(default, rename = "clientId")]
@@ -716,7 +717,7 @@ pub struct FederatedIdentityConfig {
 }
 
 /// Specifies the metadata options for running a transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetadataOptions {
     /// Specifies how each object''s ACLs should be preserved for transfers between Google Cloud Storage buckets. If unspecified, the default behavior is the same as ACL_DESTINATION_BUCKET_DEFAULT. // TODO: enum values: ["ACL_UNSPECIFIED", "ACL_DESTINATION_BUCKET_DEFAULT", "ACL_PRESERVE"]
     #[serde(default)]

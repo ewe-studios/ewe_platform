@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The metadata of an LRO from deleting multiple versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteVersionsMetadata {
     /// The versions the operation failed to delete.
     #[serde(default, rename = "failedVersions")]
@@ -19,7 +20,7 @@ pub struct BatchDeleteVersionsMetadata {
 }
 
 /// The request to delete multiple versions across a repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteVersionsRequest {
     /// Required. The names of the versions to delete. The maximum number of versions deleted per batch is determined by the service and is dependent on the available resources in the region.
     #[serde(default)]
@@ -30,11 +31,11 @@ pub struct BatchDeleteVersionsRequest {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Artifact policy configuration for repository cleanup policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CleanupPolicy {
     /// Policy action. // TODO: enum values: ["ACTION_UNSPECIFIED", "DELETE", "KEEP"]
     #[serde(default)]
@@ -51,15 +52,15 @@ pub struct CleanupPolicy {
 }
 
 /// The response to download a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadFileResponse {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The LRO metadata for exporting an artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportArtifactMetadata {
     /// The exported artifact files.
     #[serde(default, rename = "exportedFiles")]
@@ -67,7 +68,7 @@ pub struct ExportArtifactMetadata {
 }
 
 /// The request for exporting an artifact to a destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportArtifactRequest {
     /// The Cloud Storage path to export the artifact to. Should start with the bucket name, and optionally have a directory path. Examples: dst_bucket, dst_bucket/sub_dir. Existing objects with the same path will be overwritten.
     #[serde(default, rename = "gcsPath")]
@@ -81,7 +82,7 @@ pub struct ExportArtifactRequest {
 }
 
 /// The response for exporting an artifact to a destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportArtifactResponse {
     /// The exported version. Should be the same as the request version with fingerprint resource name.
     #[serde(default, rename = "exportedVersion")]
@@ -89,7 +90,7 @@ pub struct ExportArtifactResponse {
 }
 
 /// GenericArtifact represents a generic artifact
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenericArtifact {
     /// Output only. The time when the Generic module is created.
     #[serde(default, rename = "createTime")]
@@ -106,7 +107,7 @@ pub struct GenericArtifact {
 }
 
 /// GoModule represents a Go module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoModule {
     /// Output only. The time when the Go module is created.
     #[serde(default, rename = "createTime")]
@@ -123,11 +124,11 @@ pub struct GoModule {
 }
 
 /// The operation metadata for importing artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportAptArtifactsMetadata {}
 
 /// The request to import new apt artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportAptArtifactsRequest {
     /// Google Cloud Storage location where input content is located.
     #[serde(default, rename = "gcsSource")]
@@ -135,7 +136,7 @@ pub struct ImportAptArtifactsRequest {
 }
 
 /// The response message from importing APT artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportAptArtifactsResponse {
     /// The Apt artifacts imported.
     #[serde(default, rename = "aptArtifacts")]
@@ -146,11 +147,11 @@ pub struct ImportAptArtifactsResponse {
 }
 
 /// The operation metadata for importing artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportGoogetArtifactsMetadata {}
 
 /// The request to import new googet artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportGoogetArtifactsRequest {
     /// Google Cloud Storage location where input content is located.
     #[serde(default, rename = "gcsSource")]
@@ -158,7 +159,7 @@ pub struct ImportGoogetArtifactsRequest {
 }
 
 /// The response message from importing artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportGoogetArtifactsResponse {
     /// Detailed error info for packages that were not imported.
     #[serde(default)]
@@ -169,11 +170,11 @@ pub struct ImportGoogetArtifactsResponse {
 }
 
 /// The operation metadata for importing artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportYumArtifactsMetadata {}
 
 /// The request to import new yum artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportYumArtifactsRequest {
     /// Google Cloud Storage location where input content is located.
     #[serde(default, rename = "gcsSource")]
@@ -181,7 +182,7 @@ pub struct ImportYumArtifactsRequest {
 }
 
 /// The response message from importing YUM artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportYumArtifactsResponse {
     /// Detailed error info for packages that were not imported.
     #[serde(default)]
@@ -192,7 +193,7 @@ pub struct ImportYumArtifactsResponse {
 }
 
 /// A detailed representation of a KFP artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KfpArtifact {
     /// Output only. Resource name of the KFP artifact. Since users don''t directly interact with this resource, the name will be derived from the associated version. For example, when version = ".../versions/sha256:abcdef...", the name will be ".../kfpArtifacts/sha256:abcdef...".
     #[serde(default)]
@@ -203,7 +204,7 @@ pub struct KfpArtifact {
 }
 
 /// The response from listing attachments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAttachmentsResponse {
     /// The attachments returned.
     #[serde(default)]
@@ -214,7 +215,7 @@ pub struct ListAttachmentsResponse {
 }
 
 /// The response from listing docker images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDockerImagesResponse {
     /// The docker images returned.
     #[serde(default, rename = "dockerImages")]
@@ -225,7 +226,7 @@ pub struct ListDockerImagesResponse {
 }
 
 /// The response from listing files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFilesResponse {
     /// The files returned.
     #[serde(default)]
@@ -236,7 +237,7 @@ pub struct ListFilesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -247,7 +248,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response from listing maven artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMavenArtifactsResponse {
     /// The maven artifacts returned.
     #[serde(default, rename = "mavenArtifacts")]
@@ -258,7 +259,7 @@ pub struct ListMavenArtifactsResponse {
 }
 
 /// The response from listing npm packages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNpmPackagesResponse {
     /// The token to retrieve the next page of artifacts, or empty if there are no more artifacts to return.
     #[serde(default, rename = "nextPageToken")]
@@ -269,7 +270,7 @@ pub struct ListNpmPackagesResponse {
 }
 
 /// The response from listing packages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPackagesResponse {
     /// The token to retrieve the next page of packages, or empty if there are no more packages to return.
     #[serde(default, rename = "nextPageToken")]
@@ -280,7 +281,7 @@ pub struct ListPackagesResponse {
 }
 
 /// The response from listing python packages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPythonPackagesResponse {
     /// The token to retrieve the next page of artifacts, or empty if there are no more artifacts to return.
     #[serde(default, rename = "nextPageToken")]
@@ -291,7 +292,7 @@ pub struct ListPythonPackagesResponse {
 }
 
 /// The response from listing repositories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRepositoriesResponse {
     /// The token to retrieve the next page of repositories, or empty if there are no more repositories to return.
     #[serde(default, rename = "nextPageToken")]
@@ -302,7 +303,7 @@ pub struct ListRepositoriesResponse {
 }
 
 /// The response from listing rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRulesResponse {
     /// The token to retrieve the next page of rules, or empty if there are no more rules to return.
     #[serde(default, rename = "nextPageToken")]
@@ -313,7 +314,7 @@ pub struct ListRulesResponse {
 }
 
 /// The response from listing tags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTagsResponse {
     /// The token to retrieve the next page of tags, or empty if there are no more tags to return.
     #[serde(default, rename = "nextPageToken")]
@@ -324,7 +325,7 @@ pub struct ListTagsResponse {
 }
 
 /// The response from listing versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVersionsResponse {
     /// The token to retrieve the next page of versions, or empty if there are no more versions to return.
     #[serde(default, rename = "nextPageToken")]
@@ -335,11 +336,11 @@ pub struct ListVersionsResponse {
 }
 
 /// Metadata type for longrunning-operations, currently empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {}
 
 /// The Artifact Registry logging configurations that apply to a Project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectConfig {
     /// Identifier. The name of the project''s configuration. Always of the form: projects/{project}/locations/{location}/projectConfig
     #[serde(default)]
@@ -350,7 +351,7 @@ pub struct ProjectConfig {
 }
 
 /// The Artifact Registry settings that apply to a Project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectSettings {
     /// The redirection state of the legacy repositories in this project. // TODO: enum values: ["REDIRECTION_STATE_UNSPECIFIED", "REDIRECTION_FROM_GCR_IO_DISABLED", "REDIRECTION_FROM_GCR_IO_ENABLED", "REDIRECTION_FROM_GCR_IO_FINALIZED", "REDIRECTION_FROM_GCR_IO_ENABLED_AND_COPYING", "REDIRECTION_FROM_GCR_IO_PARTIAL_AND_COPYING"]
     #[serde(default, rename = "legacyRedirectionState")]
@@ -364,7 +365,7 @@ pub struct ProjectSettings {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -372,7 +373,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -380,7 +381,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -388,7 +389,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// The response to upload an artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadAptArtifactMediaResponse {
     /// Operation to be returned to the user.
     #[serde(default)]
@@ -396,15 +397,15 @@ pub struct UploadAptArtifactMediaResponse {
 }
 
 /// The operation metadata for uploading artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadAptArtifactMetadata {}
 
 /// The request to upload an artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadAptArtifactRequest {}
 
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadAptArtifactResponse {
     /// The Apt artifacts updated.
     #[serde(default, rename = "aptArtifacts")]
@@ -412,7 +413,7 @@ pub struct UploadAptArtifactResponse {
 }
 
 /// The response to upload a generic artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadFileMediaResponse {
     /// Operation that will be returned to the user.
     #[serde(default)]
@@ -420,7 +421,7 @@ pub struct UploadFileMediaResponse {
 }
 
 /// The request to upload a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadFileRequest {
     /// Optional. The ID of the file. If left empty will default to sha256 digest of the content uploaded.
     #[serde(default, rename = "fileId")]
@@ -428,7 +429,7 @@ pub struct UploadFileRequest {
 }
 
 /// The response to upload a generic artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadGenericArtifactMediaResponse {
     /// Operation that will be returned to the user.
     #[serde(default)]
@@ -436,11 +437,11 @@ pub struct UploadGenericArtifactMediaResponse {
 }
 
 /// The operation metadata for uploading generic artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadGenericArtifactMetadata {}
 
 /// The request to upload a generic artifact. The created GenericArtifact will have the resource name {parent}/genericArtifacts/package_id:version_id. The created file will have the resource name {parent}/files/package_id:version_id:filename.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadGenericArtifactRequest {
     /// The name of the file of the generic artifact to be uploaded. E.g. example-file.zip The filename is limited to letters, numbers, and url safe characters, i.e. [a-zA-Z0-9-_.~@].
     #[serde(default)]
@@ -454,7 +455,7 @@ pub struct UploadGenericArtifactRequest {
 }
 
 /// The response to upload a Go module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadGoModuleMediaResponse {
     /// Operation to be returned to the user.
     #[serde(default)]
@@ -462,15 +463,15 @@ pub struct UploadGoModuleMediaResponse {
 }
 
 /// The operation metadata for uploading go modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadGoModuleMetadata {}
 
 /// The request to upload a Go module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadGoModuleRequest {}
 
 /// The response to upload an artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadGoogetArtifactMediaResponse {
     /// Operation to be returned to the user.
     #[serde(default)]
@@ -478,15 +479,15 @@ pub struct UploadGoogetArtifactMediaResponse {
 }
 
 /// The operation metadata for uploading artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadGoogetArtifactMetadata {}
 
 /// The request to upload an artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadGoogetArtifactRequest {}
 
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadGoogetArtifactResponse {
     /// The GooGet artifacts updated.
     #[serde(default, rename = "googetArtifacts")]
@@ -494,7 +495,7 @@ pub struct UploadGoogetArtifactResponse {
 }
 
 /// The response to upload an artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadKfpArtifactMediaResponse {
     /// Operation that will be returned to the user.
     #[serde(default)]
@@ -502,11 +503,11 @@ pub struct UploadKfpArtifactMediaResponse {
 }
 
 /// The operation metadata for uploading KFP artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadKfpArtifactMetadata {}
 
 /// The request to upload an artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadKfpArtifactRequest {
     /// Description of the package version.
     #[serde(default)]
@@ -517,7 +518,7 @@ pub struct UploadKfpArtifactRequest {
 }
 
 /// The response to upload an artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadYumArtifactMediaResponse {
     /// Operation to be returned to the user.
     #[serde(default)]
@@ -525,15 +526,15 @@ pub struct UploadYumArtifactMediaResponse {
 }
 
 /// The operation metadata for uploading artifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadYumArtifactMetadata {}
 
 /// The request to upload an artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadYumArtifactRequest {}
 
 /// The response of the completed artifact upload operation. This response is contained in the Operation and available to users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadYumArtifactResponse {
     /// The Yum artifacts updated.
     #[serde(default, rename = "yumArtifacts")]
@@ -541,7 +542,7 @@ pub struct UploadYumArtifactResponse {
 }
 
 /// The Artifact Registry VPC SC config that apply to a Project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VPCSCConfig {
     /// The name of the project''s VPC SC Config. Always of the form: projects/{projectID}/locations/{location}/vpcscConfig In update request: never set In response: always set
     #[serde(default)]
@@ -552,7 +553,7 @@ pub struct VPCSCConfig {
 }
 
 /// CleanupPolicyCondition is a set of conditions attached to a CleanupPolicy. If multiple entries are set, all must be satisfied for the condition to be satisfied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CleanupPolicyCondition {
     /// Match versions newer than a duration.
     #[serde(default, rename = "newerThan")]
@@ -575,7 +576,7 @@ pub struct CleanupPolicyCondition {
 }
 
 /// CleanupPolicyMostRecentVersions is an alternate condition of a CleanupPolicy for retaining a minimum number of versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CleanupPolicyMostRecentVersions {
     /// Minimum number of versions to keep.
     #[serde(default, rename = "keepCount")]
@@ -586,7 +587,7 @@ pub struct CleanupPolicyMostRecentVersions {
 }
 
 /// The exported artifact file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportedFile {
     /// Cloud Storage Object path of the exported file. Examples: dst_bucket/file1, dst_bucket/sub_dir/file1
     #[serde(default, rename = "gcsObjectPath")]
@@ -600,7 +601,7 @@ pub struct ExportedFile {
 }
 
 /// Error information explaining why a package was not imported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportAptArtifactsErrorInfo {
     /// The detailed error status.
     #[serde(default)]
@@ -611,7 +612,7 @@ pub struct ImportAptArtifactsErrorInfo {
 }
 
 /// Error information explaining why a package was not imported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportGoogetArtifactsErrorInfo {
     /// The detailed error status.
     #[serde(default)]
@@ -622,7 +623,7 @@ pub struct ImportGoogetArtifactsErrorInfo {
 }
 
 /// Error information explaining why a package was not imported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportYumArtifactsErrorInfo {
     /// The detailed error status.
     #[serde(default)]
@@ -633,7 +634,7 @@ pub struct ImportYumArtifactsErrorInfo {
 }
 
 /// An Attachment refers to additional metadata that can be attached to artifacts in Artifact Registry. An attachment consists of one or more files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attachment {
     /// Optional. User annotations. These attributes can only be set and used by the user, and not by Artifact Registry. See https://google.aip.dev/128#annotations for more details such as format and size limitations.
     #[serde(default)]
@@ -665,7 +666,7 @@ pub struct Attachment {
 }
 
 /// DockerImage represents a docker artifact. The following fields are returned as untyped metadata in the Version resource, using camelcase keys (i.e. metadata.imageSizeBytes): * imageSizeBytes * mediaType * buildTime
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DockerImage {
     /// ArtifactType of this image, e.g. "application/vnd.example+type". If the subject_digest is set and no artifact_type is given, the media_type will be considered as the artifact_type. This field is returned as the metadata.artifactType field in the Version resource.
     #[serde(default, rename = "artifactType")]
@@ -700,7 +701,7 @@ pub struct DockerImage {
 }
 
 /// Files store content that is potentially associated with Packages or Versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsArtifactregistryV1File {
     /// Optional. Client specified annotations.
     #[serde(default)]
@@ -729,7 +730,7 @@ pub struct GoogleDevtoolsArtifactregistryV1File {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -749,7 +750,7 @@ pub struct Location {
 }
 
 /// MavenArtifact represents a maven artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MavenArtifact {
     /// Artifact ID for the artifact.
     #[serde(default, rename = "artifactId")]
@@ -775,7 +776,7 @@ pub struct MavenArtifact {
 }
 
 /// NpmPackage represents an npm artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NpmPackage {
     /// Output only. Time the package was created.
     #[serde(default, rename = "createTime")]
@@ -798,7 +799,7 @@ pub struct NpmPackage {
 }
 
 /// Packages are named collections of versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Package {
     /// Optional. Client specified annotations.
     #[serde(default)]
@@ -818,7 +819,7 @@ pub struct Package {
 }
 
 /// PythonPackage represents a python artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PythonPackage {
     /// Output only. Time the package was created.
     #[serde(default, rename = "createTime")]
@@ -841,7 +842,7 @@ pub struct PythonPackage {
 }
 
 /// A Repository for storing artifacts with a specific format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Repository {
     /// Optional. Cleanup policies for this repository. Cleanup policies indicate when certain package versions can be automatically deleted. Map keys are policy IDs supplied by users during policy creation. They must unique within a repository and be under 128 characters in length.
     #[serde(default, rename = "cleanupPolicies")]
@@ -909,7 +910,7 @@ pub struct Repository {
 }
 
 /// A rule defines the deny or allow action of the operation it applies to and the conditions required for the rule to apply. You can set one rule for an entire repository and one rule for each package within.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsArtifactregistryV1Rule {
     /// The action this rule takes. // TODO: enum values: ["ACTION_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default)]
@@ -929,7 +930,7 @@ pub struct GoogleDevtoolsArtifactregistryV1Rule {
 }
 
 /// The body of a version resource. A version resource represents a collection of components, such as files and other data. This may correspond to a version in many package management schemes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Version {
     /// Optional. Client specified annotations.
     #[serde(default)]
@@ -958,7 +959,7 @@ pub struct Version {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -972,7 +973,7 @@ pub struct Policy {
 }
 
 /// A detailed representation of an Apt artifact. Information in the record is derived from the archive''s control file. See https://www.debian.org/doc/debian-policy/ch-controlfields.html
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AptArtifact {
     /// Output only. Operating system architecture of the artifact.
     #[serde(default)]
@@ -995,7 +996,7 @@ pub struct AptArtifact {
 }
 
 /// A detailed representation of a GooGet artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogetArtifact {
     /// Output only. Operating system architecture of the artifact.
     #[serde(default)]
@@ -1009,7 +1010,7 @@ pub struct GoogetArtifact {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1029,7 +1030,7 @@ pub struct Operation {
 }
 
 /// A detailed representation of a Yum artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YumArtifact {
     /// Output only. Operating system architecture of the artifact.
     #[serde(default)]
@@ -1046,7 +1047,7 @@ pub struct YumArtifact {
 }
 
 /// Google Cloud Storage location where the artifacts currently reside.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportAptArtifactsGcsSource {
     /// Cloud Storage paths URI (e.g., gs://my_bucket//my_object).
     #[serde(default)]
@@ -1057,7 +1058,7 @@ pub struct ImportAptArtifactsGcsSource {
 }
 
 /// Google Cloud Storage location where the artifacts currently reside.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportGoogetArtifactsGcsSource {
     /// Cloud Storage paths URI (e.g., gs://my_bucket/my_object).
     #[serde(default)]
@@ -1068,7 +1069,7 @@ pub struct ImportGoogetArtifactsGcsSource {
 }
 
 /// Google Cloud Storage location where the artifacts currently reside.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportYumArtifactsGcsSource {
     /// Cloud Storage paths URI (e.g., gs://my_bucket//my_object).
     #[serde(default)]
@@ -1079,7 +1080,7 @@ pub struct ImportYumArtifactsGcsSource {
 }
 
 /// Details of a single image manifest within a multi-arch image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageManifest {
     /// Optional. The CPU architecture of the image. Values are provided by the Docker client and are not validated by Artifact Registry. Example values include "amd64", "arm64", "ppc64le", "s390x", "riscv64", "mips64le", etc.
     #[serde(default)]
@@ -1105,7 +1106,7 @@ pub struct ImageManifest {
 }
 
 /// DockerRepositoryConfig is docker related repository details. Provides additional configuration details for repositories of the docker format type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DockerRepositoryConfig {
     /// The repository which enabled this flag prevents all tags from being modified, moved or deleted. This does not prevent tags from being created.
     #[serde(default, rename = "immutableTags")]
@@ -1113,7 +1114,7 @@ pub struct DockerRepositoryConfig {
 }
 
 /// MavenRepositoryConfig is maven related repository details. Provides additional configuration details for repositories of the maven format type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MavenRepositoryConfig {
     /// The repository with this flag will allow publishing the same snapshot versions.
     #[serde(default, rename = "allowSnapshotOverwrites")]
@@ -1124,7 +1125,7 @@ pub struct MavenRepositoryConfig {
 }
 
 /// The platform logs config for a project or a repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlatformLogsConfig {
     /// Optional. The state of the platform logs: enabled or disabled. // TODO: enum values: ["LOGGING_STATE_UNSPECIFIED", "ENABLED", "DISABLED"]
     #[serde(default, rename = "loggingState")]
@@ -1135,7 +1136,7 @@ pub struct PlatformLogsConfig {
 }
 
 /// Remote repository configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoteRepositoryConfig {
     /// Specific settings for an Apt remote repository.
     #[serde(default, rename = "aptRepository")]
@@ -1170,7 +1171,7 @@ pub struct RemoteRepositoryConfig {
 }
 
 /// Virtual repository configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VirtualRepositoryConfig {
     /// Policies that configure the upstream artifacts distributed by the Virtual Repository. Upstream policies cannot be set on a standard repository.
     #[serde(default, rename = "upstreamPolicies")]
@@ -1178,7 +1179,7 @@ pub struct VirtualRepositoryConfig {
 }
 
 /// Config on whether to perform vulnerability scanning for resources in this repository, as well as output fields describing current state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VulnerabilityScanningConfig {
     /// Optional. Config for whether this repository has vulnerability scanning disabled. // TODO: enum values: ["ENABLEMENT_CONFIG_UNSPECIFIED", "INHERITED", "DISABLED"]
     #[serde(default, rename = "enablementConfig")]
@@ -1195,7 +1196,7 @@ pub struct VulnerabilityScanningConfig {
 }
 
 /// A hash of file content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hash {
     /// The algorithm used to compute the hash value. // TODO: enum values: ["HASH_TYPE_UNSPECIFIED", "SHA256", "MD5", "DIRSUM_SHA256"]
     #[serde(default, rename = "type")]
@@ -1206,7 +1207,7 @@ pub struct Hash {
 }
 
 /// Tags point to a version and represent an alternative name that can be used to access the version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tag {
     /// The name of the tag, for example: "projects/p1/locations/us-central1/repositories/repo1/packages/pkg1/tags/tag1". If the package part contains slashes, the slashes are escaped. The tag part can only have characters in [a-zA-Z0-9\-._~:@], anything else must be URL encoded.
     #[serde(default)]
@@ -1217,7 +1218,7 @@ pub struct Tag {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1231,7 +1232,7 @@ pub struct Binding {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1245,7 +1246,7 @@ pub struct Status {
 }
 
 /// Configuration for an Apt remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AptRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
@@ -1260,7 +1261,7 @@ pub struct AptRepository {
 }
 
 /// Common remote repository settings type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommonRemoteRepository {
     /// Required. A common public repository base for remote repository.
     #[serde(default)]
@@ -1268,7 +1269,7 @@ pub struct CommonRemoteRepository {
 }
 
 /// Configuration for a Docker remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DockerRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
@@ -1281,7 +1282,7 @@ pub struct DockerRepository {
 }
 
 /// Configuration for a Maven remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MavenRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
@@ -1294,7 +1295,7 @@ pub struct MavenRepository {
 }
 
 /// Configuration for a Npm remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NpmRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
@@ -1307,7 +1308,7 @@ pub struct NpmRepository {
 }
 
 /// Configuration for a Python remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PythonRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
@@ -1320,7 +1321,7 @@ pub struct PythonRepository {
 }
 
 /// The credentials to access the remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpstreamCredentials {
     /// Use username and password to access the remote repository.
     #[serde(default, rename = "usernamePasswordCredentials")]
@@ -1328,7 +1329,7 @@ pub struct UpstreamCredentials {
 }
 
 /// Configuration for a Yum remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YumRepository {
     /// Customer-specified remote repository.
     #[serde(default, rename = "customRepository")]
@@ -1343,7 +1344,7 @@ pub struct YumRepository {
 }
 
 /// Artifact policy configuration for the repository contents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpstreamPolicy {
     /// The user-provided ID of the upstream policy.
     #[serde(default)]
@@ -1357,7 +1358,7 @@ pub struct UpstreamPolicy {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1374,7 +1375,7 @@ pub struct Expr {
 }
 
 /// Customer-specified publicly available remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository {
     /// An http/https uri reference to the upstream remote repository, for ex: "https://my.apt.registry/".
     #[serde(default)]
@@ -1382,7 +1383,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCu
 }
 
 /// Publicly available Apt repositories constructed from a common repository base and a custom repository path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPublicRepository {
     /// A common public repository base for Apt. // TODO: enum values: ["REPOSITORY_BASE_UNSPECIFIED", "DEBIAN", "UBUNTU", "DEBIAN_SNAPSHOT"]
     #[serde(default, rename = "repositoryBase")]
@@ -1393,7 +1394,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPu
 }
 
 /// Customer-specified publicly available remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository {
     /// An http/https uri reference to the custom remote repository, for ex: "https://registry-1.docker.io".
     #[serde(default)]
@@ -1401,7 +1402,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositor
 }
 
 /// Customer-specified publicly available remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository {
     /// An http/https uri reference to the upstream remote repository, for ex: "https://my.maven.registry/".
     #[serde(default)]
@@ -1409,7 +1410,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepository
 }
 
 /// Customer-specified publicly available remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCustomRepository {
     /// An http/https uri reference to the upstream remote repository, for ex: "https://my.npm.registry/".
     #[serde(default)]
@@ -1417,7 +1418,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCu
 }
 
 /// Customer-specified publicly available remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositoryCustomRepository {
     /// An http/https uri reference to the upstream remote repository, for ex: "https://my.python.registry/".
     #[serde(default)]
@@ -1425,7 +1426,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositor
 }
 
 /// Username and password credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsernamePasswordCredentials {
     /// The Secret Manager key version that holds the password to access the remote repository. Must be in the format of projects/{project}/secrets/{secret}/versions/{version}.
     #[serde(default, rename = "passwordSecretVersion")]
@@ -1436,7 +1437,7 @@ pub struct UsernamePasswordCredentials {
 }
 
 /// Customer-specified publicly available remote repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository {
     /// An http/https uri reference to the upstream remote repository, for ex: "https://my.yum.registry/".
     #[serde(default)]
@@ -1444,7 +1445,7 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCu
 }
 
 /// Publicly available Yum repositories constructed from a common repository base and a custom repository path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPublicRepository {
     /// A common public repository base for Yum. // TODO: enum values: ["REPOSITORY_BASE_UNSPECIFIED", "CENTOS", "CENTOS_DEBUG", "CENTOS_VAULT", "CENTOS_STREAM", "ROCKY", "EPEL"]
     #[serde(default, rename = "repositoryBase")]

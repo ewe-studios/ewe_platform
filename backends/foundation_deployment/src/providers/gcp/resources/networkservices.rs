@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Message for response to listing AuthzExtension resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAuthzExtensionsResponse {
     /// The list of AuthzExtension resources.
     #[serde(default, rename = "authzExtensions")]
@@ -33,7 +34,7 @@ pub struct ListAuthzExtensionsResponse {
 }
 
 /// Response returned by the ListEndpointPolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEndpointPoliciesResponse {
     /// List of EndpointPolicy resources.
     #[serde(default, rename = "endpointPolicies")]
@@ -47,7 +48,7 @@ pub struct ListEndpointPoliciesResponse {
 }
 
 /// Response returned by the ListGatewayRouteViews method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGatewayRouteViewsResponse {
     /// List of GatewayRouteView resources.
     #[serde(default, rename = "gatewayRouteViews")]
@@ -61,7 +62,7 @@ pub struct ListGatewayRouteViewsResponse {
 }
 
 /// Response returned by the ListGateways method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGatewaysResponse {
     /// List of Gateway resources.
     #[serde(default)]
@@ -75,7 +76,7 @@ pub struct ListGatewaysResponse {
 }
 
 /// Response returned by the ListGrpcRoutes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGrpcRoutesResponse {
     /// List of GrpcRoute resources.
     #[serde(default, rename = "grpcRoutes")]
@@ -89,7 +90,7 @@ pub struct ListGrpcRoutesResponse {
 }
 
 /// Response returned by the ListHttpRoutes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHttpRoutesResponse {
     /// List of HttpRoute resources.
     #[serde(default, rename = "httpRoutes")]
@@ -103,7 +104,7 @@ pub struct ListHttpRoutesResponse {
 }
 
 /// Message for response to listing LbEdgeExtension resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLbEdgeExtensionsResponse {
     /// The list of LbEdgeExtension resources.
     #[serde(default, rename = "lbEdgeExtensions")]
@@ -117,7 +118,7 @@ pub struct ListLbEdgeExtensionsResponse {
 }
 
 /// Message for response to listing LbRouteExtension resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLbRouteExtensionsResponse {
     /// The list of LbRouteExtension resources.
     #[serde(default, rename = "lbRouteExtensions")]
@@ -131,7 +132,7 @@ pub struct ListLbRouteExtensionsResponse {
 }
 
 /// Message for response to listing LbTrafficExtension resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLbTrafficExtensionsResponse {
     /// The list of LbTrafficExtension resources.
     #[serde(default, rename = "lbTrafficExtensions")]
@@ -145,7 +146,7 @@ pub struct ListLbTrafficExtensionsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -156,7 +157,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response returned by the ListMeshRouteViews method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMeshRouteViewsResponse {
     /// List of MeshRouteView resources.
     #[serde(default, rename = "meshRouteViews")]
@@ -170,7 +171,7 @@ pub struct ListMeshRouteViewsResponse {
 }
 
 /// Response returned by the ListMeshes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMeshesResponse {
     /// List of Mesh resources.
     #[serde(default)]
@@ -184,7 +185,7 @@ pub struct ListMeshesResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -198,7 +199,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response returned by the ListServiceBindings method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServiceBindingsResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -212,7 +213,7 @@ pub struct ListServiceBindingsResponse {
 }
 
 /// Response returned by the ListServiceLbPolicies method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServiceLbPoliciesResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -226,7 +227,7 @@ pub struct ListServiceLbPoliciesResponse {
 }
 
 /// Response returned by the ListTcpRoutes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTcpRoutesResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -240,7 +241,7 @@ pub struct ListTcpRoutesResponse {
 }
 
 /// Response returned by the ListTlsRoutes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTlsRoutesResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -254,7 +255,7 @@ pub struct ListTlsRoutesResponse {
 }
 
 /// Response returned by the ListWasmPluginVersions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWasmPluginVersionsResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -268,7 +269,7 @@ pub struct ListWasmPluginVersionsResponse {
 }
 
 /// Response returned by the ListWasmPlugins method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWasmPluginsResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -282,7 +283,7 @@ pub struct ListWasmPluginsResponse {
 }
 
 /// The configuration for Platform Telemetry logging for Eventarc Advanced resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingConfig {
     /// Optional. The minimum severity of logs that will be sent to Stackdriver/Platform Telemetry. Logs at severitiy ≥ this value will be sent, unless it is NONE. // TODO: enum values: ["LOG_SEVERITY_UNSPECIFIED", "NONE", "DEBUG", "INFO", "NOTICE", "WARNING", "ERROR", "CRITICAL", "ALERT", "EMERGENCY"]
     #[serde(default, rename = "logSeverity")]
@@ -290,7 +291,7 @@ pub struct LoggingConfig {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -316,7 +317,7 @@ pub struct OperationMetadata {
 }
 
 /// RetryFilterPerRouteConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetryFilterPerRouteConfig {
     /// The name of the crypto key to use for encrypting event data.
     #[serde(default, rename = "cryptoKeyName")]
@@ -324,7 +325,7 @@ pub struct RetryFilterPerRouteConfig {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -335,7 +336,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -343,7 +344,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -351,7 +352,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Details of a WasmPluginVersion resource to be inlined in the WasmPlugin resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WasmPluginVersionDetails {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -383,7 +384,7 @@ pub struct WasmPluginVersionDetails {
 }
 
 /// AuthzExtension is a resource that allows traffic forwarding to a callout backend service to make an authorization decision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthzExtension {
     /// Optional. The :authority header in the gRPC request sent from Envoy to the extension service. It is required when the service field points to a backend service or a wasm plugin.
     #[serde(default)]
@@ -430,7 +431,7 @@ pub struct AuthzExtension {
 }
 
 /// EndpointPolicy is a resource that helps apply desired configuration on the endpoints that match specific criteria. For example, this resource can be used to apply "authentication config" an all endpoints that serve on port 8080.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointPolicy {
     /// Optional. This field specifies the URL of AuthorizationPolicy resource that applies authorization policies to the inbound traffic at the matched endpoints. Refer to Authorization. If this field is not specified, authorization is disabled(no authz checks) for this endpoint.
     #[serde(default, rename = "authorizationPolicy")]
@@ -468,7 +469,7 @@ pub struct EndpointPolicy {
 }
 
 /// GatewayRouteView defines view-only resource for Routes to a Gateway
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GatewayRouteView {
     /// Output only. Identifier. Full path name of the GatewayRouteView resource. Format: projects/{project_number}/locations/{location}/gateways/{gateway}/routeViews/{route_view}
     #[serde(default)]
@@ -488,7 +489,7 @@ pub struct GatewayRouteView {
 }
 
 /// Gateway represents the configuration for a proxy, typically a load balancer. It captures the ip:port over which the services are exposed by the proxy, along with any policy configurations. Routes have reference to to Gateways to dictate how requests should be routed by this Gateway.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Gateway {
     /// Optional. Zero or one IPv4 or IPv6 address on which the Gateway will receive the traffic. When no address is provided, an IP from the subnetwork is allocated This field only applies to gateways of type ''SECURE_WEB_GATEWAY''. Gateways of type ''OPEN_MESH'' listen on 0.0.0.0 for IPv4 and :: for IPv6.
     #[serde(default)]
@@ -550,7 +551,7 @@ pub struct Gateway {
 }
 
 /// GrpcRoute is the resource defining how gRPC traffic routed by a Mesh or Gateway resource is routed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRoute {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -585,7 +586,7 @@ pub struct GrpcRoute {
 }
 
 /// HttpRoute is the resource defining how HTTP traffic should be routed by a Mesh or Gateway resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRoute {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -620,7 +621,7 @@ pub struct HttpRoute {
 }
 
 /// LbEdgeExtension is a resource that lets the extension service influence the selection of backend services and Cloud CDN cache keys by modifying request headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LbEdgeExtension {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -649,7 +650,7 @@ pub struct LbEdgeExtension {
 }
 
 /// LbRouteExtension is a resource that lets you control where traffic is routed to for a given request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LbRouteExtension {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -681,7 +682,7 @@ pub struct LbRouteExtension {
 }
 
 /// LbTrafficExtension is a resource that lets the extension service modify the headers and payloads of both requests and responses without impacting the choice of backend services or any other security policies associated with the backend service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LbTrafficExtension {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -713,7 +714,7 @@ pub struct LbTrafficExtension {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -733,7 +734,7 @@ pub struct Location {
 }
 
 /// MeshRouteView defines view-only resource for Routes to a Mesh
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MeshRouteView {
     /// Output only. Identifier. Full path name of the MeshRouteView resource. Format: projects/{project_number}/locations/{location}/meshes/{mesh}/routeViews/{route_view}
     #[serde(default)]
@@ -753,7 +754,7 @@ pub struct MeshRouteView {
 }
 
 /// Mesh represents a logical configuration grouping for workload to workload communication within a service mesh. Routes that point to mesh dictate how requests are routed within this logical mesh boundary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Mesh {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -782,7 +783,7 @@ pub struct Mesh {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -802,7 +803,7 @@ pub struct Operation {
 }
 
 /// ServiceBinding can be used to: - Bind a Service Directory Service to be used in a BackendService resource. This feature will be deprecated soon. - Bind a Private Service Connect producer service to be used in consumer Cloud Service Mesh or Application Load Balancers. - Bind a Cloud Run service to be used in consumer Cloud Service Mesh or Application Load Balancers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceBinding {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -828,7 +829,7 @@ pub struct ServiceBinding {
 }
 
 /// ServiceLbPolicy holds global load balancing and traffic distribution configuration that can be applied to a BackendService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceLbPolicy {
     /// Optional. Configuration to automatically move traffic away for unhealthy IG/NEG for the associated Backend Service.
     #[serde(default, rename = "autoCapacityDrain")]
@@ -860,7 +861,7 @@ pub struct ServiceLbPolicy {
 }
 
 /// TcpRoute is the resource defining how TCP traffic should be routed by a Mesh/Gateway resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TcpRoute {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -892,7 +893,7 @@ pub struct TcpRoute {
 }
 
 /// TlsRoute defines how traffic should be routed based on SNI and other matching L3 attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsRoute {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -927,7 +928,7 @@ pub struct TlsRoute {
 }
 
 /// A single immutable version of a WasmPlugin resource. Defines the Wasm module used and optionally its runtime config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WasmPluginVersion {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -962,7 +963,7 @@ pub struct WasmPluginVersion {
 }
 
 /// WasmPlugin is a resource representing a service executing a customer-provided Wasm module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WasmPlugin {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -994,7 +995,7 @@ pub struct WasmPlugin {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -1011,7 +1012,7 @@ pub struct Policy {
 }
 
 /// A definition of a matcher that selects endpoints to which the policies should be applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointMatcher {
     /// The matcher is based on node metadata presented by xDS clients.
     #[serde(default, rename = "metadataLabelMatcher")]
@@ -1019,7 +1020,7 @@ pub struct EndpointMatcher {
 }
 
 /// Specification of a port-based selector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrafficPortSelector {
     /// Optional. A list of ports. Can be port numbers or port range (example, [80-90] specifies all ports from 80 to 90, including 80 and 90) or named ports or * to specify all ports. If the list is empty, all ports are selected.
     #[serde(default)]
@@ -1027,7 +1028,7 @@ pub struct TrafficPortSelector {
 }
 
 /// Describes how to route traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRouteRouteRule {
     /// Required. A detailed rule defining how to route traffic. This field is required.
     #[serde(default)]
@@ -1038,7 +1039,7 @@ pub struct GrpcRouteRouteRule {
 }
 
 /// Specifies how to match traffic and how to route traffic when traffic is matched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteRouteRule {
     /// The detailed rule defining how to route matched traffic.
     #[serde(default)]
@@ -1049,7 +1050,7 @@ pub struct HttpRouteRouteRule {
 }
 
 /// A single extension chain wrapper that contains the match conditions and extensions to execute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtensionChain {
     /// Required. A set of extensions to execute for the matching request. At least one extension is required. Up to 3 extensions can be defined for each extension chain for LbTrafficExtension resource. LbRouteExtension and LbEdgeExtension chains are limited to 1 extension per extension chain.
     #[serde(default)]
@@ -1063,7 +1064,7 @@ pub struct ExtensionChain {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1077,7 +1078,7 @@ pub struct Status {
 }
 
 /// Option to specify if an unhealthy IG/NEG should be considered for global load balancing and traffic routing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceLbPolicyAutoCapacityDrain {
     /// Optional. If set to ''True'', an unhealthy IG/NEG will be set as drained. - An IG/NEG is considered unhealthy if less than 25% of the instances/endpoints in the IG/NEG are healthy. - This option will never result in draining more than 50% of the configured IGs/NEGs for the Backend Service.
     #[serde(default)]
@@ -1085,7 +1086,7 @@ pub struct ServiceLbPolicyAutoCapacityDrain {
 }
 
 /// Option to specify health based failover behavior. This is not related to Network load balancer FailoverPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceLbPolicyFailoverConfig {
     /// Optional. The percentage threshold that a load balancer will begin to send traffic to failover backends. If the percentage of endpoints in a MIG/NEG is smaller than this value, traffic would be sent to failover backends if possible. This field should be set to a value between 1 and 99. The default value is 50 for Global external HTTP(S) load balancer (classic) and Proxyless service mesh, and 70 for others.
     #[serde(default, rename = "failoverHealthThreshold")]
@@ -1093,7 +1094,7 @@ pub struct ServiceLbPolicyFailoverConfig {
 }
 
 /// Configuration to provide isolation support for the associated Backend Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceLbPolicyIsolationConfig {
     /// Optional. The isolation granularity of the load balancer. // TODO: enum values: ["ISOLATION_GRANULARITY_UNSPECIFIED", "REGION"]
     #[serde(default, rename = "isolationGranularity")]
@@ -1104,7 +1105,7 @@ pub struct ServiceLbPolicyIsolationConfig {
 }
 
 /// Specifies how to match traffic and how to route traffic when traffic is matched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TcpRouteRouteRule {
     /// Required. The detailed rule defining how to route matched traffic.
     #[serde(default)]
@@ -1115,7 +1116,7 @@ pub struct TcpRouteRouteRule {
 }
 
 /// Specifies how to match traffic and how to route traffic when traffic is matched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsRouteRouteRule {
     /// Required. The detailed rule defining how to route matched traffic.
     #[serde(default)]
@@ -1126,7 +1127,7 @@ pub struct TlsRouteRouteRule {
 }
 
 /// Specifies the logging options for the activity performed by this plugin. If logging is enabled, plugin logs are exported to Cloud Logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WasmPluginLogConfig {
     /// Optional. Specifies whether to enable logging for activity by this plugin. Defaults to false.
     #[serde(default)]
@@ -1140,7 +1141,7 @@ pub struct WasmPluginLogConfig {
 }
 
 /// Defines a resource that uses the WasmPlugin resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WasmPluginUsedBy {
     /// Output only. Full name of the resource https://google.aip.dev/122#full-resource-names, for example //networkservices.googleapis.com/projects/{project}/locations/{location}/lbRouteExtensions/{extension}
     #[serde(default)]
@@ -1148,7 +1149,7 @@ pub struct WasmPluginUsedBy {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1159,7 +1160,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1173,7 +1174,7 @@ pub struct Binding {
 }
 
 /// The matcher that is based on node metadata presented by xDS clients.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointMatcherMetadataLabelMatcher {
     /// Specifies how matching should be done. Supported values are: MATCH_ANY: At least one of the Labels specified in the matcher should match the metadata presented by xDS client. MATCH_ALL: The metadata presented by the xDS client should contain all of the labels specified here. The selection is determined based on the best match. For example, suppose there are three EndpointPolicy resources P1, P2 and P3 and if P1 has a the matcher as MATCH_ANY , P2 has MATCH_ALL , and P3 has MATCH_ALL . If a client with label connects, the config from P1 will be selected. If a client with label connects, the config from P2 will be selected. If a client with label connects, the config from P3 will be selected. If there is more than one best match, (for example, if a config P4 with selector exists and if a client with label connects), pick up the one with older creation time. // TODO: enum values: ["METADATA_LABEL_MATCH_CRITERIA_UNSPECIFIED", "MATCH_ANY", "MATCH_ALL"]
     #[serde(default, rename = "metadataLabelMatchCriteria")]
@@ -1185,7 +1186,7 @@ pub struct EndpointMatcherMetadataLabelMatcher {
 }
 
 /// Specifies how to route matched traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRouteRouteAction {
     /// Optional. The destination services to which traffic should be forwarded. If multiple destinations are specified, traffic will be split between Backend Service(s) according to the weight field of these destinations.
     #[serde(default)]
@@ -1208,7 +1209,7 @@ pub struct GrpcRouteRouteAction {
 }
 
 /// Criteria for matching traffic. A RouteMatch will be considered to match when all supplied fields match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRouteRouteMatch {
     /// Optional. Specifies a collection of headers to match.
     #[serde(default)]
@@ -1219,7 +1220,7 @@ pub struct GrpcRouteRouteMatch {
 }
 
 /// The specifications for routing traffic and applying associated policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteRouteAction {
     /// The specification for allowing client side cross-origin requests.
     #[serde(default, rename = "corsPolicy")]
@@ -1263,7 +1264,7 @@ pub struct HttpRouteRouteAction {
 }
 
 /// RouteMatch defines specifications used to match requests. If multiple match types are set, this RouteMatch will match if ALL type of matches are matched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteRouteMatch {
     /// The HTTP request path value should exactly match this value. Only one of full_path_match, prefix_match, or regex_match should be used.
     #[serde(default, rename = "fullPathMatch")]
@@ -1286,7 +1287,7 @@ pub struct HttpRouteRouteMatch {
 }
 
 /// A single extension in the chain to execute for the matching request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtensionChainExtension {
     /// Optional. The :authority header in the gRPC request sent from Envoy to the extension service. Required for Callout extensions. This field is not supported for plugin extensions. Setting it results in a validation error.
     #[serde(default)]
@@ -1327,7 +1328,7 @@ pub struct ExtensionChainExtension {
 }
 
 /// Conditions under which this chain is invoked for a request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtensionChainMatchCondition {
     /// Required. A Common Expression Language (CEL) expression that is used to match requests for which the extension chain is executed. For more information, see [CEL matcher language reference](https://cloud.google.com/service-extensions/docs/cel-matcher-language-reference).
     #[serde(default, rename = "celExpression")]
@@ -1335,7 +1336,7 @@ pub struct ExtensionChainMatchCondition {
 }
 
 /// The specifications for routing traffic and applying associated policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TcpRouteRouteAction {
     /// Optional. The destination services to which traffic should be forwarded. At least one destination service is required. Only one of route destination or original destination can be set.
     #[serde(default)]
@@ -1349,7 +1350,7 @@ pub struct TcpRouteRouteAction {
 }
 
 /// RouteMatch defines the predicate used to match requests to a given action. Multiple match types are "OR"ed for evaluation. If no routeMatch field is specified, this rule will unconditionally match traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TcpRouteRouteMatch {
     /// Required. Must be specified in the CIDR range format. A CIDR range consists of an IP Address and a prefix length to construct the subnet mask. By default, the prefix length is 32 (i.e. matches a single IP address). Only IPV4 addresses are supported. Examples: "10.0.0.1" - matches against this exact IP address. "10.0.0.0/8" - matches against any IP address within the 10.0.0.0 subnet and 255.255.255.0 mask. "0.0.0.0/0" - matches against any IP address''.
     #[serde(default)]
@@ -1360,7 +1361,7 @@ pub struct TcpRouteRouteMatch {
 }
 
 /// The specifications for routing traffic and applying associated policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsRouteRouteAction {
     /// Required. The destination services to which traffic should be forwarded. At least one destination service is required.
     #[serde(default)]
@@ -1371,7 +1372,7 @@ pub struct TlsRouteRouteAction {
 }
 
 /// RouteMatch defines the predicate used to match requests to a given action. Multiple match types are "AND"ed for evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsRouteRouteMatch {
     /// Optional. ALPN (Application-Layer Protocol Negotiation) to match against. Examples: "http/1.1", "h2". At least one of sni_host and alpn is required. Up to 5 alpns across all matches can be set.
     #[serde(default)]
@@ -1382,7 +1383,7 @@ pub struct TlsRouteRouteMatch {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1393,7 +1394,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1410,7 +1411,7 @@ pub struct Expr {
 }
 
 /// Defines a name-pair value for a single label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointMatcherMetadataLabelMatcherMetadataLabels {
     /// Required. Label name presented as key in xDS Node Metadata.
     #[serde(default, rename = "labelName")]
@@ -1421,7 +1422,7 @@ pub struct EndpointMatcherMetadataLabelMatcherMetadataLabels {
 }
 
 /// The destination to which traffic will be routed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRouteDestination {
     /// Required. The URL of a destination service to which to route traffic. Must refer to either a BackendService or ServiceDirectoryService.
     #[serde(default, rename = "serviceName")]
@@ -1432,7 +1433,7 @@ pub struct GrpcRouteDestination {
 }
 
 /// The specification for fault injection introduced into traffic to test the resiliency of clients to destination service failure. As part of fault injection, when clients send requests to a destination, delays can be introduced on a percentage of requests before sending those requests to the destination service. Similarly requests from clients can be aborted by for a percentage of requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRouteFaultInjectionPolicy {
     /// The specification for aborting to client requests.
     #[serde(default)]
@@ -1443,7 +1444,7 @@ pub struct GrpcRouteFaultInjectionPolicy {
 }
 
 /// The specifications for retries. Specifies one or more conditions for which this retry rule applies. Valid values are:
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRouteRetryPolicy {
     /// Specifies the allowed number of retries. This number must be &gt; 0. If not specified, default to 1.
     #[serde(default, rename = "numRetries")]
@@ -1454,7 +1455,7 @@ pub struct GrpcRouteRetryPolicy {
 }
 
 /// The specification for cookie-based stateful session affinity where the date plane supplies a “session cookie” with the name "GSSA" which encodes a specific destination host and each request containing that cookie will be directed to that host as long as the destination host remains up and healthy. The gRPC proxyless mesh library or sidecar proxy will manage the session cookie but the client application code is responsible for copying the cookie from each RPC in the session to the next.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRouteStatefulSessionAffinityPolicy {
     /// Required. The cookie TTL value for the Set-Cookie header generated by the data plane. The lifetime of the cookie may be set to a value from 0 to 86400 seconds (24 hours) inclusive. Set this to 0s to use a session cookie and disable cookie expiration.
     #[serde(default, rename = "cookieTtl")]
@@ -1462,7 +1463,7 @@ pub struct GrpcRouteStatefulSessionAffinityPolicy {
 }
 
 /// A match against a collection of headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRouteHeaderMatch {
     /// Required. The key of the header.
     #[serde(default)]
@@ -1476,7 +1477,7 @@ pub struct GrpcRouteHeaderMatch {
 }
 
 /// Specifies a match against a method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRouteMethodMatch {
     /// Optional. Specifies that matches are case sensitive. The default value is true. case_sensitive must not be used with a type of REGULAR_EXPRESSION.
     #[serde(default, rename = "caseSensitive")]
@@ -1493,7 +1494,7 @@ pub struct GrpcRouteMethodMatch {
 }
 
 /// The Specification for allowing client side cross-origin requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteCorsPolicy {
     /// In response to a preflight request, setting this to true indicates that the actual request can include user credentials. This translates to the Access-Control-Allow-Credentials header. Default value is false.
     #[serde(default, rename = "allowCredentials")]
@@ -1522,7 +1523,7 @@ pub struct HttpRouteCorsPolicy {
 }
 
 /// Static HTTP response object to be returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteHttpDirectResponse {
     /// Optional. Response body as bytes. Maximum body size is 4096B.
     #[serde(default, rename = "bytesBody")]
@@ -1536,7 +1537,7 @@ pub struct HttpRouteHttpDirectResponse {
 }
 
 /// The specification for fault injection introduced into traffic to test the resiliency of clients to destination service failure. As part of fault injection, when clients send requests to a destination, delays can be introduced by client proxy on a percentage of requests before sending those requests to the destination service. Similarly requests can be aborted by client proxy for a percentage of requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteFaultInjectionPolicy {
     /// The specification for aborting to client requests.
     #[serde(default)]
@@ -1547,7 +1548,7 @@ pub struct HttpRouteFaultInjectionPolicy {
 }
 
 /// The specification for redirecting traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteRedirect {
     /// The host that will be used in the redirect response instead of the one that was supplied in the request.
     #[serde(default, rename = "hostRedirect")]
@@ -1573,7 +1574,7 @@ pub struct HttpRouteRedirect {
 }
 
 /// Specifies the policy on how requests are shadowed to a separate mirrored destination service. The proxy does not wait for responses from the shadow service. Prior to sending traffic to the shadow service, the host/authority header is suffixed with -shadow. Mirroring is currently not supported for Cloud Run destinations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteRequestMirrorPolicy {
     /// The destination the requests will be mirrored to. The weight of the destination will be ignored.
     #[serde(default)]
@@ -1584,7 +1585,7 @@ pub struct HttpRouteRequestMirrorPolicy {
 }
 
 /// The specifications for retries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteRetryPolicy {
     /// Specifies the allowed number of retries. This number must be &gt; 0. If not specified, default to 1.
     #[serde(default, rename = "numRetries")]
@@ -1598,7 +1599,7 @@ pub struct HttpRouteRetryPolicy {
 }
 
 /// The specification for cookie-based stateful session affinity where the date plane supplies a “session cookie” with the name "GSSA" which encodes a specific destination host and each request containing that cookie will be directed to that host as long as the destination host remains up and healthy. The gRPC proxyless mesh library or sidecar proxy will manage the session cookie but the client application code is responsible for copying the cookie from each RPC in the session to the next.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteStatefulSessionAffinityPolicy {
     /// Required. The cookie TTL value for the Set-Cookie header generated by the data plane. The lifetime of the cookie may be set to a value from 0 to 86400 seconds (24 hours) inclusive. Set this to 0s to use a session cookie and disable cookie expiration.
     #[serde(default, rename = "cookieTtl")]
@@ -1606,7 +1607,7 @@ pub struct HttpRouteStatefulSessionAffinityPolicy {
 }
 
 /// The specification for modifying the URL of the request, prior to forwarding the request to the destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteURLRewrite {
     /// Prior to forwarding the request to the selected destination, the requests host header is replaced by this value.
     #[serde(default, rename = "hostRewrite")]
@@ -1617,7 +1618,7 @@ pub struct HttpRouteURLRewrite {
 }
 
 /// Specifies how to select a route rule based on HTTP request headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteHeaderMatch {
     /// The value of the header should match exactly the content of exact_match.
     #[serde(default, rename = "exactMatch")]
@@ -1646,7 +1647,7 @@ pub struct HttpRouteHeaderMatch {
 }
 
 /// Specifications to match a query parameter in the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteQueryParameterMatch {
     /// The value of the query parameter must exactly match the contents of exact_match. Only one of exact_match, regex_match, or present_match must be set.
     #[serde(default, rename = "exactMatch")]
@@ -1663,7 +1664,7 @@ pub struct HttpRouteQueryParameterMatch {
 }
 
 /// Describe the destination for traffic to be routed to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TcpRouteRouteDestination {
     /// Required. The URL of a BackendService to route traffic to.
     #[serde(default, rename = "serviceName")]
@@ -1674,7 +1675,7 @@ pub struct TcpRouteRouteDestination {
 }
 
 /// Describe the destination for traffic to be routed to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TlsRouteRouteDestination {
     /// Required. The URL of a BackendService to route traffic to.
     #[serde(default, rename = "serviceName")]
@@ -1685,7 +1686,7 @@ pub struct TlsRouteRouteDestination {
 }
 
 /// Specification of how client requests are aborted as part of fault injection before being sent to a destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRouteFaultInjectionPolicyAbort {
     /// The HTTP status code used to abort the request. The value must be between 200 and 599 inclusive.
     #[serde(default, rename = "httpStatus")]
@@ -1696,7 +1697,7 @@ pub struct GrpcRouteFaultInjectionPolicyAbort {
 }
 
 /// Specification of how client requests are delayed as part of fault injection before being sent to a destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrpcRouteFaultInjectionPolicyDelay {
     /// Specify a fixed delay before forwarding the request.
     #[serde(default, rename = "fixedDelay")]
@@ -1707,7 +1708,7 @@ pub struct GrpcRouteFaultInjectionPolicyDelay {
 }
 
 /// Specification of how client requests are aborted as part of fault injection before being sent to a destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteFaultInjectionPolicyAbort {
     /// The HTTP status code used to abort the request. The value must be between 200 and 599 inclusive.
     #[serde(default, rename = "httpStatus")]
@@ -1718,7 +1719,7 @@ pub struct HttpRouteFaultInjectionPolicyAbort {
 }
 
 /// Specification of how client requests are delayed as part of fault injection before being sent to a destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteFaultInjectionPolicyDelay {
     /// Specify a fixed delay before forwarding the request.
     #[serde(default, rename = "fixedDelay")]
@@ -1729,7 +1730,7 @@ pub struct HttpRouteFaultInjectionPolicyDelay {
 }
 
 /// Specifications of a destination to which the request should be routed to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteDestination {
     /// Optional. The specification for modifying the headers of a matching request prior to delivery of the request to the destination. If HeaderModifiers are set on both the Destination and the RouteAction, they will be merged. Conflicts between the two will not be resolved on the configuration.
     #[serde(default, rename = "requestHeaderModifier")]
@@ -1746,7 +1747,7 @@ pub struct HttpRouteDestination {
 }
 
 /// Represents an integer value range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteHeaderMatchIntegerRange {
     /// End of the range (exclusive)
     #[serde(default)]
@@ -1757,7 +1758,7 @@ pub struct HttpRouteHeaderMatchIntegerRange {
 }
 
 /// The specification for modifying HTTP header in HTTP request and HTTP response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpRouteHeaderModifier {
     /// Add the headers with given map where key is the name of the header, value is the value of the header.
     #[serde(default)]

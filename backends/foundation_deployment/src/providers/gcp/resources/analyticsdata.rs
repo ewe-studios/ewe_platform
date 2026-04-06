@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// This metadata is currently blank.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudienceListMetadata {}
 
 /// The batch request containing multiple pivot report requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchRunPivotReportsRequest {
     /// Individual requests. Each request has a separate pivot report response. Each batch request is allowed up to 5 requests.
     #[serde(default)]
@@ -23,7 +24,7 @@ pub struct BatchRunPivotReportsRequest {
 }
 
 /// The batch response containing multiple pivot reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchRunPivotReportsResponse {
     /// Identifies what kind of resource this message is. This kind is always the fixed string "analyticsData#batchRunPivotReports". Useful to distinguish between response types in JSON.
     #[serde(default)]
@@ -34,7 +35,7 @@ pub struct BatchRunPivotReportsResponse {
 }
 
 /// The batch request containing multiple report requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchRunReportsRequest {
     /// Individual requests. Each request has a separate report response. Each batch request is allowed up to 5 requests.
     #[serde(default)]
@@ -42,7 +43,7 @@ pub struct BatchRunReportsRequest {
 }
 
 /// The batch response containing multiple reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchRunReportsResponse {
     /// Identifies what kind of resource this message is. This kind is always the fixed string "analyticsData#batchRunReports". Useful to distinguish between response types in JSON.
     #[serde(default)]
@@ -53,7 +54,7 @@ pub struct BatchRunReportsResponse {
 }
 
 /// The request for compatibility information for a report''s dimensions and metrics. Check compatibility provides a preview of the compatibility of a report; fields shared with the runReport request should be the same values as in your runReport request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckCompatibilityRequest {
     /// Filters the dimensions and metrics in the response to just this compatibility. Commonly used as ”compatibilityFilter”: “COMPATIBLE” to only return compatible dimensions & metrics. // TODO: enum values: ["COMPATIBILITY_UNSPECIFIED", "COMPATIBLE", "INCOMPATIBLE"]
     #[serde(default, rename = "compatibilityFilter")]
@@ -73,7 +74,7 @@ pub struct CheckCompatibilityRequest {
 }
 
 /// The compatibility response with the compatibility of each dimension & metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckCompatibilityResponse {
     /// The compatibility of each dimension.
     #[serde(default, rename = "dimensionCompatibilities")]
@@ -84,11 +85,11 @@ pub struct CheckCompatibilityResponse {
 }
 
 /// Filter for empty values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmptyFilter {}
 
 /// A list of all audience exports for a property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAudienceExportsResponse {
     /// Each audience export for a property.
     #[serde(default, rename = "audienceExports")]
@@ -99,7 +100,7 @@ pub struct ListAudienceExportsResponse {
 }
 
 /// The dimensions, metrics and comparisons currently accepted in reporting methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// The comparison descriptions.
     #[serde(default)]
@@ -116,7 +117,7 @@ pub struct Metadata {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -136,7 +137,7 @@ pub struct Operation {
 }
 
 /// A request to list users in an audience export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryAudienceExportRequest {
     /// Optional. The number of rows to return. If unspecified, 10,000 rows are returned. The API returns a maximum of 250,000 rows per request, no matter how many you ask for. limit must be positive. The API can also return fewer rows than the requested limit, if there aren''t as many dimension values as the limit. To learn more about this pagination parameter, see [Pagination](https://developers.google.com/analytics/devguides/reporting/data/v1/basics#pagination).
     #[serde(default)]
@@ -147,7 +148,7 @@ pub struct QueryAudienceExportRequest {
 }
 
 /// A list of users in an audience export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryAudienceExportResponse {
     /// Configuration data about AudienceExport being queried. Returned to help interpret the audience rows in this response. For example, the dimensions in this AudienceExport correspond to the columns in the AudienceRows.
     #[serde(default, rename = "audienceExport")]
@@ -161,7 +162,7 @@ pub struct QueryAudienceExportResponse {
 }
 
 /// The request to generate a realtime report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunRealtimeReportRequest {
     /// The filter clause of dimensions. Metrics cannot be used in this filter.
     #[serde(default, rename = "dimensionFilter")]
@@ -193,7 +194,7 @@ pub struct RunRealtimeReportRequest {
 }
 
 /// The response realtime report table corresponding to a request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunRealtimeReportResponse {
     /// Describes dimension columns. The number of DimensionHeaders and ordering of DimensionHeaders matches the dimensions present in rows.
     #[serde(default, rename = "dimensionHeaders")]
@@ -225,7 +226,7 @@ pub struct RunRealtimeReportResponse {
 }
 
 /// The filter for string
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StringFilter {
     /// If true, the string value is case sensitive.
     #[serde(default, rename = "caseSensitive")]
@@ -239,7 +240,7 @@ pub struct StringFilter {
 }
 
 /// The request to generate a pivot report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunPivotReportRequest {
     /// Cohort group associated with this request. If there is a cohort group in the request the ''cohort'' dimension must be present.
     #[serde(default, rename = "cohortSpec")]
@@ -280,7 +281,7 @@ pub struct RunPivotReportRequest {
 }
 
 /// The response pivot report table corresponding to a pivot request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunPivotReportResponse {
     /// Aggregation of metric values. Can be totals, minimums, or maximums. The returned aggregations are controlled by the metric_aggregations in the pivot. The type of aggregation returned in each row is shown by the dimension_values which are set to "RESERVED_".
     #[serde(default)]
@@ -309,7 +310,7 @@ pub struct RunPivotReportResponse {
 }
 
 /// The request to generate a report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunReportRequest {
     /// Cohort group associated with this request. If there is a cohort group in the request the ''cohort'' dimension must be present.
     #[serde(default, rename = "cohortSpec")]
@@ -359,7 +360,7 @@ pub struct RunReportRequest {
 }
 
 /// The response report table corresponding to a request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunReportResponse {
     /// Describes dimension columns. The number of DimensionHeaders and ordering of DimensionHeaders matches the dimensions present in rows.
     #[serde(default, rename = "dimensionHeaders")]
@@ -394,7 +395,7 @@ pub struct RunReportResponse {
 }
 
 /// The compatibility for a single dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionCompatibility {
     /// The compatibility of this dimension. If the compatibility is COMPATIBLE, this dimension can be successfully added to the report. // TODO: enum values: ["COMPATIBILITY_UNSPECIFIED", "COMPATIBLE", "INCOMPATIBLE"]
     #[serde(default)]
@@ -405,7 +406,7 @@ pub struct DimensionCompatibility {
 }
 
 /// The compatibility for a single metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricCompatibility {
     /// The compatibility of this metric. If the compatibility is COMPATIBLE, this metric can be successfully added to the report. // TODO: enum values: ["COMPATIBILITY_UNSPECIFIED", "COMPATIBLE", "INCOMPATIBLE"]
     #[serde(default)]
@@ -416,7 +417,7 @@ pub struct MetricCompatibility {
 }
 
 /// The metadata for a single comparison.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComparisonMetadata {
     /// This comparison''s resource name. Useable in [Comparison](#Comparison)''s comparison field. For example, ''comparisons/1234''.
     #[serde(default, rename = "apiName")]
@@ -430,7 +431,7 @@ pub struct ComparisonMetadata {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -444,7 +445,7 @@ pub struct Status {
 }
 
 /// An audience export is a list of users in an audience at the time of the list''s creation. One audience may have multiple audience exports created for different days.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudienceExport {
     /// Required. The audience resource name. This resource name identifies the audience being listed and is shared between the Analytics Data & Admin APIs. Format: properties/{property}/audiences/{audience}
     #[serde(default)]
@@ -479,7 +480,7 @@ pub struct AudienceExport {
 }
 
 /// Dimension value attributes for the audience user row.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1betaAudienceRow {
     /// Each dimension value attribute for an audience user. One dimension value will be added for each dimension column requested.
     #[serde(default, rename = "dimensionValues")]
@@ -487,7 +488,7 @@ pub struct V1betaAudienceRow {
 }
 
 /// A contiguous set of minutes: startMinutesAgo, startMinutesAgo + 1, ..., endMinutesAgo. Requests are allowed up to 2 minute ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MinuteRange {
     /// The inclusive end minute for the query as a number of minutes before now. Cannot be before startMinutesAgo. For example, "endMinutesAgo": 15 specifies the report should include event data from prior to 15 minutes ago. If unspecified, endMinutesAgo is defaulted to 0. Standard Analytics properties can request any minute in the last 30 minutes of event data (endMinutesAgo &lt;= 29), and 360 Analytics properties can request any minute in the last 60 minutes of event data (endMinutesAgo &lt;= 59).
     #[serde(default, rename = "endMinutesAgo")]
@@ -501,7 +502,7 @@ pub struct MinuteRange {
 }
 
 /// Describes the visible dimension columns and rows in the report response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pivot {
     /// Dimension names for visible columns in the report response. Including "dateRange" produces a date range column; for each row in the response, dimension values in the date range column will indicate the corresponding date range from the request.
     #[serde(default, rename = "fieldNames")]
@@ -521,7 +522,7 @@ pub struct Pivot {
 }
 
 /// Dimensions'' values in a single pivot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PivotHeader {
     /// The size is the same as the cardinality of the corresponding dimension combinations.
     #[serde(default, rename = "pivotDimensionHeaders")]
@@ -532,7 +533,7 @@ pub struct PivotHeader {
 }
 
 /// The specification of cohorts for a cohort report. Cohort reports create a time series of user retention for the cohort. For example, you could select the cohort of users that were acquired in the first week of September and follow that cohort for the next six weeks. Selecting the users acquired in the first week of September cohort is specified in the cohort object. Following that cohort for the next six weeks is specified in the cohortsRange object. For examples, see [Cohort Report Examples](https://developers.google.com/analytics/devguides/reporting/data/v1/advanced#cohort_report_examples). The report response could show a weekly time series where say your app has retained 60% of this cohort after three weeks and 25% of this cohort after six weeks. These two percentages can be calculated by the metric cohortActiveUsers/cohortTotalUsers and will be separate rows in the report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CohortSpec {
     /// Optional settings for a cohort report.
     #[serde(default, rename = "cohortReportSettings")]
@@ -546,7 +547,7 @@ pub struct CohortSpec {
 }
 
 /// Defines an individual comparison. Most requests will include multiple comparisons so that the report compares between the comparisons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Comparison {
     /// A saved comparison identified by the comparison''s resource name. For example, ''comparisons/1234''.
     #[serde(default)]
@@ -560,7 +561,7 @@ pub struct Comparison {
 }
 
 /// Dimensions are attributes of your data. For example, the dimension city indicates the city from which an event originates. Dimension values in report responses are strings; for example, the city could be "Paris" or "New York". Requests are allowed up to 9 dimensions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dimension {
     /// One dimension can be the result of an expression of multiple dimensions. For example, dimension "country, city": concatenate(country, ", ", city).
     #[serde(default, rename = "dimensionExpression")]
@@ -571,7 +572,7 @@ pub struct Dimension {
 }
 
 /// The quantitative measurements of a report. For example, the metric eventCount is the total number of events. Requests are allowed up to 10 metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metric {
     /// A mathematical expression for derived metrics. For example, the metric Event count per user is eventCount/totalUsers.
     #[serde(default)]
@@ -585,7 +586,7 @@ pub struct Metric {
 }
 
 /// Describes a dimension column in the report. Dimensions requested in a report produce column entries within rows and DimensionHeaders. However, dimensions used exclusively within filters or expressions do not produce columns in a report; correspondingly, those dimensions do not produce headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionHeader {
     /// The dimension''s name.
     #[serde(default)]
@@ -593,7 +594,7 @@ pub struct DimensionHeader {
 }
 
 /// Report data for each row. For example if RunReportRequest contains: none "dimensions": [ { "name": "eventName" }, { "name": "countryId" } ], "metrics": [ { "name": "eventCount" } ]  One row with ''in_app_purchase'' as the eventName, ''JP'' as the countryId, and 15 as the eventCount, would be: none "dimensionValues": [ { "value": "in_app_purchase" }, { "value": "JP" } ], "metricValues": [ { "value": "15" } ]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Row {
     /// List of requested dimension values. In a PivotReport, dimension_values are only listed for dimensions included in a pivot.
     #[serde(default, rename = "dimensionValues")]
@@ -604,7 +605,7 @@ pub struct Row {
 }
 
 /// Response''s metadata carrying additional information about the report content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponseMetaData {
     /// The currency code used in this report. Intended to be used in formatting currency metrics like purchaseRevenue for visualization. If currency_code was specified in the request, this response parameter will echo the request parameter; otherwise, this response parameter is the property''s current currency_code. Currency codes are string encodings of currency types from the ISO 4217 standard (https://en.wikipedia.org/wiki/ISO_4217); for example "USD", "EUR", "JPY". To learn more, see https://support.google.com/analytics/answer/9796179.
     #[serde(default, rename = "currencyCode")]
@@ -630,7 +631,7 @@ pub struct ResponseMetaData {
 }
 
 /// Describes a metric column in the report. Visible metrics requested in a report produce column entries within rows and MetricHeaders. However, metrics used exclusively within filters or expressions do not produce columns in a report; correspondingly, those metrics do not produce headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricHeader {
     /// The metric''s name.
     #[serde(default)]
@@ -641,7 +642,7 @@ pub struct MetricHeader {
 }
 
 /// Current state of all quotas for this Analytics Property. If any quota for a property is exhausted, all requests to that property will return Resource Exhausted errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyQuota {
     /// Standard Analytics Properties can send up to 10 concurrent requests; Analytics 360 Properties can use up to 50 concurrent requests.
     #[serde(default, rename = "concurrentRequests")]
@@ -664,7 +665,7 @@ pub struct PropertyQuota {
 }
 
 /// Explains a dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionMetadata {
     /// This dimension''s name. Useable in [Dimension](#Dimension)''s name. For example, eventName.
     #[serde(default, rename = "apiName")]
@@ -687,7 +688,7 @@ pub struct DimensionMetadata {
 }
 
 /// Explains a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricMetadata {
     /// A metric name. Useable in [Metric](#Metric)''s name. For example, eventCount.
     #[serde(default, rename = "apiName")]
@@ -719,7 +720,7 @@ pub struct MetricMetadata {
 }
 
 /// An audience dimension is a user attribute. Specific user attributed are requested and then later returned in the QueryAudienceExportResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1betaAudienceDimension {
     /// Optional. The API name of the dimension. See the [API Dimensions](https://developers.google.com/analytics/devguides/reporting/data/v1/audience-list-api-schema#dimensions) for the list of dimension names.
     #[serde(default, rename = "dimensionName")]
@@ -727,7 +728,7 @@ pub struct V1betaAudienceDimension {
 }
 
 /// The value of a dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1betaAudienceDimensionValue {
     /// Value as a string if the dimension type is a string.
     #[serde(default)]
@@ -735,7 +736,7 @@ pub struct V1betaAudienceDimensionValue {
 }
 
 /// Order bys define how rows will be sorted in the response. For example, ordering rows by descending event count is one ordering, and ordering rows by the event name string is a different ordering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrderBy {
     /// If true, sorts by descending order.
     #[serde(default)]
@@ -752,7 +753,7 @@ pub struct OrderBy {
 }
 
 /// Summarizes dimension values from a row for this pivot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PivotDimensionHeader {
     /// Values of multiple dimensions in a pivot.
     #[serde(default, rename = "dimensionValues")]
@@ -760,7 +761,7 @@ pub struct PivotDimensionHeader {
 }
 
 /// Optional settings of a cohort report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CohortReportSettings {
     /// If true, accumulates the result from first touch day to the end day. Not supported in RunReportRequest.
     #[serde(default)]
@@ -768,7 +769,7 @@ pub struct CohortReportSettings {
 }
 
 /// Defines a cohort selection criteria. A cohort is a group of users who share a common characteristic. For example, users with the same firstSessionDate belong to the same cohort.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cohort {
     /// The cohort selects users whose first touch date is between start date and end date defined in the dateRange. This dateRange does not specify the full date range of event data that is present in a cohort report. In a cohort report, this dateRange is extended by the granularity and offset present in the cohortsRange; event data for the extended reporting date range is present in a cohort report. In a cohort request, this dateRange is required and the dateRanges in the RunReportRequest or RunPivotReportRequest must be unspecified. This dateRange should generally be aligned with the cohort''s granularity. If CohortsRange uses daily granularity, this dateRange can be a single day. If CohortsRange uses weekly granularity, this dateRange can be aligned to a week boundary, starting at Sunday and ending Saturday. If CohortsRange uses monthly granularity, this dateRange can be aligned to a month, starting at the first and ending on the last day of the month.
     #[serde(default, rename = "dateRange")]
@@ -782,7 +783,7 @@ pub struct Cohort {
 }
 
 /// Configures the extended reporting date range for a cohort report. Specifies an offset duration to follow the cohorts over.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CohortsRange {
     /// Required. endOffset specifies the end date of the extended reporting date range for a cohort report. endOffset can be any positive integer but is commonly set to 5 to 10 so that reports contain data on the cohort for the next several granularity time periods. If granularity is DAILY, the endDate of the extended reporting date range is endDate of the cohort plus endOffset days. If granularity is WEEKLY, the endDate of the extended reporting date range is endDate of the cohort plus endOffset * 7 days. If granularity is MONTHLY, the endDate of the extended reporting date range is endDate of the cohort plus endOffset * 30 days.
     #[serde(default, rename = "endOffset")]
@@ -796,7 +797,7 @@ pub struct CohortsRange {
 }
 
 /// Used to express a dimension which is the result of a formula of multiple dimensions. Example usages: 1) lower_case(dimension) 2) concatenate(dimension1, symbol, dimension2).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionExpression {
     /// Used to combine dimension values to a single dimension. For example, dimension "country, city": concatenate(country, ", ", city).
     #[serde(default)]
@@ -810,7 +811,7 @@ pub struct DimensionExpression {
 }
 
 /// The value of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricValue {
     /// Measurement value. See MetricHeader for type.
     #[serde(default)]
@@ -818,7 +819,7 @@ pub struct MetricValue {
 }
 
 /// If this report results is [sampled](https://support.google.com/analytics/answer/13331292), this describes the percentage of events used in this report. Sampling is the practice of analyzing a subset of all data in order to uncover the meaningful information in the larger data set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SamplingMetadata {
     /// The total number of events read in this sampled report for a date range. This is the size of the subset this property''s data that was analyzed in this report.
     #[serde(default, rename = "samplesReadCount")]
@@ -829,7 +830,7 @@ pub struct SamplingMetadata {
 }
 
 /// The schema restrictions actively enforced in creating this report. To learn more, see [Access and data-restriction management](https://support.google.com/analytics/answer/10851388).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchemaRestrictionResponse {
     /// All restrictions actively enforced in creating the report. For example, purchaseRevenue always has the restriction type REVENUE_DATA. However, this active response restriction is only populated if the user''s custom role disallows access to REVENUE_DATA.
     #[serde(default, rename = "activeMetricRestrictions")]
@@ -838,7 +839,7 @@ pub struct SchemaRestrictionResponse {
 }
 
 /// Current state for a particular quota group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotaStatus {
     /// Quota consumed by this request.
     #[serde(default)]
@@ -849,7 +850,7 @@ pub struct QuotaStatus {
 }
 
 /// Sorts by dimension values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionOrderBy {
     /// A dimension name in the request to order by.
     #[serde(default, rename = "dimensionName")]
@@ -860,7 +861,7 @@ pub struct DimensionOrderBy {
 }
 
 /// Sorts by metric values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricOrderBy {
     /// A metric name in the request to order by.
     #[serde(default, rename = "metricName")]
@@ -868,7 +869,7 @@ pub struct MetricOrderBy {
 }
 
 /// Sorts by a pivot column group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PivotOrderBy {
     /// In the response to order by, order rows by this column. Must be a metric name from the request.
     #[serde(default, rename = "metricName")]
@@ -879,7 +880,7 @@ pub struct PivotOrderBy {
 }
 
 /// The value of a dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DimensionValue {
     /// Value as a string if the dimension type is a string.
     #[serde(default)]
@@ -887,7 +888,7 @@ pub struct DimensionValue {
 }
 
 /// A contiguous set of days: startDate, startDate + 1, ..., endDate. Requests are allowed up to 4 date ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateRange {
     /// The inclusive end date for the query in the format YYYY-MM-DD. Cannot be before start_date. The format NdaysAgo, yesterday, or today is also accepted, and in that case, the date is inferred based on the property''s reporting time zone.
     #[serde(default, rename = "endDate")]
@@ -901,7 +902,7 @@ pub struct DateRange {
 }
 
 /// Used to combine dimension values to a single dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConcatenateExpression {
     /// The delimiter placed between dimension names. Delimiters are often single characters such as "|" or "," but can be longer strings. If a dimension value contains the delimiter, both will be present in response with no distinction. For example if dimension 1 value = "US,FR", dimension 2 value = "JP", and delimiter = ",", then the response will contain "US,FR,JP".
     #[serde(default)]
@@ -912,7 +913,7 @@ pub struct ConcatenateExpression {
 }
 
 /// Used to convert a dimension value to a single case.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CaseExpression {
     /// Name of a dimension. The name must refer back to a name in dimensions field of the request.
     #[serde(default, rename = "dimensionName")]
@@ -920,7 +921,7 @@ pub struct CaseExpression {
 }
 
 /// A metric actively restricted in creating the report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveMetricRestriction {
     /// The name of the restricted metric.
     #[serde(default, rename = "metricName")]
@@ -931,7 +932,7 @@ pub struct ActiveMetricRestriction {
 }
 
 /// A pair of dimension names and values. Rows with this dimension pivot pair are ordered by the metric''s value. For example if pivots = {{"browser", "Chrome"}} and metric_name = "Sessions", then the rows will be sorted based on Sessions in Chrome. ---------|----------|----------------|----------|---------------- | Chrome | Chrome | Safari | Safari ---------|----------|----------------|----------|---------------- Country | Sessions | Pages/Sessions | Sessions | Pages/Sessions ---------|----------|----------------|----------|---------------- US | 2 | 2 | 3 | 1 ---------|----------|----------------|----------|---------------- Canada | 3 | 1 | 4 | 1 ---------|----------|----------------|----------|----------------
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PivotSelection {
     /// Must be a dimension name from the request.
     #[serde(default, rename = "dimensionName")]
@@ -942,7 +943,7 @@ pub struct PivotSelection {
 }
 
 /// To express that the result needs to be between two numbers (inclusive).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BetweenFilter {
     /// Begins with this number.
     #[serde(default, rename = "fromValue")]
@@ -953,7 +954,7 @@ pub struct BetweenFilter {
 }
 
 /// An expression to filter dimension or metric values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Filter {
     /// A filter for two values.
     #[serde(default, rename = "betweenFilter")]
@@ -976,7 +977,7 @@ pub struct Filter {
 }
 
 /// To express dimension or metric filters. The fields in the same FilterExpression need to be either all dimensions or all metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterExpression {
     /// The FilterExpressions in and_group have an AND relationship.
     #[serde(default, rename = "andGroup")]
@@ -993,7 +994,7 @@ pub struct FilterExpression {
 }
 
 /// A list of filter expressions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterExpressionList {
     /// A list of filter expressions.
     #[serde(default)]
@@ -1001,7 +1002,7 @@ pub struct FilterExpressionList {
 }
 
 /// The result needs to be in a list of string values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InListFilter {
     /// If true, the string value is case sensitive.
     #[serde(default, rename = "caseSensitive")]
@@ -1012,7 +1013,7 @@ pub struct InListFilter {
 }
 
 /// Filters for numeric or date values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NumericFilter {
     /// The operation type for this filter. // TODO: enum values: ["OPERATION_UNSPECIFIED", "EQUAL", "LESS_THAN", "LESS_THAN_OR_EQUAL", "GREATER_THAN", "GREATER_THAN_OR_EQUAL"]
     #[serde(default)]
@@ -1023,7 +1024,7 @@ pub struct NumericFilter {
 }
 
 /// To represent a number.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NumericValue {
     /// Double value
     #[serde(default, rename = "doubleValue")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// For enum metrics, provides fraction timeseries which add up to approximately 1.0 per entry (k-th element into the repeated fractions field for any k &lt;= len) across fraction_timeseries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FractionTimeseries {
     /// Values between 0.0 and 1.0 (inclusive) and NaN.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct FractionTimeseries {
 }
 
 /// A metric is a set of user experience data for a single web performance metric, like "first contentful paint". It contains a summary histogram of real world Chrome usage as a series of bins.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metric {
     /// For enum metrics, provides fractions which add up to approximately 1.0.
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct Metric {
 }
 
 /// A metric timeseries is a set of user experience data for a single web performance metric, like "first contentful paint". It contains a summary histogram of real world Chrome usage as a series of bins, where each bin has density values for a particular time period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricTimeseries {
     /// Mapping from labels to timeseries of fractions attributed to this label.
     #[serde(default, rename = "fractionTimeseries")]
@@ -47,7 +48,7 @@ pub struct MetricTimeseries {
 }
 
 /// Request payload sent by a physical web client. This request includes all necessary context to load a particular user experience history record.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryHistoryRequest {
     /// The number of collection periods to return. If not specified, the default is 25. If present, must be in the range [1, 40].
     #[serde(default, rename = "collectionPeriodCount")]
@@ -67,7 +68,7 @@ pub struct QueryHistoryRequest {
 }
 
 /// Response payload sent back to a physical web client. This response contains the record found based on the identiers present in a QueryHistoryRequest. The returned response will have a history record, and sometimes details on normalization actions taken on the request that were necessary to make the request successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryHistoryResponse {
     /// The record that was found.
     #[serde(default)]
@@ -78,7 +79,7 @@ pub struct QueryHistoryResponse {
 }
 
 /// Request payload sent by a physical web client. This request includes all necessary context to load a particular user experience record.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryRequest {
     /// The effective connection type is a query dimension that specifies the effective network class that the record''s data should belong to. This field uses the values ["offline", "slow-2G", "2G", "3G", "4G"] as specified in: https://wicg.github.io/netinfo/#effective-connection-types Note: If no effective connection type is specified, then a special record with aggregated data over all effective connection types will be returned.
     #[serde(default, rename = "effectiveConnectionType")]
@@ -98,7 +99,7 @@ pub struct QueryRequest {
 }
 
 /// Response payload sent back to a physical web client. This response contains the record found based on the identiers present in a QueryRequest. The returned response will have a record, and sometimes details on normalization actions taken on the request that were necessary to make the request successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryResponse {
     /// The record that was found.
     #[serde(default)]
@@ -109,7 +110,7 @@ pub struct QueryResponse {
 }
 
 /// A bin is a discrete portion of data spanning from start to end, or if no end is given, then from start to +inf. A bin''s start and end values are given in the value type of the metric it represents. For example, "first contentful paint" is measured in milliseconds and exposed as ints, therefore its metric bins will use int32s for its start and end types. However, "cumulative layout shift" is measured in unitless decimals and is exposed as a decimal encoded as a string, therefore its metric bins will use strings for its value type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Bin {
     /// The proportion of users that experienced this bin''s value for the given metric.
     #[serde(default)]
@@ -123,7 +124,7 @@ pub struct Bin {
 }
 
 /// Percentiles contains synthetic values of a metric at a given statistical percentile. These are used for estimating a metric''s value as experienced by a percentage of users out of the total number of users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Percentiles {
     /// 75% of users experienced the given metric at or below this value.
     #[serde(default)]
@@ -131,7 +132,7 @@ pub struct Percentiles {
 }
 
 /// A bin is a discrete portion of data spanning from start to end, or if no end is given, then from start to +inf. A bin''s start and end values are given in the value type of the metric it represents. For example, "first contentful paint" is measured in milliseconds and exposed as ints, therefore its metric bins will use int32s for its start and end types. However, "cumulative layout shift" is measured in unitless decimals and is exposed as a decimal encoded as a string, therefore its metric bins will use strings for its value type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeseriesBin {
     /// The proportion of users that experienced this bin''s value for the given metric in a given collection period; the index for each of these entries corresponds to an entry in the CollectionPeriods field in the HistoryRecord message, which describes when the density was observed in the field. Thus, the length of this list of densities is equal to the length of the CollectionPeriods field in the HistoryRecord message.
     #[serde(default)]
@@ -145,7 +146,7 @@ pub struct TimeseriesBin {
 }
 
 /// Percentiles contains synthetic values of a metric at a given statistical percentile. These are used for estimating a metric''s value as experienced by a percentage of users out of the total number of users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeseriesPercentiles {
     /// 75% of users experienced the given metric at or below this value. The length of this list of densities is equal to the length of the CollectionPeriods field in the HistoryRecord message, which describes when the density was observed in the field.
     #[serde(default)]
@@ -153,7 +154,7 @@ pub struct TimeseriesPercentiles {
 }
 
 /// HistoryRecord is a timeseries of Chrome UX Report data. It contains user experience statistics for a single url pattern and a set of dimensions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HistoryRecord {
     /// The collection periods indicate when each of the data points reflected in the time series data in metrics was collected. Note that all the time series share the same collection periods, and it is enforced in the CrUX pipeline that every time series has the same number of data points.
     #[serde(default, rename = "collectionPeriods")]
@@ -167,7 +168,7 @@ pub struct HistoryRecord {
 }
 
 /// Record is a single Chrome UX report data record. It contains use experience statistics for a single url pattern and set of dimensions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Record {
     /// The collection period indicates when the data reflected in this record was collected.
     #[serde(default, rename = "collectionPeriod")]
@@ -181,7 +182,7 @@ pub struct Record {
 }
 
 /// Object representing the normalization actions taken to normalize a url to achieve a higher chance of successful lookup. These are simple automated changes that are taken when looking up the provided url_patten would be known to fail. Complex actions like following redirects are not handled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlNormalization {
     /// The URL after any normalization actions. This is a valid user experience URL that could reasonably be looked up.
     #[serde(default, rename = "normalizedUrl")]
@@ -192,7 +193,7 @@ pub struct UrlNormalization {
 }
 
 /// Key defines all the dimensions that identify this record as unique.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HistoryKey {
     /// The form factor is the device class that all users used to access the site for this record. If the form factor is unspecified, then aggregated data over all form factors will be returned. // TODO: enum values: ["ALL_FORM_FACTORS", "PHONE", "DESKTOP", "TABLET"]
     #[serde(default, rename = "formFactor")]
@@ -206,7 +207,7 @@ pub struct HistoryKey {
 }
 
 /// The collection period is a date range which includes the first and last day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CollectionPeriod {
     /// The first day in the collection period, inclusive.
     #[serde(default, rename = "firstDate")]
@@ -217,7 +218,7 @@ pub struct CollectionPeriod {
 }
 
 /// Key defines all the dimensions that identify this record as unique.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Key {
     /// The effective connection type is the general connection class that all users experienced for this record. This field uses the values ["offline", "slow-2G", "2G", "3G", "4G"] as specified in: https://wicg.github.io/netinfo/#effective-connection-types If the effective connection type is unspecified, then aggregated data over all effective connection types will be returned.
     #[serde(default, rename = "effectiveConnectionType")]
@@ -234,7 +235,7 @@ pub struct Key {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]

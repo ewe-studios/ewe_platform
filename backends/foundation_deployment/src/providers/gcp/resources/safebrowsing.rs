@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The response containing multiple hash lists.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5BatchGetHashListsResponse {
     /// The hash lists in the same order given in the request.
     #[serde(default, rename = "hashLists")]
@@ -19,7 +20,7 @@ pub struct GoogleSecuritySafebrowsingV5BatchGetHashListsResponse {
 }
 
 /// The response containing metadata about hash lists.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5ListHashListsResponse {
     /// The hash lists in an arbitrary order. Only metadata about the hash lists will be included, not the contents.
     #[serde(default, rename = "hashLists")]
@@ -30,7 +31,7 @@ pub struct GoogleSecuritySafebrowsingV5ListHashListsResponse {
 }
 
 /// The response returned after searching threat hashes. If nothing is found, the server will return an OK status (HTTP status code 200) with the full_hashes field empty, rather than returning a NOT_FOUND status (HTTP status code 404). **What''s new in V5**: There is a separation between FullHash and FullHashDetail. In the case when a hash represents a site having multiple threats (e.g. both MALWARE and SOCIAL_ENGINEERING), the full hash does not need to be sent twice as in V4. Furthermore, the cache duration has been simplified into a single cache_duration field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5SearchHashesResponse {
     /// The client-side cache duration. The client MUST add this duration to the current time to determine the expiration time. The expiration time then applies to every hash prefix queried by the client in the request, regardless of how many full hashes are returned in the response. Even if the server returns no full hashes for a particular hash prefix, this fact MUST also be cached by the client. If and only if the field full_hashes is empty, the client MAY increase the cache_duration to determine a new expiration that is later than that specified by the server. In any case, the increased cache duration must not be longer than 24 hours. Important: the client MUST NOT assume that the server will return the same cache duration for all responses. The server MAY choose different cache durations for different responses depending on the situation.
     #[serde(default, rename = "cacheDuration")]
@@ -41,7 +42,7 @@ pub struct GoogleSecuritySafebrowsingV5SearchHashesResponse {
 }
 
 /// The response returned after searching threats matching the specified URLs. If nothing is found, the server will return an OK status (HTTP status code 200) with the threats field empty, rather than returning a NOT_FOUND status (HTTP status code 404).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5SearchUrlsResponse {
     /// The client-side cache duration. The client MUST add this duration to the current time to determine the expiration time. The expiration time then applies to every URL queried by the client in the request, regardless of how many URLs are returned in the response. Even if the server returns no matches for a particular URL, this fact MUST also be cached by the client. If and only if the field threats is empty, the client MAY increase the cache_duration to determine a new expiration that is later than that specified by the server. In any case, the increased cache duration must not be longer than 24 hours. Important: the client MUST NOT assume that the server will return the same cache duration for all responses. The server MAY choose different cache durations for different responses depending on the situation.
     #[serde(default, rename = "cacheDuration")]
@@ -52,7 +53,7 @@ pub struct GoogleSecuritySafebrowsingV5SearchUrlsResponse {
 }
 
 /// A list of hashes identified by its name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5HashList {
     /// The 8-byte additions.
     #[serde(default, rename = "additionsEightBytes")]
@@ -95,7 +96,7 @@ pub struct GoogleSecuritySafebrowsingV5HashList {
 }
 
 /// The full hash identified with one or more matches.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5FullHash {
     /// The matching full hash. This is the SHA256 hash. The length will be exactly 32 bytes.
     #[serde(default, rename = "fullHash")]
@@ -107,7 +108,7 @@ pub struct GoogleSecuritySafebrowsingV5FullHash {
 }
 
 /// A URL matching one or more threats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5ThreatUrl {
     /// Unordered list. The unordered list of threat that the URL is classified as.
     #[serde(default, rename = "threatTypes")]
@@ -118,7 +119,7 @@ pub struct GoogleSecuritySafebrowsingV5ThreatUrl {
 }
 
 /// Same as RiceDeltaEncoded32Bit except this encodes 64-bit numbers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded64Bit {
     /// The encoded deltas that are encoded using the Golomb-Rice coder.
     #[serde(default, rename = "encodedData")]
@@ -135,7 +136,7 @@ pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded64Bit {
 }
 
 /// The Rice-Golomb encoded data. Used for either hashes or removal indices. It is guaranteed that every hash or index here has the same length, and this length is exactly 32 bits. Generally speaking, if we sort all the entries lexicographically, we will find that the higher order bits tend not to change as frequently as lower order bits. This means that if we also take the adjacent difference between entries, the higher order bits have a high probability of being zero. This exploits this high probability of zero by essentially choosing a certain number of bits; all bits more significant than this are likely to be zero so we use unary encoding. See the rice_parameter field. Historical note: the Rice-delta encoding was first used in V4 of this API. In V5, two significant improvements were made: firstly, the Rice-delta encoding is now available with hash prefixes longer than 4 bytes; secondly, the encoded data are now treated as big-endian so as to avoid a costly sorting step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded32Bit {
     /// The encoded deltas that are encoded using the Golomb-Rice coder.
     #[serde(default, rename = "encodedData")]
@@ -152,7 +153,7 @@ pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded32Bit {
 }
 
 /// Same as RiceDeltaEncoded32Bit except this encodes 128-bit numbers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded128Bit {
     /// The encoded deltas that are encoded using the Golomb-Rice coder.
     #[serde(default, rename = "encodedData")]
@@ -172,7 +173,7 @@ pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded128Bit {
 }
 
 /// Same as RiceDeltaEncoded32Bit except this encodes 256-bit numbers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded256Bit {
     /// The encoded deltas that are encoded using the Golomb-Rice coder.
     #[serde(default, rename = "encodedData")]
@@ -198,7 +199,7 @@ pub struct GoogleSecuritySafebrowsingV5RiceDeltaEncoded256Bit {
 }
 
 /// Metadata about a particular hash list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5HashListMetadata {
     /// A human-readable description about this list. Written in English.
     #[serde(default)]
@@ -215,7 +216,7 @@ pub struct GoogleSecuritySafebrowsingV5HashListMetadata {
 }
 
 /// Details about a matching full hash. An important note about forward compatibility: new threat types and threat attributes may be added by the server at any time; those additions are considered minor version changes. It is Google''s policy not to expose minor version numbers in APIs (see https://cloud.google.com/apis/design/versioning for the versioning policy), so clients MUST be prepared to receive FullHashDetail messages containing ThreatType enum values or ThreatAttribute enum values that are considered invalid by the client. Therefore, it is the client''s responsibility to check for the validity of all ThreatType and ThreatAttribute enum values; if any value is considered invalid, the client MUST disregard the entire FullHashDetail message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleSecuritySafebrowsingV5FullHashFullHashDetail {
     /// Unordered list. Additional attributes about those full hashes. This may be empty.
     #[serde(default)]

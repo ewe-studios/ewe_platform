@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic alert for abusive user activity occurring with a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbuseDetected {
     /// List of abusive users/entities to be displayed in a table in the alert.
     #[serde(default, rename = "additionalDetails")]
@@ -28,7 +29,7 @@ pub struct AbuseDetected {
 }
 
 /// Alert that is triggered when Google support requests to access customer data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessApproval {
     /// Justification for data access based on justification enums.
     #[serde(default, rename = "justificationReason")]
@@ -51,7 +52,7 @@ pub struct AccessApproval {
 }
 
 /// A warning that the customer''s account is about to be suspended.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountSuspensionWarning {
     /// The amount of time remaining to appeal an imminent suspension. After this window has elapsed, the account will be suspended. Only populated if the account suspension is in WARNING state.
     #[serde(default, rename = "appealWindow")]
@@ -65,7 +66,7 @@ pub struct AccountSuspensionWarning {
 }
 
 /// Alerts for user account warning events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountWarning {
     /// Required. The email of the user that this event belongs to.
     #[serde(default)]
@@ -76,7 +77,7 @@ pub struct AccountWarning {
 }
 
 /// Alerts from Google Workspace Security Center rules service configured by an admin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityRule {
     /// List of action names associated with the rule threshold.
     #[serde(default, rename = "actionNames")]
@@ -117,7 +118,7 @@ pub struct ActivityRule {
 }
 
 /// The explanation message associated with "APNS certificate is expiring soon" and "APNS certificate has expired" alerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApnsCertificateExpirationInfo {
     /// The Apple ID used to create the certificate. It may be blank if admins didn''t enter it.
     #[serde(default, rename = "appleId")]
@@ -131,7 +132,7 @@ pub struct ApnsCertificateExpirationInfo {
 }
 
 /// Alerts from App Maker to notify admins to set up default SQL instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppMakerSqlSetupNotification {
     /// List of applications with requests for default SQL set up.
     #[serde(default, rename = "requestInfo")]
@@ -139,7 +140,7 @@ pub struct AppMakerSqlSetupNotification {
 }
 
 /// Alerts from AppSettingsChanged bucket Rules configured by Admin which contain the following rules: - Calendar settings changed - Drive settings changed - Email settings changed - Mobile settings changed
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppSettingsChanged {
     /// Any other associated alert details, for example, AlertConfiguration.
     #[serde(default, rename = "alertDetails")]
@@ -150,7 +151,7 @@ pub struct AppSettingsChanged {
 }
 
 /// An outage incident reported for a Google Workspace service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppsOutage {
     /// Link to the outage event in Google Workspace Status Dashboard
     #[serde(default, rename = "dashboardUri")]
@@ -176,7 +177,7 @@ pub struct AppsOutage {
 }
 
 /// Alert for setting the domain or IP that malicious email comes from as whitelisted domain or IP in Gmail advanced settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BadWhitelist {
     /// The domain ID.
     #[serde(default, rename = "domainId")]
@@ -193,7 +194,7 @@ pub struct BadWhitelist {
 }
 
 /// A request to perform batch delete on alerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteAlertsRequest {
     /// Required. The list of alert IDs to delete.
     #[serde(default, rename = "alertId")]
@@ -204,7 +205,7 @@ pub struct BatchDeleteAlertsRequest {
 }
 
 /// Response to batch delete operation on alerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteAlertsResponse {
     /// The status details for each failed alert_id.
     #[serde(default, rename = "failedAlertStatus")]
@@ -215,7 +216,7 @@ pub struct BatchDeleteAlertsResponse {
 }
 
 /// A request to perform batch undelete on alerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUndeleteAlertsRequest {
     /// Required. The list of alert IDs to undelete.
     #[serde(default, rename = "alertId")]
@@ -226,7 +227,7 @@ pub struct BatchUndeleteAlertsRequest {
 }
 
 /// Response to batch undelete operation on alerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUndeleteAlertsResponse {
     /// The status details for each failed alert_id.
     #[serde(default, rename = "failedAlertStatus")]
@@ -237,7 +238,7 @@ pub struct BatchUndeleteAlertsResponse {
 }
 
 /// Alerts for client-side encryption outages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientSideEncryptionServiceUnavailable {
     /// Identity providers impacted by an outage or misconfiguration.
     #[serde(default, rename = "idpError")]
@@ -248,7 +249,7 @@ pub struct ClientSideEncryptionServiceUnavailable {
 }
 
 /// A mobile device compromised alert. Derived from audit logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceCompromised {
     /// The email of the user this alert was created for.
     #[serde(default)]
@@ -259,7 +260,7 @@ pub struct DeviceCompromised {
 }
 
 /// Alerts from Device Management Rules configured by Admin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceManagementRule {
     /// Required. The device ID.
     #[serde(default, rename = "deviceId")]
@@ -294,7 +295,7 @@ pub struct DeviceManagementRule {
 }
 
 /// Alerts that get triggered on violations of Data Loss Prevention (DLP) rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DlpRuleViolation {
     /// Details about the violated DLP rule. Admins can use the predefined detectors provided by Google Cloud DLP https://cloud.google.com/dlp/ when setting up a DLP rule. Matched Cloud DLP detectors in this violation if any will be captured in the MatchInfo.predefined_detector.
     #[serde(default, rename = "ruleViolationInfo")]
@@ -302,7 +303,7 @@ pub struct DlpRuleViolation {
 }
 
 /// A takeout operation for the entire domain was initiated by an admin. Derived from audit logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainWideTakeoutInitiated {
     /// The email of the admin who initiated the takeout.
     #[serde(default)]
@@ -313,11 +314,11 @@ pub struct DomainWideTakeoutInitiated {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// An incident reported by Google Operations for a Google Workspace application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleOperations {
     /// The list of emails which correspond to the users directly affected by the incident.
     #[serde(default, rename = "affectedUserEmails")]
@@ -340,7 +341,7 @@ pub struct GoogleOperations {
 }
 
 /// Response message for an alert feedback listing request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAlertFeedbackResponse {
     /// The list of alert feedback. Feedback entries for each alert are ordered by creation time descending.
     #[serde(default)]
@@ -348,7 +349,7 @@ pub struct ListAlertFeedbackResponse {
 }
 
 /// Response message for an alert listing request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAlertsResponse {
     /// The list of alerts.
     #[serde(default)]
@@ -359,7 +360,7 @@ pub struct ListAlertsResponse {
 }
 
 /// Proto for all phishing alerts with common payload. Supported types are any of the following: * User reported phishing * User reported spam spike * Suspicious message reported * Phishing reclassification * Malware reclassification * Gmail potential employee spoofing
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MailPhishing {
     /// The domain ID.
     #[serde(default, rename = "domainId")]
@@ -379,7 +380,7 @@ pub struct MailPhishing {
 }
 
 /// Alert Created by the MSA team for communications necessary for continued use of Google Workspace Products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandatoryServiceAnnouncement {
     /// Detailed, freeform text describing the announcement
     #[serde(default)]
@@ -390,7 +391,7 @@ pub struct MandatoryServiceAnnouncement {
 }
 
 /// Alert for a spike in user reported phishing. *Warning*: This type has been deprecated. Use [MailPhishing](https://developers.google.com/workspace/admin/alertcenter/reference/rest/v1beta1/MailPhishing) instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhishingSpike {
     /// The domain ID.
     #[serde(default, rename = "domainId")]
@@ -407,7 +408,7 @@ pub struct PhishingSpike {
 }
 
 /// Alerts from Reporting Rules configured by Admin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportingRule {
     /// Any other associated alert details, for example, AlertConfiguration.
     #[serde(default, rename = "alertDetails")]
@@ -421,7 +422,7 @@ pub struct ReportingRule {
 }
 
 /// Alert that is triggered when Sensitive Admin Action occur in customer account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SensitiveAdminAction {
     /// Email of person who performed the action
     #[serde(default, rename = "actorEmail")]
@@ -447,7 +448,7 @@ pub struct SensitiveAdminAction {
 }
 
 /// Customer-level settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Settings {
     /// The list of notifications.
     #[serde(default)]
@@ -455,7 +456,7 @@ pub struct Settings {
 }
 
 /// A state-sponsored attack alert. Derived from audit logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StateSponsoredAttack {
     /// The email of the user this incident was created for.
     #[serde(default)]
@@ -463,7 +464,7 @@ pub struct StateSponsoredAttack {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -477,7 +478,7 @@ pub struct Status {
 }
 
 /// A mobile suspicious activity alert. Derived from audit logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuspiciousActivity {
     /// The email of the user this alert was created for.
     #[serde(default)]
@@ -488,7 +489,7 @@ pub struct SuspiciousActivity {
 }
 
 /// A request to undelete a specific alert that was marked for deletion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteAlertRequest {
     /// Optional. The unique identifier of the Google Workspace account of the customer the alert is associated with. The customer_id must have the initial "C" stripped (for example, 046psxkn). Inferred from the caller identity if not provided. [Find your customer ID](https://support.google.com/cloudidentity/answer/10070793).
     #[serde(default, rename = "customerId")]
@@ -496,7 +497,7 @@ pub struct UndeleteAlertRequest {
 }
 
 /// Alerts from UserChanges bucket Rules for predefined rules which contain the following rules: - Suspended user made active - New user added - User suspended (by admin) - User granted admin privileges - User admin privileges revoked - User deleted - Users password changed
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserChanges {
     /// Rule name
     #[serde(default)]
@@ -504,7 +505,7 @@ pub struct UserChanges {
 }
 
 /// Alert that is triggered when a Vault accelerated deletion request is created or canceled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VaultAcceleratedDeletion {
     /// The action can be one of create and cancel // TODO: enum values: ["VAULT_ACCELERATED_DELETION_ACTION_TYPE_UNSPECIFIED", "VAULT_ACCELERATED_DELETION_ACTION_TYPE_CREATE", "VAULT_ACCELERATED_DELETION_ACTION_TYPE_CANCEL"]
     #[serde(default, rename = "actionType")]
@@ -524,7 +525,7 @@ pub struct VaultAcceleratedDeletion {
 }
 
 /// An alert triggered when Google Voice configuration becomes invalid, generally due to an external entity being modified or deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VoiceMisconfiguration {
     /// Name of the entity whose configuration is now invalid.
     #[serde(default, rename = "entityName")]
@@ -547,7 +548,7 @@ pub struct VoiceMisconfiguration {
 }
 
 /// EntityList stores entities in a format that can be translated to a table in the Alert Center UI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityList {
     /// List of entities affected by the alert.
     #[serde(default)]
@@ -561,7 +562,7 @@ pub struct EntityList {
 }
 
 /// Support ticket related to Access Approvals request
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SupportTicket {
     /// Support ticket ID
     #[serde(default, rename = "ticketId")]
@@ -572,7 +573,7 @@ pub struct SupportTicket {
 }
 
 /// Details about why an account is receiving an account suspension warning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountSuspensionDetails {
     /// The reason why this account is receiving an account suspension warning. // TODO: enum values: ["ACCOUNT_SUSPENSION_ABUSE_REASON_UNSPECIFIED", "TOS_VIOLATION", "SPAM", "PHISHING", "TRAFFIC_PUMPING", "FRAUD", "NUMBER_HARVESTING", "PAYMENTS_FRAUD", "UNWANTED_CONTENT", "UNQUALIFIED_EDU"]
     #[serde(default, rename = "abuseReason")]
@@ -583,7 +584,7 @@ pub struct AccountSuspensionDetails {
 }
 
 /// The details of the login action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoginDetails {
     /// Optional. The human-readable IP address (for example, 11.22.33.44) that is associated with the warning event.
     #[serde(default, rename = "ipAddress")]
@@ -594,7 +595,7 @@ pub struct LoginDetails {
 }
 
 /// Requests for one application that needs default SQL setup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestInfo {
     /// List of app developers who triggered notifications for above application.
     #[serde(default, rename = "appDeveloperEmail")]
@@ -608,7 +609,7 @@ pub struct RequestInfo {
 }
 
 /// New alert tracking numbers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MergeInfo {
     /// Optional. New alert ID. Reference the [google.apps.alertcenter.Alert] with this ID for the current state.
     #[serde(default, rename = "newAlertId")]
@@ -619,7 +620,7 @@ pub struct MergeInfo {
 }
 
 /// Error related to an identity provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityProviderError {
     /// Authorization base url of the identity provider.
     #[serde(default, rename = "authorizationBaseUrl")]
@@ -633,7 +634,7 @@ pub struct IdentityProviderError {
 }
 
 /// Error related to an external key service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyServiceError {
     /// Number of similar errors encountered.
     #[serde(default, rename = "errorCount")]
@@ -650,7 +651,7 @@ pub struct KeyServiceError {
 }
 
 /// Detailed information of a single MDM device compromised event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceCompromisedSecurityDetail {
     /// The device compromised state. Possible values are "Compromised" or "Not Compromised".
     #[serde(default, rename = "deviceCompromisedState")]
@@ -676,7 +677,7 @@ pub struct DeviceCompromisedSecurityDetail {
 }
 
 /// Common alert information about violated rules that are configured by Google Workspace administrators.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuleViolationInfo {
     /// Source of the data. // TODO: enum values: ["DATA_SOURCE_UNSPECIFIED", "DRIVE", "GMAIL", "CHROME", "CHAT"]
     #[serde(default, rename = "dataSource")]
@@ -714,7 +715,7 @@ pub struct RuleViolationInfo {
 }
 
 /// Attachment with application-specific information about an alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attachment {
     /// A CSV file attachment.
     #[serde(default)]
@@ -722,7 +723,7 @@ pub struct Attachment {
 }
 
 /// A customer feedback about an alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlertFeedback {
     /// Output only. The alert identifier.
     #[serde(default, rename = "alertId")]
@@ -745,7 +746,7 @@ pub struct AlertFeedback {
 }
 
 /// An alert affecting a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Alert {
     /// Output only. The unique identifier for the alert.
     #[serde(default, rename = "alertId")]
@@ -789,7 +790,7 @@ pub struct Alert {
 }
 
 /// Domain ID of Gmail phishing alerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainId {
     /// The primary domain for the customer.
     #[serde(default, rename = "customerPrimaryDomain")]
@@ -797,7 +798,7 @@ pub struct DomainId {
 }
 
 /// Entity whose actions triggered a Gmail phishing alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaliciousEntity {
     /// The header from display name.
     #[serde(default, rename = "displayName")]
@@ -811,7 +812,7 @@ pub struct MaliciousEntity {
 }
 
 /// Details of a message in phishing spike alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GmailMessageInfo {
     /// The SHA256 hash of email''s attachment and all MIME parts.
     #[serde(default, rename = "attachmentsSha256Hash")]
@@ -843,7 +844,7 @@ pub struct GmailMessageInfo {
 }
 
 /// Event occurred when primary admin changed in customer''s account. The event are being received from insight forwarder
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrimaryAdminChangedEvent {
     /// domain in which actioned occurred
     #[serde(default)]
@@ -857,7 +858,7 @@ pub struct PrimaryAdminChangedEvent {
 }
 
 /// Event occurred when SSO Profile created in customer''s account. The event are being received from insight forwarder
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SSOProfileCreatedEvent {
     /// sso profile name which got created
     #[serde(default, rename = "inboundSsoProfileName")]
@@ -865,7 +866,7 @@ pub struct SSOProfileCreatedEvent {
 }
 
 /// Event occurred when SSO Profile deleted in customer''s account. The event are being received from insight forwarder
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SSOProfileDeletedEvent {
     /// sso profile name which got deleted
     #[serde(default, rename = "inboundSsoProfileName")]
@@ -873,7 +874,7 @@ pub struct SSOProfileDeletedEvent {
 }
 
 /// Event occurred when SSO Profile updated in customer''s account. The event are being received from insight forwarder
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SSOProfileUpdatedEvent {
     /// changes made to sso profile
     #[serde(default, rename = "inboundSsoProfileChanges")]
@@ -884,7 +885,7 @@ pub struct SSOProfileUpdatedEvent {
 }
 
 /// Event occurred when password was reset for super admin in customer''s account. The event are being received from insight forwarder
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuperAdminPasswordResetEvent {
     /// email of person whose password was reset
     #[serde(default, rename = "userEmail")]
@@ -892,7 +893,7 @@ pub struct SuperAdminPasswordResetEvent {
 }
 
 /// Settings for callback notifications. For more details see [Google Workspace Alert Notification](https://developers.google.com/workspace/admin/alertcenter/guides/notifications).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Notification {
     /// A Google Cloud Pub/sub topic destination.
     #[serde(default, rename = "cloudPubsubTopic")]
@@ -900,7 +901,7 @@ pub struct Notification {
 }
 
 /// Detailed information of a single MDM suspicious activity event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuspiciousActivitySecurityDetail {
     /// Required. The device ID.
     #[serde(default, rename = "deviceId")]
@@ -932,7 +933,7 @@ pub struct SuspiciousActivitySecurityDetail {
 }
 
 /// Error related to transferring or forwarding a phone call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferMisconfiguration {
     /// Details for each invalid transfer or forward.
     #[serde(default)]
@@ -940,7 +941,7 @@ pub struct TransferMisconfiguration {
 }
 
 /// Issue(s) with sending to voicemail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VoicemailMisconfiguration {
     /// Issue(s) with voicemail recipients.
     #[serde(default)]
@@ -948,7 +949,7 @@ pub struct VoicemailMisconfiguration {
 }
 
 /// Individual entity affected by, or related to, an alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entity {
     /// Link to a Security Investigation Tool search based on this entity, if available.
     #[serde(default)]
@@ -962,7 +963,7 @@ pub struct Entity {
 }
 
 /// Proto that contains match information from the condition part of the rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MatchInfo {
     /// For matched detector predefined by Google.
     #[serde(default, rename = "predefinedDetector")]
@@ -973,7 +974,7 @@ pub struct MatchInfo {
 }
 
 /// Proto that contains resource information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceInfo {
     /// Chat attachment ID.
     #[serde(default, rename = "chatAttachmentId")]
@@ -996,7 +997,7 @@ pub struct ResourceInfo {
 }
 
 /// Proto that contains rule information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuleInfo {
     /// User provided name of the rule.
     #[serde(default, rename = "displayName")]
@@ -1007,7 +1008,7 @@ pub struct RuleInfo {
 }
 
 /// Metadata related to the action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionInfo {
     /// Google Cloud Storage location of the content that violated the rule. This field has format: "/"
     #[serde(default, rename = "evidenceLockerFilePath")]
@@ -1015,7 +1016,7 @@ pub struct ActionInfo {
 }
 
 /// A representation of a CSV file attachment, as a list of column headers and a list of data rows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Csv {
     /// The list of data rows in a CSV file, as string arrays rather than as a single comma-separated string.
     #[serde(default, rename = "dataRows")]
@@ -1026,7 +1027,7 @@ pub struct Csv {
 }
 
 /// An alert metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlertMetadata {
     /// Output only. The alert identifier.
     #[serde(default, rename = "alertId")]
@@ -1052,7 +1053,7 @@ pub struct AlertMetadata {
 }
 
 /// A user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// Display name of the user.
     #[serde(default, rename = "displayName")]
@@ -1063,7 +1064,7 @@ pub struct User {
 }
 
 /// A reference to a Cloud Pubsub topic. To register for notifications, the owner of the topic must grant alerts-api-push-notifications@system.gserviceaccount.com the projects.topics.publish permission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudPubsubTopic {
     /// Optional. The format of the payload that would be sent. If not specified the format will be JSON. // TODO: enum values: ["PAYLOAD_FORMAT_UNSPECIFIED", "JSON"]
     #[serde(default, rename = "payloadFormat")]
@@ -1074,7 +1075,7 @@ pub struct CloudPubsubTopic {
 }
 
 /// Details for an invalid transfer or forward.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferError {
     /// User''s email address. This may be unavailable if the entity was deleted.
     #[serde(default)]
@@ -1094,7 +1095,7 @@ pub struct TransferError {
 }
 
 /// Issue(s) with a voicemail recipient.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VoicemailRecipientError {
     /// Email address of the invalid recipient. This may be unavailable if the recipient was deleted.
     #[serde(default)]
@@ -1105,7 +1106,7 @@ pub struct VoicemailRecipientError {
 }
 
 /// Detector provided by Google.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PredefinedDetectorInfo {
     /// Name that uniquely identifies the detector.
     #[serde(default, rename = "detectorName")]
@@ -1113,7 +1114,7 @@ pub struct PredefinedDetectorInfo {
 }
 
 /// Detector defined by administrators.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserDefinedDetectorInfo {
     /// Display name of the detector.
     #[serde(default, rename = "displayName")]
@@ -1124,7 +1125,7 @@ pub struct UserDefinedDetectorInfo {
 }
 
 /// A representation of a single data row in a CSV file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CsvRow {
     /// The data entries in a CSV file row, as a string array rather than a single comma-separated string.
     #[serde(default)]

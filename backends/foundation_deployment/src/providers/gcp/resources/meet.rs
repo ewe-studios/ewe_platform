@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request to end an ongoing conference of a space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndActiveConferenceRequest {}
 
 /// Response of ListConferenceRecords method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConferenceRecordsResponse {
     /// List of conferences in one page.
     #[serde(default, rename = "conferenceRecords")]
@@ -30,7 +31,7 @@ pub struct ListConferenceRecordsResponse {
 }
 
 /// Response of ListParticipants method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListParticipantSessionsResponse {
     /// Token to be circulated back for further List call if current List doesn''t include all the participants. Unset if all participants are returned.
     #[serde(default, rename = "nextPageToken")]
@@ -41,7 +42,7 @@ pub struct ListParticipantSessionsResponse {
 }
 
 /// Response of ListParticipants method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListParticipantsResponse {
     /// Token to be circulated back for further List call if current List doesn''t include all the participants. Unset if all participants are returned.
     #[serde(default, rename = "nextPageToken")]
@@ -55,7 +56,7 @@ pub struct ListParticipantsResponse {
 }
 
 /// Response for ListRecordings method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRecordingsResponse {
     /// Token to be circulated back for further List call if current List doesn''t include all the recordings. Unset if all recordings are returned.
     #[serde(default, rename = "nextPageToken")]
@@ -66,7 +67,7 @@ pub struct ListRecordingsResponse {
 }
 
 /// Response for ListSmartNotes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSmartNotesResponse {
     /// Token to be circulated back for further List call if current List doesn''t include all the smart notes. Unset if all smart notes are returned.
     #[serde(default, rename = "nextPageToken")]
@@ -77,7 +78,7 @@ pub struct ListSmartNotesResponse {
 }
 
 /// Response for ListTranscriptEntries method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTranscriptEntriesResponse {
     /// Token to be circulated back for further List call if current List doesn''t include all the transcript entries. Unset if all entries are returned.
     #[serde(default, rename = "nextPageToken")]
@@ -88,7 +89,7 @@ pub struct ListTranscriptEntriesResponse {
 }
 
 /// Response for ListTranscripts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTranscriptsResponse {
     /// Token to be circulated back for further List call if current List doesn''t include all the transcripts. Unset if all transcripts are returned.
     #[serde(default, rename = "nextPageToken")]
@@ -99,7 +100,7 @@ pub struct ListTranscriptsResponse {
 }
 
 /// Virtual place where conferences are held. Only one active conference can be held in one space at any given time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Space {
     /// Active conference, if it exists.
     #[serde(default, rename = "activeConference")]
@@ -125,7 +126,7 @@ pub struct Space {
 }
 
 /// Single instance of a meeting held in a space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConferenceRecord {
     /// Output only. Timestamp when the conference ended. Set for past conferences. Unset if the conference is ongoing.
     #[serde(default, rename = "endTime")]
@@ -145,7 +146,7 @@ pub struct ConferenceRecord {
 }
 
 /// Refers to each unique join or leave session when a user joins a conference from a device. Note that any time a user joins the conference a new unique ID is assigned. That means if a user joins a space multiple times from the same device, they''re assigned different IDs, and are also be treated as different participant sessions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParticipantSession {
     /// Output only. Timestamp when the user session ends. Unset if the user session hasn’t ended.
     #[serde(default, rename = "endTime")]
@@ -159,7 +160,7 @@ pub struct ParticipantSession {
 }
 
 /// User who attended or is attending a conference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Participant {
     /// Anonymous user.
     #[serde(default, rename = "anonymousUser")]
@@ -182,7 +183,7 @@ pub struct Participant {
 }
 
 /// Metadata about a recording created during a conference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Recording {
     /// Output only. Recording is saved to Google Drive as an MP4 file. The drive_destination includes the Drive fileId that can be used to download the file using the files.get method of the Drive API.
     #[serde(default, rename = "driveDestination")]
@@ -202,7 +203,7 @@ pub struct Recording {
 }
 
 /// Metadata for a smart note generated from a conference. It refers to the notes generated from Take Notes with Gemini during the conference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmartNote {
     /// Output only. The Google Doc destination where the smart notes are saved.
     #[serde(default, rename = "docsDestination")]
@@ -222,7 +223,7 @@ pub struct SmartNote {
 }
 
 /// Single entry for one user’s speech during a transcript session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranscriptEntry {
     /// Output only. Timestamp when the transcript entry ended.
     #[serde(default, rename = "endTime")]
@@ -245,7 +246,7 @@ pub struct TranscriptEntry {
 }
 
 /// Metadata for a transcript generated from a conference. It refers to the ASR (Automatic Speech Recognition) result of user''s speech during the conference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Transcript {
     /// Output only. Where the Google Docs transcript is saved.
     #[serde(default, rename = "docsDestination")]
@@ -265,7 +266,7 @@ pub struct Transcript {
 }
 
 /// Active conference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveConference {
     /// Output only. Reference to ''ConferenceRecord'' resource. Format: conferenceRecords/{conference_record} where {conference_record} is a unique ID for each instance of a call within a space.
     #[serde(default, rename = "conferenceRecord")]
@@ -273,7 +274,7 @@ pub struct ActiveConference {
 }
 
 /// The configuration pertaining to a meeting space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpaceConfig {
     /// Access type of the meeting space that determines who can join without knocking. Default: The user''s default access settings. Controlled by the user''s admin for enterprise users or RESTRICTED. // TODO: enum values: ["ACCESS_TYPE_UNSPECIFIED", "OPEN", "TRUSTED", "RESTRICTED"]
     #[serde(default, rename = "accessType")]
@@ -296,7 +297,7 @@ pub struct SpaceConfig {
 }
 
 /// Details how to join the conference via a SIP gateway.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GatewaySipAccess {
     /// Permanent numeric code for manual entry on specially configured devices.
     #[serde(default, rename = "sipAccessCode")]
@@ -307,7 +308,7 @@ pub struct GatewaySipAccess {
 }
 
 /// Phone access contains information required to dial into a conference using a regional phone number and a PIN that is specific to that phone number.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhoneAccess {
     /// The BCP 47/LDML language code for the language associated with this phone access. To be parsed by the i18n LanguageCode utility. Examples: "es-419" for Latin American Spanish, "fr-CA" for Canadian French.
     #[serde(default, rename = "languageCode")]
@@ -324,7 +325,7 @@ pub struct PhoneAccess {
 }
 
 /// User who joins anonymously (meaning not signed into a Google Account).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnonymousUser {
     /// Output only. User provided name when they join a conference anonymously.
     #[serde(default, rename = "displayName")]
@@ -332,7 +333,7 @@ pub struct AnonymousUser {
 }
 
 /// User dialing in from a phone where the user''s identity is unknown because they haven''t signed in with a Google Account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhoneUser {
     /// Output only. Partially redacted user''s phone number when calling.
     #[serde(default, rename = "displayName")]
@@ -340,7 +341,7 @@ pub struct PhoneUser {
 }
 
 /// A signed-in user can be: a) An individual joining from a personal computer, mobile device, or through companion mode. b) A robot account used by conference room devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignedinUser {
     /// Output only. For a personal device, it''s the user''s first name and last name. For a robot account, it''s the administrator-specified device name. For example, "Altostrat Room".
     #[serde(default, rename = "displayName")]
@@ -351,7 +352,7 @@ pub struct SignedinUser {
 }
 
 /// Export location where a recording file is saved in Google Drive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveDestination {
     /// Output only. Link used to play back the recording file in the browser. For example, https://drive.google.com/file/d/{$fileId}/view.
     #[serde(default, rename = "exportUri")]
@@ -362,7 +363,7 @@ pub struct DriveDestination {
 }
 
 /// Google Docs location where the transcript file is saved.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocsDestination {
     /// Output only. The document ID for the underlying Google Docs transcript file. For example, "1kuceFZohVoCh6FulBHxwy6I15Ogpc4hP". Use the documents.get method of the Google Docs API (https://developers.google.com/docs/api/reference/rest/v1/documents/get) to fetch the content.
     #[serde(default)]
@@ -373,7 +374,7 @@ pub struct DocsDestination {
 }
 
 /// Configuration related to meeting artifacts potentially generated by this meeting space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArtifactConfig {
     /// Configuration for recording.
     #[serde(default, rename = "recordingConfig")]
@@ -387,7 +388,7 @@ pub struct ArtifactConfig {
 }
 
 /// Defines restrictions for features when the meeting is moderated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModerationRestrictions {
     /// Defines who has permission to send chat messages in the meeting space. // TODO: enum values: ["RESTRICTION_TYPE_UNSPECIFIED", "HOSTS_ONLY", "NO_RESTRICTION"]
     #[serde(default, rename = "chatRestriction")]
@@ -404,7 +405,7 @@ pub struct ModerationRestrictions {
 }
 
 /// Configuration related to recording in a meeting space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecordingConfig {
     /// Defines whether a meeting space is automatically recorded when someone with the privilege to record joins the meeting. // TODO: enum values: ["AUTO_GENERATION_TYPE_UNSPECIFIED", "ON", "OFF"]
     #[serde(default, rename = "autoRecordingGeneration")]
@@ -412,7 +413,7 @@ pub struct RecordingConfig {
 }
 
 /// Configuration related to smart notes in a meeting space. For more information about smart notes, see ["Take notes for me" in Google Meet](https://support.google.com/meet/answer/14754931).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmartNotesConfig {
     /// Defines whether to automatically generate a summary and recap of the meeting for all invitees in the organization when someone with the privilege to enable smart notes joins the meeting. // TODO: enum values: ["AUTO_GENERATION_TYPE_UNSPECIFIED", "ON", "OFF"]
     #[serde(default, rename = "autoSmartNotesGeneration")]
@@ -420,7 +421,7 @@ pub struct SmartNotesConfig {
 }
 
 /// Configuration related to transcription in a meeting space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranscriptionConfig {
     /// Defines whether the content of a meeting is automatically transcribed when someone with the privilege to transcribe joins the meeting. // TODO: enum values: ["AUTO_GENERATION_TYPE_UNSPECIFIED", "ON", "OFF"]
     #[serde(default, rename = "autoTranscriptionGeneration")]

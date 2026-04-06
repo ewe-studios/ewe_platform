@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// AdaptingOSStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptingOSStep {}
 
 /// Request message for ''AddGroupMigration'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddGroupMigrationRequest {
     /// The full path name of the MigratingVm to add.
     #[serde(default, rename = "migratingVm")]
@@ -23,55 +24,55 @@ pub struct AddGroupMigrationRequest {
 }
 
 /// Request message for ''CancelCloneJob'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelCloneJobRequest {}
 
 /// Request message for ''CancelCutoverJob'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelCutoverJobRequest {}
 
 /// Request message for ''CancelDiskMigrationJob'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelDiskMigrationJobRequest {}
 
 /// Request message for ''CancelImageImportJob'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelImageImportJobRequest {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// CopyingSourceDiskSnapshotStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CopyingSourceDiskSnapshotStep {}
 
 /// CreatingImageStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreatingImageStep {}
 
 /// CreatingSourceDiskSnapshotStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreatingSourceDiskSnapshotStep {}
 
 /// Details for a disk only migration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisksMigrationDisksTargetDefaults {}
 
 /// Details for a disks-only migration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisksMigrationDisksTargetDetails {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for ''ExtendMigrationRequest'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtendMigrationRequest {}
 
 /// Response message for fetchInventory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchInventoryResponse {
     /// The description of the VMs in a Source of type AWS.
     #[serde(default, rename = "awsVms")]
@@ -91,7 +92,7 @@ pub struct FetchInventoryResponse {
 }
 
 /// Response message for fetchStorageInventory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchStorageInventoryResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -105,23 +106,23 @@ pub struct FetchStorageInventoryResponse {
 }
 
 /// Request message for ''FinalizeMigration'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinalizeMigrationRequest {}
 
 /// InitializingImageImportStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitializingImageImportStep {}
 
 /// InitializingReplicationStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitializingReplicationStep {}
 
 /// InstantiatingMigratedVMStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstantiatingMigratedVMStep {}
 
 /// Response message for ''ListCloneJobs'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCloneJobsResponse {
     /// Output only. The list of clone jobs response.
     #[serde(default, rename = "cloneJobs")]
@@ -135,7 +136,7 @@ pub struct ListCloneJobsResponse {
 }
 
 /// Response message for ''ListCutoverJobs'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCutoverJobsResponse {
     /// Output only. The list of cutover jobs response.
     #[serde(default, rename = "cutoverJobs")]
@@ -149,7 +150,7 @@ pub struct ListCutoverJobsResponse {
 }
 
 /// Response message for ''ListDatacenterConnectors'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatacenterConnectorsResponse {
     /// Output only. The list of sources response.
     #[serde(default, rename = "datacenterConnectors")]
@@ -163,7 +164,7 @@ pub struct ListDatacenterConnectorsResponse {
 }
 
 /// Response message for ''ListDiskMigrationJobs'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDiskMigrationJobsResponse {
     /// Output only. The list of the disk migration jobs.
     #[serde(default, rename = "diskMigrationJobs")]
@@ -177,7 +178,7 @@ pub struct ListDiskMigrationJobsResponse {
 }
 
 /// Response message for ''ListGroups'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGroupsResponse {
     /// Output only. The list of groups response.
     #[serde(default)]
@@ -191,7 +192,7 @@ pub struct ListGroupsResponse {
 }
 
 /// Response message for ''ListImageImportJobs'' call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListImageImportJobsResponse {
     /// Output only. The list of target response.
     #[serde(default, rename = "imageImportJobs")]
@@ -205,7 +206,7 @@ pub struct ListImageImportJobsResponse {
 }
 
 /// Response message for ''ListImageImports'' call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListImageImportsResponse {
     /// Output only. The list of target response.
     #[serde(default, rename = "imageImports")]
@@ -219,7 +220,7 @@ pub struct ListImageImportsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -230,7 +231,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for ''ListMigratingVms'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMigratingVmsResponse {
     /// Output only. The list of Migrating VMs response.
     #[serde(default, rename = "migratingVms")]
@@ -244,7 +245,7 @@ pub struct ListMigratingVmsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -258,7 +259,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message for ''ListReplicationCycles'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReplicationCyclesResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -272,7 +273,7 @@ pub struct ListReplicationCyclesResponse {
 }
 
 /// Response message for ''ListSources'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSourcesResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -286,7 +287,7 @@ pub struct ListSourcesResponse {
 }
 
 /// Response message for ''ListTargetProjects'' call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTargetProjectsResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -300,7 +301,7 @@ pub struct ListTargetProjectsResponse {
 }
 
 /// Response message for ''ListUtilizationReports'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUtilizationReportsResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -314,11 +315,11 @@ pub struct ListUtilizationReportsResponse {
 }
 
 /// LoadingImageSourceFilesStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadingImageSourceFilesStep {}
 
 /// Represents migration resource error information that can be used with google.rpc.Status message. MigrationError is used to present the user with error information in migration operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MigrationError {
     /// Output only. Suggested action for solving the error.
     #[serde(default, rename = "actionItem")]
@@ -338,7 +339,7 @@ pub struct MigrationError {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -364,23 +365,23 @@ pub struct OperationMetadata {
 }
 
 /// Request message for ''PauseMigration'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PauseMigrationRequest {}
 
 /// PostProcessingStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostProcessingStep {}
 
 /// PreparingVMDisksStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreparingVMDisksStep {}
 
 /// ProvisioningTargetDiskStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisioningTargetDiskStep {}
 
 /// Request message for ''RemoveMigration'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveGroupMigrationRequest {
     /// The MigratingVm to remove.
     #[serde(default, rename = "migratingVm")]
@@ -388,27 +389,27 @@ pub struct RemoveGroupMigrationRequest {
 }
 
 /// Request message for ''ResumeMigration'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResumeMigrationRequest {}
 
 /// Request message for ''RunDiskMigrationJobRequest'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunDiskMigrationJobRequest {}
 
 /// ShuttingDownSourceVMStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShuttingDownSourceVMStep {}
 
 /// Mentions that the machine image import is not using OS adaptation process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SkipOsAdaptation {}
 
 /// Request message for ''StartMigrationRequest'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartMigrationRequest {}
 
 /// Request message for ''UpgradeAppliance'' request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeApplianceRequest {
     /// A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -416,7 +417,7 @@ pub struct UpgradeApplianceRequest {
 }
 
 /// AWSVmsDetails describes VMs in AWS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsVmsDetails {
     /// The details of the AWS VMs.
     #[serde(default)]
@@ -424,7 +425,7 @@ pub struct AwsVmsDetails {
 }
 
 /// AzureVmsDetails describes VMs in Azure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureVmsDetails {
     /// The details of the Azure VMs.
     #[serde(default)]
@@ -432,7 +433,7 @@ pub struct AzureVmsDetails {
 }
 
 /// VmwareVmsDetails describes VMs in vCenter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareVmsDetails {
     /// The details of the vmware VMs.
     #[serde(default)]
@@ -440,7 +441,7 @@ pub struct VmwareVmsDetails {
 }
 
 /// SourceStorageResource describes a storage resource in the source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceStorageResource {
     /// Source AWS volume details.
     #[serde(default, rename = "awsDiskDetails")]
@@ -448,7 +449,7 @@ pub struct SourceStorageResource {
 }
 
 /// DatacenterConnector message describes a connector between the Source and Google Cloud, which is installed on a vmware datacenter (an OVA vm installed by the user) to connect the Datacenter to Google Cloud and support vm migration data transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatacenterConnector {
     /// Output only. Appliance OVA version. This is the OVA which is manually installed by the user and contains the infrastructure for the automatically updatable components on the appliance.
     #[serde(default, rename = "applianceInfrastructureVersion")]
@@ -495,7 +496,7 @@ pub struct DatacenterConnector {
 }
 
 /// Describes the disk which will be migrated from the source environment. The source disk has to be unattached.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskMigrationJob {
     /// Details of the unattached AWS source disk.
     #[serde(default, rename = "awsSourceDiskDetails")]
@@ -524,7 +525,7 @@ pub struct DiskMigrationJob {
 }
 
 /// Describes message for ''Group'' resource. The Group is a collections of several MigratingVms.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Group {
     /// Output only. The create time timestamp.
     #[serde(default, rename = "createTime")]
@@ -547,7 +548,7 @@ pub struct Group {
 }
 
 /// ImageImport describes the configuration of the image import to run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageImport {
     /// Immutable. The path to the Cloud Storage file from which the image should be imported.
     #[serde(default, rename = "cloudStorageUri")]
@@ -573,7 +574,7 @@ pub struct ImageImport {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -593,7 +594,7 @@ pub struct Location {
 }
 
 /// MigratingVm describes the VM that will be migrated from a Source environment and its replication state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MigratingVm {
     /// Output only. Details of the VM from an AWS source.
     #[serde(default, rename = "awsSourceVmDetails")]
@@ -671,7 +672,7 @@ pub struct MigratingVm {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -691,7 +692,7 @@ pub struct Operation {
 }
 
 /// Source message describes a specific vm migration Source resource. It contains the source environment information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// AWS type source details.
     #[serde(default)]
@@ -723,7 +724,7 @@ pub struct Source {
 }
 
 /// TargetProject message represents a target Compute Engine project for a migration or a clone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetProject {
     /// Output only. The time this target project resource was created (not related to when the Compute Engine project it points to was created).
     #[serde(default, rename = "createTime")]
@@ -743,7 +744,7 @@ pub struct TargetProject {
 }
 
 /// Utilization report details the utilization (CPU, memory, etc.) of selected source VMs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UtilizationReport {
     /// Output only. The time the report was created (this refers to the time of the request, not the time the report creation completed).
     #[serde(default, rename = "createTime")]
@@ -778,7 +779,7 @@ pub struct UtilizationReport {
 }
 
 /// AwsVmDetails describes a VM in AWS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsVmDetails {
     /// The CPU architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "I386", "X86_64", "ARM64", "X86_64_MAC"]
     #[serde(default)]
@@ -840,7 +841,7 @@ pub struct AwsVmDetails {
 }
 
 /// AzureVmDetails describes a VM in Azure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureVmDetails {
     /// The CPU architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "VM_ARCHITECTURE_X86_FAMILY", "VM_ARCHITECTURE_ARM64"]
     #[serde(default)]
@@ -887,7 +888,7 @@ pub struct AzureVmDetails {
 }
 
 /// Holds information about the available versions for upgrade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AvailableUpdates {
     /// The latest version for in place update. The current appliance can be updated to this version using the API or m4c CLI.
     #[serde(default, rename = "inPlaceUpdate")]
@@ -898,7 +899,7 @@ pub struct AvailableUpdates {
 }
 
 /// UpgradeStatus contains information about upgradeAppliance operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeStatus {
     /// Output only. Provides details on the state of the upgrade operation in case of an error.
     #[serde(default)]
@@ -918,7 +919,7 @@ pub struct UpgradeStatus {
 }
 
 /// Represents the source AWS Disk details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsSourceDiskDetails {
     /// Optional. Output only. Disk type. // TODO: enum values: ["TYPE_UNSPECIFIED", "GP2", "GP3", "IO1", "IO2", "ST1", "SC1", "STANDARD"]
     #[serde(default, rename = "diskType")]
@@ -935,7 +936,7 @@ pub struct AwsSourceDiskDetails {
 }
 
 /// DiskMigrationStep holds information about the disk migration step progress.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskMigrationStep {
     /// Copying source disk snapshot step.
     #[serde(default, rename = "copyingSourceDiskSnapshot")]
@@ -955,7 +956,7 @@ pub struct DiskMigrationStep {
 }
 
 /// Details of the target disk in Compute Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskMigrationJobTargetDetails {
     /// Optional. The encryption to apply to the disk. If the DiskMigrationJob parent Source resource has an encryption, this field must be set to the same encryption key.
     #[serde(default)]
@@ -972,7 +973,7 @@ pub struct DiskMigrationJobTargetDetails {
 }
 
 /// ImageImportJob describes the progress and result of an image import.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageImportJob {
     /// Output only. The path to the Cloud Storage file from which the image should be imported.
     #[serde(default, rename = "cloudStorageUri")]
@@ -1010,7 +1011,7 @@ pub struct ImageImportJob {
 }
 
 /// Represent the source AWS VM details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsSourceVmDetails {
     /// Output only. The VM architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "VM_ARCHITECTURE_X86_FAMILY", "VM_ARCHITECTURE_ARM64"]
     #[serde(default)]
@@ -1030,7 +1031,7 @@ pub struct AwsSourceVmDetails {
 }
 
 /// Represent the source Azure VM details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureSourceVmDetails {
     /// Output only. The VM architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "VM_ARCHITECTURE_X86_FAMILY", "VM_ARCHITECTURE_ARM64"]
     #[serde(default)]
@@ -1050,7 +1051,7 @@ pub struct AzureSourceVmDetails {
 }
 
 /// ComputeEngineDisksTargetDefaults is a collection of details for creating Persistent Disks in a target Compute Engine project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeEngineDisksTargetDefaults {
     /// The details of each Persistent Disk to create.
     #[serde(default)]
@@ -1070,7 +1071,7 @@ pub struct ComputeEngineDisksTargetDefaults {
 }
 
 /// ComputeEngineTargetDefaults is a collection of details for creating a VM in a target Compute Engine project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeEngineTargetDefaults {
     /// Optional. AdaptationModifiers are the set of modifiers used during OS adaptation.
     #[serde(default, rename = "adaptationModifiers")]
@@ -1150,7 +1151,7 @@ pub struct ComputeEngineTargetDefaults {
 }
 
 /// CutoverForecast holds information about future CutoverJobs of a MigratingVm.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CutoverForecast {
     /// Output only. Estimation of the CutoverJob duration.
     #[serde(default, rename = "estimatedCutoverJobDuration")]
@@ -1158,7 +1159,7 @@ pub struct CutoverForecast {
 }
 
 /// Expiration holds information about the expiration of a MigratingVm.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expiration {
     /// Output only. Timestamp of when this resource is considered expired.
     #[serde(default, rename = "expireTime")]
@@ -1172,7 +1173,7 @@ pub struct Expiration {
 }
 
 /// ReplicationSync contain information about the last replica sync to the cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicationSync {
     /// The most updated snapshot created time in the source that finished replication.
     #[serde(default, rename = "lastSyncTime")]
@@ -1180,7 +1181,7 @@ pub struct ReplicationSync {
 }
 
 /// A policy for scheduling replications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchedulePolicy {
     /// The idle duration between replication stages.
     #[serde(default, rename = "idleDuration")]
@@ -1191,7 +1192,7 @@ pub struct SchedulePolicy {
 }
 
 /// CloneJob describes the process of creating a clone of a MigratingVM to the requested target based on the latest successful uploaded snapshots. While the migration cycles of a MigratingVm take place, it is possible to verify the uploaded VM can be started in the cloud, by creating a clone. The clone can be created without any downtime, and it is created using the latest snapshots which are already in the cloud. The cloneJob is only responsible for its work, not its products, which means once it is finished, it will never touch the instance it created. It will only delete it in case of the CloneJob being cancelled or upon failure to clone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloneJob {
     /// Output only. Details of the target Persistent Disks in Compute Engine.
     #[serde(default, rename = "computeEngineDisksTargetDetails")]
@@ -1224,7 +1225,7 @@ pub struct CloneJob {
 }
 
 /// CutoverJob message describes a cutover of a migrating VM. The CutoverJob is the operation of shutting down the VM, creating a snapshot and cloning the VM using the replicated snapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CutoverJob {
     /// Output only. Details of the target Persistent Disks in Compute Engine.
     #[serde(default, rename = "computeEngineDisksTargetDetails")]
@@ -1263,7 +1264,7 @@ pub struct CutoverJob {
 }
 
 /// Represent the source Vmware VM details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareSourceVmDetails {
     /// Output only. The VM architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "VM_ARCHITECTURE_X86_FAMILY", "VM_ARCHITECTURE_ARM64"]
     #[serde(default)]
@@ -1283,7 +1284,7 @@ pub struct VmwareSourceVmDetails {
 }
 
 /// AwsSourceDetails message describes a specific source details for the AWS source type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsSourceDetails {
     /// AWS Credentials using access key id and secret.
     #[serde(default, rename = "accessKeyCreds")]
@@ -1312,7 +1313,7 @@ pub struct AwsSourceDetails {
 }
 
 /// AzureSourceDetails message describes a specific source details for the Azure source type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureSourceDetails {
     /// Immutable. The Azure location (region) that the source VMs will be migrated from.
     #[serde(default, rename = "azureLocation")]
@@ -1338,7 +1339,7 @@ pub struct AzureSourceDetails {
 }
 
 /// VmwareSourceDetails message describes a specific source details for the vmware source type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareSourceDetails {
     /// Input only. The credentials password. This is write only and can not be read in a GET operation.
     #[serde(default)]
@@ -1358,7 +1359,7 @@ pub struct VmwareSourceDetails {
 }
 
 /// Utilization information of a single VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmUtilizationInfo {
     /// Utilization metrics for this VM.
     #[serde(default)]
@@ -1372,7 +1373,7 @@ pub struct VmUtilizationInfo {
 }
 
 /// AwsSecurityGroup describes a security group of an AWS VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsSecurityGroup {
     /// The AWS security group id.
     #[serde(default)]
@@ -1383,7 +1384,7 @@ pub struct AwsSecurityGroup {
 }
 
 /// A message describing a data disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Disk {
     /// The disk''s Logical Unit Number (LUN).
     #[serde(default)]
@@ -1397,7 +1398,7 @@ pub struct Disk {
 }
 
 /// A message describing the VM''s OS. Including OS, Publisher, Offer and Plan if applicable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSDescription {
     /// OS offer.
     #[serde(default)]
@@ -1414,7 +1415,7 @@ pub struct OSDescription {
 }
 
 /// A message describing the OS disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSDisk {
     /// The disk''s full name.
     #[serde(default)]
@@ -1428,7 +1429,7 @@ pub struct OSDisk {
 }
 
 /// Describes an appliance version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplianceVersion {
     /// Determine whether it''s critical to upgrade the appliance to this version.
     #[serde(default)]
@@ -1445,7 +1446,7 @@ pub struct ApplianceVersion {
 }
 
 /// Compute Engine disk target details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeEngineDisk {
     /// Optional. Target Compute Engine Disk ID. This is the resource ID segment of the Compute Engine Disk to create. In the resource name compute/v1/projects/{project}/zones/{zone}/disks/disk1 "disk1" is the resource ID for the disk.
     #[serde(default, rename = "diskId")]
@@ -1462,7 +1463,7 @@ pub struct ComputeEngineDisk {
 }
 
 /// The target details of the image resource that will be created by the import job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskImageTargetDetails {
     /// Optional. Additional licenses to assign to the image. Format: https://www.googleapis.com/compute/v1/projects/PROJECT_ID/global/licenses/LICENSE_NAME Or https://www.googleapis.com/compute/beta/projects/PROJECT_ID/global/licenses/LICENSE_NAME
     #[serde(default, rename = "additionalLicenses")]
@@ -1497,7 +1498,7 @@ pub struct DiskImageTargetDetails {
 }
 
 /// The target details of the machine image resource that will be created by the image import job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineImageTargetDetails {
     /// Optional. Additional licenses to assign to the instance created by the machine image. Format: https://www.googleapis.com/compute/v1/projects/PROJECT_ID/global/licenses/LICENSE_NAME Or https://www.googleapis.com/compute/beta/projects/PROJECT_ID/global/licenses/LICENSE_NAME
     #[serde(default, rename = "additionalLicenses")]
@@ -1544,7 +1545,7 @@ pub struct MachineImageTargetDetails {
 }
 
 /// ImageImportStep holds information about the image import step progress.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageImportStep {
     /// Adapting OS step.
     #[serde(default, rename = "adaptingOs")]
@@ -1567,7 +1568,7 @@ pub struct ImageImportStep {
 }
 
 /// The details of an AWS instance disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsDiskDetails {
     /// Output only. The ordinal number of the disk.
     #[serde(default, rename = "diskNumber")]
@@ -1581,7 +1582,7 @@ pub struct AwsDiskDetails {
 }
 
 /// The details of an Azure VM disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureDiskDetails {
     /// Output only. Azure disk ID.
     #[serde(default, rename = "diskId")]
@@ -1595,7 +1596,7 @@ pub struct AzureDiskDetails {
 }
 
 /// Details for creation of a Persistent Disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersistentDiskDefaults {
     /// A map of labels to associate with the Persistent Disk.
     #[serde(default, rename = "additionalLabels")]
@@ -1618,7 +1619,7 @@ pub struct PersistentDiskDefaults {
 }
 
 /// Details for creation of a VM that migrated data disks will be attached to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisksMigrationVmTargetDefaults {
     /// Optional. Additional licenses to assign to the VM.
     #[serde(default, rename = "additionalLicenses")]
@@ -1671,7 +1672,7 @@ pub struct DisksMigrationVmTargetDefaults {
 }
 
 /// CloneStep holds information about the clone step progress.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloneStep {
     /// Adapting OS step.
     #[serde(default, rename = "adaptingOs")]
@@ -1691,7 +1692,7 @@ pub struct CloneStep {
 }
 
 /// ComputeEngineDisksTargetDetails is a collection of created Persistent Disks details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeEngineDisksTargetDetails {
     /// The details of each created Persistent Disk.
     #[serde(default)]
@@ -1705,7 +1706,7 @@ pub struct ComputeEngineDisksTargetDetails {
 }
 
 /// ComputeEngineTargetDetails is a collection of details for creating a VM in a target Compute Engine project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeEngineTargetDetails {
     /// Optional. Modifiers to be used as configuration of the OS adaptation process.
     #[serde(default, rename = "adaptationModifiers")]
@@ -1785,7 +1786,7 @@ pub struct ComputeEngineTargetDetails {
 }
 
 /// CutoverStep holds information about the cutover step progress.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CutoverStep {
     /// The time the step has ended.
     #[serde(default, rename = "endTime")]
@@ -1811,7 +1812,7 @@ pub struct CutoverStep {
 }
 
 /// The details of a Vmware VM disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareDiskDetails {
     /// Output only. The ordinal number of the disk.
     #[serde(default, rename = "diskNumber")]
@@ -1825,7 +1826,7 @@ pub struct VmwareDiskDetails {
 }
 
 /// Migrating VM source information about the VM capabilities needed for some Compute Engine features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmCapabilities {
     /// Output only. The last time OS capabilities list was updated.
     #[serde(default, rename = "lastOsCapabilitiesUpdateTime")]
@@ -1836,7 +1837,7 @@ pub struct VmCapabilities {
 }
 
 /// Message describing AWS Credentials using access key id and secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessKeyCredentials {
     /// AWS access key ID.
     #[serde(default, rename = "accessKeyId")]
@@ -1850,7 +1851,7 @@ pub struct AccessKeyCredentials {
 }
 
 /// Tag is an AWS tag representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tag {
     /// Required. Key of tag.
     #[serde(default)]
@@ -1861,7 +1862,7 @@ pub struct Tag {
 }
 
 /// Message describing Azure Credentials using tenant ID, client ID and secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientSecretCredentials {
     /// Azure client ID.
     #[serde(default, rename = "clientId")]
@@ -1875,7 +1876,7 @@ pub struct ClientSecretCredentials {
 }
 
 /// Utilization metrics values for a single VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmUtilizationMetrics {
     /// Average CPU usage, percent.
     #[serde(default, rename = "cpuAveragePercent")]
@@ -1904,7 +1905,7 @@ pub struct VmUtilizationMetrics {
 }
 
 /// VmwareVmDetails describes a VM in vCenter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareVmDetails {
     /// Output only. The CPU architecture. // TODO: enum values: ["VM_ARCHITECTURE_UNSPECIFIED", "VM_ARCHITECTURE_X86_FAMILY", "VM_ARCHITECTURE_ARM64"]
     #[serde(default)]
@@ -1948,7 +1949,7 @@ pub struct VmwareVmDetails {
 }
 
 /// Used when the image import is not using OS adaptation process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataDiskImageImport {
     /// Optional. A list of guest OS features to apply to the imported image. These features are flags that are used by Compute Engine to enable certain capabilities for virtual machine instances that are created from the image. This field does not change the OS of the image; it only marks the image with the specified features. The user must ensure that the OS is compatible with the features. For a list of available features, see https://cloud.google.com/compute/docs/images/create-custom#guest-os-features.
     #[serde(default, rename = "guestOsFeatures")]
@@ -1956,7 +1957,7 @@ pub struct DataDiskImageImport {
 }
 
 /// Parameters overriding decisions based on the source machine image configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineImageParametersOverrides {
     /// Optional. The machine type to create the MachineImage with. If empty, the service will choose a relevant machine type based on the information from the source image. For more information about machine types, please refer to https://cloud.google.com/compute/docs/machine-resource.
     #[serde(default, rename = "machineType")]
@@ -1964,7 +1965,7 @@ pub struct MachineImageParametersOverrides {
 }
 
 /// Parameters affecting the OS adaptation process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageImportOsAdaptationParameters {
     /// Optional. Modifiers to be used as configuration of the OS adaptation process.
     #[serde(default, rename = "adaptationModifiers")]
@@ -1981,7 +1982,7 @@ pub struct ImageImportOsAdaptationParameters {
 }
 
 /// Service account to assign to the instance created by the machine image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccount {
     /// Required. The email address of the service account.
     #[serde(default)]
@@ -1992,7 +1993,7 @@ pub struct ServiceAccount {
 }
 
 /// Shielded instance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShieldedInstanceConfig {
     /// Optional. Defines whether the instance created by the machine image has integrity monitoring enabled. This can be set to true only if the image boot option is EFI, and vTPM is enabled.
     #[serde(default, rename = "enableIntegrityMonitoring")]
@@ -2006,7 +2007,7 @@ pub struct ShieldedInstanceConfig {
 }
 
 /// Details for attachment of the disk to a VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmAttachmentDetails {
     /// Optional. Specifies a unique device name of your choice that is reflected into the /dev/disk/by-id/google-* tree of a Linux operating system running within the instance. If not specified, the server chooses a default device name to apply to this disk, in the form persistent-disk-x, where x is a number assigned by Google Compute Engine. This field is only applicable for persistent disks.
     #[serde(default, rename = "deviceName")]
@@ -2014,7 +2015,7 @@ pub struct VmAttachmentDetails {
 }
 
 /// BootDiskDefaults hold information about the boot disk of a VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BootDiskDefaults {
     /// Optional. Specifies a unique device name of your choice that is reflected into the /dev/disk/by-id/google-* tree of a Linux operating system running within the instance. If not specified, the server chooses a default device name to apply to this disk, in the form persistent-disk-x, where x is a number assigned by Google Compute Engine. This field is only applicable for persistent disks.
     #[serde(default, rename = "deviceName")]
@@ -2034,7 +2035,7 @@ pub struct BootDiskDefaults {
 }
 
 /// Details of a created Persistent Disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersistentDisk {
     /// The URI of the Persistent Disk.
     #[serde(default, rename = "diskUri")]
@@ -2045,7 +2046,7 @@ pub struct PersistentDisk {
 }
 
 /// Details for the VM created VM as part of disks migration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisksMigrationVmTargetDetails {
     /// Output only. The URI of the Compute Engine VM.
     #[serde(default, rename = "vmUri")]
@@ -2053,7 +2054,7 @@ pub struct DisksMigrationVmTargetDetails {
 }
 
 /// AppliedLicense holds the license data returned by adaptation module report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppliedLicense {
     /// The OS license returned from the adaptation module''s report.
     #[serde(default, rename = "osLicense")]
@@ -2064,7 +2065,7 @@ pub struct AppliedLicense {
 }
 
 /// Scheduling information for VM on maintenance/restart behaviour and node allocation in sole tenant nodes. Options for instance behavior when the host machine undergoes maintenance that may temporarily impact instance performance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeScheduling {
     /// The minimum number of virtual CPUs this instance will consume when running on a sole-tenant node. Ignored if no node_affinites are configured.
     #[serde(default, rename = "minNodeCpus")]
@@ -2081,7 +2082,7 @@ pub struct ComputeScheduling {
 }
 
 /// NetworkInterface represents a NIC of a VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkInterface {
     /// Optional. The external IP to define in the NIC.
     #[serde(default, rename = "externalIp")]
@@ -2101,7 +2102,7 @@ pub struct NetworkInterface {
 }
 
 /// ReplicationCycle contains information about the current replication cycle status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicationCycle {
     /// The cycle''s ordinal number.
     #[serde(default, rename = "cycleNumber")]
@@ -2136,7 +2137,7 @@ pub struct ReplicationCycle {
 }
 
 /// AdaptationModifier a modifier to be used for configuration of the OS adaptation process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptationModifier {
     /// Optional. The modifier name.
     #[serde(default)]
@@ -2147,7 +2148,7 @@ pub struct AdaptationModifier {
 }
 
 /// Encryption message describes the details of the applied encryption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Encryption {
     /// Required. The name of the encryption key that is stored in Google Cloud KMS.
     #[serde(default, rename = "kmsKey")]
@@ -2155,7 +2156,7 @@ pub struct Encryption {
 }
 
 /// Contains details about the image source used to create the disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskImageDefaults {
     /// Required. The Image resource used when creating the disk.
     #[serde(default, rename = "sourceImage")]
@@ -2163,7 +2164,7 @@ pub struct DiskImageDefaults {
 }
 
 /// Node Affinity: the configuration of desired nodes onto which this Instance could be scheduled. Based on https://cloud.google.com/compute/docs/reference/rest/v1/instances/setScheduling
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchedulingNodeAffinity {
     /// The label key of Node resource to reference.
     #[serde(default)]
@@ -2177,7 +2178,7 @@ pub struct SchedulingNodeAffinity {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2191,7 +2192,7 @@ pub struct Status {
 }
 
 /// CycleStep holds information about a step progress.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CycleStep {
     /// The time the cycle step has ended.
     #[serde(default, rename = "endTime")]
@@ -2211,7 +2212,7 @@ pub struct CycleStep {
 }
 
 /// Represents migration resource warning information that can be used with google.rpc.Status message. MigrationWarning is used to present the user with warning information in migration operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MigrationWarning {
     /// Output only. Suggested action for solving the warning.
     #[serde(default, rename = "actionItem")]
@@ -2231,7 +2232,7 @@ pub struct MigrationWarning {
 }
 
 /// ReplicatingStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicatingStep {
     /// The source disks replication rate for the last 30 minutes in bytes per second.
     #[serde(default, rename = "lastThirtyMinutesAverageBytesPerSecond")]
@@ -2248,7 +2249,7 @@ pub struct ReplicatingStep {
 }
 
 /// Provides a localized error message that is safe to return to the user which can be attached to an RPC error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedMessage {
     /// The locale used following the specification defined at https://www.rfc-editor.org/rfc/bcp/bcp47.txt. Examples are: "en-US", "fr-CH", "es-MX"
     #[serde(default)]
@@ -2259,7 +2260,7 @@ pub struct LocalizedMessage {
 }
 
 /// Describes a URL link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Link {
     /// Describes what the link offers.
     #[serde(default)]

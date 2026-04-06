@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request to check whether image upgrade will succeed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckUpgradeRequest {
     /// Optional. The version of the software running in the environment. This encapsulates both the version of Cloud Composer functionality and the version of Apache Airflow. It must match the regular expression composer-([0-9]+(\.[0-9]+\.[0-9]+(-preview\.[0-9]+)?)?|latest)-airflow-([0-9]+(\.[0-9]+(\.[0-9]+)?)?). When used as input, the server also checks if the provided version is supported and denies the request for an unsupported version. The Cloud Composer portion of the image version is a full [semantic version](https://semver.org), or an alias in the form of major version number or latest. When an alias is provided, the server replaces it with the current Cloud Composer version that satisfies the alias. The Apache Airflow portion of the image version is a full semantic version that points to one of the supported Apache Airflow versions, or an alias in the form of only major or major.minor versions specified. When an alias is provided, the server replaces it with the latest Apache Airflow version that satisfies the alias and is supported in the given Cloud Composer version. In all cases, the resolved image version is stored in the same field. See also [version list](/composer/docs/concepts/versioning/composer-versions) and [versioning overview](/composer/docs/concepts/versioning/composer-versioning-overview).
     #[serde(default, rename = "imageVersion")]
@@ -19,7 +20,7 @@ pub struct CheckUpgradeRequest {
 }
 
 /// Message containing information about the result of an upgrade check operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckUpgradeResponse {
     /// Output only. Url for a docker build log of an upgraded image.
     #[serde(default, rename = "buildLogUri")]
@@ -42,19 +43,19 @@ pub struct CheckUpgradeResponse {
 }
 
 /// Request to trigger database failover (only for highly resilient environments).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseFailoverRequest {}
 
 /// Response for DatabaseFailoverRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseFailoverResponse {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Execute Airflow Command request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteAirflowCommandRequest {
     /// Airflow command.
     #[serde(default)]
@@ -68,7 +69,7 @@ pub struct ExecuteAirflowCommandRequest {
 }
 
 /// Response to ExecuteAirflowCommandRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteAirflowCommandResponse {
     /// Error message. Empty if there was no error.
     #[serde(default)]
@@ -85,7 +86,7 @@ pub struct ExecuteAirflowCommandResponse {
 }
 
 /// Response for FetchDatabasePropertiesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchDatabasePropertiesResponse {
     /// The availability status of the failover replica. A false status indicates that the failover replica is out of sync. The primary instance can only fail over to the failover replica when the status is true.
     #[serde(default, rename = "isFailoverReplicaAvailable")]
@@ -99,7 +100,7 @@ pub struct FetchDatabasePropertiesResponse {
 }
 
 /// The environments in a project and location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEnvironmentsResponse {
     /// The list of environments returned by a ListEnvironmentsRequest.
     #[serde(default)]
@@ -110,7 +111,7 @@ pub struct ListEnvironmentsResponse {
 }
 
 /// The ImageVersions in a project and location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListImageVersionsResponse {
     /// The list of supported ImageVersions in a location.
     #[serde(default, rename = "imageVersions")]
@@ -121,7 +122,7 @@ pub struct ListImageVersionsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -135,7 +136,7 @@ pub struct ListOperationsResponse {
 }
 
 /// The user workloads ConfigMaps for a given environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUserWorkloadsConfigMapsResponse {
     /// The page token used to query for the next page if one exists.
     #[serde(default, rename = "nextPageToken")]
@@ -146,7 +147,7 @@ pub struct ListUserWorkloadsConfigMapsResponse {
 }
 
 /// The user workloads Secrets for a given environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUserWorkloadsSecretsResponse {
     /// The page token used to query for the next page if one exists.
     #[serde(default, rename = "nextPageToken")]
@@ -157,7 +158,7 @@ pub struct ListUserWorkloadsSecretsResponse {
 }
 
 /// Response to ListWorkloadsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkloadsResponse {
     /// The page token used to query for the next page if one exists.
     #[serde(default, rename = "nextPageToken")]
@@ -168,7 +169,7 @@ pub struct ListWorkloadsResponse {
 }
 
 /// Request to load a snapshot into a Cloud Composer environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadSnapshotRequest {
     /// Whether or not to skip setting Airflow overrides when loading the environment''s state.
     #[serde(default, rename = "skipAirflowOverridesSetting")]
@@ -188,11 +189,11 @@ pub struct LoadSnapshotRequest {
 }
 
 /// Response to LoadSnapshotRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadSnapshotResponse {}
 
 /// Metadata describing an operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. The time the operation was submitted to the server.
     #[serde(default, rename = "createTime")]
@@ -215,7 +216,7 @@ pub struct OperationMetadata {
 }
 
 /// Poll Airflow Command request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PollAirflowCommandRequest {
     /// The unique ID of the command execution.
     #[serde(default, rename = "executionId")]
@@ -232,7 +233,7 @@ pub struct PollAirflowCommandRequest {
 }
 
 /// Response to PollAirflowCommandRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PollAirflowCommandResponse {
     /// The result exit status of the command.
     #[serde(default, rename = "exitInfo")]
@@ -246,11 +247,11 @@ pub struct PollAirflowCommandResponse {
 }
 
 /// Restart Airflow web server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestartWebServerRequest {}
 
 /// Request to create a snapshot of a Cloud Composer environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SaveSnapshotRequest {
     /// Location in a Cloud Storage where the snapshot is going to be stored, e.g.: "gs://my-bucket/snapshots".
     #[serde(default, rename = "snapshotLocation")]
@@ -258,7 +259,7 @@ pub struct SaveSnapshotRequest {
 }
 
 /// Response to SaveSnapshotRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SaveSnapshotResponse {
     /// The fully-resolved Cloud Storage path of the created snapshot, e.g.: "gs://my-bucket/snapshots/project_location_environment_timestamp". This field is populated only if the snapshot creation was successful.
     #[serde(default, rename = "snapshotPath")]
@@ -266,7 +267,7 @@ pub struct SaveSnapshotResponse {
 }
 
 /// Stop Airflow Command request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopAirflowCommandRequest {
     /// The unique ID of the command execution.
     #[serde(default, rename = "executionId")]
@@ -283,7 +284,7 @@ pub struct StopAirflowCommandRequest {
 }
 
 /// Response to StopAirflowCommandRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopAirflowCommandResponse {
     /// Whether the execution is still running.
     #[serde(default, rename = "isDone")]
@@ -294,7 +295,7 @@ pub struct StopAirflowCommandResponse {
 }
 
 /// Environment configuration conflict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigConflict {
     /// Conflict message.
     #[serde(default)]
@@ -305,7 +306,7 @@ pub struct ConfigConflict {
 }
 
 /// An environment for running orchestration tasks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Environment {
     /// Optional. Configuration parameters for this environment.
     #[serde(default)]
@@ -340,7 +341,7 @@ pub struct Environment {
 }
 
 /// ImageVersion information
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageVersion {
     /// Whether it is impossible to create an environment with the image version.
     #[serde(default, rename = "creationDisabled")]
@@ -363,7 +364,7 @@ pub struct ImageVersion {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -383,7 +384,7 @@ pub struct Operation {
 }
 
 /// User workloads ConfigMap used by Airflow tasks that run with Kubernetes executor or KubernetesPodOperator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserWorkloadsConfigMap {
     /// Optional. The "data" field of Kubernetes ConfigMap, organized in key-value pairs. For details see: https://kubernetes.io/docs/concepts/configuration/configmap/ Example: { "example_key": "example_value", "another_key": "another_value" }
     #[serde(default)]
@@ -394,7 +395,7 @@ pub struct UserWorkloadsConfigMap {
 }
 
 /// User workloads Secret used by Airflow tasks that run with Kubernetes executor or KubernetesPodOperator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserWorkloadsSecret {
     /// Optional. The "data" field of Kubernetes Secret, organized in key-value pairs, which can contain sensitive values such as a password, a token, or a key. The values for all keys have to be base64-encoded strings. For details see: https://kubernetes.io/docs/concepts/configuration/secret/ Example: { "example": "ZXhhbXBsZV92YWx1ZQ==", "another-example": "YW5vdGhlcl9leGFtcGxlX3ZhbHVl" }
     #[serde(default)]
@@ -405,7 +406,7 @@ pub struct UserWorkloadsSecret {
 }
 
 /// Information about a single workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComposerWorkload {
     /// Name of a workload.
     #[serde(default)]
@@ -419,7 +420,7 @@ pub struct ComposerWorkload {
 }
 
 /// Information about how a command ended.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExitInfo {
     /// Error message. Empty if there was no error.
     #[serde(default)]
@@ -430,7 +431,7 @@ pub struct ExitInfo {
 }
 
 /// Contains information about a single line from logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Line {
     /// Text content of the log line.
     #[serde(default)]
@@ -441,7 +442,7 @@ pub struct Line {
 }
 
 /// Configuration information for an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentConfig {
     /// Output only. The ''bring your own identity'' variant of the URI of the Apache Airflow Web UI hosted within this environment, to be accessed with external identities using workforce identity federation (see [Access environments with workforce identity federation](/composer/docs/composer-2/access-environments-with-workforce-identity-federation)).
     #[serde(default, rename = "airflowByoidUri")]
@@ -503,7 +504,7 @@ pub struct EnvironmentConfig {
 }
 
 /// The configuration for data storage in the environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageConfig {
     /// Optional. The name of the Cloud Storage bucket used by the environment. No gs:// prefix.
     #[serde(default)]
@@ -511,7 +512,7 @@ pub struct StorageConfig {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -525,7 +526,7 @@ pub struct Date {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -539,7 +540,7 @@ pub struct Status {
 }
 
 /// Workload status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComposerWorkloadStatus {
     /// Output only. Detailed message of the status.
     #[serde(default, rename = "detailedStatusMessage")]
@@ -553,7 +554,7 @@ pub struct ComposerWorkloadStatus {
 }
 
 /// The configuration setting for Airflow database data retention mechanism.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataRetentionConfig {
     /// Optional. The retention policy for airflow metadata database.
     #[serde(default, rename = "airflowMetadataRetentionConfig")]
@@ -565,7 +566,7 @@ pub struct DataRetentionConfig {
 }
 
 /// The configuration of Cloud SQL instance that is used by the Apache Airflow software.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseConfig {
     /// Optional. Cloud SQL machine type used by Airflow database. It has to be one of: db-n1-standard-2, db-n1-standard-4, db-n1-standard-8 or db-n1-standard-16. If not specified, db-n1-standard-2 will be used. Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
     #[serde(default, rename = "machineType")]
@@ -576,7 +577,7 @@ pub struct DatabaseConfig {
 }
 
 /// The encryption options for the Cloud Composer environment and its dependencies.Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionConfig {
     /// Optional. Customer-managed Encryption Key available through Google''s Key Management Service. Cannot be updated. If not specified, Google-managed key will be used.
     #[serde(default, rename = "kmsKeyName")]
@@ -584,7 +585,7 @@ pub struct EncryptionConfig {
 }
 
 /// The configuration settings for Cloud Composer maintenance window. The following example:  { "startTime":"2019-08-01T01:00:00Z" "endTime":"2019-08-01T07:00:00Z" "recurrence":"FREQ=WEEKLY;BYDAY=TU,WE" }  would define a maintenance window between 01 and 07 hours UTC during each Tuesday and Wednesday.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
     /// Required. Maintenance window end time. It is used only to calculate the duration of the maintenance window. The value for end-time must be in the future, relative to start_time.
     #[serde(default, rename = "endTime")]
@@ -598,7 +599,7 @@ pub struct MaintenanceWindow {
 }
 
 /// Configuration options for the master authorized networks feature. Enabled master authorized networks will disallow all external traffic to access Kubernetes master through HTTPS except traffic from the given CIDR blocks, Google Compute Engine Public IPs and Google Prod IPs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MasterAuthorizedNetworksConfig {
     /// Up to 50 external networks that could access Kubernetes master through HTTPS.
     #[serde(default, rename = "cidrBlocks")]
@@ -609,7 +610,7 @@ pub struct MasterAuthorizedNetworksConfig {
 }
 
 /// The configuration information for the Kubernetes Engine nodes running the Apache Airflow software.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeConfig {
     /// Optional. The IP range in CIDR notation to use internally by Cloud Composer. IP addresses are not reserved - and the same range can be used by multiple Cloud Composer environments. In case of overlap, IPs from this range will not be accessible in the user''s VPC network. Cannot be updated. If not specified, the default value of ''100.64.128.0/20'' is used. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
     #[serde(default, rename = "composerInternalIpv4CidrBlock")]
@@ -650,7 +651,7 @@ pub struct NodeConfig {
 }
 
 /// The configuration information for configuring a Private IP Cloud Composer environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateEnvironmentConfig {
     /// Optional. When specified, the environment will use Private Service Connect instead of VPC peerings to connect to Cloud SQL in the Tenant Project, and the PSC endpoint in the Customer Project will use an IP address from this subnetwork.
     #[serde(default, rename = "cloudComposerConnectionSubnetwork")]
@@ -691,7 +692,7 @@ pub struct PrivateEnvironmentConfig {
 }
 
 /// The Recovery settings of an environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecoveryConfig {
     /// Optional. The configuration for scheduled snapshot creation mechanism.
     #[serde(default, rename = "scheduledSnapshotsConfig")]
@@ -699,7 +700,7 @@ pub struct RecoveryConfig {
 }
 
 /// Specifies the selection and configuration of software inside the environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SoftwareConfig {
     /// Optional. Apache Airflow configuration properties to override. Property keys contain the section and property names, separated by a hyphen, for example "core-dags_are_paused_at_creation". Section names must not contain hyphens ("-"), opening square brackets ("["), or closing square brackets ("]"). The property name must not be empty and must not contain an equals sign ("=") or semicolon (";"). Section and property names must not contain a period ("."). Apache Airflow configuration property names must be written in [snake_case](https://en.wikipedia.org/wiki/Snake_case). Property values can contain any character, and can be written in any lower/upper case format. Certain Apache Airflow configuration property values are [blocked](/composer/docs/concepts/airflow-configurations), and cannot be overridden.
     #[serde(default, rename = "airflowConfigOverrides")]
@@ -728,7 +729,7 @@ pub struct SoftwareConfig {
 }
 
 /// The configuration settings for the Airflow web server App Engine instance. Supported for Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebServerConfig {
     /// Optional. Machine type on which Airflow web server is running. It has to be one of: composer-n1-webserver-2, composer-n1-webserver-4 or composer-n1-webserver-8. If not specified, composer-n1-webserver-2 will be used. Value custom is returned only in response, if Airflow web server parameters were manually changed to a non-standard values.
     #[serde(default, rename = "machineType")]
@@ -736,7 +737,7 @@ pub struct WebServerConfig {
 }
 
 /// Network-level access control policy for the Airflow web server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebServerNetworkAccessControl {
     /// A collection of allowed IP ranges with descriptions.
     #[serde(default, rename = "allowedIpRanges")]
@@ -744,7 +745,7 @@ pub struct WebServerNetworkAccessControl {
 }
 
 /// The Kubernetes workloads configuration for GKE cluster associated with the Cloud Composer environment. Supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadsConfig {
     /// Optional. Resources used by Airflow DAG processors. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
     #[serde(default, rename = "dagProcessor")]
@@ -764,7 +765,7 @@ pub struct WorkloadsConfig {
 }
 
 /// The policy for airflow metadata database retention.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AirflowMetadataRetentionPolicyConfig {
     /// Optional. How many days data should be retained for.
     #[serde(default, rename = "retentionDays")]
@@ -775,7 +776,7 @@ pub struct AirflowMetadataRetentionPolicyConfig {
 }
 
 /// The configuration setting for Task Logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskLogsRetentionConfig {
     /// Optional. The mode of storage for Airflow workers task logs. // TODO: enum values: ["TASK_LOGS_STORAGE_MODE_UNSPECIFIED", "CLOUD_LOGGING_AND_CLOUD_STORAGE", "CLOUD_LOGGING_ONLY"]
     #[serde(default, rename = "storageMode")]
@@ -783,7 +784,7 @@ pub struct TaskLogsRetentionConfig {
 }
 
 /// CIDR block with an optional name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CidrBlock {
     /// CIDR block that must be specified in CIDR notation.
     #[serde(default, rename = "cidrBlock")]
@@ -794,7 +795,7 @@ pub struct CidrBlock {
 }
 
 /// Configuration for controlling how IPs are allocated in the GKE cluster running the Apache Airflow software.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IPAllocationPolicy {
     /// Optional. The IP address range used to allocate IP addresses to pods in the GKE cluster. For Cloud Composer environments in versions composer-1.*.*-airflow-*.*.*, this field is applicable only when use_ip_aliases is true. Set to blank to have GKE choose a range with the default size. Set to /netmask (e.g. /14) to have GKE choose a range with a specific netmask. Set to a [CIDR](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing) notation (e.g. 10.96.0.0/14) from the RFC-1918 private networks (e.g. 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) to pick a specific range to use.
     #[serde(default, rename = "clusterIpv4CidrBlock")]
@@ -814,7 +815,7 @@ pub struct IPAllocationPolicy {
 }
 
 /// Configuration options for networking connections in the Composer 2 environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkingConfig {
     /// Optional. Indicates the user requested specific connection type between Tenant and Customer projects. You cannot set networking connection type in public IP environment. // TODO: enum values: ["CONNECTION_TYPE_UNSPECIFIED", "VPC_PEERING", "PRIVATE_SERVICE_CONNECT"]
     #[serde(default, rename = "connectionType")]
@@ -822,7 +823,7 @@ pub struct NetworkingConfig {
 }
 
 /// Configuration options for the private GKE cluster in a Cloud Composer environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateClusterConfig {
     /// Optional. If true, access to the public endpoint of the GKE cluster is denied.
     #[serde(default, rename = "enablePrivateEndpoint")]
@@ -836,7 +837,7 @@ pub struct PrivateClusterConfig {
 }
 
 /// The configuration for scheduled snapshot creation mechanism.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduledSnapshotsConfig {
     /// Optional. Whether scheduled snapshots creation is enabled.
     #[serde(default)]
@@ -853,7 +854,7 @@ pub struct ScheduledSnapshotsConfig {
 }
 
 /// Configuration for Cloud Data Lineage integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudDataLineageIntegration {
     /// Optional. Whether or not Cloud Data Lineage integration is enabled.
     #[serde(default)]
@@ -861,7 +862,7 @@ pub struct CloudDataLineageIntegration {
 }
 
 /// Allowed IP range with user-provided description.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllowedIpRange {
     /// Optional. User-provided description. It must contain at most 300 characters.
     #[serde(default)]
@@ -872,7 +873,7 @@ pub struct AllowedIpRange {
 }
 
 /// Configuration for resources used by Airflow DAG processors. This field is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DagProcessorResource {
     /// Optional. The number of DAG processors. If not provided or set to 0, a single DAG processor instance will be created.
     #[serde(default)]
@@ -889,7 +890,7 @@ pub struct DagProcessorResource {
 }
 
 /// Configuration for resources used by Airflow schedulers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchedulerResource {
     /// Optional. The number of schedulers.
     #[serde(default)]
@@ -906,7 +907,7 @@ pub struct SchedulerResource {
 }
 
 /// Configuration for resources used by Airflow triggerers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TriggererResource {
     /// Optional. The number of triggerers.
     #[serde(default)]
@@ -920,7 +921,7 @@ pub struct TriggererResource {
 }
 
 /// Configuration for resources used by Airflow web server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebServerResource {
     /// Optional. CPU request and limit for Airflow web server.
     #[serde(default)]
@@ -934,7 +935,7 @@ pub struct WebServerResource {
 }
 
 /// Configuration for resources used by Airflow workers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerResource {
     /// Optional. CPU request and limit for a single Airflow worker replica.
     #[serde(default)]

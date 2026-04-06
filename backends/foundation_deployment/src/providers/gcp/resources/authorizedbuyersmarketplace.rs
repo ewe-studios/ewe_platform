@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request to accept a proposal. Accepting a proposal implies acceptance of the publisher terms_and_conditions, if any.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceptProposalRequest {
     /// The last known client revision number of the proposal.
     #[serde(default, rename = "proposalRevision")]
@@ -19,15 +20,15 @@ pub struct AcceptProposalRequest {
 }
 
 /// Request message for activating a client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivateClientRequest {}
 
 /// Request message for activating a client user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivateClientUserRequest {}
 
 /// Request message for adding creative to be used in the bidding process for the finalized deal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddCreativeRequest {
     /// Name of the creative to add to the finalized deal, in the format buyers/{buyerAccountId}/creatives/{creativeId}. See creative.name.
     #[serde(default)]
@@ -35,7 +36,7 @@ pub struct AddCreativeRequest {
 }
 
 /// Request to add a note.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddNoteRequest {
     /// The note to add.
     #[serde(default)]
@@ -43,7 +44,7 @@ pub struct AddNoteRequest {
 }
 
 /// Request message for batch updating deals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateDealsRequest {
     /// Required. List of request messages to update deals.
     #[serde(default)]
@@ -51,7 +52,7 @@ pub struct BatchUpdateDealsRequest {
 }
 
 /// Response message for batch updating deals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateDealsResponse {
     /// Deals updated.
     #[serde(default)]
@@ -59,23 +60,23 @@ pub struct BatchUpdateDealsResponse {
 }
 
 /// Request to cancel an ongoing negotiation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelNegotiationRequest {}
 
 /// Request message for disabling a client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeactivateClientRequest {}
 
 /// Request message for deactivating a client user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeactivateClientUserRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for listing auction packages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAuctionPackagesResponse {
     /// The list of auction packages.
     #[serde(default, rename = "auctionPackages")]
@@ -86,7 +87,7 @@ pub struct ListAuctionPackagesResponse {
 }
 
 /// Response message for the list method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListClientUsersResponse {
     /// The returned list of client users.
     #[serde(default, rename = "clientUsers")]
@@ -97,7 +98,7 @@ pub struct ListClientUsersResponse {
 }
 
 /// Response message for the list method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListClientsResponse {
     /// The returned list of clients.
     #[serde(default)]
@@ -108,7 +109,7 @@ pub struct ListClientsResponse {
 }
 
 /// Response message for listing deals in a proposal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDealsResponse {
     /// The list of deals.
     #[serde(default)]
@@ -119,7 +120,7 @@ pub struct ListDealsResponse {
 }
 
 /// Response message for listing finalized deals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFinalizedDealsResponse {
     /// The list of finalized deals.
     #[serde(default, rename = "finalizedDeals")]
@@ -130,7 +131,7 @@ pub struct ListFinalizedDealsResponse {
 }
 
 /// Response message for listing proposals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProposalsResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -141,7 +142,7 @@ pub struct ListProposalsResponse {
 }
 
 /// Response message for profiles visible to the buyer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPublisherProfilesResponse {
     /// Token to fetch the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -152,7 +153,7 @@ pub struct ListPublisherProfilesResponse {
 }
 
 /// Request message for pausing a finalized deal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PauseFinalizedDealRequest {
     /// The reason to pause the finalized deal, will be displayed to the seller. Maximum length is 1000 characters.
     #[serde(default)]
@@ -160,11 +161,11 @@ pub struct PauseFinalizedDealRequest {
 }
 
 /// Request message for resuming a finalized deal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResumeFinalizedDealRequest {}
 
 /// Request to send an RFP. All fields in this request are proposed to publisher and subject to changes by publisher during later negotiation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendRfpRequest {
     /// Contact information for the buyer.
     #[serde(default, rename = "buyerContacts")]
@@ -205,15 +206,15 @@ pub struct SendRfpRequest {
 }
 
 /// Request message for setting ready to serve for a finalized deal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetReadyToServeRequest {}
 
 /// Request message for SubscribeAuctionPackage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscribeAuctionPackageRequest {}
 
 /// Request message for SubscribeAuctionPackageClients.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscribeClientsRequest {
     /// Optional. A list of client buyers to subscribe to the auction package, with client buyer in the format buyers/{accountId}/clients/{clientAccountId}. The current buyer will be subscribed to the auction package regardless of the list contents if not already.
     #[serde(default)]
@@ -221,11 +222,11 @@ pub struct SubscribeClientsRequest {
 }
 
 /// Request message for UnsubscribeAuctionPackage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnsubscribeAuctionPackageRequest {}
 
 /// Request message for UnsubscribeAuctionPackage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnsubscribeClientsRequest {
     /// Optional. A list of client buyers to unsubscribe from the auction package, with client buyer in the format buyers/{accountId}/clients/{clientAccountId}.
     #[serde(default)]
@@ -233,7 +234,7 @@ pub struct UnsubscribeClientsRequest {
 }
 
 /// Request message for updating the deal at the given revision number.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateDealRequest {
     /// Required. The deal to update. The deal''s name field is used to identify the deal to be updated. Note: proposal_revision will have to be provided within the resource or else an error will be thrown. Format: buyers/{accountId}/proposals/{proposalId}/deals/{dealId}
     #[serde(default)]
@@ -244,7 +245,7 @@ pub struct UpdateDealRequest {
 }
 
 /// Defines a segment of inventory that buyer wants to buy. It''s created by buyer and could be shared with multiple buyers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuctionPackage {
     /// Output only. Time the auction package was created.
     #[serde(default, rename = "createTime")]
@@ -285,7 +286,7 @@ pub struct AuctionPackage {
 }
 
 /// A user of a client who has restricted access to the Marketplace and certain other sections of the Authorized Buyers UI based on the role granted to the associated client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientUser {
     /// Required. The client user''s email address that has to be unique across all users for the same client.
     #[serde(default)]
@@ -299,7 +300,7 @@ pub struct ClientUser {
 }
 
 /// A client represents an agency, a brand, or an advertiser customer of the buyer. Based on the client''s role, its client users will have varying levels of restricted access to the Marketplace and certain other sections of the Authorized Buyers UI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Client {
     /// Required. Display name shown to publishers. Must be unique for clients without partnerClientId specified. Maximum length of 255 characters is allowed.
     #[serde(default, rename = "displayName")]
@@ -322,7 +323,7 @@ pub struct Client {
 }
 
 /// A finalized deal is a snapshot of the deal when both buyer and seller accept the deal. The buyer or seller can update the deal after it''s been finalized and renegotiate on the deal targeting, terms and other fields, while at the same time the finalized snapshot of the deal can still be retrieved using this API. The finalized deal contains a copy of the deal as it existed when most recently finalized, as well as fields related to deal serving such as pause/resume status, RTB metrics, and more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinalizedDeal {
     /// A copy of the Deal made upon finalization. During renegotiation, this will reflect the last finalized deal before renegotiation was initiated.
     #[serde(default)]
@@ -345,7 +346,7 @@ pub struct FinalizedDeal {
 }
 
 /// Represents a proposal in the Marketplace. A proposal is the unit of negotiation between a seller and a buyer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Proposal {
     /// Output only. When the client field is populated, this field refers to the buyer who creates and manages the client buyer and gets billed on behalf of the client buyer; when the buyer field is populated, this field is the same value as buyer. Format : buyers/{buyerAccountId}
     #[serde(default, rename = "billedBuyer")]
@@ -407,7 +408,7 @@ pub struct Proposal {
 }
 
 /// The values in the publisher profile are supplied by the publisher. All fields are not filterable unless stated otherwise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublisherProfile {
     /// Description on the publisher''s audience.
     #[serde(default, rename = "audienceDescription")]
@@ -457,7 +458,7 @@ pub struct PublisherProfile {
 }
 
 /// A deal represents a segment of inventory for displaying ads that contains the terms and targeting information that is used for serving as well as the deal stats and status. Note: A proposal may contain multiple deals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Deal {
     /// Output only. When the client field is populated, this field refers to the buyer who creates and manages the client buyer and gets billed on behalf of the client buyer; when the buyer field is populated, this field is the same value as buyer; when the deal belongs to a media planner account, this field will be empty. Format : buyers/{buyerAccountId}
     #[serde(default, rename = "billedBuyer")]
@@ -534,7 +535,7 @@ pub struct Deal {
 }
 
 /// Information related to deal pausing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DealPausingInfo {
     /// The reason for the pausing of the deal; empty for active deals.
     #[serde(default, rename = "pauseReason")]
@@ -548,7 +549,7 @@ pub struct DealPausingInfo {
 }
 
 /// Real-time bidding metrics. For what each metric means refer to [Report metrics](https://support.google.com/adxbuyer/answer/6115195#report-metrics)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RtbMetrics {
     /// Ad impressions in last 7 days.
     #[serde(default, rename = "adImpressions7Days")]
@@ -571,7 +572,7 @@ pub struct RtbMetrics {
 }
 
 /// Contains information on how a buyer or seller can be reached.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Contact {
     /// The display_name of the contact.
     #[serde(default, rename = "displayName")]
@@ -582,7 +583,7 @@ pub struct Contact {
 }
 
 /// Buyers are allowed to store certain types of private data in a proposal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateData {
     /// A buyer specified reference ID. This can be queried in the list operations (max-length: 1024 unicode code units).
     #[serde(default, rename = "referenceId")]
@@ -590,7 +591,7 @@ pub struct PrivateData {
 }
 
 /// A text note attached to the proposal to facilitate the communication between buyers and sellers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Note {
     /// Output only. When this note was created.
     #[serde(default, rename = "createTime")]
@@ -604,7 +605,7 @@ pub struct Note {
 }
 
 /// A mobile application that contains a external app ID, name, and app store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublisherProfileMobileApplication {
     /// The app store the app belongs to. Can be used to filter the response of the publisherProfiles.list method. // TODO: enum values: ["APP_STORE_TYPE_UNSPECIFIED", "APPLE_ITUNES", "GOOGLE_PLAY", "ROKU", "AMAZON_FIRE_TV", "PLAYSTATION", "XBOX", "SAMSUNG_TV", "AMAZON", "OPPO", "SAMSUNG", "VIVO", "XIAOMI", "LG_TV"]
     #[serde(default, rename = "appStore")]
@@ -618,7 +619,7 @@ pub struct PublisherProfileMobileApplication {
 }
 
 /// Message captures data about the creatives in the deal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeRequirements {
     /// Output only. The format of the creative, only applicable for programmatic guaranteed and preferred deals. // TODO: enum values: ["CREATIVE_FORMAT_UNSPECIFIED", "DISPLAY", "VIDEO", "AUDIO"]
     #[serde(default, rename = "creativeFormat")]
@@ -641,7 +642,7 @@ pub struct CreativeRequirements {
 }
 
 /// Message contains details about how the deal will be paced.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeliveryControl {
     /// Output only. Specifies roadblocking in a main companion lineitem. // TODO: enum values: ["COMPANION_DELIVERY_TYPE_UNSPECIFIED", "DELIVERY_OPTIONAL", "DELIVERY_AT_LEAST_ONE", "DELIVERY_ALL"]
     #[serde(default, rename = "companionDeliveryType")]
@@ -661,7 +662,7 @@ pub struct DeliveryControl {
 }
 
 /// Represents a media planner account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MediaPlanner {
     /// Output only. Account ID of the media planner.
     #[serde(default, rename = "accountId")]
@@ -678,7 +679,7 @@ pub struct MediaPlanner {
 }
 
 /// Pricing terms for Preferred Deals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreferredDealTerms {
     /// Fixed price for the deal.
     #[serde(default, rename = "fixedPrice")]
@@ -686,7 +687,7 @@ pub struct PreferredDealTerms {
 }
 
 /// Pricing terms for Private Auctions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateAuctionTerms {
     /// The minimum price buyer has to bid to compete in the private auction.
     #[serde(default, rename = "floorPrice")]
@@ -697,7 +698,7 @@ pub struct PrivateAuctionTerms {
 }
 
 /// Pricing terms for Programmatic Guaranteed Deals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProgrammaticGuaranteedTerms {
     /// Fixed price for the deal.
     #[serde(default, rename = "fixedPrice")]
@@ -720,7 +721,7 @@ pub struct ProgrammaticGuaranteedTerms {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
@@ -731,7 +732,7 @@ pub struct TimeZone {
 }
 
 /// Targeting represents different criteria that can be used to target deals or auction packages. For example, they can choose to target inventory only if the user is in the US. Multiple types of targeting are always applied as a logical AND, unless noted otherwise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarketplaceTargeting {
     /// Daypart targeting information.
     #[serde(default, rename = "daypartTargeting")]
@@ -766,7 +767,7 @@ pub struct MarketplaceTargeting {
 }
 
 /// Message contains details about publisher-set frequency caps of the delivery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FrequencyCap {
     /// The maximum number of impressions that can be served to a user within the specified time period.
     #[serde(default, rename = "maxImpressions")]
@@ -780,7 +781,7 @@ pub struct FrequencyCap {
 }
 
 /// Represents a price and a pricing type for a deal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Price {
     /// The actual price with currency specified.
     #[serde(default)]
@@ -791,7 +792,7 @@ pub struct Price {
 }
 
 /// Represents Daypart targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DayPartTargeting {
     /// The targeted weekdays and times
     #[serde(default, rename = "dayParts")]
@@ -802,7 +803,7 @@ pub struct DayPartTargeting {
 }
 
 /// Represents the size of an ad unit that can be targeted on a bid request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySizeTargeting {
     /// A list of inventory sizes to be excluded.
     #[serde(default, rename = "excludedInventorySizes")]
@@ -813,7 +814,7 @@ pub struct InventorySizeTargeting {
 }
 
 /// Targeting of the inventory types a bid request can originate from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventoryTypeTargeting {
     /// The list of targeted inventory types for the bid request.
     #[serde(default, rename = "inventoryTypes")]
@@ -821,7 +822,7 @@ pub struct InventoryTypeTargeting {
 }
 
 /// Represents targeting about where the ads can appear, for example, certain sites or mobile applications. Different placement targeting types will be logically OR''ed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementTargeting {
     /// Mobile application targeting information in a deal. This doesn''t apply to Auction Packages.
     #[serde(default, rename = "mobileApplicationTargeting")]
@@ -832,7 +833,7 @@ pub struct PlacementTargeting {
 }
 
 /// Represents targeting about various types of technology.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TechnologyTargeting {
     /// IDs of device capabilities to be included/excluded.
     #[serde(default, rename = "deviceCapabilityTargeting")]
@@ -846,7 +847,7 @@ pub struct TechnologyTargeting {
 }
 
 /// Represents targeting information about video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoTargeting {
     /// A list of video positions to be excluded. When this field is populated, the targeted_position_types field must be empty.
     #[serde(default, rename = "excludedPositionTypes")]
@@ -857,7 +858,7 @@ pub struct VideoTargeting {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -871,7 +872,7 @@ pub struct Money {
 }
 
 /// Defines targeting for a period of time on a specific week day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DayPart {
     /// Day of week for the period. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
@@ -885,7 +886,7 @@ pub struct DayPart {
 }
 
 /// Represents size of a single ad slot, or a creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdSize {
     /// The height of the ad slot in pixels. This field will be present only when size type is PIXEL.
     #[serde(default)]
@@ -899,7 +900,7 @@ pub struct AdSize {
 }
 
 /// Mobile application targeting settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileApplicationTargeting {
     /// Publisher owned apps to be targeted or excluded by the publisher to display the ads in.
     #[serde(default, rename = "firstPartyTargeting")]
@@ -907,7 +908,7 @@ pub struct MobileApplicationTargeting {
 }
 
 /// Represents a list of targeted and excluded URLs (for example, google.com). For Private Auction Deals, URLs are either included or excluded. For Programmatic Guaranteed and Preferred Deals, this doesn''t apply.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UriTargeting {
     /// A list of URLs to be excluded.
     #[serde(default, rename = "excludedUris")]
@@ -918,7 +919,7 @@ pub struct UriTargeting {
 }
 
 /// Represents targeting information for operating systems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperatingSystemTargeting {
     /// IDs of operating systems to be included/excluded.
     #[serde(default, rename = "operatingSystemCriteria")]
@@ -929,7 +930,7 @@ pub struct OperatingSystemTargeting {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -946,7 +947,7 @@ pub struct TimeOfDay {
 }
 
 /// Represents a list of targeted and excluded mobile application IDs that publishers own. Android App ID, for example, com.google.android.apps.maps, can be found in Google Play Store URL. iOS App ID (which is a number) can be found at the end of iTunes store URL. First party mobile applications is either included or excluded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirstPartyMobileApplicationTargeting {
     /// A list of application IDs to be excluded.
     #[serde(default, rename = "excludedAppIds")]
@@ -957,7 +958,7 @@ pub struct FirstPartyMobileApplicationTargeting {
 }
 
 /// Generic targeting used for targeting dimensions that contains a list of included and excluded numeric IDs. This cannot be filtered using list filter syntax.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CriteriaTargeting {
     /// A list of numeric IDs to be excluded.
     #[serde(default, rename = "excludedCriteriaIds")]

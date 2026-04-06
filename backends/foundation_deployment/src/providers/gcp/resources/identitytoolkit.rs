@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response of creating the IDP authentication URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAuthUriResponse {
     /// all providers the user has once used to do federated login
     #[serde(default, rename = "allProviders")]
@@ -43,7 +44,7 @@ pub struct CreateAuthUriResponse {
 }
 
 /// Respone of deleting account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteAccountResponse {
     /// The fixed string "identitytoolkit#DeleteAccountResponse".
     #[serde(default)]
@@ -51,7 +52,7 @@ pub struct DeleteAccountResponse {
 }
 
 /// Response of downloading accounts in batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadAccountResponse {
     /// The fixed string "identitytoolkit#DownloadAccountResponse".
     #[serde(default)]
@@ -65,7 +66,7 @@ pub struct DownloadAccountResponse {
 }
 
 /// Response of email signIn.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailLinkSigninResponse {
     /// The user''s email.
     #[serde(default)]
@@ -91,7 +92,7 @@ pub struct EmailLinkSigninResponse {
 }
 
 /// Response of getting account information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetAccountInfoResponse {
     /// The fixed string "identitytoolkit#GetAccountInfoResponse".
     #[serde(default)]
@@ -102,7 +103,7 @@ pub struct GetAccountInfoResponse {
 }
 
 /// Response of getting a code for user confirmation (reset password, change email etc.).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetOobConfirmationCodeResponse {
     /// The email address that the email is sent to.
     #[serde(default)]
@@ -116,7 +117,7 @@ pub struct GetOobConfirmationCodeResponse {
 }
 
 /// Response of getting recaptcha param.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetRecaptchaParamResponse {
     /// The fixed string "identitytoolkit#GetRecaptchaParamResponse".
     #[serde(default)]
@@ -130,7 +131,7 @@ pub struct GetRecaptchaParamResponse {
 }
 
 /// Request to get the IDP authentication URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyCreateAuthUriRequest {
     /// The app ID of the mobile app, base64(CERT_SHA1):PACKAGE_NAME for Android, BUNDLE_ID for iOS.
     #[serde(default, rename = "appId")]
@@ -183,7 +184,7 @@ pub struct IdentitytoolkitRelyingpartyCreateAuthUriRequest {
 }
 
 /// Request to delete account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyDeleteAccountRequest {
     /// GCP project number of the requesting delegated app. Currently only intended for Firebase V1 migration.
     #[serde(default, rename = "delegatedProjectNumber")]
@@ -197,7 +198,7 @@ pub struct IdentitytoolkitRelyingpartyDeleteAccountRequest {
 }
 
 /// Request to download user account in batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyDownloadAccountRequest {
     /// GCP project number of the requesting delegated app. Currently only intended for Firebase V1 migration.
     #[serde(default, rename = "delegatedProjectNumber")]
@@ -214,7 +215,7 @@ pub struct IdentitytoolkitRelyingpartyDownloadAccountRequest {
 }
 
 /// Request to sign in with email.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyEmailLinkSigninRequest {
     /// The email address of the user.
     #[serde(default)]
@@ -228,7 +229,7 @@ pub struct IdentitytoolkitRelyingpartyEmailLinkSigninRequest {
 }
 
 /// Request to get the account information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyGetAccountInfoRequest {
     /// GCP project number of the requesting delegated app. Currently only intended for Firebase V1 migration.
     #[serde(default, rename = "delegatedProjectNumber")]
@@ -248,7 +249,7 @@ pub struct IdentitytoolkitRelyingpartyGetAccountInfoRequest {
 }
 
 /// Response of getting the project configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyGetProjectConfigResponse {
     /// Whether to allow password user sign in or sign up.
     #[serde(default, rename = "allowPasswordUser")]
@@ -288,11 +289,11 @@ pub struct IdentitytoolkitRelyingpartyGetProjectConfigResponse {
 }
 
 /// Respone of getting public keys.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyGetPublicKeysResponse {}
 
 /// Request to reset the password.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyResetPasswordRequest {
     /// The email address of the user.
     #[serde(default)]
@@ -309,7 +310,7 @@ pub struct IdentitytoolkitRelyingpartyResetPasswordRequest {
 }
 
 /// Request for Identitytoolkit-SendVerificationCode
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartySendVerificationCodeRequest {
     /// Receipt of successful app token validation with APNS.
     #[serde(default, rename = "iosReceipt")]
@@ -326,7 +327,7 @@ pub struct IdentitytoolkitRelyingpartySendVerificationCodeRequest {
 }
 
 /// Response for Identitytoolkit-SendVerificationCode
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartySendVerificationCodeResponse {
     /// Encrypted session information
     #[serde(default, rename = "sessionInfo")]
@@ -334,7 +335,7 @@ pub struct IdentitytoolkitRelyingpartySendVerificationCodeResponse {
 }
 
 /// Request to set the account information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartySetAccountInfoRequest {
     /// The captcha challenge.
     #[serde(default, rename = "captchaChallenge")]
@@ -408,7 +409,7 @@ pub struct IdentitytoolkitRelyingpartySetAccountInfoRequest {
 }
 
 /// Request to set the project configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartySetProjectConfigRequest {
     /// Whether to allow password user sign in or sign up.
     #[serde(default, rename = "allowPasswordUser")]
@@ -446,7 +447,7 @@ pub struct IdentitytoolkitRelyingpartySetProjectConfigRequest {
 }
 
 /// Response of setting the project configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartySetProjectConfigResponse {
     /// Project ID of the relying party.
     #[serde(default, rename = "projectId")]
@@ -454,7 +455,7 @@ pub struct IdentitytoolkitRelyingpartySetProjectConfigResponse {
 }
 
 /// Request to sign out user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartySignOutUserRequest {
     /// Instance id token of the app.
     #[serde(default, rename = "instanceId")]
@@ -465,7 +466,7 @@ pub struct IdentitytoolkitRelyingpartySignOutUserRequest {
 }
 
 /// Response of signing out user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartySignOutUserResponse {
     /// The local ID of the user.
     #[serde(default, rename = "localId")]
@@ -473,7 +474,7 @@ pub struct IdentitytoolkitRelyingpartySignOutUserResponse {
 }
 
 /// Request to signup new user, create anonymous user or anonymous user reauth.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartySignupNewUserRequest {
     /// The captcha challenge.
     #[serde(default, rename = "captchaChallenge")]
@@ -520,7 +521,7 @@ pub struct IdentitytoolkitRelyingpartySignupNewUserRequest {
 }
 
 /// Request to upload user account in batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyUploadAccountRequest {
     /// Whether allow overwrite existing account when user local_id exists.
     #[serde(default, rename = "allowOverwrite")]
@@ -564,7 +565,7 @@ pub struct IdentitytoolkitRelyingpartyUploadAccountRequest {
 }
 
 /// Request to verify the IDP assertion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyVerifyAssertionRequest {
     /// When it''s true, automatically creates a new account if the user doesn''t exist. When it''s false, allows existing user to sign in normally and throws exception if the user doesn''t exist.
     #[serde(default, rename = "autoCreate")]
@@ -608,7 +609,7 @@ pub struct IdentitytoolkitRelyingpartyVerifyAssertionRequest {
 }
 
 /// Request to verify a custom token
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyVerifyCustomTokenRequest {
     /// GCP project number of the requesting delegated app. Currently only intended for Firebase V1 migration.
     #[serde(default, rename = "delegatedProjectNumber")]
@@ -625,7 +626,7 @@ pub struct IdentitytoolkitRelyingpartyVerifyCustomTokenRequest {
 }
 
 /// Request to verify the password.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyVerifyPasswordRequest {
     /// The captcha challenge.
     #[serde(default, rename = "captchaChallenge")]
@@ -663,7 +664,7 @@ pub struct IdentitytoolkitRelyingpartyVerifyPasswordRequest {
 }
 
 /// Request for Identitytoolkit-VerifyPhoneNumber
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest {
     #[serde(default)]
     pub code: ::core::option::Option<String>,
@@ -683,7 +684,7 @@ pub struct IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest {
 }
 
 /// Response for Identitytoolkit-VerifyPhoneNumber
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse {
     #[serde(default, rename = "expiresIn")]
     pub expires_in: ::core::option::Option<String>,
@@ -708,7 +709,7 @@ pub struct IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse {
 }
 
 /// Request of getting a code for user confirmation (reset password, change email etc.)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Relyingparty {
     /// whether or not to install the android app on the device where the link is opened
     #[serde(default, rename = "androidInstallApp")]
@@ -758,7 +759,7 @@ pub struct Relyingparty {
 }
 
 /// Response of resetting the password.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetPasswordResponse {
     /// The user''s email. If the out-of-band code is for email recovery, the user''s original email.
     #[serde(default)]
@@ -775,7 +776,7 @@ pub struct ResetPasswordResponse {
 }
 
 /// Respone of setting the account information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetAccountInfoResponse {
     /// The name of the user.
     #[serde(default, rename = "displayName")]
@@ -816,7 +817,7 @@ pub struct SetAccountInfoResponse {
 }
 
 /// Response of signing up new user, creating anonymous user or anonymous user reauth.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignupNewUserResponse {
     /// The name of the user.
     #[serde(default, rename = "displayName")]
@@ -842,7 +843,7 @@ pub struct SignupNewUserResponse {
 }
 
 /// Respone of uploading accounts in batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadAccountResponse {
     /// The error encountered while processing the account info.
     #[serde(default)]
@@ -853,7 +854,7 @@ pub struct UploadAccountResponse {
 }
 
 /// Response of verifying the IDP assertion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyAssertionResponse {
     /// The action code.
     #[serde(default)]
@@ -975,7 +976,7 @@ pub struct VerifyAssertionResponse {
 }
 
 /// Response from verifying a custom token
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyCustomTokenResponse {
     /// If idToken is STS id token, then this field will be expiration time of STS id token in seconds.
     #[serde(default, rename = "expiresIn")]
@@ -995,7 +996,7 @@ pub struct VerifyCustomTokenResponse {
 }
 
 /// Request of verifying the password.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyPasswordResponse {
     /// The name of the user.
     #[serde(default, rename = "displayName")]
@@ -1036,7 +1037,7 @@ pub struct VerifyPasswordResponse {
 }
 
 /// Template for an email template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailTemplate {
     /// Email body.
     #[serde(default)]
@@ -1059,7 +1060,7 @@ pub struct EmailTemplate {
 }
 
 /// Template for a single idp configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdpConfig {
     /// OAuth2 client ID.
     #[serde(default, rename = "clientId")]
@@ -1082,7 +1083,7 @@ pub struct IdpConfig {
 }
 
 /// Template for an individual account info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserInfo {
     /// User creation timestamp.
     #[serde(default, rename = "createdAt")]

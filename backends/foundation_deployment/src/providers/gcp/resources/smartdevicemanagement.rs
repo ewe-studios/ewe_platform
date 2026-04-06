@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for SmartDeviceManagementService.ExecuteDeviceCommand
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandRequest {
     /// The command name to execute, represented by the fully qualified protobuf message name.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandRequest {
 }
 
 /// Response message for SmartDeviceManagementService.ExecuteDeviceCommand
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandResponse {
     /// The results of executing the command.
     #[serde(default)]
@@ -30,7 +31,7 @@ pub struct GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandResponse {
 }
 
 /// Response message for SmartDeviceManagementService.ListDevices
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleHomeEnterpriseSdmV1ListDevicesResponse {
     /// The list of devices.
     #[serde(default)]
@@ -38,7 +39,7 @@ pub struct GoogleHomeEnterpriseSdmV1ListDevicesResponse {
 }
 
 /// Response message for SmartDeviceManagementService.ListRooms
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleHomeEnterpriseSdmV1ListRoomsResponse {
     /// The list of rooms.
     #[serde(default)]
@@ -46,7 +47,7 @@ pub struct GoogleHomeEnterpriseSdmV1ListRoomsResponse {
 }
 
 /// Response message for SmartDeviceManagementService.ListStructures
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleHomeEnterpriseSdmV1ListStructuresResponse {
     /// The list of structures.
     #[serde(default)]
@@ -54,7 +55,7 @@ pub struct GoogleHomeEnterpriseSdmV1ListStructuresResponse {
 }
 
 /// Device resource represents an instance of enterprise managed device in the property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleHomeEnterpriseSdmV1Device {
     /// Output only. The GHP device ID of the device.
     #[serde(default, rename = "ghpName")]
@@ -75,7 +76,7 @@ pub struct GoogleHomeEnterpriseSdmV1Device {
 }
 
 /// Room resource represents an instance of sub-space within a structure such as rooms in a hotel suite or rental apartment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleHomeEnterpriseSdmV1Room {
     /// Output only. The resource name of the room. For example: "enterprises/XYZ/structures/ABC/rooms/123".
     #[serde(default)]
@@ -86,7 +87,7 @@ pub struct GoogleHomeEnterpriseSdmV1Room {
 }
 
 /// Structure resource represents an instance of enterprise managed home or hotel room.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleHomeEnterpriseSdmV1Structure {
     /// Output only. The unique identifier for the structure in Google Home Platform. Format: homegraph.googleapis.com/Structure/{structure_id}
     #[serde(default, rename = "ghpName")]
@@ -100,7 +101,7 @@ pub struct GoogleHomeEnterpriseSdmV1Structure {
 }
 
 /// Represents device relationships, for instance, structure/room to which the device is assigned to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleHomeEnterpriseSdmV1ParentRelation {
     /// Output only. The custom name of the relation -- e.g., structure/room where the device is assigned to.
     #[serde(default, rename = "displayName")]

@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A request to activate a pretargeting configuration. Sets the configuration''s state to ACTIVE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivatePretargetingConfigRequest {}
 
 /// A request to start targeting the provided app IDs in a specific pretargeting configuration. The pretargeting configuration itself specifies how these apps are targeted. in PretargetingConfig.appTargeting.mobileAppTargeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddTargetedAppsRequest {
     /// A list of app IDs to target in the pretargeting configuration. These values will be added to the list of targeted app IDs in PretargetingConfig.appTargeting.mobileAppTargeting.values.
     #[serde(default, rename = "appIds")]
@@ -26,7 +27,7 @@ pub struct AddTargetedAppsRequest {
 }
 
 /// A request to start targeting the provided publishers in a specific pretargeting configuration. The pretargeting configuration itself specifies how these publishers are targeted in PretargetingConfig.publisherTargeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddTargetedPublishersRequest {
     /// A list of publisher IDs to target in the pretargeting configuration. These values will be added to the list of targeted publisher IDs in PretargetingConfig.publisherTargeting.values. Publishers are identified by their publisher ID from ads.txt / app-ads.txt. See https://iabtechlab.com/ads-txt/ and https://iabtechlab.com/app-ads-txt/ for more details.
     #[serde(default, rename = "publisherIds")]
@@ -37,7 +38,7 @@ pub struct AddTargetedPublishersRequest {
 }
 
 /// A request to start targeting the provided sites in a specific pretargeting configuration. The pretargeting configuration itself specifies how these sites are targeted in PretargetingConfig.webTargeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddTargetedSitesRequest {
     /// A list of site URLs to target in the pretargeting configuration. These values will be added to the list of targeted URLs in PretargetingConfig.webTargeting.values.
     #[serde(default)]
@@ -48,7 +49,7 @@ pub struct AddTargetedSitesRequest {
 }
 
 /// A request to approve a batch of publisher connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchApprovePublisherConnectionsRequest {
     /// Required. The names of the publishers with which connections will be approved. In the pattern bidders/{bidder}/publisherConnections/{publisher} where {bidder} is the account ID of the bidder, and {publisher} is the ads.txt/app-ads.txt publisher ID.
     #[serde(default)]
@@ -56,7 +57,7 @@ pub struct BatchApprovePublisherConnectionsRequest {
 }
 
 /// A response for the request to approve a batch of publisher connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchApprovePublisherConnectionsResponse {
     /// The publisher connections that have been approved.
     #[serde(default, rename = "publisherConnections")]
@@ -64,7 +65,7 @@ pub struct BatchApprovePublisherConnectionsResponse {
 }
 
 /// A request to reject a batch of publisher connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchRejectPublisherConnectionsRequest {
     /// Required. The names of the publishers with whom connection will be rejected. In the pattern bidders/{bidder}/publisherConnections/{publisher} where {bidder} is the account ID of the bidder, and {publisher} is the ads.txt/app-ads.txt publisher ID.
     #[serde(default)]
@@ -72,7 +73,7 @@ pub struct BatchRejectPublisherConnectionsRequest {
 }
 
 /// A response for the request to reject a batch of publisher connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchRejectPublisherConnectionsResponse {
     /// The publisher connections that have been rejected.
     #[serde(default, rename = "publisherConnections")]
@@ -80,15 +81,15 @@ pub struct BatchRejectPublisherConnectionsResponse {
 }
 
 /// A request to close a specified user list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloseUserListRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// This has been sunset as of October 2023, and will return an error response if called. For more information, see the release notes: https://developers.google.com/authorized-buyers/apis/relnotes#real-time-bidding-api Response for a request to get remarketing tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetRemarketingTagResponse {
     /// An HTML tag that can be placed on the advertiser''s page to add users to a user list. For more information and code samples on using snippets on your website, refer to [Tag your site for remarketing](https://support.google.com/google-ads/answer/2476688).
     #[serde(default)]
@@ -96,7 +97,7 @@ pub struct GetRemarketingTagResponse {
 }
 
 /// A response containing bidders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBiddersResponse {
     /// List of bidders.
     #[serde(default)]
@@ -107,7 +108,7 @@ pub struct ListBiddersResponse {
 }
 
 /// A response containing buyer account information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBuyersResponse {
     /// List of buyers.
     #[serde(default)]
@@ -118,7 +119,7 @@ pub struct ListBuyersResponse {
 }
 
 /// A response for listing creatives.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCreativesResponse {
     /// The list of creatives.
     #[serde(default)]
@@ -129,7 +130,7 @@ pub struct ListCreativesResponse {
 }
 
 /// A response containing bidder endpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEndpointsResponse {
     /// List of bidder endpoints.
     #[serde(default)]
@@ -140,7 +141,7 @@ pub struct ListEndpointsResponse {
 }
 
 /// A response containing pretargeting configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPretargetingConfigsResponse {
     /// A token which can be passed to a subsequent call to the ListPretargetingConfigs method to retrieve the next page of results in ListPretargetingConfigsRequest.pageToken.
     #[serde(default, rename = "nextPageToken")]
@@ -151,7 +152,7 @@ pub struct ListPretargetingConfigsResponse {
 }
 
 /// A response to a request for listing publisher connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPublisherConnectionsResponse {
     /// A token to retrieve the next page of results. Pass this value in the ListPublisherConnectionsRequest.pageToken field in the subsequent call to the ListPublisherConnections method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -162,7 +163,7 @@ pub struct ListPublisherConnectionsResponse {
 }
 
 /// The list user list response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUserListsResponse {
     /// The continuation page token to send back to the server in a subsequent request. Due to a currently known issue, it is recommended that the caller keep invoking the list method until the time a next page token is not returned, even if the result set is empty.
     #[serde(default, rename = "nextPageToken")]
@@ -173,11 +174,11 @@ pub struct ListUserListsResponse {
 }
 
 /// A request to open a specified user list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OpenUserListRequest {}
 
 /// A request to stop targeting the provided apps in a specific pretargeting configuration. The pretargeting configuration itself specifies how these apps are targeted. in PretargetingConfig.appTargeting.mobileAppTargeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveTargetedAppsRequest {
     /// A list of app IDs to stop targeting in the pretargeting configuration. These values will be removed from the list of targeted app IDs in PretargetingConfig.appTargeting.mobileAppTargeting.values.
     #[serde(default, rename = "appIds")]
@@ -185,7 +186,7 @@ pub struct RemoveTargetedAppsRequest {
 }
 
 /// A request to stop targeting publishers in a specific configuration. The pretargeting configuration itself specifies how these publishers are targeted in PretargetingConfig.publisherTargeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveTargetedPublishersRequest {
     /// A list of publisher IDs to stop targeting in the pretargeting configuration. These values will be removed from the list of targeted publisher IDs in PretargetingConfig.publisherTargeting.values. Publishers are identified by their publisher ID from ads.txt / app-ads.txt. See https://iabtechlab.com/ads-txt/ and https://iabtechlab.com/app-ads-txt/ for more details.
     #[serde(default, rename = "publisherIds")]
@@ -193,7 +194,7 @@ pub struct RemoveTargetedPublishersRequest {
 }
 
 /// A request to stop targeting sites in a specific pretargeting configuration. The pretargeting configuration itself specifies how these sites are targeted in PretargetingConfig.webTargeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveTargetedSitesRequest {
     /// A list of site URLs to stop targeting in the pretargeting configuration. These values will be removed from the list of targeted URLs in PretargetingConfig.webTargeting.values.
     #[serde(default)]
@@ -201,7 +202,7 @@ pub struct RemoveTargetedSitesRequest {
 }
 
 /// Generic targeting with string values used in app, website and publisher targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StringTargetingDimension {
     /// How the items in this list should be targeted. // TODO: enum values: ["TARGETING_MODE_UNSPECIFIED", "INCLUSIVE", "EXCLUSIVE"]
     #[serde(default, rename = "targetingMode")]
@@ -212,15 +213,15 @@ pub struct StringTargetingDimension {
 }
 
 /// A request to suspend a pretargeting configuration. Sets the configuration''s state to SUSPENDED.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuspendPretargetingConfigRequest {}
 
 /// A request to receive push notifications when any of the creatives belonging to the bidder changes status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WatchCreativesRequest {}
 
 /// A response for the request to receive push notification when a bidder''s creatives change status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WatchCreativesResponse {
     /// The Pub/Sub subscription that can be used to pull creative status notifications. This would be of the format projects/{project_id}/subscriptions/{subscription_id}. Subscription is created with pull delivery. All service accounts belonging to the bidder will have read access to this subscription. Subscriptions that are inactive for more than 90 days will be disabled. Use watchCreatives to re-enable the subscription.
     #[serde(default)]
@@ -231,7 +232,7 @@ pub struct WatchCreativesResponse {
 }
 
 /// Bidder settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Bidder {
     /// Output only. An option to bypass pretargeting for private auctions and preferred deals. When true, bid requests from these nonguaranteed deals will always be sent. When false, bid requests will be subject to regular pretargeting configurations. Programmatic Guaranteed deals will always be sent to the bidder, regardless of the value for this option. Auction packages are not impacted by this value and are subject to the regular pretargeting configurations.
     #[serde(default, rename = "bypassNonguaranteedDealsPretargeting")]
@@ -251,7 +252,7 @@ pub struct Bidder {
 }
 
 /// RTB Buyer account information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Buyer {
     /// Output only. The number of creatives that this buyer submitted through the API or bid with in the last 30 days. This is counted against the maximum number of active creatives.
     #[serde(default, rename = "activeCreativeCount")]
@@ -274,7 +275,7 @@ pub struct Buyer {
 }
 
 /// A creative and its classification data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Creative {
     /// Output only. ID of the buyer account that this creative is owned by. Can be used to filter the response of the creatives.list method with equality and inequality check.
     #[serde(default, rename = "accountId")]
@@ -342,7 +343,7 @@ pub struct Creative {
 }
 
 /// Bidder endpoint that receives bid requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Endpoint {
     /// The protocol that the bidder endpoint is using. // TODO: enum values: ["BID_PROTOCOL_UNSPECIFIED", "GOOGLE_RTB", "OPENRTB_JSON", "OPENRTB_PROTOBUF"]
     #[serde(default, rename = "bidProtocol")]
@@ -362,7 +363,7 @@ pub struct Endpoint {
 }
 
 /// Pretargeting config: a set of targeting dimensions applied at the pretargeting stage of the RTB funnel. These control which inventory a bidder will receive bid requests for.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PretargetingConfig {
     /// Targeting modes included by this config. A bid request must allow all the specified targeting modes. An unset value allows all bid requests to be sent, regardless of which targeting modes they allow.
     #[serde(default, rename = "allowedUserTargetingModes")]
@@ -436,7 +437,7 @@ pub struct PretargetingConfig {
 }
 
 /// An Open Bidding exchange''s connection to a publisher. This is initiated by the publisher for the bidder to review. If approved by the bidder, this means that the bidder agrees to receive bid requests from the publisher.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublisherConnection {
     /// Whether the publisher has been approved by the bidder. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "REJECTED", "APPROVED"]
     #[serde(default, rename = "biddingState")]
@@ -456,7 +457,7 @@ pub struct PublisherConnection {
 }
 
 /// Represents an Authorized Buyers user list. Authorized Buyers can create/update/list user lists. Once a user list is created in the system, Authorized Buyers can add users to the user list using the bulk uploader API. Alternatively, users can be added by hosting a tag on the advertiser''s page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserList {
     /// The description for the user list.
     #[serde(default)]
@@ -479,7 +480,7 @@ pub struct UserList {
 }
 
 /// Top level status and detected attributes of a creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeServingDecision {
     /// The detected ad technology providers.
     #[serde(default, rename = "adTechnologyProviders")]
@@ -535,7 +536,7 @@ pub struct CreativeServingDecision {
 }
 
 /// HTML content for a creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HtmlContent {
     /// The height of the HTML snippet in pixels. Can be used to filter the response of the creatives.list method.
     #[serde(default)]
@@ -549,7 +550,7 @@ pub struct HtmlContent {
 }
 
 /// Native content for a creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NativeContent {
     /// The name of the advertiser or sponsor, to be displayed in the ad creative.
     #[serde(default, rename = "advertiserName")]
@@ -593,7 +594,7 @@ pub struct NativeContent {
 }
 
 /// Video content for a creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoContent {
     /// Output only. Video metadata.
     #[serde(default, rename = "videoMetadata")]
@@ -607,7 +608,7 @@ pub struct VideoContent {
 }
 
 /// A subset of app inventory to target. Bid requests that match criteria in at least one of the specified dimensions will be sent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppTargeting {
     /// Lists of included and excluded mobile app categories as defined in https://developers.google.com/adwords/api/docs/appendix/mobileappcategories.csv.
     #[serde(default, rename = "mobileAppCategoryTargeting")]
@@ -618,7 +619,7 @@ pub struct AppTargeting {
 }
 
 /// The dimensions of a creative. This applies to only HTML and Native creatives.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreativeDimensions {
     /// The height of the creative in pixels.
     #[serde(default)]
@@ -629,7 +630,7 @@ pub struct CreativeDimensions {
 }
 
 /// Deprecated. This will be removed in October 2023. For more information, see the release notes: https://developers.google.com/authorized-buyers/apis/relnotes#real-time-bidding-api Represents the URL restriction (for the URL captured by the pixel callback) for a user list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlRestriction {
     /// End date (if specified) of the URL restriction. End date should be later than the start date for the date range to be valid.
     #[serde(default, rename = "endDate")]
@@ -646,7 +647,7 @@ pub struct UrlRestriction {
 }
 
 /// The list of detected Ad Technology Providers for this creative. Bids placed for inventory that will serve to EEA or UK users are expected to comply with GDPR requirements. You must ensure that the creatives used in such bids should contain only user consented ad technology providers as indicated in the bid request. Google reserves the right to filter non-compliant bids. User consented ad technology providers can be found in the [Google Protocol](https://developers.google.com/authorized-buyers/rtb/downloads/realtime-bidding-proto) with the BidRequest.adslot.consented_providers_settings field, and can be found as an [OpenRTB extension](https://developers.google.com/authorized-buyers/rtb/downloads/openrtb-adx-proto) with the BidRequest.user.ext.consented_providers_settings and BidRequest.user.ext.consent fields. See https://support.google.com/authorizedbuyers/answer/9789378 for additional information about the Google TCF v2 integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdTechnologyProviders {
     /// The detected IAB Global Vendor List (GVL) IDs for this creative. See the IAB Global Vendor List at https://vendor-list.consensu.org/v2/vendor-list.json for details about the vendors.
     #[serde(default, rename = "detectedGvlIds")]
@@ -660,7 +661,7 @@ pub struct AdTechnologyProviders {
 }
 
 /// Policy compliance of the creative for a transaction type or a region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyCompliance {
     /// Serving status for the given transaction type (for example, open auction, deals) or region (for example, China, Russia). Can be used to filter the response of the creatives.list method. // TODO: enum values: ["STATUS_UNSPECIFIED", "PENDING_REVIEW", "DISAPPROVED", "APPROVED", "CERTIFICATE_REQUIRED"]
     #[serde(default)]
@@ -671,7 +672,7 @@ pub struct PolicyCompliance {
 }
 
 /// Detected advertiser and brand information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvertiserAndBrand {
     /// See https://storage.googleapis.com/adx-rtb-dictionaries/advertisers.txt for the list of possible values. Can be used to filter the response of the creatives.list method.
     #[serde(default, rename = "advertiserId")]
@@ -688,7 +689,7 @@ pub struct AdvertiserAndBrand {
 }
 
 /// An image resource. You may provide a larger image than was requested, so long as the aspect ratio is preserved.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// Image height in pixels.
     #[serde(default)]
@@ -702,7 +703,7 @@ pub struct Image {
 }
 
 /// Video metadata for a creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoMetadata {
     /// The duration of the ad. Can be used to filter the response of the creatives.list method.
     #[serde(default)]
@@ -725,7 +726,7 @@ pub struct VideoMetadata {
 }
 
 /// Generic targeting used for targeting dimensions that contain a list of included and excluded numeric IDs used in app, user list, geo, and vertical id targeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NumericTargetingDimension {
     /// The IDs excluded in a config.
     #[serde(default, rename = "excludedIds")]
@@ -736,7 +737,7 @@ pub struct NumericTargetingDimension {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -750,7 +751,7 @@ pub struct Date {
 }
 
 /// Each policy topic entry will represent a violation of a policy topic for a creative, with the policy topic information and optional evidence for the policy violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyTopicEntry {
     /// Pieces of evidence associated with this policy topic entry.
     #[serde(default)]
@@ -767,7 +768,7 @@ pub struct PolicyTopicEntry {
 }
 
 /// Information about each media file in the VAST.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MediaFile {
     /// Bitrate of the video file, in Kbps. Can be used to filter the response of the creatives.list method.
     #[serde(default)]
@@ -778,7 +779,7 @@ pub struct MediaFile {
 }
 
 /// Evidence associated with a policy topic entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyTopicEvidence {
     /// The creative''s destination URL was not crawlable by Google.
     #[serde(default, rename = "destinationNotCrawlable")]
@@ -804,7 +805,7 @@ pub struct PolicyTopicEvidence {
 }
 
 /// Evidence that the creative''s destination URL was not crawlable by Google.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationNotCrawlableEvidence {
     /// Approximate time of the crawl.
     #[serde(default, rename = "crawlTime")]
@@ -818,7 +819,7 @@ pub struct DestinationNotCrawlableEvidence {
 }
 
 /// Evidence of the creative''s destination URL not functioning properly or having been incorrectly set up.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationNotWorkingEvidence {
     /// DNS lookup errors. // TODO: enum values: ["DNS_ERROR_UNSPECIFIED", "ERROR_DNS", "GOOGLE_CRAWLER_DNS_ISSUE"]
     #[serde(default, rename = "dnsError")]
@@ -847,7 +848,7 @@ pub struct DestinationNotWorkingEvidence {
 }
 
 /// The full landing page URL of the destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationUrlEvidence {
     /// The full landing page URL of the destination.
     #[serde(default, rename = "destinationUrl")]
@@ -855,7 +856,7 @@ pub struct DestinationUrlEvidence {
 }
 
 /// Number of HTTP calls made by a creative, broken down by domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainCallEvidence {
     /// Breakdown of the most frequent domains called through HTTP by the creative.
     #[serde(default, rename = "topHttpCallDomains")]
@@ -866,7 +867,7 @@ pub struct DomainCallEvidence {
 }
 
 /// Total download size and URL-level download size breakdown for resources in a creative.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadSizeEvidence {
     /// Download size broken down by URLs with the top download size.
     #[serde(default, rename = "topUrlDownloadSizeBreakdowns")]
@@ -877,7 +878,7 @@ pub struct DownloadSizeEvidence {
 }
 
 /// HTTP calls made by a creative that resulted in policy violations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpCallEvidence {
     /// URLs of HTTP calls made by the creative.
     #[serde(default)]
@@ -885,7 +886,7 @@ pub struct HttpCallEvidence {
 }
 
 /// Evidence for HTTP cookie-related policy violations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpCookieEvidence {
     /// Names of cookies that violate Google policies. For TOO_MANY_COOKIES policy, this will be the cookie names of top domains with the largest number of cookies. For other policies, this will be all the cookie names that violate the policy.
     #[serde(default, rename = "cookieNames")]
@@ -896,7 +897,7 @@ pub struct HttpCookieEvidence {
 }
 
 /// The number of HTTP calls made to the given domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainCalls {
     /// The domain name.
     #[serde(default)]
@@ -907,7 +908,7 @@ pub struct DomainCalls {
 }
 
 /// The URL-level breakdown for the download size.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlDownloadSize {
     /// Download size of the URL in kilobytes.
     #[serde(default, rename = "downloadSizeKb")]

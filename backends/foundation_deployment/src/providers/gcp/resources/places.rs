@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request proto for AutocompletePlaces.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesRequest {
     /// Optional. If true, include businesses that are not yet open but will open in the future.
     #[serde(default, rename = "includeFutureOpeningBusinesses")]
@@ -57,7 +58,7 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesRequest {
 }
 
 /// Response proto for AutocompletePlaces.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesResponse {
     /// Contains a list of suggestions, ordered in descending order of relevance.
     #[serde(default)]
@@ -67,7 +68,7 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponse {
 }
 
 /// Identifies a substring within a given text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange {
     /// Zero-based offset of the last Unicode character (exclusive).
     #[serde(default, rename = "endOffset")]
@@ -78,7 +79,7 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStringRange {
 }
 
 /// A photo media from Places API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PhotoMedia {
     /// The resource name of a photo media in the format: places/{place_id}/photos/{photo_reference}/media.
     #[serde(default)]
@@ -89,7 +90,7 @@ pub struct GoogleMapsPlacesV1PhotoMedia {
 }
 
 /// Request proto for Search Nearby.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1SearchNearbyRequest {
     /// Excluded primary Place type (e.g. "restaurant" or "gas_station") from https://developers.google.com/maps/documentation/places/web-service/place-types. Up to 50 types from [Table A](https://developers.google.com/maps/documentation/places/web-service/place-types#table-a) may be specified. If there are any conflicting primary types, i.e. a type appears in both included_primary_types and excluded_primary_types, an INVALID_ARGUMENT error is returned. If a Place type is specified with multiple type restrictions, only places that satisfy all of the restrictions are returned. For example, if we have {included_types = ["restaurant"], excluded_primary_types = ["restaurant"]}, the returned places provide "restaurant" related services but do not operate primarily as "restaurants".
     #[serde(default, rename = "excludedPrimaryTypes")]
@@ -128,7 +129,7 @@ pub struct GoogleMapsPlacesV1SearchNearbyRequest {
 }
 
 /// Response proto for Search Nearby.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1SearchNearbyResponse {
     /// A list of places that meets user''s requirements like places types, number of places and specific location restriction.
     #[serde(default)]
@@ -140,7 +141,7 @@ pub struct GoogleMapsPlacesV1SearchNearbyResponse {
 }
 
 /// Request proto for SearchText.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1SearchTextRequest {
     /// Optional. Set the searchable EV options of a place search request.
     #[serde(default, rename = "evOptions")]
@@ -204,7 +205,7 @@ pub struct GoogleMapsPlacesV1SearchTextRequest {
 }
 
 /// Response proto for SearchText.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1SearchTextResponse {
     /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. A list of contextual contents where each entry associates to the corresponding place in the same index in the places field. The contents that are relevant to the text_query in the request are preferred. If the contextual content is not available for one of the places, it will return non-contextual content. It will be empty only when the content is unavailable for this place. This list will have as many entries as the list of places if requested.
     #[serde(default, rename = "contextualContents")]
@@ -226,7 +227,7 @@ pub struct GoogleMapsPlacesV1SearchTextResponse {
 }
 
 /// The region to search. The results may be biased around the specified region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesRequestLocationBias {
     /// A circle defined by a center point and radius.
     #[serde(default)]
@@ -237,7 +238,7 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesRequestLocationBias {
 }
 
 /// The region to search. The results will be restricted to the specified region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesRequestLocationRestriction {
     /// A circle defined by a center point and radius.
     #[serde(default)]
@@ -248,7 +249,7 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesRequestLocationRestriction {
 }
 
 /// An Autocomplete suggestion result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion {
     /// A prediction for a Place.
     #[serde(default, rename = "placePrediction")]
@@ -263,7 +264,7 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestion {
 }
 
 /// The region to search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1SearchNearbyRequestLocationRestriction {
     /// A circle defined by center point and radius.
     #[serde(default)]
@@ -271,7 +272,7 @@ pub struct GoogleMapsPlacesV1SearchNearbyRequestLocationRestriction {
 }
 
 /// Searchable EV options of a place search request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1SearchTextRequestEVOptions {
     /// Optional. The list of preferred EV connector types. A place that does not support any of the listed connector types is filtered out.
     #[serde(default, rename = "connectorTypes")]
@@ -282,7 +283,7 @@ pub struct GoogleMapsPlacesV1SearchTextRequestEVOptions {
 }
 
 /// The region to search. This location serves as a bias which means results around given location might be returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1SearchTextRequestLocationBias {
     /// A circle defined by center point and radius.
     #[serde(default)]
@@ -293,7 +294,7 @@ pub struct GoogleMapsPlacesV1SearchTextRequestLocationBias {
 }
 
 /// The region to search. This location serves as a restriction which means results outside given location will not be returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1SearchTextRequestLocationRestriction {
     /// A rectangle box defined by northeast and southwest corner. rectangle.high() must be the northeast point of the rectangle viewport. rectangle.low() must be the southwest point of the rectangle viewport. rectangle.low().latitude() cannot be greater than rectangle.high().latitude(). This will result in an empty latitude range. A rectangle viewport cannot be wider than 180 degrees.
     #[serde(default)]
@@ -301,7 +302,7 @@ pub struct GoogleMapsPlacesV1SearchTextRequestLocationRestriction {
 }
 
 /// Parameters to configure the routing calculations to the places in the response, both along a route (where result ranking will be influenced) and for calculating travel times on results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1RoutingParameters {
     /// Optional. An explicit routing origin that overrides the origin defined in the polyline. By default, the polyline origin is used.
     #[serde(default)]
@@ -318,7 +319,7 @@ pub struct GoogleMapsPlacesV1RoutingParameters {
 }
 
 /// Specifies a precalculated polyline from the [Routes API](https://developers.google.com/maps/documentation/routes) defining the route to search. Searching along a route is similar to using the locationBias or locationRestriction request option to bias the search results. However, while the locationBias and locationRestriction options let you specify a region to bias the search results, this option lets you bias the results along a trip route. Results are not guaranteed to be along the route provided, but rather are ranked within the search area defined by the polyline and, optionally, by the locationBias or locationRestriction based on minimal detour times from origin to destination. The results might be along an alternate route, especially if the provided polyline does not define an optimal route from origin to destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1SearchTextRequestSearchAlongRouteParameters {
     /// Required. The route polyline.
     #[serde(default)]
@@ -326,7 +327,7 @@ pub struct GoogleMapsPlacesV1SearchTextRequestSearchAlongRouteParameters {
 }
 
 /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. Content that is contextual to the place query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1ContextualContent {
     /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. Justifications for the place.
     #[serde(default)]
@@ -341,7 +342,7 @@ pub struct GoogleMapsPlacesV1ContextualContent {
 }
 
 /// All the information representing a Place.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1Place {
     /// Information about the accessibility options a place offers.
     #[serde(default, rename = "accessibilityOptions")]
@@ -583,7 +584,7 @@ pub struct GoogleMapsPlacesV1Place {
 }
 
 /// The duration and distance from the routing origin to a place in the response, and a second leg from that place to the destination, if requested. **Note:** Adding routingSummaries in the field mask without also including either the routingParameters.origin parameter or the searchAlongRouteParameters.polyline.encodedPolyline parameter in the request causes an error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1RoutingSummary {
     /// A link to show directions on Google Maps using the waypoints from the given routing summary. The route generated by this link is not guaranteed to be the same as the route used to generate the routing summary. The link uses information provided in the request, from fields including routingParameters and searchAlongRouteParameters when applicable, to generate the directions link.
     #[serde(default, rename = "directionsUri")]
@@ -594,7 +595,7 @@ pub struct GoogleMapsPlacesV1RoutingSummary {
 }
 
 /// Prediction results for a Place Autocomplete prediction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionPlacePrediction {
     /// The length of the geodesic in meters from origin if origin is specified. Certain predictions such as routes may not populate this field.
     #[serde(default, rename = "distanceMeters")]
@@ -621,7 +622,7 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionPlacePrediction
 }
 
 /// Prediction results for a Query Autocomplete prediction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction {
     /// A breakdown of the query prediction into main text containing the query and secondary text containing additional disambiguating features (such as a city or region). structured_format is recommended for developers who wish to show two separate, but related, UI elements. Developers who wish to show a single UI element may want to use text instead. They are two different ways to represent a query prediction. Users should not try to parse structured_format into text or vice versa.
     #[serde(default, rename = "structuredFormat")]
@@ -636,7 +637,7 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionQueryPrediction
 }
 
 /// Circle with a LatLng as center and radius.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1Circle {
     /// Required. Center latitude and longitude. The range of latitude must be within [-90.0, 90.0]. The range of the longitude must be within [-180.0, 180.0].
     #[serde(default)]
@@ -647,7 +648,7 @@ pub struct GoogleMapsPlacesV1Circle {
 }
 
 /// Encapsulates a set of optional conditions to satisfy when calculating the routes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1RouteModifiers {
     /// Optional. When set to true, avoids ferries where reasonable, giving preference to routes not containing ferries. Applies only to the DRIVE and TWO_WHEELER TravelMode.
     #[serde(default, rename = "avoidFerries")]
@@ -664,7 +665,7 @@ pub struct GoogleMapsPlacesV1RouteModifiers {
 }
 
 /// A route polyline. Only supports an [encoded polyline](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), which can be passed as a string and includes compression with minimal lossiness. This is the Routes API default output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1Polyline {
     /// An [encoded polyline](https://developers.google.com/maps/documentation/utilities/polylinealgorithm), as returned by the [Routes API by default](https://developers.google.com/maps/documentation/routes/reference/rest/v2/TopLevel/computeRoutes#polylineencoding). See the [encoder](https://developers.google.com/maps/documentation/utilities/polylineutility) and [decoder](https://developers.google.com/maps/documentation/routes/polylinedecoder) tools.
     #[serde(default, rename = "encodedPolyline")]
@@ -672,7 +673,7 @@ pub struct GoogleMapsPlacesV1Polyline {
 }
 
 /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. Justifications for the place. Justifications answers the question of why a place could interest an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1ContextualContentJustification {
     /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details.
     #[serde(default, rename = "businessAvailabilityAttributesJustification")]
@@ -686,7 +687,7 @@ pub struct GoogleMapsPlacesV1ContextualContentJustification {
 }
 
 /// Information about the accessibility options a place offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceAccessibilityOptions {
     /// Places has wheelchair accessible entrance.
     #[serde(default, rename = "wheelchairAccessibleEntrance")]
@@ -703,7 +704,7 @@ pub struct GoogleMapsPlacesV1PlaceAccessibilityOptions {
 }
 
 /// The structured components that form the formatted address, if this information is available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceAddressComponent {
     /// The language used to format this components, in CLDR notation.
     #[serde(default, rename = "languageCode")]
@@ -720,7 +721,7 @@ pub struct GoogleMapsPlacesV1PlaceAddressComponent {
 }
 
 /// A relational description of a location. Includes a ranked set of nearby landmarks and precise containing areas and their relationship to the target location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AddressDescriptor {
     /// A ranked list of containing or adjacent areas. The most recognizable and precise areas are ranked first.
     #[serde(default)]
@@ -732,7 +733,7 @@ pub struct GoogleMapsPlacesV1AddressDescriptor {
 }
 
 /// Information about data providers of this place.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceAttribution {
     /// Name of the Place''s data provider.
     #[serde(default)]
@@ -743,7 +744,7 @@ pub struct GoogleMapsPlacesV1PlaceAttribution {
 }
 
 /// The consumer alert message for the place when we detect suspicious review activity on a business or a business violates our policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceConsumerAlert {
     /// The details of the consumer alert message.
     #[serde(default)]
@@ -757,7 +758,7 @@ pub struct GoogleMapsPlacesV1PlaceConsumerAlert {
 }
 
 /// Info about the place in which this place is located.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceContainingPlace {
     /// The place id of the place in which this place is located.
     #[serde(default)]
@@ -768,7 +769,7 @@ pub struct GoogleMapsPlacesV1PlaceContainingPlace {
 }
 
 /// Information about business hour of the place.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceOpeningHours {
     /// The next time the current opening hours period ends up to 7 days in the future. This field is only populated if the opening hours period is active at the time of serving the request.
     #[serde(default, rename = "nextCloseTime")]
@@ -795,7 +796,7 @@ pub struct GoogleMapsPlacesV1PlaceOpeningHours {
 }
 
 /// The summary of amenities near the EV charging station. This only applies to places with type electric_vehicle_charging_station. The overview field is guaranteed to be provided while the other fields are optional.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceEvChargeAmenitySummary {
     /// A summary of the nearby coffee options.
     #[serde(default)]
@@ -818,7 +819,7 @@ pub struct GoogleMapsPlacesV1PlaceEvChargeAmenitySummary {
 }
 
 /// Information about the EV Charge Station hosted in Place. Terminology follows https://afdc.energy.gov/fuels/electricity_infrastructure.html One port could charge one car at a time. One port has one or more connectors. One station has one or more ports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1eVChargeOptions {
     /// A list of EV charging connector aggregations that contain connectors of the same type and same charge rate.
     #[serde(default, rename = "connectorAggregation")]
@@ -831,7 +832,7 @@ pub struct GoogleMapsPlacesV1eVChargeOptions {
 }
 
 /// The most recent information about fuel options in a gas station. This information is updated regularly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1FuelOptions {
     /// The last known fuel price for each type of fuel this station has. There is one entry per fuel type this station has. Order is not important.
     #[serde(default, rename = "fuelPrices")]
@@ -840,7 +841,7 @@ pub struct GoogleMapsPlacesV1FuelOptions {
 }
 
 /// AI-generated summary of the place.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceGenerativeSummary {
     /// The AI disclosure message "Summarized with Gemini" (and its localized variants). This will be in the language specified in the request if available.
     #[serde(default, rename = "disclosureText")]
@@ -854,7 +855,7 @@ pub struct GoogleMapsPlacesV1PlaceGenerativeSummary {
 }
 
 /// Links to trigger different Google Maps actions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceGoogleMapsLinks {
     /// A link to show the directions to the place. The link only populates the destination location and uses the default travel mode DRIVE.
     #[serde(default, rename = "directionsUri")]
@@ -874,7 +875,7 @@ pub struct GoogleMapsPlacesV1PlaceGoogleMapsLinks {
 }
 
 /// A summary of points of interest near the place.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceNeighborhoodSummary {
     /// A detailed description of the neighborhood.
     #[serde(default)]
@@ -891,7 +892,7 @@ pub struct GoogleMapsPlacesV1PlaceNeighborhoodSummary {
 }
 
 /// Information about parking options for the place. A parking lot could support more than one option at the same time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceParkingOptions {
     /// Place offers free garage parking.
     #[serde(default, rename = "freeGarageParking")]
@@ -917,7 +918,7 @@ pub struct GoogleMapsPlacesV1PlaceParkingOptions {
 }
 
 /// Payment options the place accepts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlacePaymentOptions {
     /// Place accepts cash only as payment. Places with this attribute may still accept other payment methods.
     #[serde(default, rename = "acceptsCashOnly")]
@@ -934,7 +935,7 @@ pub struct GoogleMapsPlacesV1PlacePaymentOptions {
 }
 
 /// Information about a photo of a place.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1Photo {
     /// This photo''s authors.
     #[serde(default, rename = "authorAttributions")]
@@ -958,7 +959,7 @@ pub struct GoogleMapsPlacesV1Photo {
 }
 
 /// Plus code (http://plus.codes) is a location reference with two formats: global code defining a 14mx14m (1/8000th of a degree) or smaller rectangle, and compound code, replacing the prefix with a reference location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlacePlusCode {
     /// Place''s compound code, such as "33GV+HQ, Ramberg, Norway", containing the suffix of the global code and replacing the prefix with a formatted name of a reference entity.
     #[serde(default, rename = "compoundCode")]
@@ -969,7 +970,7 @@ pub struct GoogleMapsPlacesV1PlacePlusCode {
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypePostalAddress {
     /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
     #[serde(default, rename = "addressLines")]
@@ -1007,7 +1008,7 @@ pub struct GoogleTypePostalAddress {
 }
 
 /// The price range associated with a Place. end_price could be unset, which indicates a range without upper bound (e.g. "More than $100").
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PriceRange {
     /// The high end of the price range (exclusive). Price should be lower than this amount.
     #[serde(default, rename = "endPrice")]
@@ -1018,7 +1019,7 @@ pub struct GoogleMapsPlacesV1PriceRange {
 }
 
 /// AI-generated summary of the place using user reviews.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceReviewSummary {
     /// The AI disclosure message "Summarized with Gemini" (and its localized variants). This will be in the language specified in the request if available.
     #[serde(default, rename = "disclosureText")]
@@ -1035,7 +1036,7 @@ pub struct GoogleMapsPlacesV1PlaceReviewSummary {
 }
 
 /// Sub-destinations are specific places associated with a main place. These provide more specific destinations for users who are searching within a large or complex place, like an airport, national park, university, or stadium. For example, sub-destinations at an airport might include associated terminals and parking lots. Sub-destinations return the place ID and place resource name, which can be used in subsequent Place Details (New) requests to fetch richer details, including the sub-destination''s display name and location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceSubDestination {
     /// The place id of the sub-destination.
     #[serde(default)]
@@ -1046,7 +1047,7 @@ pub struct GoogleMapsPlacesV1PlaceSubDestination {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeTimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
@@ -1057,7 +1058,7 @@ pub struct GoogleTypeTimeZone {
 }
 
 /// A latitude-longitude viewport, represented as two diagonally opposite low and high points. A viewport is considered a closed region, i.e. it includes its boundary. The latitude bounds must range between -90 to 90 degrees inclusive, and the longitude bounds must range between -180 to 180 degrees inclusive. Various cases include: - If low = high, the viewport consists of that single point. - If low.longitude &gt; high.longitude, the longitude range is inverted (the viewport crosses the 180 degree longitude line). - If low.longitude = -180 degrees and high.longitude = 180 degrees, the viewport includes all longitudes. - If low.longitude = 180 degrees and high.longitude = -180 degrees, the longitude range is empty. - If low.latitude &gt; high.latitude, the latitude range is empty. Both low and high must be populated, and the represented box cannot be empty (as specified by the definitions above). An empty viewport will result in an error. For example, this viewport fully encloses New York City: { "low": { "latitude": 40.477398, "longitude": -74.259087 }, "high": { "latitude": 40.91618, "longitude": -73.70018 } }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleGeoTypeViewport {
     /// Required. The high point of the viewport.
     #[serde(default)]
@@ -1068,7 +1069,7 @@ pub struct GoogleGeoTypeViewport {
 }
 
 /// A leg is a single portion of a journey from one location to another.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1RoutingSummaryLeg {
     /// The distance of this leg of the trip.
     #[serde(default, rename = "distanceMeters")]
@@ -1079,7 +1080,7 @@ pub struct GoogleMapsPlacesV1RoutingSummaryLeg {
 }
 
 /// Contains a breakdown of a Place or query prediction into main text and secondary text. For Place predictions, the main text contains the specific name of the Place. For query predictions, the main text contains the query. The secondary text contains additional disambiguating features (such as a city or region) to further identify the Place or refine the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredFormat {
     /// Represents the name of the Place or query.
     #[serde(default, rename = "mainText")]
@@ -1094,7 +1095,7 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionStructuredForma
 }
 
 /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. BusinessAvailabilityAttributes justifications. This shows some attributes a business has that could interest an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1ContextualContentJustificationBusinessAvailabilityAttributesJustification
 {
     /// If a place provides delivery.
@@ -1109,7 +1110,7 @@ pub struct GoogleMapsPlacesV1ContextualContentJustificationBusinessAvailabilityA
 }
 
 /// Experimental: See https://developers.google.com/maps/documentation/places/web-service/experimental/places-generative for more details. User review justifications. This highlights a section of the user review that would interest an end user. For instance, if the search query is "firewood pizza", the review justification highlights the text relevant to the search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustification {
     #[serde(default, rename = "highlightedText")]
     pub highlighted_text: ::core::option::Option<
@@ -1121,7 +1122,7 @@ pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustification {
 }
 
 /// Area information and the area''s relationship with the target location. Areas includes precise sublocality, neighborhoods, and large compounds that are useful for describing a location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AddressDescriptorArea {
     /// Defines the spatial relationship between the target location and the area. // TODO: enum values: ["CONTAINMENT_UNSPECIFIED", "WITHIN", "OUTSKIRTS", "NEAR"]
     #[serde(default)]
@@ -1138,7 +1139,7 @@ pub struct GoogleMapsPlacesV1AddressDescriptorArea {
 }
 
 /// Basic landmark information and the landmark''s relationship with the target location. Landmarks are prominent places that can be used to describe a location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AddressDescriptorLandmark {
     /// The landmark''s display name.
     #[serde(default, rename = "displayName")]
@@ -1164,7 +1165,7 @@ pub struct GoogleMapsPlacesV1AddressDescriptorLandmark {
 }
 
 /// The details of the consumer alert message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetails {
     /// The link to show together with the description to provide more information.
     #[serde(default, rename = "aboutLink")]
@@ -1178,7 +1179,7 @@ pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetails {
 }
 
 /// A period the place remains in open_now status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriod {
     /// The time that the place starts to be closed.
     #[serde(default)]
@@ -1189,7 +1190,7 @@ pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriod {
 }
 
 /// Structured information for special days that fall within the period that the returned opening hours cover. Special days are days that could impact the business hours of a place, e.g. Christmas day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay {
     /// The date of this special day.
     #[serde(default)]
@@ -1197,7 +1198,7 @@ pub struct GoogleMapsPlacesV1PlaceOpeningHoursSpecialDay {
 }
 
 /// EV charging information grouped by [type, max_charge_rate_kw]. Shows EV charge aggregation of connectors that have the same type and max charge rate in kw.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1eVChargeOptionsConnectorAggregation {
     /// The timestamp when the connector availability information in this aggregation was last updated.
     #[serde(default, rename = "availabilityLastUpdateTime")]
@@ -1220,7 +1221,7 @@ pub struct GoogleMapsPlacesV1eVChargeOptionsConnectorAggregation {
 }
 
 /// Fuel price information for a given type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1FuelOptionsFuelPrice {
     /// The price of the fuel.
     #[serde(default)]
@@ -1234,7 +1235,7 @@ pub struct GoogleMapsPlacesV1FuelOptionsFuelPrice {
 }
 
 /// A block of content that can be served individually.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1ContentBlock {
     /// Content related to the topic.
     #[serde(default)]
@@ -1245,7 +1246,7 @@ pub struct GoogleMapsPlacesV1ContentBlock {
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeLatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
@@ -1256,7 +1257,7 @@ pub struct GoogleTypeLatLng {
 }
 
 /// Text representing a Place or query prediction. The text may be used as is or formatted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText {
     /// A list of string ranges identifying where the input request matched in text. The ranges can be used to format specific parts of text. The substrings may not be exact matches of input if the matching was determined by criteria other than string matching (for example, spell corrections or transliterations). These values are Unicode character offsets of text. The ranges are guaranteed to be ordered in increasing offset values.
     #[serde(default)]
@@ -1269,7 +1270,7 @@ pub struct GoogleMapsPlacesV1AutocompletePlacesResponseSuggestionFormattableText
 }
 
 /// The text highlighted by the justification. This is a subset of the review itself. The exact word to highlight is marked by the HighlightedTextRange. There could be several words in the text being highlighted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedText {
     /// The list of the ranges of the highlighted text.
     #[serde(default, rename = "highlightedTextRanges")]
@@ -1279,7 +1280,7 @@ pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHi
 }
 
 /// Information about a review of a place.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1Review {
     /// This review''s author.
     #[serde(default, rename = "authorAttribution")]
@@ -1314,7 +1315,7 @@ pub struct GoogleMapsPlacesV1Review {
 }
 
 /// The link to show together with the description to provide more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink {
     /// The title to show for the link.
     #[serde(default)]
@@ -1325,7 +1326,7 @@ pub struct GoogleMapsPlacesV1PlaceConsumerAlertDetailsLink {
 }
 
 /// Status changing points.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint {
     /// Date in the local timezone for the place.
     #[serde(default)]
@@ -1345,7 +1346,7 @@ pub struct GoogleMapsPlacesV1PlaceOpeningHoursPeriodPoint {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeMoney {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -1359,7 +1360,7 @@ pub struct GoogleTypeMoney {
 }
 
 /// The range of highlighted text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHighlightedTextHighlightedTextRange
 {
     #[serde(default, rename = "endIndex")]
@@ -1369,7 +1370,7 @@ pub struct GoogleMapsPlacesV1ContextualContentJustificationReviewJustificationHi
 }
 
 /// Information about the author of the UGC data. Used in Photo, and Review.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsPlacesV1AuthorAttribution {
     /// Name of the author of the Photo or Review.
     #[serde(default, rename = "displayName")]
@@ -1383,7 +1384,7 @@ pub struct GoogleMapsPlacesV1AuthorAttribution {
 }
 
 /// Localized variant of a text in a particular language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeLocalizedText {
     /// The text''s BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
@@ -1394,7 +1395,7 @@ pub struct GoogleTypeLocalizedText {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]

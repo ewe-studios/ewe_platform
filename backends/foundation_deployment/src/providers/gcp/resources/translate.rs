@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request for sending an AdaptiveMt translation query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptiveMtTranslateRequest {
     /// Required. The content of the input in string format.
     #[serde(default)]
@@ -28,7 +29,7 @@ pub struct AdaptiveMtTranslateRequest {
 }
 
 /// An AdaptiveMtTranslate response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptiveMtTranslateResponse {
     /// Text translation response if a glossary is provided in the request. This could be the same as ''translation'' above if no terms apply.
     #[serde(default, rename = "glossaryTranslations")]
@@ -42,7 +43,7 @@ pub struct AdaptiveMtTranslateResponse {
 }
 
 /// The BatchTranslateDocument request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchTranslateDocumentRequest {
     /// Optional. This flag is to support user customized attribution. If not provided, the default is Machine Translated by Google. Customized attribution should follow rules in https://cloud.google.com/translate/attribution#attribution_and_logos
     #[serde(default, rename = "customizedAttribution")]
@@ -80,7 +81,7 @@ pub struct BatchTranslateDocumentRequest {
 }
 
 /// The batch translation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchTranslateTextRequest {
     /// Optional. Glossaries to be applied for translation. It''s keyed by target language code.
     #[serde(default)]
@@ -106,11 +107,11 @@ pub struct BatchTranslateTextRequest {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// The request message for language detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetectLanguageRequest {
     /// The content of the input stored as a string.
     #[serde(default)]
@@ -130,7 +131,7 @@ pub struct DetectLanguageRequest {
 }
 
 /// The response message for language detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetectLanguageResponse {
     /// The most probable language detected by the Translation API. For each request, the Translation API will always return only one result.
     #[serde(default)]
@@ -138,11 +139,11 @@ pub struct DetectLanguageResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for ExportData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportDataRequest {
     /// Required. The config for the output content.
     #[serde(default, rename = "outputConfig")]
@@ -150,7 +151,7 @@ pub struct ExportDataRequest {
 }
 
 /// The request for importing an AdaptiveMt file along with its sentences.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportAdaptiveMtFileRequest {
     /// Inline file source.
     #[serde(default, rename = "fileInputSource")]
@@ -161,7 +162,7 @@ pub struct ImportAdaptiveMtFileRequest {
 }
 
 /// The response for importing an AdaptiveMtFile
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportAdaptiveMtFileResponse {
     /// Output only. The Adaptive MT file that was imported.
     #[serde(default, rename = "adaptiveMtFile")]
@@ -169,7 +170,7 @@ pub struct ImportAdaptiveMtFileResponse {
 }
 
 /// Request message for ImportData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportDataRequest {
     /// Required. The config for the input content.
     #[serde(default, rename = "inputConfig")]
@@ -177,7 +178,7 @@ pub struct ImportDataRequest {
 }
 
 /// A list of AdaptiveMtDatasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdaptiveMtDatasetsResponse {
     /// Output only. A list of Adaptive MT datasets.
     #[serde(default, rename = "adaptiveMtDatasets")]
@@ -188,7 +189,7 @@ pub struct ListAdaptiveMtDatasetsResponse {
 }
 
 /// The response for listing all AdaptiveMt files under a given dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdaptiveMtFilesResponse {
     /// Output only. The Adaptive MT files.
     #[serde(default, rename = "adaptiveMtFiles")]
@@ -199,7 +200,7 @@ pub struct ListAdaptiveMtFilesResponse {
 }
 
 /// List AdaptiveMt sentences response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdaptiveMtSentencesResponse {
     /// Output only. The list of AdaptiveMtSentences.
     #[serde(default, rename = "adaptiveMtSentences")]
@@ -210,7 +211,7 @@ pub struct ListAdaptiveMtSentencesResponse {
 }
 
 /// Response message for ListDatasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatasetsResponse {
     /// The datasets read.
     #[serde(default)]
@@ -221,7 +222,7 @@ pub struct ListDatasetsResponse {
 }
 
 /// Response message for ListExamples.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExamplesResponse {
     /// The sentence pairs.
     #[serde(default)]
@@ -232,7 +233,7 @@ pub struct ListExamplesResponse {
 }
 
 /// Response message for ListGlossaries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGlossariesResponse {
     /// The list of glossaries for a project.
     #[serde(default)]
@@ -243,7 +244,7 @@ pub struct ListGlossariesResponse {
 }
 
 /// Response message for ListGlossaryEntries
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGlossaryEntriesResponse {
     /// Optional. The Glossary Entries
     #[serde(default, rename = "glossaryEntries")]
@@ -254,7 +255,7 @@ pub struct ListGlossaryEntriesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -265,7 +266,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for ListModels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListModelsResponse {
     /// The models read.
     #[serde(default)]
@@ -276,7 +277,7 @@ pub struct ListModelsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -290,7 +291,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Request message for RefineText.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefineTextRequest {
     /// Required. The source texts and original translations in the source and target languages.
     #[serde(default, rename = "refinementEntries")]
@@ -304,7 +305,7 @@ pub struct RefineTextRequest {
 }
 
 /// Response message for RefineText.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefineTextResponse {
     /// The refined translations obtained from the original translations.
     #[serde(default, rename = "refinedTranslations")]
@@ -312,7 +313,7 @@ pub struct RefineTextResponse {
 }
 
 /// The request message for synchronous romanization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RomanizeTextRequest {
     /// Required. The content of the input in string format.
     #[serde(default)]
@@ -323,7 +324,7 @@ pub struct RomanizeTextRequest {
 }
 
 /// The response message for synchronous romanization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RomanizeTextResponse {
     /// Text romanization responses. This field has the same length as contents.
     #[serde(default)]
@@ -331,7 +332,7 @@ pub struct RomanizeTextResponse {
 }
 
 /// The response message for discovering supported languages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SupportedLanguages {
     /// A list of supported language responses. This list contains an entry for each language the Translation API supports.
     #[serde(default)]
@@ -339,7 +340,7 @@ pub struct SupportedLanguages {
 }
 
 /// A document translation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranslateDocumentRequest {
     /// Optional. This flag is to support user customized attribution. If not provided, the default is Machine Translated by Google. Customized attribution should follow rules in https://cloud.google.com/translate/attribution#attribution_and_logos
     #[serde(default, rename = "customizedAttribution")]
@@ -377,7 +378,7 @@ pub struct TranslateDocumentRequest {
 }
 
 /// A translated document response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranslateDocumentResponse {
     /// Translated document.
     #[serde(default, rename = "documentTranslation")]
@@ -394,7 +395,7 @@ pub struct TranslateDocumentResponse {
 }
 
 /// The request message for synchronous translation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranslateTextRequest {
     /// Required. The content of the input in string format. We recommend the total content be less than 30,000 codepoints. The max length of this field is 1024. Use BatchTranslateText for larger text.
     #[serde(default)]
@@ -423,7 +424,7 @@ pub struct TranslateTextRequest {
 }
 
 /// TranslateTextResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranslateTextResponse {
     /// Text translation responses if a glossary is provided in the request. This can be the same as translations if no terms apply. This field has the same length as contents.
     #[serde(default, rename = "glossaryTranslations")]
@@ -434,7 +435,7 @@ pub struct TranslateTextResponse {
 }
 
 /// The request message for Operations.WaitOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitOperationRequest {
     /// The maximum duration to wait before timing out. If left blank, the wait will be at most the time permitted by the underlying HTTP/RPC protocol. If RPC context deadline is also specified, the shorter one will be used.
     #[serde(default)]
@@ -442,7 +443,7 @@ pub struct WaitOperationRequest {
 }
 
 /// Configures which glossary is used for a specific target language and defines options for applying that glossary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlossaryConfig {
     /// Optional. If set to true, the glossary will be used for contextual translation.
     #[serde(default, rename = "contextualTranslationEnabled")]
@@ -456,7 +457,7 @@ pub struct GlossaryConfig {
 }
 
 /// Message of caller-provided reference configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReferenceSentenceConfig {
     /// Reference sentences pair lists. Each list will be used as the references to translate the sentence under "content" field at the corresponding index. Length of the list is required to be equal to the length of "content" field.
     #[serde(default, rename = "referenceSentencePairLists")]
@@ -471,7 +472,7 @@ pub struct ReferenceSentenceConfig {
 }
 
 /// An AdaptiveMt translation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptiveMtTranslation {
     /// Output only. The translated text.
     #[serde(default, rename = "translatedText")]
@@ -479,7 +480,7 @@ pub struct AdaptiveMtTranslation {
 }
 
 /// Input configuration for BatchTranslateDocument request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDocumentInputConfig {
     /// Google Cloud Storage location for the source input. This can be a single file (for example, gs://translation-test/input.docx) or a wildcard (for example, gs://translation-test/*). File mime type is determined based on extension. Supported mime type includes: - pdf, application/pdf - docx, application/vnd.openxmlformats-officedocument.wordprocessingml.document - pptx, application/vnd.openxmlformats-officedocument.presentationml.presentation - xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet The max file size to support for .docx, .pptx and .xlsx is 100MB. The max file size to support for .pdf is 1GB and the max page limit is 1000 pages. The max file size to support for all input documents is 1GB.
     #[serde(default, rename = "gcsSource")]
@@ -487,7 +488,7 @@ pub struct BatchDocumentInputConfig {
 }
 
 /// Output configuration for BatchTranslateDocument request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDocumentOutputConfig {
     /// Google Cloud Storage destination for output content. For every single input document (for example, gs://a/b/c.[extension]), we generate at most 2 * n output files. (n is the # of target_language_codes in the BatchTranslateDocumentRequest). While the input documents are being processed, we write/update an index file index.csv under gcs_destination.output_uri_prefix (for example, gs://translation_output/index.csv) The index file is generated/updated as new files are being translated. The format is: input_document,target_language_code,translation_output,error_output, glossary_translation_output,glossary_error_output input_document is one file we matched using gcs_source.input_uri. target_language_code is provided in the request. translation_output contains the translations. (details provided below) error_output contains the error message during processing of the file. Both translations_file and errors_file could be empty strings if we have no content to output. glossary_translation_output and glossary_error_output are the translated output/error when we apply glossaries. They could also be empty if we have no content to output. Once a row is present in index.csv, the input/output matching never changes. Callers should also expect all the content in input_file are processed and ready to be consumed (that is, no partial output file is written). Since index.csv will be keeping updated during the process, please make sure there is no custom retention policy applied on the output bucket that may avoid file updating. (https://cloud.google.com/storage/docs/bucket-lock#retention-policy) The naming format of translation output files follows (for target language code [trg]): translation_output: gs://translation_output/a_b_c_[trg]_translation.[extension] glossary_translation_output: gs://translation_test/a_b_c_[trg]_glossary_translation.[extension]. The output document will maintain the same file format as the input document. The naming format of error output files follows (for target language code [trg]): error_output: gs://translation_test/a_b_c_[trg]_errors.txt glossary_error_output: gs://translation_test/a_b_c_[trg]_glossary_translation.txt. The error output is a txt file containing error details.
     #[serde(default, rename = "gcsDestination")]
@@ -495,7 +496,7 @@ pub struct BatchDocumentOutputConfig {
 }
 
 /// Input configuration for BatchTranslateText request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputConfig {
     /// Required. Google Cloud Storage location for the source input. This can be a single file (for example, gs://translation-test/input.tsv) or a wildcard (for example, gs://translation-test/*). If a file extension is .tsv, it can contain either one or two columns. The first column (optional) is the id of the text request. If the first column is missing, we use the row number (0-based) from the input file as the ID in the output file. The second column is the actual text to be translated. We recommend each row be &lt;= 10K Unicode codepoints, otherwise an error might be returned. Note that the input tsv must be RFC 4180 compliant. You could use https://github.com/Clever/csvlint to check potential formatting errors in your tsv file. csvlint --delimiter=''\t'' your_input_file.tsv The other supported file extensions are .txt or .html, which is treated as a single large chunk of text.
     #[serde(default, rename = "gcsSource")]
@@ -506,7 +507,7 @@ pub struct InputConfig {
 }
 
 /// Output configuration for BatchTranslateText request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutputConfig {
     /// Google Cloud Storage destination for output content. For every single input file (for example, gs://a/b/c.[extension]), we generate at most 2 * n output files. (n is the # of target_language_codes in the BatchTranslateTextRequest). Output files (tsv) generated are compliant with RFC 4180 except that record delimiters are ''\n'' instead of ''\r\n''. We don''t provide any way to change record delimiters. While the input files are being processed, we write/update an index file ''index.csv'' under ''output_uri_prefix'' (for example, gs://translation-test/index.csv) The index file is generated/updated as new files are being translated. The format is: input_file,target_language_code,translations_file,errors_file, glossary_translations_file,glossary_errors_file input_file is one file we matched using gcs_source.input_uri. target_language_code is provided in the request. translations_file contains the translations. (details provided below) errors_file contains the errors during processing of the file. (details below). Both translations_file and errors_file could be empty strings if we have no content to output. glossary_translations_file and glossary_errors_file are always empty strings if the input_file is tsv. They could also be empty if we have no content to output. Once a row is present in index.csv, the input/output matching never changes. Callers should also expect all the content in input_file are processed and ready to be consumed (that is, no partial output file is written). Since index.csv will be keeping updated during the process, please make sure there is no custom retention policy applied on the output bucket that may avoid file updating. (https://cloud.google.com/storage/docs/bucket-lock#retention-policy) The format of translations_file (for target language code ''trg'') is: gs://translation_test/a_b_c_''trg''_translations.[extension] If the input file extension is tsv, the output has the following columns: Column 1: ID of the request provided in the input, if it''s not provided in the input, then the input row number is used (0-based). Column 2: source sentence. Column 3: translation without applying a glossary. Empty string if there is an error. Column 4 (only present if a glossary is provided in the request): translation after applying the glossary. Empty string if there is an error applying the glossary. Could be same string as column 3 if there is no glossary applied. If input file extension is a txt or html, the translation is directly written to the output file. If glossary is requested, a separate glossary_translations_file has format of gs://translation_test/a_b_c_''trg''_glossary_translations.[extension] The format of errors file (for target language code ''trg'') is: gs://translation_test/a_b_c_''trg''_errors.[extension] If the input file extension is tsv, errors_file contains the following: Column 1: ID of the request provided in the input, if it''s not provided in the input, then the input row number is used (0-based). Column 2: source sentence. Column 3: Error detail for the translation. Could be empty. Column 4 (only present if a glossary is provided in the request): Error when applying the glossary. If the input file extension is txt or html, glossary_error_file will be generated that contains error details. glossary_error_file has format of gs://translation_test/a_b_c_''trg''_glossary_errors.[extension]
     #[serde(default, rename = "gcsDestination")]
@@ -514,7 +515,7 @@ pub struct OutputConfig {
 }
 
 /// The response message for language detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetectedLanguage {
     /// The confidence of the detection result for this language.
     #[serde(default)]
@@ -525,7 +526,7 @@ pub struct DetectedLanguage {
 }
 
 /// Output configuration for datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatasetOutputConfig {
     /// Google Cloud Storage destination to write the output.
     #[serde(default, rename = "gcsDestination")]
@@ -533,7 +534,7 @@ pub struct DatasetOutputConfig {
 }
 
 /// An inlined file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileInputSource {
     /// Required. The file''s byte contents.
     #[serde(default)]
@@ -547,7 +548,7 @@ pub struct FileInputSource {
 }
 
 /// Input configuration for datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatasetInputConfig {
     /// Files containing the sentence pairs to be imported to the dataset.
     #[serde(default, rename = "inputFiles")]
@@ -555,7 +556,7 @@ pub struct DatasetInputConfig {
 }
 
 /// An Adaptive MT Dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptiveMtDataset {
     /// Output only. Timestamp when this dataset was created.
     #[serde(default, rename = "createTime")]
@@ -581,7 +582,7 @@ pub struct AdaptiveMtDataset {
 }
 
 /// An AdaptiveMtFile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptiveMtFile {
     /// Output only. Timestamp when this file was created.
     #[serde(default, rename = "createTime")]
@@ -601,7 +602,7 @@ pub struct AdaptiveMtFile {
 }
 
 /// An AdaptiveMt sentence entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptiveMtSentence {
     /// Output only. Timestamp when this sentence was created.
     #[serde(default, rename = "createTime")]
@@ -621,7 +622,7 @@ pub struct AdaptiveMtSentence {
 }
 
 /// A dataset that hosts the examples (sentence pairs) used for translation models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dataset {
     /// Output only. Timestamp when this dataset was created.
     #[serde(default, rename = "createTime")]
@@ -656,7 +657,7 @@ pub struct Dataset {
 }
 
 /// A sentence pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Example {
     /// Output only. The resource name of the example, in form of projects/{project-number-or-id}/locations/{location_id}/datasets/{dataset_id}/examples/{example_id}
     #[serde(default)]
@@ -673,7 +674,7 @@ pub struct Example {
 }
 
 /// Represents a glossary built from user-provided data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Glossary {
     /// Optional. The display name of the glossary.
     #[serde(default, rename = "displayName")]
@@ -702,7 +703,7 @@ pub struct Glossary {
 }
 
 /// Represents a single entry in a glossary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlossaryEntry {
     /// Describes the glossary entry.
     #[serde(default)]
@@ -719,7 +720,7 @@ pub struct GlossaryEntry {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -739,7 +740,7 @@ pub struct Location {
 }
 
 /// A trained translation model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Model {
     /// Output only. Timestamp when the model resource was created, which is also when the training started.
     #[serde(default, rename = "createTime")]
@@ -774,7 +775,7 @@ pub struct Model {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -794,7 +795,7 @@ pub struct Operation {
 }
 
 /// A single refinement entry for RefineTextRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefinementEntry {
     /// Required. The original translation of the source text.
     #[serde(default, rename = "originalTranslation")]
@@ -805,7 +806,7 @@ pub struct RefinementEntry {
 }
 
 /// A single romanization response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Romanization {
     /// The ISO-639 language code of source text in the initial request, detected automatically, if no source language was passed within the initial request. If the source language was passed, auto-detection of the language does not occur and this field is empty.
     #[serde(default, rename = "detectedLanguageCode")]
@@ -816,7 +817,7 @@ pub struct Romanization {
 }
 
 /// A single supported language response corresponds to information related to one supported language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SupportedLanguage {
     /// Human-readable name of the language localized in the display language specified in the request.
     #[serde(default, rename = "displayName")]
@@ -833,7 +834,7 @@ pub struct SupportedLanguage {
 }
 
 /// A document translation request input config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentInputConfig {
     /// Document''s content represented as a stream of bytes.
     #[serde(default)]
@@ -847,7 +848,7 @@ pub struct DocumentInputConfig {
 }
 
 /// A document translation request output config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentOutputConfig {
     /// Optional. Google Cloud Storage destination for the translation output, e.g., gs://my_bucket/my_directory/. The destination directory provided does not have to be empty, but the bucket must exist. If a file with the same name as the output file already exists in the destination an error will be returned. For a DocumentInputConfig.contents provided document, the output file will have the name "output_[trg]_translations.[ext]", where - [trg] corresponds to the translated file''s language code, - [ext] corresponds to the translated file''s extension according to its mime type. For a DocumentInputConfig.gcs_uri provided document, the output file will have a name according to its URI. For example: an input file with URI: gs://a/b/c.[extension] stored in a gcs_destination bucket with name "my_bucket" will have an output URI: gs://my_bucket/a_b_c_[trg]_translations.[ext], where - [trg] corresponds to the translated file''s language code, - [ext] corresponds to the translated file''s extension according to its mime type. If the document was directly provided through the request, then the output document will have the format: gs://my_bucket/translated_document_[trg]_translations.[ext], where - [trg] corresponds to the translated file''s language code, - [ext] corresponds to the translated file''s extension according to its mime type. If a glossary was provided, then the output URI for the glossary translation will be equal to the default output URI but have glossary_translations instead of translations. For the previous example, its glossary URI would be: gs://my_bucket/a_b_c_[trg]_glossary_translations.[ext]. Thus the max number of output files will be 2 (Translated document, Glossary translated document). Callers should expect no partial outputs. If there is any error during document translation, no output will be stored in the Cloud Storage bucket.
     #[serde(default, rename = "gcsDestination")]
@@ -858,7 +859,7 @@ pub struct DocumentOutputConfig {
 }
 
 /// A translated document message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentTranslation {
     /// The array of translated documents. It is expected to be size 1 for now. We may produce multiple translated documents in the future for other type of file formats.
     #[serde(default, rename = "byteStreamOutputs")]
@@ -872,7 +873,7 @@ pub struct DocumentTranslation {
 }
 
 /// Configures transliteration feature on top of translation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransliterationConfig {
     /// If true, source text in romanized form can be translated to the target language.
     #[serde(default, rename = "enableTransliteration")]
@@ -880,7 +881,7 @@ pub struct TransliterationConfig {
 }
 
 /// A single translation response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Translation {
     /// The ISO-639 language code of source text in the initial request, detected automatically, if no source language was passed within the initial request. If the source language was passed, auto-detection of the language does not occur and this field is empty.
     #[serde(default, rename = "detectedLanguageCode")]
@@ -897,7 +898,7 @@ pub struct Translation {
 }
 
 /// A list of reference sentence pairs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReferenceSentencePairList {
     /// Reference sentence pairs.
     #[serde(default, rename = "referenceSentencePairs")]
@@ -905,7 +906,7 @@ pub struct ReferenceSentencePairList {
 }
 
 /// The Google Cloud Storage location for the output content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsOutputDestination {
     /// Required. Google Cloud Storage URI to output directory. For example, gs://bucket/directory. The requesting user must have write permission to the bucket. The directory will be created if it doesn''t exist.
     #[serde(default, rename = "outputUriPrefix")]
@@ -913,7 +914,7 @@ pub struct GcsOutputDestination {
 }
 
 /// An input file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputFile {
     /// Google Cloud Storage file source.
     #[serde(default, rename = "gcsSource")]
@@ -924,7 +925,7 @@ pub struct InputFile {
 }
 
 /// Input configuration for glossaries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlossaryInputConfig {
     /// Required. Google Cloud Storage location of glossary data. File format is determined based on the filename extension. API returns [google.rpc.Code.INVALID_ARGUMENT] for unsupported URI-s and file formats. Wildcards are not allowed. This must be a single file in one of the following formats: For unidirectional glossaries: - TSV/CSV (.tsv/.csv): Two column file, tab- or comma-separated. The first column is source text. The second column is target text. No headers in this file. The first row contains data and not column names. - TMX (.tmx): TMX file with parallel data defining source/target term pairs. For equivalent term sets glossaries: - CSV (.csv): Multi-column CSV file defining equivalent glossary terms in multiple languages. See documentation for more information - [glossaries](https://cloud.google.com/translate/docs/advanced/glossary).
     #[serde(default, rename = "gcsSource")]
@@ -932,7 +933,7 @@ pub struct GlossaryInputConfig {
 }
 
 /// Used with equivalent term set glossaries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageCodesSet {
     /// Optional. The ISO-639 language code(s) for terms defined in the glossary. All entries are unique. The list contains at least two entries. Expected to be an exact match for GlossaryTerm.language_code.
     #[serde(default, rename = "languageCodes")]
@@ -940,7 +941,7 @@ pub struct LanguageCodesSet {
 }
 
 /// Used with unidirectional glossaries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LanguageCodePair {
     /// Required. The ISO-639 language code of the input text, for example, "en-US". Expected to be an exact match for GlossaryTerm.language_code.
     #[serde(default, rename = "sourceLanguageCode")]
@@ -951,7 +952,7 @@ pub struct LanguageCodePair {
 }
 
 /// Represents a single entry for an unidirectional glossary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlossaryTermsPair {
     /// The source term is the term that will get match in the text,
     #[serde(default, rename = "sourceTerm")]
@@ -962,7 +963,7 @@ pub struct GlossaryTermsPair {
 }
 
 /// Represents a single entry for an equivalent term set glossary. This is used for equivalent term sets where each term can be replaced by the other terms in the set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlossaryTermsSet {
     /// Each term in the set represents a term that can be replaced by the other terms.
     #[serde(default)]
@@ -970,7 +971,7 @@ pub struct GlossaryTermsSet {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -984,7 +985,7 @@ pub struct Status {
 }
 
 /// The Google Cloud Storage location for the output content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsDestination {
     /// Required. The bucket used in ''output_uri_prefix'' must exist and there must be no files under ''output_uri_prefix''. ''output_uri_prefix'' must end with "/" and start with "gs://". One ''output_uri_prefix'' can only be used by one batch translation job at a time. Otherwise an INVALID_ARGUMENT (400) error is returned.
     #[serde(default, rename = "outputUriPrefix")]
@@ -992,7 +993,7 @@ pub struct GcsDestination {
 }
 
 /// Configures which glossary is used for a specific target language and defines options for applying that glossary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranslateTextGlossaryConfig {
     /// Optional. If set to true, the glossary will be used for contextual translation.
     #[serde(default, rename = "contextualTranslationEnabled")]
@@ -1006,7 +1007,7 @@ pub struct TranslateTextGlossaryConfig {
 }
 
 /// A pair of sentences used as reference in source and target languages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReferenceSentencePair {
     /// Source sentence in the sentence pair.
     #[serde(default, rename = "sourceSentence")]
@@ -1017,7 +1018,7 @@ pub struct ReferenceSentencePair {
 }
 
 /// The Google Cloud Storage location for the input content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsInputSource {
     /// Required. Source data URI. For example, gs://my_bucket/my_object.
     #[serde(default, rename = "inputUri")]
@@ -1025,7 +1026,7 @@ pub struct GcsInputSource {
 }
 
 /// The Google Cloud Storage location for the input content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsSource {
     /// Required. Source data URI. For example, gs://my_bucket/my_object.
     #[serde(default, rename = "inputUri")]
@@ -1033,7 +1034,7 @@ pub struct GcsSource {
 }
 
 /// Represents a single glossary term
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlossaryTerm {
     /// The language for this glossary term.
     #[serde(default, rename = "languageCode")]

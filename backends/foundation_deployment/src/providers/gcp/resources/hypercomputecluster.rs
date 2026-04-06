@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// When set in OperationStep, indicates that cluster health check should be performed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckClusterHealth {}
 
 /// A resource defining how virtual machines and accelerators should be provisioned for the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeResource {
     /// Required. Immutable. Configuration for this compute resource, which describes how it should be created at runtime.
     #[serde(default)]
@@ -27,35 +28,35 @@ pub struct ComputeResource {
 }
 
 /// When set in OperationStep, indicates that a login node should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateLoginNode {}
 
 /// When set in OperationStep, indicates that an orchestrator should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateOrchestrator {}
 
 /// When set in OperationStep, indicates that a new private service access should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreatePrivateServiceAccess {}
 
 /// When set in OperationStep, indicates that a login node should be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteLoginNode {}
 
 /// When set in OperationStep, indicates that an orchestrator should be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteOrchestrator {}
 
 /// When set in OperationStep, indicates private service access deletion step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletePrivateServiceAccess {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for ListClusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListClustersResponse {
     /// Clusters in the specified location.
     #[serde(default)]
@@ -69,7 +70,7 @@ pub struct ListClustersResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -80,7 +81,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -94,7 +95,7 @@ pub struct ListOperationsResponse {
 }
 
 /// A resource representing a network that connects the various components of a cluster together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkResource {
     /// Immutable. Configuration for this network resource, which describes how it should be created or imported. This field only controls how the network resource is initially created or imported. Subsequent changes to the network resource should be made via the resource''s API and will not be reflected in the configuration.
     #[serde(default)]
@@ -105,7 +106,7 @@ pub struct NetworkResource {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -131,7 +132,7 @@ pub struct OperationMetadata {
 }
 
 /// A resource representing a form of persistent storage that is accessible to compute resources in the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageResource {
     /// Reference to a Google Cloud Storage bucket. Populated if and only if the storage resource was configured to use Google Cloud Storage.
     #[serde(default)]
@@ -148,15 +149,15 @@ pub struct StorageResource {
 }
 
 /// When set in OperationStep, indicates that a login node should be updated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateLoginNode {}
 
 /// When set in OperationStep, indicates that an orchestrator should be updated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateOrchestrator {}
 
 /// Describes how a compute resource should be created at runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeResourceConfig {
     /// Optional. Immutable. If set, indicates that this resource should use flex-start VMs.
     #[serde(default, rename = "newFlexStartInstances")]
@@ -173,7 +174,7 @@ pub struct ComputeResourceConfig {
 }
 
 /// A collection of virtual machines and connected resources forming a high-performance computing cluster capable of running large-scale, tightly coupled workloads. A cluster combines a set a compute resources that perform computations, storage resources that contain inputs and store outputs, an orchestrator that is responsible for assigning jobs to compute resources, and network resources that connect everything together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cluster {
     /// Optional. Compute resources available to the cluster. Keys specify the ID of the compute resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).
     #[serde(default, rename = "computeResources")]
@@ -208,7 +209,7 @@ pub struct Cluster {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -228,7 +229,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -248,7 +249,7 @@ pub struct Operation {
 }
 
 /// Describes how a network resource should be initialized. Each network resource can either be imported from an existing Google Cloud resource or initialized when the cluster is created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkResourceConfig {
     /// Optional. Immutable. If set, indicates that an existing network should be imported.
     #[serde(default, rename = "existingNetwork")]
@@ -259,7 +260,7 @@ pub struct NetworkResourceConfig {
 }
 
 /// A reference to a [VPC network](https://cloud.google.com/vpc/docs/vpc) in Google Compute Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkReference {
     /// Output only. Name of the network, in the format projects/{project}/global/networks/{network}.
     #[serde(default)]
@@ -270,7 +271,7 @@ pub struct NetworkReference {
 }
 
 /// Message describing the progress of a cluster mutation long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationProgress {
     /// Output only. Steps and status of the operation.
     #[serde(default)]
@@ -278,7 +279,7 @@ pub struct OperationProgress {
 }
 
 /// A reference to a [Google Cloud Storage](https://cloud.google.com/storage) bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketReference {
     /// Output only. Name of the bucket.
     #[serde(default)]
@@ -286,7 +287,7 @@ pub struct BucketReference {
 }
 
 /// Describes how a storage resource should be initialized. Each storage resource can either be imported from an existing Google Cloud resource or initialized when the cluster is created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageResourceConfig {
     /// Optional. Immutable. If set, indicates that an existing Cloud Storage bucket should be imported.
     #[serde(default, rename = "existingBucket")]
@@ -309,7 +310,7 @@ pub struct StorageResourceConfig {
 }
 
 /// A reference to a [Filestore](https://cloud.google.com/filestore) instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilestoreReference {
     /// Output only. Name of the Filestore instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
@@ -317,7 +318,7 @@ pub struct FilestoreReference {
 }
 
 /// A reference to a [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LustreReference {
     /// Output only. Name of the Managed Lustre instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
@@ -325,7 +326,7 @@ pub struct LustreReference {
 }
 
 /// When set in a ComputeResourceConfig, indicates that VM instances should be created using [Flex Start](https://cloud.google.com/compute/docs/instances/provisioning-models).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NewFlexStartInstancesConfig {
     /// Required. Immutable. Name of the Compute Engine [machine type](https://cloud.google.com/compute/docs/machine-resource) to use, e.g. n2-standard-2.
     #[serde(default, rename = "machineType")]
@@ -339,7 +340,7 @@ pub struct NewFlexStartInstancesConfig {
 }
 
 /// When set in a ComputeResourceConfig, indicates that on-demand (i.e., using the standard provisioning model) VM instances should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NewOnDemandInstancesConfig {
     /// Required. Immutable. Name of the Compute Engine [machine type](https://cloud.google.com/compute/docs/machine-resource) to use, e.g. n2-standard-2.
     #[serde(default, rename = "machineType")]
@@ -350,7 +351,7 @@ pub struct NewOnDemandInstancesConfig {
 }
 
 /// When set in a ComputeResourceConfig, indicates that VM instances should be created from a [reservation](https://cloud.google.com/compute/docs/instances/reservations-overview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NewReservedInstancesConfig {
     /// Optional. Immutable. Name of the reservation from which VM instances should be created, in the format projects/{project}/zones/{zone}/reservations/{reservation}.
     #[serde(default)]
@@ -358,7 +359,7 @@ pub struct NewReservedInstancesConfig {
 }
 
 /// When set in a ComputeResourceConfig, indicates that [spot VM](https://cloud.google.com/compute/docs/instances/spot) instances should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NewSpotInstancesConfig {
     /// Required. Immutable. Name of the Compute Engine [machine type](https://cloud.google.com/compute/docs/machine-resource) to use, e.g. n2-standard-2.
     #[serde(default, rename = "machineType")]
@@ -372,7 +373,7 @@ pub struct NewSpotInstancesConfig {
 }
 
 /// The component responsible for scheduling and running workloads on the cluster as well as providing the user interface for interacting with the cluster at runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Orchestrator {
     /// Optional. If set, indicates that the cluster should use Slurm as the orchestrator.
     #[serde(default)]
@@ -380,7 +381,7 @@ pub struct Orchestrator {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -394,7 +395,7 @@ pub struct Status {
 }
 
 /// When set in a NetworkResourceConfig, indicates that an existing network should be imported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExistingNetworkConfig {
     /// Required. Immutable. Name of the network to import, in the format projects/{project}/global/networks/{network}.
     #[serde(default)]
@@ -405,7 +406,7 @@ pub struct ExistingNetworkConfig {
 }
 
 /// When set in a NetworkResourceConfig, indicates that a new network should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NewNetworkConfig {
     /// Optional. Immutable. Description of the network. Maximum of 2048 characters.
     #[serde(default)]
@@ -416,7 +417,7 @@ pub struct NewNetworkConfig {
 }
 
 /// Message describing the status of a single step in a cluster mutation long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationStep {
     /// Output only. If set, indicates that cluster health check is part of the operation.
     #[serde(default, rename = "checkClusterHealth")]
@@ -493,7 +494,7 @@ pub struct OperationStep {
 }
 
 /// When set in a StorageResourceConfig, indicates that an existing [Google Cloud Storage](https://cloud.google.com/storage) bucket should be imported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExistingBucketConfig {
     /// Required. Immutable. Name of the Cloud Storage bucket to import.
     #[serde(default)]
@@ -501,7 +502,7 @@ pub struct ExistingBucketConfig {
 }
 
 /// When set in a StorageResourceConfig, indicates that an existing [Filestore](https://cloud.google.com/filestore) instance should be imported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExistingFilestoreConfig {
     /// Required. Immutable. Name of the Filestore instance to import, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
@@ -509,7 +510,7 @@ pub struct ExistingFilestoreConfig {
 }
 
 /// When set in a StorageResourceConfig, indicates that an existing [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance should be imported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExistingLustreConfig {
     /// Required. Immutable. Name of the Managed Lustre instance to import, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
@@ -517,7 +518,7 @@ pub struct ExistingLustreConfig {
 }
 
 /// When set in a StorageResourceConfig, indicates that a new [Google Cloud Storage](https://cloud.google.com/storage) bucket should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NewBucketConfig {
     /// Optional. Immutable. If set, indicates that the bucket should use [Autoclass](https://cloud.google.com/storage/docs/autoclass).
     #[serde(default)]
@@ -534,7 +535,7 @@ pub struct NewBucketConfig {
 }
 
 /// When set in a StorageResourceConfig, indicates that a new [Filestore](https://cloud.google.com/filestore) instance should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NewFilestoreConfig {
     /// Optional. Immutable. Description of the instance. Maximum of 2048 characters.
     #[serde(default)]
@@ -554,7 +555,7 @@ pub struct NewFilestoreConfig {
 }
 
 /// When set in a StorageResourceConfig, indicates that a new [Managed Lustre](https://cloud.google.com/products/managed-lustre) instance should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NewLustreConfig {
     /// Required. Immutable. Storage capacity of the instance in gibibytes (GiB). Allowed values are between 18000 and 7632000.
     #[serde(default, rename = "capacityGb")]
@@ -571,7 +572,7 @@ pub struct NewLustreConfig {
 }
 
 /// When set in Orchestrator, indicates that the cluster should use [Slurm](https://slurm.schedmd.com/) as the orchestrator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlurmOrchestrator {
     /// Optional. Default partition to use for submitted jobs that do not explicitly specify a partition. Required if and only if there is more than one partition, in which case it must match the id of one of the partitions.
     #[serde(default, rename = "defaultPartition")]
@@ -594,7 +595,7 @@ pub struct SlurmOrchestrator {
 }
 
 /// When set in OperationStep, indicates that a new filestore instance should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateFilestoreInstance {
     /// Output only. Name of the Filestore instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
@@ -602,7 +603,7 @@ pub struct CreateFilestoreInstance {
 }
 
 /// When set in OperationStep, indicates that a new lustre instance should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateLustreInstance {
     /// Output only. Name of the Managed Lustre instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
@@ -610,7 +611,7 @@ pub struct CreateLustreInstance {
 }
 
 /// When set in OperationStep, indicates that a new network should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateNetwork {
     /// Output only. Name of the network to create, in the format projects/{project}/global/networks/{network}.
     #[serde(default)]
@@ -618,7 +619,7 @@ pub struct CreateNetwork {
 }
 
 /// When set in OperationStep, indicates that a nodeset should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateNodeset {
     /// Output only. Name of the nodeset to create
     #[serde(default)]
@@ -626,7 +627,7 @@ pub struct CreateNodeset {
 }
 
 /// When set in OperationStep, indicates that a partition should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreatePartition {
     /// Output only. Name of the partition to create
     #[serde(default)]
@@ -634,7 +635,7 @@ pub struct CreatePartition {
 }
 
 /// When set in OperationStep, indicates that a new storage bucket should be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateStorageBucket {
     /// Output only. Name of the bucket.
     #[serde(default)]
@@ -642,7 +643,7 @@ pub struct CreateStorageBucket {
 }
 
 /// When set in OperationStep, indicates that a Filestore instance should be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteFilestoreInstance {
     /// Output only. Name of the Filestore instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
@@ -650,7 +651,7 @@ pub struct DeleteFilestoreInstance {
 }
 
 /// When set in OperationStep, indicates that a Lustre instance should be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteLustreInstance {
     /// Output only. Name of the Managed Lustre instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
@@ -658,7 +659,7 @@ pub struct DeleteLustreInstance {
 }
 
 /// When set in OperationStep, indicates network deletion step with the resource name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteNetwork {
     /// Output only. Name of the network to delete, in the format projects/{project}/global/networks/{network}.
     #[serde(default)]
@@ -666,7 +667,7 @@ pub struct DeleteNetwork {
 }
 
 /// When set in OperationStep, indicates that a nodeset should be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteNodeset {
     /// Output only. Name of the nodeset to delete
     #[serde(default)]
@@ -674,7 +675,7 @@ pub struct DeleteNodeset {
 }
 
 /// When set in OperationStep, indicates that a partition should be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletePartition {
     /// Output only. Name of the partition to delete
     #[serde(default)]
@@ -682,7 +683,7 @@ pub struct DeletePartition {
 }
 
 /// When set in OperationStep, indicates that Cloud Storage bucket should be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteStorageBucket {
     /// Output only. Name of the bucket.
     #[serde(default)]
@@ -690,7 +691,7 @@ pub struct DeleteStorageBucket {
 }
 
 /// When set in OperationStep, indicates that a nodeset should be updated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateNodeset {
     /// Output only. Name of the nodeset to update
     #[serde(default)]
@@ -698,7 +699,7 @@ pub struct UpdateNodeset {
 }
 
 /// When set in OperationStep, indicates that a partition should be updated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdatePartition {
     /// Output only. Name of the partition to update
     #[serde(default)]
@@ -706,7 +707,7 @@ pub struct UpdatePartition {
 }
 
 /// Message describing Google Cloud Storage autoclass configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsAutoclassConfig {
     /// Required. Enables Auto-class feature.
     #[serde(default)]
@@ -717,7 +718,7 @@ pub struct GcsAutoclassConfig {
 }
 
 /// Message describing Google Cloud Storage hierarchical namespace configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsHierarchicalNamespaceConfig {
     /// Required. Enables hierarchical namespace setup for the bucket.
     #[serde(default)]
@@ -725,7 +726,7 @@ pub struct GcsHierarchicalNamespaceConfig {
 }
 
 /// Message describing filestore configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileShareConfig {
     /// Required. Size of the filestore in GB. Must be between 1024 and 102400, and must meet scalability requirements described at https://cloud.google.com/filestore/docs/service-tiers.
     #[serde(default, rename = "capacityGb")]
@@ -736,7 +737,7 @@ pub struct FileShareConfig {
 }
 
 /// Configuration for Slurm [login nodes](https://slurm.schedmd.com/quickstart_admin.html#login) in the cluster. Login nodes are Compute Engine VM instances that allow users to access the cluster over SSH.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlurmLoginNodes {
     /// Optional. Boot disk for the login node.
     #[serde(default, rename = "bootDisk")]
@@ -771,7 +772,7 @@ pub struct SlurmLoginNodes {
 }
 
 /// Configuration for Slurm nodesets in the cluster. Nodesets are groups of compute nodes used by Slurm that are responsible for running workloads submitted to the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlurmNodeSet {
     /// Optional. ID of the compute resource on which this nodeset will run. Must match a key in the cluster''s compute_resources.
     #[serde(default, rename = "computeId")]
@@ -794,7 +795,7 @@ pub struct SlurmNodeSet {
 }
 
 /// Configuration for Slurm partitions in the cluster. Partitions are groups of nodesets, and are how clients specify where their workloads should be run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlurmPartition {
     /// Required. ID of the partition, which is how users will identify it. Must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).
     #[serde(default)]
@@ -805,7 +806,7 @@ pub struct SlurmPartition {
 }
 
 /// Details about a Compute Engine [instance](https://cloud.google.com/compute/docs/instances).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeInstance {
     /// Output only. Name of the VM instance, in the format projects/{project}/zones/{zone}/instances/{instance}.
     #[serde(default)]
@@ -813,7 +814,7 @@ pub struct ComputeInstance {
 }
 
 /// When set in a SlurmNodeSet, indicates that the nodeset should be backed by Compute Engine VM instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeInstanceSlurmNodeSet {
     /// Optional. Boot disk for the compute instance
     #[serde(default, rename = "bootDisk")]
@@ -827,7 +828,7 @@ pub struct ComputeInstanceSlurmNodeSet {
 }
 
 /// Description of how a storage resource should be mounted on a VM instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageConfig {
     /// Required. ID of the storage resource to mount, which must match a key in the cluster''s storage_resources.
     #[serde(default)]
@@ -838,7 +839,7 @@ pub struct StorageConfig {
 }
 
 /// A [Persistent disk](https://cloud.google.com/compute/docs/disks) used as the boot disk for a Compute Engine VM instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BootDisk {
     /// Required. Immutable. Size of the disk in gigabytes. Must be at least 10GB.
     #[serde(default, rename = "sizeGb")]

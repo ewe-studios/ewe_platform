@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request to decode the integrity token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecodeIntegrityTokenRequest {
     /// Encoded integrity token.
     #[serde(default, rename = "integrityToken")]
@@ -19,7 +20,7 @@ pub struct DecodeIntegrityTokenRequest {
 }
 
 /// Response containing the decoded integrity payload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecodeIntegrityTokenResponse {
     /// Plain token payload generated from the decoded integrity token.
     #[serde(default, rename = "tokenPayloadExternal")]
@@ -27,7 +28,7 @@ pub struct DecodeIntegrityTokenResponse {
 }
 
 /// Request to decode the PC integrity token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecodePcIntegrityTokenRequest {
     /// Encoded integrity token.
     #[serde(default, rename = "integrityToken")]
@@ -35,7 +36,7 @@ pub struct DecodePcIntegrityTokenRequest {
 }
 
 /// Response containing the decoded PC integrity payload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecodePcIntegrityTokenResponse {
     /// Plain token payload generated from the decoded integrity token.
     #[serde(default, rename = "tokenPayloadExternal")]
@@ -43,7 +44,7 @@ pub struct DecodePcIntegrityTokenResponse {
 }
 
 /// Request to write device recall bits.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteDeviceRecallRequest {
     /// Required. Integrity token obtained from calling Play Integrity API.
     #[serde(default, rename = "integrityToken")]
@@ -54,11 +55,11 @@ pub struct WriteDeviceRecallRequest {
 }
 
 /// Response for the Write Device Recall action. Currently empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteDeviceRecallResponse {}
 
 /// Contains basic app information and integrity signals like device attestation and licensing details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TokenPayloadExternal {
     /// Required. Details about the Play Store account.
     #[serde(default, rename = "accountDetails")]
@@ -81,7 +82,7 @@ pub struct TokenPayloadExternal {
 }
 
 /// Contains PC device attestation details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PcTokenPayloadExternal {
     /// Details about the account information such as the licensing status.
     #[serde(default, rename = "accountDetails")]
@@ -98,7 +99,7 @@ pub struct PcTokenPayloadExternal {
 }
 
 /// Contains the account information such as the licensing status for the user in the scope.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountDetails {
     /// (Restricted Access) Details about the account activity for the user in the scope.
     #[serde(default, rename = "accountActivity")]
@@ -109,7 +110,7 @@ pub struct AccountDetails {
 }
 
 /// Contains the application integrity information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppIntegrity {
     /// Required. Details about the app recognition verdict // TODO: enum values: ["UNKNOWN", "PLAY_RECOGNIZED", "UNRECOGNIZED_VERSION", "UNEVALUATED"]
     #[serde(default, rename = "appRecognitionVerdict")]
@@ -126,7 +127,7 @@ pub struct AppIntegrity {
 }
 
 /// Contains the device attestation information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceIntegrity {
     /// Attributes of the device where the integrity token was generated.
     #[serde(default, rename = "deviceAttributes")]
@@ -146,7 +147,7 @@ pub struct DeviceIntegrity {
 }
 
 /// Contains information about the environment Play Integrity API runs in, e.g. Play Protect verdict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentDetails {
     /// The evaluation of the App Access Risk verdicts.
     #[serde(default, rename = "appAccessRiskVerdict")]
@@ -157,7 +158,7 @@ pub struct EnvironmentDetails {
 }
 
 /// Contains the integrity request information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestDetails {
     /// Nonce that was provided in the request (which is base64 web-safe no-wrap).
     #[serde(default)]
@@ -174,7 +175,7 @@ pub struct RequestDetails {
 }
 
 /// Contains additional information generated for testing responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestingDetails {
     /// Required. Indicates that the information contained in this payload is a testing response that is statically overridden for a tester.
     #[serde(default, rename = "isTestingResponse")]
@@ -182,7 +183,7 @@ pub struct TestingDetails {
 }
 
 /// Contains the account information such as the licensing status for the user in the scope.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PcAccountDetails {
     /// Required. Details about the licensing status of the user for the app in the scope. // TODO: enum values: ["UNKNOWN", "LICENSED", "UNLICENSED", "UNEVALUATED"]
     #[serde(default, rename = "appLicensingVerdict")]
@@ -190,7 +191,7 @@ pub struct PcAccountDetails {
 }
 
 /// Contains the device attestation information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PcDeviceIntegrity {
     /// Details about the integrity of the device the app is running on.
     #[serde(default, rename = "deviceRecognitionVerdict")]
@@ -198,7 +199,7 @@ pub struct PcDeviceIntegrity {
 }
 
 /// Contains the integrity request information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PcRequestDetails {
     /// Request hash that was provided in the request.
     #[serde(default, rename = "requestHash")]
@@ -212,7 +213,7 @@ pub struct PcRequestDetails {
 }
 
 /// Contains additional information generated for testing responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PcTestingDetails {
     /// Indicates that the information contained in this payload is a testing response that is statically overridden for a tester.
     #[serde(default, rename = "isTestingResponse")]
@@ -220,7 +221,7 @@ pub struct PcTestingDetails {
 }
 
 /// (Restricted Access) Contains a signal helping apps differentiating between likely genuine and likely non-genuine user traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountActivity {
     /// Required. Indicates the activity level of the account. // TODO: enum values: ["ACTIVITY_LEVEL_UNSPECIFIED", "UNEVALUATED", "UNUSUAL", "UNKNOWN", "TYPICAL_BASIC", "TYPICAL_STRONG"]
     #[serde(default, rename = "activityLevel")]
@@ -228,7 +229,7 @@ pub struct AccountActivity {
 }
 
 /// Contains information about the device for which the integrity token was generated, e.g. Android SDK version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceAttributes {
     /// Android SDK version of the device, as defined in the public Android documentation: https://developer.android.com/reference/android/os/Build.VERSION_CODES. It won''t be set if a necessary requirement was missed. For example DeviceIntegrity did not meet the minimum bar.
     #[serde(default, rename = "sdkVersion")]
@@ -236,7 +237,7 @@ pub struct DeviceAttributes {
 }
 
 /// Contains the recall bits per device set by the developer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceRecall {
     /// Required. Contains the recall bits values.
     #[serde(default)]
@@ -247,7 +248,7 @@ pub struct DeviceRecall {
 }
 
 /// Recent device activity can help developers identify devices that have exhibited hyperactive attestation activity, which could be a sign of an attack or token farming.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecentDeviceActivity {
     /// Required. Indicates the activity level of the device. // TODO: enum values: ["DEVICE_ACTIVITY_LEVEL_UNSPECIFIED", "UNEVALUATED", "LEVEL_1", "LEVEL_2", "LEVEL_3", "LEVEL_4"]
     #[serde(default, rename = "deviceActivityLevel")]
@@ -255,7 +256,7 @@ pub struct RecentDeviceActivity {
 }
 
 /// Contains signals about others apps on the device which could be used to access or control the requesting app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppAccessRiskVerdict {
     /// List of detected app types signalled for App Access Risk.
     #[serde(default, rename = "appsDetected")]
@@ -263,7 +264,7 @@ pub struct AppAccessRiskVerdict {
 }
 
 /// Contains the recall bits values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Values {
     /// Required. First recall bit value.
     #[serde(default, rename = "bitFirst")]
@@ -277,7 +278,7 @@ pub struct Values {
 }
 
 /// Contains the recall bits write dates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteDates {
     /// Optional. Write time in YYYYMM format (in UTC, e.g. 202402) for the first bit. Note that this value won''t be set if the first bit is false.
     #[serde(default, rename = "yyyymmFirst")]

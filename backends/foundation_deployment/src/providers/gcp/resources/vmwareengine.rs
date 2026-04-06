@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for VmwareEngine.AcceleratePrivateCloudDeletion
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratePrivateCloudDeletionRequest {
     /// Optional. Checksum used to ensure that the user-provided value is up to date before the server processes the request. The server compares provided checksum with the current checksum of the resource. If the user-provided value is out of date, this request returns an ABORTED error.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct AcceleratePrivateCloudDeletionRequest {
 }
 
 /// Autoscaling policy describes the behavior of the autoscaling with respect to the resource utilization. The scale-out operation is initiated if the utilization exceeds ANY of the respective thresholds. The scale-in operation is initiated if the utilization is below ALL of the respective thresholds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingPolicy {
     /// Optional. Utilization thresholds pertaining to amount of consumed memory.
     #[serde(default, rename = "consumedMemoryThresholds")]
@@ -45,7 +46,7 @@ pub struct AutoscalingPolicy {
 }
 
 /// Credentials for a private cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Credentials {
     /// Initial password.
     #[serde(default)]
@@ -56,7 +57,7 @@ pub struct Credentials {
 }
 
 /// DnsBindPermission resource that contains the accounts having the consumer DNS bind permission on the corresponding intranet VPC of the consumer project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsBindPermission {
     /// Required. Output only. The name of the resource which stores the users/service accounts having the permission to bind to the corresponding intranet VPC of the consumer project. DnsBindPermission is a global resource and location can only be global. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/global/dnsBindPermission
     #[serde(default)]
@@ -67,7 +68,7 @@ pub struct DnsBindPermission {
 }
 
 /// DNS forwarding config. This config defines a list of domain to name server mappings, and is attached to the private cloud for custom domain resolution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsForwarding {
     /// Output only. Creation time of this resource.
     #[serde(default, rename = "createTime")]
@@ -84,11 +85,11 @@ pub struct DnsForwarding {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for VmwareEngine.FetchNetworkPolicyExternalAddresses
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchNetworkPolicyExternalAddressesResponse {
     /// A list of external IP addresses assigned to VMware workload VMs within the scope of the given network policy.
     #[serde(default, rename = "externalAddresses")]
@@ -99,11 +100,11 @@ pub struct FetchNetworkPolicyExternalAddressesResponse {
 }
 
 /// Volume message captures user inputs for creation of file services managed by GCVE
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleVmwareFileService {}
 
 /// Request message for VmwareEngine.GrantDnsBindPermission
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GrantDnsBindPermissionRequest {
     /// Required. The consumer provided user/service account which needs to be granted permission to bind with the intranet VPC corresponding to the consumer project.
     #[serde(default)]
@@ -114,7 +115,7 @@ pub struct GrantDnsBindPermissionRequest {
 }
 
 /// Response message for VmwareEngine.ListAnnouncements
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAnnouncementsResponse {
     /// A list of announcement runs.
     #[serde(default)]
@@ -128,7 +129,7 @@ pub struct ListAnnouncementsResponse {
 }
 
 /// Response message for VmwareEngine.ListClusters
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListClustersResponse {
     /// A list of private cloud clusters.
     #[serde(default)]
@@ -142,7 +143,7 @@ pub struct ListClustersResponse {
 }
 
 /// Response message for VmwareEngine.ListDatastores
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatastoresResponse {
     /// A list of Datastores.
     #[serde(default)]
@@ -156,7 +157,7 @@ pub struct ListDatastoresResponse {
 }
 
 /// Response message for VmwareEngine.ListExternalAccessRules
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExternalAccessRulesResponse {
     /// A list of external access firewall rules.
     #[serde(default, rename = "externalAccessRules")]
@@ -170,7 +171,7 @@ pub struct ListExternalAccessRulesResponse {
 }
 
 /// Response message for VmwareEngine.ListExternalAddresses
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExternalAddressesResponse {
     /// A list of external IP addresses.
     #[serde(default, rename = "externalAddresses")]
@@ -184,7 +185,7 @@ pub struct ListExternalAddressesResponse {
 }
 
 /// Response message for VmwareEngine.ListHcxActivationKeys
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHcxActivationKeysResponse {
     /// List of HCX activation keys.
     #[serde(default, rename = "hcxActivationKeys")]
@@ -198,7 +199,7 @@ pub struct ListHcxActivationKeysResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -209,7 +210,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for VmwareEngine.ListLoggingServers
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLoggingServersResponse {
     /// A list of Logging Servers.
     #[serde(default, rename = "loggingServers")]
@@ -223,7 +224,7 @@ pub struct ListLoggingServersResponse {
 }
 
 /// Response message for VmwareEngine.ListManagementDnsZoneBindings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListManagementDnsZoneBindingsResponse {
     /// A list of management DNS zone bindings.
     #[serde(default, rename = "managementDnsZoneBindings")]
@@ -238,7 +239,7 @@ pub struct ListManagementDnsZoneBindingsResponse {
 }
 
 /// Response message for VmwareEngine.ListNetworkPeerings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNetworkPeeringsResponse {
     /// A list of network peerings.
     #[serde(default, rename = "networkPeerings")]
@@ -252,7 +253,7 @@ pub struct ListNetworkPeeringsResponse {
 }
 
 /// Response message for VmwareEngine.ListNetworkPolicies
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNetworkPoliciesResponse {
     /// A list of network policies.
     #[serde(default, rename = "networkPolicies")]
@@ -266,7 +267,7 @@ pub struct ListNetworkPoliciesResponse {
 }
 
 /// Response message for VmwareEngine.ListNodeTypes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNodeTypesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -280,7 +281,7 @@ pub struct ListNodeTypesResponse {
 }
 
 /// Response message for VmwareEngine.ListNodes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNodesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -291,7 +292,7 @@ pub struct ListNodesResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -305,7 +306,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message for VmwareEngine.ListPeeringRoutes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPeeringRoutesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -316,7 +317,7 @@ pub struct ListPeeringRoutesResponse {
 }
 
 /// Response message for VmwareEngine.ListPrivateClouds
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPrivateCloudsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -330,7 +331,7 @@ pub struct ListPrivateCloudsResponse {
 }
 
 /// Response message for VmwareEngine.ListPrivateConnectionPeeringRoutes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPrivateConnectionPeeringRoutesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -341,7 +342,7 @@ pub struct ListPrivateConnectionPeeringRoutesResponse {
 }
 
 /// Response message for VmwareEngine.ListPrivateConnections
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPrivateConnectionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -355,7 +356,7 @@ pub struct ListPrivateConnectionsResponse {
 }
 
 /// Response message for VmwareEngine.ListSubnets
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSubnetsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -369,7 +370,7 @@ pub struct ListSubnetsResponse {
 }
 
 /// Response message for VmwareEngine.ListUpgrades.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUpgradesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -383,7 +384,7 @@ pub struct ListUpgradesResponse {
 }
 
 /// Response message for VmwareEngine.ListVmwareEngineNetworks
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVmwareEngineNetworksResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -397,7 +398,7 @@ pub struct ListVmwareEngineNetworksResponse {
 }
 
 /// VmwareEngine specific metadata for the given google.cloud.location.Location. It is returned as a content of the google.cloud.location.Location.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationMetadata {
     /// Output only. Capabilities of this location.
     #[serde(default)]
@@ -405,7 +406,7 @@ pub struct LocationMetadata {
 }
 
 /// Mount Datastore Request message
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MountDatastoreRequest {
     /// Required. The datastore mount configuration.
     #[serde(default, rename = "datastoreMountConfig")]
@@ -422,7 +423,7 @@ pub struct MountDatastoreRequest {
 }
 
 /// Information about the type and number of nodes associated with the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTypeConfig {
     /// Optional. Customized number of cores available to each node of the type. This number must always be one of nodeType.availableCustomCoreCounts. If zero is provided max value from nodeType.availableCustomCoreCounts will be used.
     #[serde(default, rename = "customCoreCount")]
@@ -433,7 +434,7 @@ pub struct NodeTypeConfig {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -459,7 +460,7 @@ pub struct OperationMetadata {
 }
 
 /// Request message for VmwareEngine.RepairManagementDnsZoneBindings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepairManagementDnsZoneBindingRequest {
     /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if the original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -467,7 +468,7 @@ pub struct RepairManagementDnsZoneBindingRequest {
 }
 
 /// Request message for VmwareEngine.ResetNsxCredentials
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetNsxCredentialsRequest {
     /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -475,7 +476,7 @@ pub struct ResetNsxCredentialsRequest {
 }
 
 /// Request message for VmwareEngine.ResetVcenterCredentials
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetVcenterCredentialsRequest {
     /// Optional. A request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server guarantees that a request doesn''t result in creation of duplicate commitments for at least 60 minutes. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -486,7 +487,7 @@ pub struct ResetVcenterCredentialsRequest {
 }
 
 /// Request message for VmwareEngine.RevokeDnsBindPermission
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevokeDnsBindPermissionRequest {
     /// Required. The consumer provided user/service account which needs to be granted permission to bind with the intranet VPC corresponding to the consumer project.
     #[serde(default)]
@@ -497,7 +498,7 @@ pub struct RevokeDnsBindPermissionRequest {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -508,7 +509,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -516,7 +517,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -524,7 +525,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Request message for VmwareEngine.UndeletePrivateCloud
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeletePrivateCloudRequest {
     /// Optional. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -532,7 +533,7 @@ pub struct UndeletePrivateCloudRequest {
 }
 
 /// Unmount Datastore Request messag
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnmountDatastoreRequest {
     /// Required. The resource name of the datastore to unmount. Resource names are schemeless URIs that follow the conventions in https://cloud.google.com/apis/design/resource_names. For example: projects/my-project/locations/us-central1/datastores/my-datastore
     #[serde(default)]
@@ -546,7 +547,7 @@ pub struct UnmountDatastoreRequest {
 }
 
 /// Thresholds define the utilization of resources triggering scale-out and scale-in operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Thresholds {
     /// Required. The utilization triggering the scale-in operation in percent.
     #[serde(default, rename = "scaleIn")]
@@ -557,7 +558,7 @@ pub struct Thresholds {
 }
 
 /// A forwarding rule is a mapping of a domain to name_servers. This mapping allows VMware Engine to resolve domains for attached private clouds by forwarding DNS requests for a given domain to the specified nameservers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardingRule {
     /// Required. Domain used to resolve a name_servers list.
     #[serde(default)]
@@ -568,7 +569,7 @@ pub struct ForwardingRule {
 }
 
 /// Announcement for the resources of Vmware Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Announcement {
     /// Optional. Activity type of the announcement There can be only one active announcement for a given activity type and target resource.
     #[serde(default, rename = "activityType")]
@@ -606,7 +607,7 @@ pub struct Announcement {
 }
 
 /// A cluster in a private cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cluster {
     /// Optional. Configuration of the autoscaling applied to this cluster.
     #[serde(default, rename = "autoscalingSettings")]
@@ -641,7 +642,7 @@ pub struct Cluster {
 }
 
 /// Represents a datastore resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Datastore {
     /// Output only. Clusters to which the datastore is attached.
     #[serde(default)]
@@ -673,7 +674,7 @@ pub struct Datastore {
 }
 
 /// External access firewall rules for filtering incoming traffic destined to ExternalAddress resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalAccessRule {
     /// The action that the external access rule performs. // TODO: enum values: ["ACTION_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default)]
@@ -717,7 +718,7 @@ pub struct ExternalAccessRule {
 }
 
 /// Represents an allocated external IP address and its corresponding internal IP address in a private cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalAddress {
     /// Output only. Creation time of this resource.
     #[serde(default, rename = "createTime")]
@@ -746,7 +747,7 @@ pub struct ExternalAddress {
 }
 
 /// HCX activation key. A default key is created during private cloud provisioning, but this behavior is subject to change and you should always verify active keys. Use VmwareEngine.ListHcxActivationKeys to retrieve existing keys and VmwareEngine.CreateHcxActivationKey to create new ones.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HcxActivationKey {
     /// Output only. HCX activation key.
     #[serde(default, rename = "activationKey")]
@@ -766,7 +767,7 @@ pub struct HcxActivationKey {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -786,7 +787,7 @@ pub struct Location {
 }
 
 /// Logging server to receive vCenter or ESXi logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingServer {
     /// Output only. Creation time of this resource.
     #[serde(default, rename = "createTime")]
@@ -815,7 +816,7 @@ pub struct LoggingServer {
 }
 
 /// Represents a binding between a network and the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud''s ESXi hosts and management VM appliances like vCenter and NSX Manager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagementDnsZoneBinding {
     /// Output only. Creation time of this resource.
     #[serde(default, rename = "createTime")]
@@ -844,7 +845,7 @@ pub struct ManagementDnsZoneBinding {
 }
 
 /// Details of a network peering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPeering {
     /// Output only. Creation time of this resource.
     #[serde(default, rename = "createTime")]
@@ -897,7 +898,7 @@ pub struct NetworkPeering {
 }
 
 /// Represents a network policy resource. Network policies are regional resources. You can use a network policy to enable or disable internet access and external IP access. Network policies are associated with a VMware Engine network, which might span across regions. For a given region, a network policy applies to all private clouds in the VMware Engine network associated with the policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPolicy {
     /// Output only. Creation time of this resource.
     #[serde(default, rename = "createTime")]
@@ -932,7 +933,7 @@ pub struct NetworkPolicy {
 }
 
 /// Describes node type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeType {
     /// Output only. List of possible values of custom core count.
     #[serde(default, rename = "availableCustomCoreCounts")]
@@ -970,7 +971,7 @@ pub struct NodeType {
 }
 
 /// Node in a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Node {
     /// Output only. Customized number of cores
     #[serde(default, rename = "customCoreCount")]
@@ -996,7 +997,7 @@ pub struct Node {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1016,7 +1017,7 @@ pub struct Operation {
 }
 
 /// Represents a private cloud resource. Private clouds of type STANDARD and TIME_LIMITED are zonal resources, STRETCHED private clouds are regional.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateCloud {
     /// Output only. Creation time of this resource.
     #[serde(default, rename = "createTime")]
@@ -1063,7 +1064,7 @@ pub struct PrivateCloud {
 }
 
 /// Exchanged network peering route.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PeeringRoute {
     /// Output only. Destination range of the peering route in CIDR notation.
     #[serde(default, rename = "destRange")]
@@ -1086,7 +1087,7 @@ pub struct PeeringRoute {
 }
 
 /// Private connection resource that provides connectivity for VMware Engine private clouds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateConnection {
     /// Output only. Creation time of this resource.
     #[serde(default, rename = "createTime")]
@@ -1130,7 +1131,7 @@ pub struct PrivateConnection {
 }
 
 /// Subnet in a private cloud. Either management subnets (such as vMotion) that are read-only, or userDefined, which can also be updated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subnet {
     /// The IP address of the gateway of this subnet. Must fall within the IP prefix defined above.
     #[serde(default, rename = "gatewayIp")]
@@ -1153,7 +1154,7 @@ pub struct Subnet {
 }
 
 /// Describes Private cloud Upgrade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Upgrade {
     /// Output only. Output Only. The list of component upgrades.
     #[serde(default, rename = "componentUpgrades")]
@@ -1203,7 +1204,7 @@ pub struct Upgrade {
 }
 
 /// VMware Engine network resource that provides connectivity for VMware Engine private clouds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareEngineNetwork {
     /// Output only. Creation time of this resource.
     #[serde(default, rename = "createTime")]
@@ -1235,7 +1236,7 @@ pub struct VmwareEngineNetwork {
 }
 
 /// Users/Service accounts which have access for DNS binding on the intranet VPC corresponding to the consumer project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Principal {
     /// The service account which needs to be granted the permission.
     #[serde(default, rename = "serviceAccount")]
@@ -1246,7 +1247,7 @@ pub struct Principal {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -1263,7 +1264,7 @@ pub struct Policy {
 }
 
 /// Autoscaling settings define the rules used by VMware Engine to automatically scale-out and scale-in the clusters in a private cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingSettings {
     /// Required. The map with autoscaling policies applied to the cluster. The key is the identifier of the policy. It must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5) Currently there map must contain only one element that describes the autoscaling policy for compute nodes.
     #[serde(default, rename = "autoscalingPolicies")]
@@ -1280,7 +1281,7 @@ pub struct AutoscalingSettings {
 }
 
 /// The Datastore Mount configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatastoreMountConfig {
     /// Optional. The access mode of the NFS volume. Optional. Default value used will be READ_WRITE // TODO: enum values: ["ACCESS_MODE_UNSPECIFIED", "READ_ONLY", "READ_WRITE"]
     #[serde(default, rename = "accessMode")]
@@ -1303,7 +1304,7 @@ pub struct DatastoreMountConfig {
 }
 
 /// The NFS datastore configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NfsDatastore {
     /// Google file service configuration
     #[serde(default, rename = "googleFileService")]
@@ -1317,7 +1318,7 @@ pub struct NfsDatastore {
 }
 
 /// An IP range provided in any one of the supported formats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IpRange {
     /// The name of an ExternalAddress resource. The external address must have been reserved in the scope of this external access rule''s parent network policy. Provide the external address name in the form of projects/{project}/locations/{location}/privateClouds/{private_cloud}/externalAddresses/{external_address}. For example: projects/my-project/locations/us-central1-a/privateClouds/my-cloud/externalAddresses/my-address.
     #[serde(default, rename = "externalAddress")]
@@ -1331,7 +1332,7 @@ pub struct IpRange {
 }
 
 /// Represents a network service that is managed by a NetworkPolicy resource. A network service provides a way to control an aspect of external access to VMware workloads. For example, whether the VMware workloads in the private clouds governed by a network policy can access or be accessed from the internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkService {
     /// True if the service is enabled; false otherwise.
     #[serde(default)]
@@ -1342,7 +1343,7 @@ pub struct NetworkService {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1356,7 +1357,7 @@ pub struct Status {
 }
 
 /// Details about a HCX Cloud Manager appliance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hcx {
     /// Fully qualified domain name of the appliance.
     #[serde(default)]
@@ -1373,7 +1374,7 @@ pub struct Hcx {
 }
 
 /// Management cluster configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagementCluster {
     /// Required. The user-provided identifier of the new Cluster. The identifier must meet the following requirements: * Only contains 1-63 alphanumeric characters and hyphens * Begins with an alphabetical character * Ends with a non-hyphen character * Not formatted as a UUID * Complies with [RFC 1034](https://datatracker.ietf.org/doc/html/rfc1034) (section 3.5)
     #[serde(default, rename = "clusterId")]
@@ -1387,7 +1388,7 @@ pub struct ManagementCluster {
 }
 
 /// Network configuration in the consumer project with which the peering has to be done.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConfig {
     /// Output only. DNS Server IP of the Private Cloud. All DNS queries can be forwarded to this address for name resolution of Private Cloud''s management entities like vCenter, NSX-T Manager and ESXi hosts.
     #[serde(default, rename = "dnsServerIp")]
@@ -1407,7 +1408,7 @@ pub struct NetworkConfig {
 }
 
 /// Details about a NSX Manager appliance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Nsx {
     /// Fully qualified domain name of the appliance.
     #[serde(default)]
@@ -1424,7 +1425,7 @@ pub struct Nsx {
 }
 
 /// Details about a vCenter Server management appliance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Vcenter {
     /// Fully qualified domain name of the appliance.
     #[serde(default)]
@@ -1441,7 +1442,7 @@ pub struct Vcenter {
 }
 
 /// Per component upgrade resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareUpgradeComponent {
     /// Output only. Type of component // TODO: enum values: ["VMWARE_COMPONENT_TYPE_UNSPECIFIED", "VCENTER", "ESXI", "NSXT_UC", "NSXT_EDGE", "NSXT_MGR", "HCX", "VSAN", "DVS", "NAMESERVER_VM", "KMS_VM", "WITNESS_VM", "NSXT", "CLUSTER", "VM_TOOLS"]
     #[serde(default, rename = "componentType")]
@@ -1452,7 +1453,7 @@ pub struct VmwareUpgradeComponent {
 }
 
 /// Schedule for the upgrade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schedule {
     /// Output only. Output Only. Constraints applied to the schedule. These constraints should be applicable at the time of any rescheduling.
     #[serde(default)]
@@ -1472,7 +1473,7 @@ pub struct Schedule {
 }
 
 /// Represents a VMware Engine VPC network that is managed by a VMware Engine network resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpcNetwork {
     /// Output only. The relative resource name of the service VPC network this VMware Engine network is attached to. For example: projects/123123/global/networks/my-network
     #[serde(default)]
@@ -1483,7 +1484,7 @@ pub struct VpcNetwork {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1494,7 +1495,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1508,7 +1509,7 @@ pub struct Binding {
 }
 
 /// The network configuration for the datastore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatastoreNetwork {
     /// Optional. connection_count is used to set multiple connections from NFS client on ESXi host to NFS server. A higher number of connections results in better performance on datastores. In MountDatastore API by default max 4 connections are configured. User can set value of connection_count between 1 to 4. Connection_count is supported from vsphere 8.0u1 for earlier version 1 connection count is set on the ESXi hosts.
     #[serde(default, rename = "connectionCount")]
@@ -1525,7 +1526,7 @@ pub struct DatastoreNetwork {
 }
 
 /// Google service file service configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFileService {
     /// Google filestore instance resource name e.g. projects/my-project/locations/me-west1-b/instances/my-instance
     #[serde(default, rename = "filestoreInstance")]
@@ -1536,7 +1537,7 @@ pub struct GoogleFileService {
 }
 
 /// Third party file service configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyFileService {
     /// Required. Required Mount Folder name
     #[serde(default, rename = "fileShare")]
@@ -1550,7 +1551,7 @@ pub struct ThirdPartyFileService {
 }
 
 /// Configuration of a stretched cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StretchedClusterConfig {
     /// Required. Zone that will remain operational when connection between the two zones is lost. Specify the resource name of a zone that belongs to the region of the private cloud. For example: projects/{project}/locations/europe-west3-a where {project} can either be a project number or a project ID.
     #[serde(default, rename = "preferredLocation")]
@@ -1561,7 +1562,7 @@ pub struct StretchedClusterConfig {
 }
 
 /// Constraints to be applied while editing a schedule. These constraints ensure that Upgrade specific requirements are met.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Constraints {
     /// Output only. Output Only. A list of intervals in which maintenance windows are not allowed. Any time window that overlaps with any of these intervals will be considered invalid.
     #[serde(default, rename = "disallowedIntervals")]
@@ -1578,7 +1579,7 @@ pub struct Constraints {
 }
 
 /// Represents the time window to perform upgrade activities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeWindow {
     /// Required. Day of the week for this window. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
@@ -1592,7 +1593,7 @@ pub struct TimeWindow {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1603,7 +1604,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1620,7 +1621,7 @@ pub struct Expr {
 }
 
 /// Represents a time interval, spanning across days of the week. Until local timezones are supported, this interval is in UTC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeeklyTimeInterval {
     /// Output only. The day on which the interval ends. Can be same as start day. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "endDay")]
@@ -1637,7 +1638,7 @@ pub struct WeeklyTimeInterval {
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
@@ -1648,7 +1649,7 @@ pub struct Interval {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message includes the context and a list of matching results which contain the detail of associated entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchResponse {
     /// The local context applicable for the response. See more details at http://www.w3.org/TR/json-ld/#context-definitions.
     #[serde(default, rename = "@context")]

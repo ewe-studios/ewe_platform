@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A list of achievement definition objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementDefinitionsListResponse {
     /// The achievement definitions.
     #[serde(default)]
@@ -25,7 +26,7 @@ pub struct AchievementDefinitionsListResponse {
 }
 
 /// An achievement increment response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementIncrementResponse {
     /// The current steps recorded for this incremental achievement.
     #[serde(default, rename = "currentSteps")]
@@ -39,7 +40,7 @@ pub struct AchievementIncrementResponse {
 }
 
 /// An achievement reveal response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementRevealResponse {
     /// The current state of the achievement for which a reveal was attempted. This might be UNLOCKED if the achievement was already unlocked. // TODO: enum values: ["REVEALED", "UNLOCKED"]
     #[serde(default, rename = "currentState")]
@@ -50,7 +51,7 @@ pub struct AchievementRevealResponse {
 }
 
 /// An achievement set steps at least response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementSetStepsAtLeastResponse {
     /// The current steps recorded for this incremental achievement.
     #[serde(default, rename = "currentSteps")]
@@ -64,7 +65,7 @@ pub struct AchievementSetStepsAtLeastResponse {
 }
 
 /// An achievement unlock response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementUnlockResponse {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUnlockResponse.
     #[serde(default)]
@@ -75,7 +76,7 @@ pub struct AchievementUnlockResponse {
 }
 
 /// A list of achievement update requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementUpdateMultipleRequest {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUpdateMultipleRequest.
     #[serde(default)]
@@ -86,7 +87,7 @@ pub struct AchievementUpdateMultipleRequest {
 }
 
 /// Response message for UpdateMultipleAchievements rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementUpdateMultipleResponse {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#achievementUpdateMultipleResponse.
     #[serde(default)]
@@ -97,7 +98,7 @@ pub struct AchievementUpdateMultipleResponse {
 }
 
 /// The Application resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
     /// The number of achievements visible to the currently authenticated player.
     #[serde(default)]
@@ -141,7 +142,7 @@ pub struct Application {
 }
 
 /// A third party application verification response resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationVerifyResponse {
     /// An alternate ID that was once used for the player that was issued the auth token used in this request. (This field is not normally populated.)
     #[serde(default)]
@@ -155,7 +156,7 @@ pub struct ApplicationVerifyResponse {
 }
 
 /// A third party list metagame categories response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CategoryListResponse {
     /// The list of categories with usage data.
     #[serde(default)]
@@ -169,7 +170,7 @@ pub struct CategoryListResponse {
 }
 
 /// Container for a URL end point of the requested type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndPoint {
     /// A URL suitable for loading in a web browser for the requested endpoint.
     #[serde(default)]
@@ -177,7 +178,7 @@ pub struct EndPoint {
 }
 
 /// A ListDefinitions response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventDefinitionListResponse {
     /// The event definitions.
     #[serde(default)]
@@ -191,7 +192,7 @@ pub struct EventDefinitionListResponse {
 }
 
 /// An event period update resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventRecordRequest {
     /// The current time when this update was sent, in milliseconds, since 1970 UTC (Unix Epoch).
     #[serde(default, rename = "currentTimeMillis")]
@@ -208,7 +209,7 @@ pub struct EventRecordRequest {
 }
 
 /// An event period update resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventUpdateResponse {
     /// Any batch-wide failures which occurred applying updates.
     #[serde(default, rename = "batchFailures")]
@@ -225,7 +226,7 @@ pub struct EventUpdateResponse {
 }
 
 /// Response for the GeneratePlayGroupingApiToken RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratePlayGroupingApiTokenResponse {
     /// Token for accessing the Play Grouping API.
     #[serde(default)]
@@ -233,7 +234,7 @@ pub struct GeneratePlayGroupingApiTokenResponse {
 }
 
 /// Response for the GenerateRecallPlayGroupingApiToken RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateRecallPlayGroupingApiTokenResponse {
     /// Token for accessing the Play Grouping API.
     #[serde(default)]
@@ -241,7 +242,7 @@ pub struct GenerateRecallPlayGroupingApiTokenResponse {
 }
 
 /// Response message for GetMultipleApplicationPlayerIds rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetMultipleApplicationPlayerIdsResponse {
     /// Output only. The requested applications along with the scoped ids for tha player, if that player has an id for the application. If not, the application is not included in the response.
     #[serde(default, rename = "playerIds")]
@@ -249,7 +250,7 @@ pub struct GetMultipleApplicationPlayerIdsResponse {
 }
 
 /// A list of leaderboard objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LeaderboardListResponse {
     /// The leaderboards.
     #[serde(default)]
@@ -263,7 +264,7 @@ pub struct LeaderboardListResponse {
 }
 
 /// A ListScores response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LeaderboardScores {
     /// The scores in the leaderboard.
     #[serde(default)]
@@ -286,7 +287,7 @@ pub struct LeaderboardScores {
 }
 
 /// Request to link an in-game account with a PGS principal (encoded in the session id).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkPersonaRequest {
     /// Required. Cardinality constraint to observe when linking a persona to a player in the scope of a game. // TODO: enum values: ["ONE_PERSONA_TO_ONE_PLAYER"]
     #[serde(default, rename = "cardinalityConstraint")]
@@ -312,7 +313,7 @@ pub struct LinkPersonaRequest {
 }
 
 /// Outcome of a persona linking attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkPersonaResponse {
     /// Output only. State of a persona linking attempt. // TODO: enum values: ["LINK_CREATED", "PERSONA_OR_PLAYER_ALREADY_LINKED"]
     #[serde(default)]
@@ -320,7 +321,7 @@ pub struct LinkPersonaResponse {
 }
 
 /// The metagame config resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetagameConfig {
     /// Current version of the metagame configuration data. When this data is updated, the version number will be increased by one.
     #[serde(default, rename = "currentVersion")]
@@ -334,7 +335,7 @@ pub struct MetagameConfig {
 }
 
 /// A list of achievement objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerAchievementListResponse {
     /// The achievements.
     #[serde(default)]
@@ -348,7 +349,7 @@ pub struct PlayerAchievementListResponse {
 }
 
 /// A ListByPlayer response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerEventListResponse {
     /// The player events.
     #[serde(default)]
@@ -362,7 +363,7 @@ pub struct PlayerEventListResponse {
 }
 
 /// A list of player leaderboard scores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerLeaderboardScoreListResponse {
     /// The leaderboard scores.
     #[serde(default)]
@@ -379,7 +380,7 @@ pub struct PlayerLeaderboardScoreListResponse {
 }
 
 /// A third party player list response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerListResponse {
     /// The players.
     #[serde(default)]
@@ -393,7 +394,7 @@ pub struct PlayerListResponse {
 }
 
 /// A list of score submission statuses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerScoreListResponse {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerScoreListResponse.
     #[serde(default)]
@@ -404,7 +405,7 @@ pub struct PlayerScoreListResponse {
 }
 
 /// A list of score submission requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerScoreSubmissionList {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerScoreSubmissionList.
     #[serde(default)]
@@ -415,7 +416,7 @@ pub struct PlayerScoreSubmissionList {
 }
 
 /// Request to remove all Recall tokens associated with a persona for an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetPersonaRequest {
     /// Value of the ''persona'' field as it was provided by the client in LinkPersona RPC
     #[serde(default)]
@@ -423,7 +424,7 @@ pub struct ResetPersonaRequest {
 }
 
 /// Response for the ResetPersona RPC
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetPersonaResponse {
     /// Required. Whether any tokens were unlinked as a result of this request.
     #[serde(default)]
@@ -431,7 +432,7 @@ pub struct ResetPersonaResponse {
 }
 
 /// Recall token data returned from for the RetrieveDeveloperGamesLastPlayerToken RPC
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveDeveloperGamesLastPlayerTokenResponse {
     /// The recall token associated with the requested PGS Player principal. It can be unset if there is no recall token associated with the requested principal.
     #[serde(default, rename = "gamePlayerToken")]
@@ -439,7 +440,7 @@ pub struct RetrieveDeveloperGamesLastPlayerTokenResponse {
 }
 
 /// A list of recall token data returned from the RetrieveGamesPlayerTokens RPC
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveGamesPlayerTokensResponse {
     /// The requested applications along with the recall tokens for the player. If the player does not have recall tokens for an application, that application is not included in the response.
     #[serde(default, rename = "gamePlayerTokens")]
@@ -447,7 +448,7 @@ pub struct RetrieveGamesPlayerTokensResponse {
 }
 
 /// Response for the RetrievePlayerTokens RPC
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrievePlayerTokensResponse {
     /// Required. Recall tokens associated with the requested PGS Player principal
     #[serde(default)]
@@ -455,7 +456,7 @@ pub struct RetrievePlayerTokensResponse {
 }
 
 /// A third party checking a revision response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevisionCheckResponse {
     /// The version of the API this client revision should use when calling API methods.
     #[serde(default, rename = "apiVersion")]
@@ -469,7 +470,7 @@ pub struct RevisionCheckResponse {
 }
 
 /// Scoped player identifiers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScopedPlayerIds {
     /// Identifier of the player across all games of the given developer. Every player has the same developer_player_key in all games of one developer. Developer player key changes for the game if the game is transferred to another developer. Note that game_player_id will stay unchanged.
     #[serde(default, rename = "developerPlayerKey")]
@@ -480,7 +481,7 @@ pub struct ScopedPlayerIds {
 }
 
 /// A third party list snapshots response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotListResponse {
     /// The snapshots.
     #[serde(default)]
@@ -494,7 +495,7 @@ pub struct SnapshotListResponse {
 }
 
 /// A third party stats resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatsResponse {
     /// Average session length in minutes of the player. E.g., 1, 30, 60, ... . Not populated if there is not enough information.
     #[serde(default)]
@@ -532,7 +533,7 @@ pub struct StatsResponse {
 }
 
 /// Request to remove a Recall token linking PGS principal and an in-game account
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnlinkPersonaRequest {
     /// Value of the ''persona'' field as it was provided by the client in LinkPersona RPC
     #[serde(default)]
@@ -546,7 +547,7 @@ pub struct UnlinkPersonaRequest {
 }
 
 /// Response for the UnlinkPersona RPC
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnlinkPersonaResponse {
     /// Required. Whether a Recall token specified by the request was deleted. Can be ''false'' when there were no Recall tokens satisfied the criteria from the request.
     #[serde(default)]
@@ -554,7 +555,7 @@ pub struct UnlinkPersonaResponse {
 }
 
 /// An achievement definition object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementDefinition {
     /// The type of the achievement. // TODO: enum values: ["STANDARD", "INCREMENTAL"]
     #[serde(default, rename = "achievementType")]
@@ -598,7 +599,7 @@ pub struct AchievementDefinition {
 }
 
 /// A request to update an achievement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementUpdateRequest {
     /// The achievement this update is being applied to.
     #[serde(default, rename = "achievementId")]
@@ -618,7 +619,7 @@ pub struct AchievementUpdateRequest {
 }
 
 /// An updated achievement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementUpdateResponse {
     /// The achievement this update is was applied to.
     #[serde(default, rename = "achievementId")]
@@ -641,7 +642,7 @@ pub struct AchievementUpdateResponse {
 }
 
 /// An image asset object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageAsset {
     /// The height of the asset.
     #[serde(default)]
@@ -661,7 +662,7 @@ pub struct ImageAsset {
 }
 
 /// An application category object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationCategory {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#applicationCategory.
     #[serde(default)]
@@ -675,7 +676,7 @@ pub struct ApplicationCategory {
 }
 
 /// The Instance resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// URI which shows where a user can acquire this instance.
     #[serde(default, rename = "acquisitionUri")]
@@ -707,7 +708,7 @@ pub struct Instance {
 }
 
 /// Data related to individual game categories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Category {
     /// The category name.
     #[serde(default)]
@@ -721,7 +722,7 @@ pub struct Category {
 }
 
 /// An event definition resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventDefinition {
     /// A list of events that are a child of this event.
     #[serde(default, rename = "childEvents")]
@@ -750,7 +751,7 @@ pub struct EventDefinition {
 }
 
 /// An event period update resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventPeriodUpdate {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventPeriodUpdate.
     #[serde(default)]
@@ -764,7 +765,7 @@ pub struct EventPeriodUpdate {
 }
 
 /// A batch update failure resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventBatchRecordFailure {
     /// The cause for the update failure. // TODO: enum values: ["TOO_LARGE", "TIME_PERIOD_EXPIRED", "TIME_PERIOD_SHORT", "TIME_PERIOD_LONG", "ALREADY_UPDATED", "RECORD_RATE_HIGH"]
     #[serde(default, rename = "failureCause")]
@@ -778,7 +779,7 @@ pub struct EventBatchRecordFailure {
 }
 
 /// An event update failure resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventRecordFailure {
     /// The ID of the event that was not updated.
     #[serde(default, rename = "eventId")]
@@ -792,7 +793,7 @@ pub struct EventRecordFailure {
 }
 
 /// Token data returned from GeneratePlayGroupingApiToken RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayGroupingApiToken {
     /// Value of the token.
     #[serde(default, rename = "tokenValue")]
@@ -800,7 +801,7 @@ pub struct PlayGroupingApiToken {
 }
 
 /// Primary scoped player identifier for an application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationPlayerId {
     /// The application that this player identifier is for.
     #[serde(default, rename = "applicationId")]
@@ -811,7 +812,7 @@ pub struct ApplicationPlayerId {
 }
 
 /// The Leaderboard resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Leaderboard {
     /// The icon for the leaderboard.
     #[serde(default, rename = "iconUrl")]
@@ -834,7 +835,7 @@ pub struct Leaderboard {
 }
 
 /// The Leaderboard Entry resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LeaderboardEntry {
     /// The localized string for the numerical value of this score.
     #[serde(default, rename = "formattedScore")]
@@ -866,7 +867,7 @@ pub struct LeaderboardEntry {
 }
 
 /// An achievement object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerAchievement {
     /// The state of the achievement. // TODO: enum values: ["HIDDEN", "REVEALED", "UNLOCKED"]
     #[serde(default, rename = "achievementState")]
@@ -892,7 +893,7 @@ pub struct PlayerAchievement {
 }
 
 /// An event status resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerEvent {
     /// The ID of the event definition.
     #[serde(default, rename = "definitionId")]
@@ -912,7 +913,7 @@ pub struct PlayerEvent {
 }
 
 /// A player leaderboard score object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerLeaderboardScore {
     /// The rank of the score in the friends collection for this leaderboard.
     #[serde(default, rename = "friendsRank")]
@@ -947,7 +948,7 @@ pub struct PlayerLeaderboardScore {
 }
 
 /// A list of leaderboard entry resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerScoreResponse {
     /// The time spans where the submitted score is better than the existing score for that time span.
     #[serde(default, rename = "beatenScoreTimeSpans")]
@@ -970,7 +971,7 @@ pub struct PlayerScoreResponse {
 }
 
 /// A request to submit a score to leaderboards.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScoreSubmission {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#scoreSubmission.
     #[serde(default)]
@@ -990,7 +991,7 @@ pub struct ScoreSubmission {
 }
 
 /// Recall tokens for a game.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GamePlayerToken {
     /// The application that this player identifier is for.
     #[serde(default, rename = "applicationId")]
@@ -1001,7 +1002,7 @@ pub struct GamePlayerToken {
 }
 
 /// An snapshot object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Snapshot {
     /// The cover image of this snapshot. May be absent if there is no image.
     #[serde(default, rename = "coverImage")]
@@ -1039,7 +1040,7 @@ pub struct Snapshot {
 }
 
 /// The payload to request to increment an achievement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GamesAchievementIncrement {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#GamesAchievementIncrement.
     #[serde(default)]
@@ -1053,7 +1054,7 @@ pub struct GamesAchievementIncrement {
 }
 
 /// The payload to request to increment an achievement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GamesAchievementSetStepsAtLeast {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#GamesAchievementSetStepsAtLeast.
     #[serde(default)]
@@ -1064,7 +1065,7 @@ pub struct GamesAchievementSetStepsAtLeast {
 }
 
 /// The Android instance details resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceAndroidDetails {
     /// Flag indicating whether the anti-piracy check is enabled.
     #[serde(default, rename = "enablePiracyCheck")]
@@ -1081,7 +1082,7 @@ pub struct InstanceAndroidDetails {
 }
 
 /// The iOS details resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceIosDetails {
     /// Bundle identifier.
     #[serde(default, rename = "bundleIdentifier")]
@@ -1107,7 +1108,7 @@ pub struct InstanceIosDetails {
 }
 
 /// The Web details resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceWebDetails {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#instanceWebDetails.
     #[serde(default)]
@@ -1121,7 +1122,7 @@ pub struct InstanceWebDetails {
 }
 
 /// An event child relationship resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventChild {
     /// The ID of the child event.
     #[serde(default, rename = "childId")]
@@ -1132,7 +1133,7 @@ pub struct EventChild {
 }
 
 /// An event period update resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventUpdateRequest {
     /// The ID of the event being modified in this update.
     #[serde(default, rename = "definitionId")]
@@ -1146,7 +1147,7 @@ pub struct EventUpdateRequest {
 }
 
 /// An event period time range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventPeriodRange {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#eventPeriodRange.
     #[serde(default)]
@@ -1160,7 +1161,7 @@ pub struct EventPeriodRange {
 }
 
 /// A Player resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Player {
     /// The base URL for the image that represents the player.
     #[serde(default, rename = "avatarImageUrl")]
@@ -1204,7 +1205,7 @@ pub struct Player {
 }
 
 /// A score rank in a leaderboard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LeaderboardScoreRank {
     /// The number of scores in the leaderboard as a string.
     #[serde(default, rename = "formattedNumScores")]
@@ -1224,7 +1225,7 @@ pub struct LeaderboardScoreRank {
 }
 
 /// A player score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerScore {
     /// The formatted score for this player score.
     #[serde(default, rename = "formattedScore")]
@@ -1244,7 +1245,7 @@ pub struct PlayerScore {
 }
 
 /// Recall token data returned from RetrievePlayerTokens RPC
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RecallToken {
     /// Optional. Optional expiration time of the token
     #[serde(default, rename = "expireTime")]
@@ -1258,7 +1259,7 @@ pub struct RecallToken {
 }
 
 /// An image of a snapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotImage {
     /// The height of the image.
     #[serde(default)]
@@ -1278,7 +1279,7 @@ pub struct SnapshotImage {
 }
 
 /// 1P/3P metadata about the player''s experience.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerExperienceInfo {
     /// The current number of experience points for the player.
     #[serde(default, rename = "currentExperiencePoints")]
@@ -1298,7 +1299,7 @@ pub struct PlayerExperienceInfo {
 }
 
 /// Profile settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProfileSettings {
     /// TODO: enum values: ["VISIBLE", "REQUEST_REQUIRED", "UNAVAILABLE"]
     #[serde(default, rename = "friendsListVisibility")]
@@ -1312,7 +1313,7 @@ pub struct ProfileSettings {
 }
 
 /// 1P/3P metadata about a user''s level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerLevel {
     /// Uniquely identifies the type of this resource. Value is always the fixed string games#playerLevel.
     #[serde(default)]

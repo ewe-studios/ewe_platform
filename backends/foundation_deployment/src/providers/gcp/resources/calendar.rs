@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Acl resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Acl {
     /// ETag of the collection.
     #[serde(default)]
@@ -31,7 +32,7 @@ pub struct Acl {
 }
 
 /// Calendar resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Calendar {
     /// Whether this calendar automatically accepts invitations. Only valid for resource calendars.
     #[serde(default, rename = "autoAcceptInvitations")]
@@ -66,7 +67,7 @@ pub struct Calendar {
 }
 
 /// CalendarList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CalendarList {
     /// ETag of the collection.
     #[serde(default)]
@@ -86,7 +87,7 @@ pub struct CalendarList {
 }
 
 /// CalendarNotification resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CalendarNotification {
     /// The method used to deliver the notification. The possible value is:  
     #[serde(default)]
@@ -97,7 +98,7 @@ pub struct CalendarNotification {
 }
 
 /// Channel resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Channel {
     /// The address where notifications are delivered for this channel.
     #[serde(default)]
@@ -132,7 +133,7 @@ pub struct Channel {
 }
 
 /// ColorDefinition resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ColorDefinition {
     /// The background color associated with this color definition.
     #[serde(default)]
@@ -143,7 +144,7 @@ pub struct ColorDefinition {
 }
 
 /// Colors resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Colors {
     /// A global palette of calendar colors, mapping from the color ID to its definition. A calendarListEntry resource refers to one of these color IDs in its colorId field. Read-only.
     #[serde(default)]
@@ -160,11 +161,11 @@ pub struct Colors {
 }
 
 /// EventLabel resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventLabel {}
 
 /// Events resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Events {
     /// The user''s access role for this calendar. Read-only. Possible values are:  
     #[serde(default, rename = "accessRole")]
@@ -202,7 +203,7 @@ pub struct Events {
 }
 
 /// FreeBusyCalendar resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeBusyCalendar {
     /// List of time ranges during which this calendar should be regarded as busy.
     #[serde(default)]
@@ -213,7 +214,7 @@ pub struct FreeBusyCalendar {
 }
 
 /// FreeBusyGroup resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeBusyGroup {
     /// List of calendars'' identifiers within a group.
     #[serde(default)]
@@ -224,7 +225,7 @@ pub struct FreeBusyGroup {
 }
 
 /// FreeBusyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeBusyRequest {
     /// Maximal number of calendars for which FreeBusy information is to be provided. Optional. Maximum value is 50.
     #[serde(default, rename = "calendarExpansionMax")]
@@ -247,7 +248,7 @@ pub struct FreeBusyRequest {
 }
 
 /// FreeBusyResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeBusyResponse {
     /// List of free/busy information for calendars.
     #[serde(default)]
@@ -267,11 +268,11 @@ pub struct FreeBusyResponse {
 }
 
 /// LabelProperties resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelProperties {}
 
 /// Settings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Settings {
     /// Etag of the collection.
     #[serde(default)]
@@ -291,7 +292,7 @@ pub struct Settings {
 }
 
 /// AclRule resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AclRule {
     /// ETag of the resource.
     #[serde(default)]
@@ -311,7 +312,7 @@ pub struct AclRule {
 }
 
 /// CalendarListEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CalendarListEntry {
     /// The effective access role that the authenticated user has on the calendar. Read-only. Possible values are:  
     #[serde(default, rename = "accessRole")]
@@ -379,7 +380,7 @@ pub struct CalendarListEntry {
 }
 
 /// Event resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Event {
     /// Whether anyone can invite themselves to the event (deprecated). Optional. The default is False.
     #[serde(default, rename = "anyoneCanAddSelf")]
@@ -513,7 +514,7 @@ pub struct Event {
 }
 
 /// TimePeriod resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimePeriod {
     /// The (exclusive) end of the time period.
     #[serde(default)]
@@ -524,7 +525,7 @@ pub struct TimePeriod {
 }
 
 /// Error resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Error {
     /// Domain, or broad category, of the error.
     #[serde(default)]
@@ -535,7 +536,7 @@ pub struct Error {
 }
 
 /// FreeBusyRequestItem resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeBusyRequestItem {
     /// The identifier of a calendar or a group.
     #[serde(default)]
@@ -543,7 +544,7 @@ pub struct FreeBusyRequestItem {
 }
 
 /// Setting resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Setting {
     /// ETag of the resource.
     #[serde(default)]
@@ -560,7 +561,7 @@ pub struct Setting {
 }
 
 /// ConferenceProperties resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConferenceProperties {
     /// The types of conference solutions that are supported for this calendar.
     #[serde(default, rename = "allowedConferenceSolutionTypes")]
@@ -568,7 +569,7 @@ pub struct ConferenceProperties {
 }
 
 /// EventReminder resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventReminder {
     /// The method used by this reminder. Possible values are:  
     #[serde(default)]
@@ -579,7 +580,7 @@ pub struct EventReminder {
 }
 
 /// EventAttachment resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventAttachment {
     /// ID of the attached file. Read-only.
     #[serde(default, rename = "fileId")]
@@ -599,7 +600,7 @@ pub struct EventAttachment {
 }
 
 /// EventAttendee resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventAttendee {
     /// Number of additional guests. Optional. The default is 0.
     #[serde(default, rename = "additionalGuests")]
@@ -634,7 +635,7 @@ pub struct EventAttendee {
 }
 
 /// EventBirthdayProperties resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventBirthdayProperties {
     /// Resource name of the contact this birthday event is linked to. This can be used to fetch contact details from People API. Format: "people/c12345". Read-only.
     #[serde(default)]
@@ -648,7 +649,7 @@ pub struct EventBirthdayProperties {
 }
 
 /// ConferenceData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConferenceData {
     /// The ID of the conference.
     #[serde(default, rename = "conferenceId")]
@@ -674,7 +675,7 @@ pub struct ConferenceData {
 }
 
 /// EventDateTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventDateTime {
     /// The date, in the format "yyyy-mm-dd", if this is an all-day event.
     #[serde(default)]
@@ -688,7 +689,7 @@ pub struct EventDateTime {
 }
 
 /// EventFocusTimeProperties resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventFocusTimeProperties {
     /// Whether to decline meeting invitations which overlap Focus Time events. Valid values are declineNone, meaning that no meeting invitations are declined; declineAllConflictingInvitations, meaning that all conflicting meeting invitations that conflict with the event are declined; and declineOnlyNewConflictingInvitations, meaning that only new conflicting meeting invitations which arrive while the Focus Time event is present are to be declined.
     #[serde(default, rename = "autoDeclineMode")]
@@ -702,7 +703,7 @@ pub struct EventFocusTimeProperties {
 }
 
 /// EventOutOfOfficeProperties resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventOutOfOfficeProperties {
     /// Whether to decline meeting invitations which overlap Out of office events. Valid values are declineNone, meaning that no meeting invitations are declined; declineAllConflictingInvitations, meaning that all conflicting meeting invitations that conflict with the event are declined; and declineOnlyNewConflictingInvitations, meaning that only new conflicting meeting invitations which arrive while the Out of office event is present are to be declined.
     #[serde(default, rename = "autoDeclineMode")]
@@ -713,7 +714,7 @@ pub struct EventOutOfOfficeProperties {
 }
 
 /// EventWorkingLocationProperties resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventWorkingLocationProperties {
     /// If present, specifies that the user is working from a custom location.
     #[serde(default, rename = "customLocation")]
@@ -730,7 +731,7 @@ pub struct EventWorkingLocationProperties {
 }
 
 /// ConferenceSolution resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConferenceSolution {
     /// The user-visible icon for this solution.
     #[serde(default, rename = "iconUri")]
@@ -744,7 +745,7 @@ pub struct ConferenceSolution {
 }
 
 /// CreateConferenceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateConferenceRequest {
     /// The conference solution, such as Hangouts or Google Meet.
     #[serde(default, rename = "conferenceSolutionKey")]
@@ -758,7 +759,7 @@ pub struct CreateConferenceRequest {
 }
 
 /// EntryPoint resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntryPoint {
     /// The access code to access the conference. The maximum length is 128 characters.
     #[serde(default, rename = "accessCode")]
@@ -793,7 +794,7 @@ pub struct EntryPoint {
 }
 
 /// ConferenceParameters resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConferenceParameters {
     /// Additional add-on specific data.
     #[serde(default, rename = "addOnParameters")]
@@ -801,7 +802,7 @@ pub struct ConferenceParameters {
 }
 
 /// ConferenceSolutionKey resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConferenceSolutionKey {
     /// The conference solution type.
     #[serde(default, rename = "type")]
@@ -809,7 +810,7 @@ pub struct ConferenceSolutionKey {
 }
 
 /// ConferenceRequestStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConferenceRequestStatus {
     /// The current status of the conference create request. Read-only.
     #[serde(default, rename = "statusCode")]
@@ -817,7 +818,7 @@ pub struct ConferenceRequestStatus {
 }
 
 /// ConferenceParametersAddOnParameters resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConferenceParametersAddOnParameters {
     #[serde(default)]
     pub parameters: ::core::option::Option<serde_json::Value>,

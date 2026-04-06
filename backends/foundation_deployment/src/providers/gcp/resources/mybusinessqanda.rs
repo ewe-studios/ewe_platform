@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for QuestionsAndAnswers.ListAnswers
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAnswersResponse {
     /// The requested answers.
     #[serde(default)]
@@ -29,7 +30,7 @@ pub struct ListAnswersResponse {
 }
 
 /// Response message for QuestionsAndAnswers.ListQuestions
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListQuestionsResponse {
     /// If the number of questions exceeds the requested max page size, this field is populated with a token to fetch the next page of questions on a subsequent call. If there are no more questions, this field is not present in the response.
     #[serde(default, rename = "nextPageToken")]
@@ -43,7 +44,7 @@ pub struct ListQuestionsResponse {
 }
 
 /// Request message for QuestionsAndAnswers.UpsertAnswer
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpsertAnswerRequest {
     /// Required. The new answer.
     #[serde(default)]
@@ -51,7 +52,7 @@ pub struct UpsertAnswerRequest {
 }
 
 /// Represents a single question and some of its answers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Question {
     /// Output only. The author of the question.
     #[serde(default)]
@@ -80,7 +81,7 @@ pub struct Question {
 }
 
 /// Represents an answer to a question
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Answer {
     /// Output only. The author of the answer. Will only be set during list operations.
     #[serde(default)]
@@ -103,7 +104,7 @@ pub struct Answer {
 }
 
 /// Represents the author of a question or answer
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Author {
     /// The display name of the user
     #[serde(default, rename = "displayName")]

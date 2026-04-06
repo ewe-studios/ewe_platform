@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Output for PublishUrlNotification
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublishUrlNotificationResponse {
     /// Description of the notification events received for this URL.
     #[serde(default, rename = "urlNotificationMetadata")]
@@ -19,7 +20,7 @@ pub struct PublishUrlNotificationResponse {
 }
 
 /// Summary of the most recent Indexing API notifications successfully received, for a given URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlNotificationMetadata {
     /// Latest notification received with type URL_REMOVED.
     #[serde(default, rename = "latestRemove")]
@@ -33,7 +34,7 @@ pub struct UrlNotificationMetadata {
 }
 
 /// UrlNotification is the resource used in all Indexing API calls. It describes one event in the life cycle of a Web Document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlNotification {
     /// Creation timestamp for this notification. Users should _not_ specify it, the field is ignored at the request time.
     #[serde(default, rename = "notifyTime")]

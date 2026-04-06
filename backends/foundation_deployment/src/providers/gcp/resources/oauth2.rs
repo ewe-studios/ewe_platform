@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Tokeninfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tokeninfo {
     /// Who is the intended audience for this token. In general the same as issued_to.
     #[serde(default)]
@@ -37,7 +38,7 @@ pub struct Tokeninfo {
 }
 
 /// Userinfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Userinfo {
     /// The user''s email address.
     #[serde(default)]
