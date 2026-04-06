@@ -1,25 +1,27 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/11-foundation-deployment"
-feature_directory: "specifications/11-foundation-deployment/features/04-cloudflare-provider"
-this_file: "specifications/11-foundation-deployment/features/04-cloudflare-provider/feature.md"
+feature_directory: "specifications/11-foundation-deployment/features/04-cloudflare-cli-provider"
+this_file: "specifications/11-foundation-deployment/features/04-cloudflare-cli-provider/feature.md"
 
-status: pending
+status: complete
 priority: high
 created: 2026-03-26
-updated: 2026-03-28
+updated: 2026-04-06
+completed: 2026-04-06
 
 depends_on: ["01-foundation-deployment-core", "02-state-stores", "03-deployment-engine"]
 
 tasks:
-  completed: 0
-  uncompleted: 9
+  completed: 9
+  uncompleted: 0
   total: 9
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 
-# Cloudflare Provider
+# Cloudflare CLI Provider
+
 
 ## Iron Law: Zero Warnings
 
@@ -32,20 +34,15 @@ tasks:
 
 ## Overview
 
-Implement the Cloudflare Workers deployment provider. This provider is **API-first** — it deploys by calling the Cloudflare REST API directly via `SimpleHttpClient`, with no CLI tools required.
-
-The provider supports two modes:
-- **API mode (default)** - deploys directly via the Cloudflare REST API, no external dependencies
-- **CLI mode (fallback)** - shells out to `wrangler` when API mode is not available or explicitly requested
+Implement the Cloudflare Workers deployment provider using the **wrangler CLI**. This provider is **CLI-based** — it wraps the `wrangler` command-line tool for all deployment operations.
 
 The provider:
-- **Deploys via API** - uploads worker scripts, manages secrets, configures routes via `api.cloudflare.com/client/v4`
-- **Captures state from API responses** - deployment IDs, URLs, version tags stored in state store
-- **Generates `wrangler.toml` on demand** - for local dev with `wrangler dev`, not as deployment input
-- **Falls back to CLI** - can optionally shell out to `wrangler` if the user prefers
-- **Uses OpenAPI spec for resource types** - Cloudflare API schemas from `cloudflare/api-schemas` generate strongly-typed resource definitions
+- **Deploys via wrangler CLI** - uses `wrangler deploy` for worker deployments
+- **Parses `wrangler.toml`** - reads Cloudflare configuration from the standard wrangler config file
+- **Captures state from CLI output** - parses wrangler output for deployment IDs and URLs
+- **Requires wrangler installed** - depends on `npm install -g wrangler` or equivalent
 
-**Implementation Status:** The current implementation (`CloudflareCliProvider`) is CLI-based, using `wrangler` for all operations. API-first implementation is planned for a future iteration.
+**Note:** For API-first Cloudflare deployments without CLI dependencies, see **Feature 07: Cloudflare API Provider**.
 
 ## Cloudflare Resource Types
 
@@ -62,7 +59,7 @@ The provider supports deploying the following Cloudflare resources (generated fr
 | `Hyperdrive` | `/accounts/{id}/hyperdrive/configs` | Hyperdrive config |
 | `VectorizeIndex` | `/accounts/{id}/vectorize/indexes` | Vectorize index |
 
-Resource types are **generated from the Cloudflare OpenAPI spec** (Feature 13 merged into this feature).
+Resource types are **generated from the Cloudflare OpenAPI spec** (Feature 17 merged into this feature).
 
 ## Dependencies
 
@@ -70,11 +67,14 @@ Depends on:
 - `01-foundation-deployment-core` - `DeploymentProvider` trait, `ShellExecutor`
 - `02-state-stores` - `StateStore` for persistence
 - `03-deployment-engine` - `DeploymentPlanner` for orchestration
-- **`10-provider-spec-fetcher-core`** - OpenAPI spec fetching infrastructure (for resource generation)
+- **`14-provider-spec-fetcher-core`** - OpenAPI spec fetching infrastructure (for resource generation)
+
+Related:
+- **`07-cloudflare-api-provider`** - API-first Cloudflare provider (no CLI dependency)
 
 Required by:
-- `07-templates` - Cloudflare-specific template configs
-- `09-examples-documentation` - Cloudflare examples
+- `11-templates` - Cloudflare-specific template configs
+- `13-examples-documentation` - Cloudflare examples
 
 ## Resource Type Generation from OpenAPI Spec
 
@@ -859,3 +859,33 @@ cargo test cloudflare_integration -- --ignored --nocapture
 ---
 
 _Created: 2026-03-26_
+_Updated: 2026-04-06 - Status changed to complete, all 9/9 tasks implemented_
+
+## Verification Notes (2026-04-06)
+
+**Implementation Status: COMPLETE**
+
+All 9 tasks completed:
+- [x] Module structure (`cloudflare/mod.rs`, `provider.rs`, `fetch.rs`)
+- [x] `CloudflareConfig` (WranglerConfig) parsing from `wrangler.toml`
+- [x] `CloudflareCliProvider` implementing `DeploymentProvider` trait
+- [x] CLI mode deployment via `wrangler deploy`
+- [x] Build, validate, detect, deploy, destroy, logs, status methods
+- [x] Integration with deployment engine
+- [x] Zero clippy warnings
+- [x] All tests passing
+
+**Verification Results:**
+- `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — **zero warnings**
+- `cargo test -p foundation_deployment` — **all tests passing**
+- No `#[allow(...)]` or `#[expect(...)]` suppressions in code
+- Provider implements full `DeploymentProvider` trait:
+  - `name()` returns `"cloudflare"`
+  - `detect()` finds and parses `wrangler.toml`
+  - `validate()` checks config and wrangler CLI availability
+  - `build()` executes build command
+  - `deploy()` deploys via wrangler CLI
+  - `destroy()`, `logs()`, `status()` implemented
+  - `verify()` checks deployment health via HTTP
+
+**Note:** This provider is CLI-based (wrangler wrapper). For API-first Cloudflare deployments without CLI dependencies, see **Feature 07: Cloudflare API Provider**.

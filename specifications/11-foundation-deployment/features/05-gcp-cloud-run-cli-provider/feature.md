@@ -1,25 +1,26 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/11-foundation-deployment"
-feature_directory: "specifications/11-foundation-deployment/features/05-gcp-cloud-run-provider"
-this_file: "specifications/11-foundation-deployment/features/05-gcp-cloud-run-provider/feature.md"
+feature_directory: "specifications/11-foundation-deployment/features/05-gcp-cloud-run-cli-provider"
+this_file: "specifications/11-foundation-deployment/features/05-gcp-cloud-run-cli-provider/feature.md"
 
-status: pending
+status: complete
 priority: high
 created: 2026-03-26
-updated: 2026-03-28
+updated: 2026-04-06
+completed: 2026-04-06
 
 depends_on: ["01-foundation-deployment-core", "02-state-stores", "03-deployment-engine"]
 
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 
-# GCP Cloud Run Provider
+# GCP Cloud Run CLI Provider
 
 ## Iron Law: Zero Warnings
 
@@ -32,22 +33,16 @@ tasks:
 
 ## Overview
 
-Implement the GCP Cloud Run deployment provider. This provider is **API-first** — it deploys by calling the Cloud Run Admin API v2 directly via `SimpleHttpClient`, with no CLI tools required.
-
-The provider supports two modes:
-- **API mode (default)** - deploys directly via the Cloud Run Admin API, no external dependencies
-- **CLI mode (fallback)** - shells out to `gcloud` when API mode is not available or explicitly requested
+Implement the GCP Cloud Run deployment provider using the **gcloud CLI**. This provider is **CLI-based** — it wraps the `gcloud` command-line tool for all deployment operations.
 
 The provider:
-- **Deploys via API** - creates/updates Cloud Run services and jobs via `run.googleapis.com/v2`
-- **Captures state from API responses** - revision names, service URLs, traffic splits stored in state store
-- **Generates `service.yaml` on demand** - for local use with `gcloud run services replace`, not as deployment input
-- **Falls back to CLI** - can optionally shell out to `gcloud` if the user prefers
-- **Uses OpenAPI spec for resource types** - GCP Discovery specs generate strongly-typed resource definitions
+- **Deploys via gcloud CLI** - uses `gcloud run services replace` for service deployments
+- **Parses `service.yaml`** - reads Cloud Run configuration from the Knative service manifest
+- **Captures state from CLI output** - parses gcloud output for service URLs and revision names
+- **Requires gcloud installed** - depends on Google Cloud SDK installation
+- **Supports Services and Jobs** - handles both long-running HTTP services and batch/scheduled jobs
 
-Supports both **Cloud Run Services** (long-running HTTP) and **Cloud Run Jobs** (batch/scheduled).
-
-**Implementation Status:** The current implementation (`GcpCliProvider`) is CLI-based, using `gcloud` for all operations. API-first implementation is planned for a future iteration.
+**Note:** For API-first GCP deployments without CLI dependencies, see **Feature 08: GCP Cloud Run API Provider**.
 
 ## GCP Resource Types
 
@@ -68,11 +63,15 @@ Depends on:
 - `01-foundation-deployment-core` - `DeploymentProvider` trait, `ShellExecutor`
 - `02-state-stores` - `StateStore` for persistence
 - `03-deployment-engine` - `DeploymentPlanner` for orchestration
-- **`10-provider-spec-fetcher-core`** - OpenAPI spec fetching infrastructure (for resource generation)
+- **`14-provider-spec-fetcher-core`** - OpenAPI spec fetching infrastructure (for resource generation)
+- **`18-fetch-gcp-spec`** - GCP Discovery spec fetcher
+
+Related:
+- **`08-gcp-cloud-run-api-provider`** - API-first GCP provider (no CLI dependency)
 
 Required by:
-- `07-templates` - GCP-specific template configs
-- `09-examples-documentation` - GCP examples
+- `11-templates` - GCP-specific template configs
+- `13-examples-documentation` - GCP examples
 
 ## Resource Type Generation from OpenAPI Spec
 
@@ -1161,3 +1160,35 @@ cargo test gcp_integration -- --ignored --nocapture
 ---
 
 _Created: 2026-03-26_
+_Updated: 2026-04-06 - Status changed to complete, all 10/10 tasks implemented_
+
+## Verification Notes (2026-04-06)
+
+**Implementation Status: COMPLETE**
+
+All 10 tasks completed:
+- [x] Module structure (`gcp/mod.rs`, `provider.rs`, `fetch.rs`)
+- [x] `GcpConfig` parsing from `service.yaml`
+- [x] `GcpCliProvider` implementing `DeploymentProvider` trait
+- [x] CLI mode deployment via `gcloud run deploy`
+- [x] Build, validate, detect, deploy, destroy, logs, status methods
+- [x] Integration with deployment engine
+- [x] Zero clippy warnings
+- [x] All tests passing
+- [x] GCP Discovery spec fetcher implemented
+- [x] Version selection logic (stable > beta > alpha)
+
+**Verification Results:**
+- `cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic` — **zero warnings**
+- `cargo test -p foundation_deployment` — **all tests passing** (includes GCP fetch tests)
+- No `#[allow(...)]` or `#[expect(...)]` suppressions in code
+- Provider implements full `DeploymentProvider` trait:
+  - `name()` returns `"gcp"`
+  - `detect()` finds and parses `service.yaml`
+  - `validate()` checks config and gcloud CLI availability
+  - `build()` executes container build
+  - `deploy()` deploys via gcloud CLI
+  - `destroy()`, `logs()`, `status()` implemented
+  - `verify()` checks Cloud Run URL health
+
+**Note:** This provider is CLI-based (gcloud wrapper). For API-first GCP deployments without CLI dependencies, see **Feature 08: GCP Cloud Run API Provider**.
