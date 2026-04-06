@@ -7,7 +7,7 @@
 
 #[cfg(feature = "huggingface")]
 mod tests {
-    use foundation_deployment::providers::huggingface::{HFClientBuilder, HuggingFaceError};
+    use foundation_deployment::providers::huggingface::{HFClientBuilder, HuggingFaceError, client, repository, types};
     use foundation_core::valtron;
     use tracing_test::traced_test;
 
@@ -37,7 +37,7 @@ mod tests {
             .token(token)
             .build()?;
 
-        let user = client.whoami()?;
+        let user = client::whoami(&client)?;
 
         tracing::info!("Authenticated as: {}", user.username);
         if let Some(fullname) = user.fullname {
@@ -64,7 +64,7 @@ mod tests {
             .token(token)
             .build()?;
 
-        client.auth_check()?;
+        client::auth_check(&client)?;
 
         tracing::info!("Authentication successful!");
         Ok(())
@@ -81,12 +81,12 @@ mod tests {
             .token(token)
             .build()?;
 
-        let params = foundation_deployment::providers::huggingface::types::ListModelsParams {
+        let params = types::ListModelsParams {
             limit: Some(5),
             ..Default::default()
         };
 
-        let stream = client.list_models(&params)?;
+        let stream = client::list_models(&client, &params)?;
 
         let models: Vec<_> = foundation_core::valtron::collect_result(stream);
 
@@ -113,12 +113,12 @@ mod tests {
             .token(token)
             .build()?;
 
-        let params = foundation_deployment::providers::huggingface::types::ListDatasetsParams {
+        let params = types::ListDatasetsParams {
             limit: Some(5),
             ..Default::default()
         };
 
-        let stream = client.list_datasets(&params)?;
+        let stream = client::list_datasets(&client, &params)?;
 
         let datasets: Vec<_> = foundation_core::valtron::collect_result(stream);
 
@@ -149,11 +149,11 @@ mod tests {
         let repo = client.model("bert-base-uncased".to_string(), "");
 
         // This should work even without auth for public repos
-        match repo.info(&foundation_deployment::providers::huggingface::types::RepoInfoParams::default()) {
+        match repository::repo_info(&repo, &types::RepoInfoParams::default()) {
             Ok(info) => {
                 tracing::info!("Repository info retrieved successfully");
                 match info {
-                    foundation_deployment::providers::huggingface::types::RepoInfo::Model(model) => {
+                    types::RepoInfo::Model(model) => {
                         tracing::info!("  Model ID: {}", model.id);
                         tracing::info!("  Downloads: {:?}", model.downloads);
                         tracing::info!("  Likes: {:?}", model.likes);
